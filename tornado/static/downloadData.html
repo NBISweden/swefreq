@@ -1,0 +1,24 @@
+<!-- downloadData.html.html ng-click="downloadDataCtrl.downloadData()" -->
+
+<div ng-controller="downloadDataController as downloadDataCtrl">
+  <br>
+  <br>
+  <div class="col-xs-1"></div>
+  <div class="col-xs-8">
+    <h2>SweFreq Agreement</h2>
+    In case the agreement is short we can write it right here. Otherwise I can make a link to it.<br>Some more text, bla bla Lorem ipsum dolor sit amet, eu ius graeco perfecto, velit delicatissimi an est, rebum persequeris mel no. Stet everti sea ne. Utamur laoreet interpretaris vix et, ex qui solum abhorreant. Vis detracto liberavisse te, sea odio possim instructior te, vidit scripta ex his.
+    <br>
+    <b>I hereby consent to the agreement:</b> <input type="checkbox"
+					      ng-model="downloadDataCtrl.checked"
+					      ng-change="downloadDataCtrl.isChecked()">
+    <br/><br>
+
+	 <a class="btn btn-primary btn-download"
+	 ng-class="{'disabled': downloadDataCtrl.lChecked}"
+	 download="pilot.OF-0839.merged.AF.vcf.gz"
+	 href="/static/pilot.OF-0839.merged.AF.vcf.gz"
+	 ng-click="downloadDataCtrl.downloadData()">Download</a>
+
+  </div>
+  <div class="col-xs-2"></div>
+</div>

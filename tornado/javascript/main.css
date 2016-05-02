@@ -1,0 +1,16 @@
+.grid {
+  width: 100%;
+  height: 500px;
+}
+
+.ui-grid-header-cell .ui-grid-cell-contents {
+     height: 48px;
+     white-space: normal;
+     -ms-text-overflow: clip;
+     -o-text-overflow: clip;
+     text-overflow: clip;
+     overflow: visible;
+}
+
+.voffset2 { margin-top: 15px; }
+.hoffset2 { margin-left: 30px; }
