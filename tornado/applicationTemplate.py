@@ -37,7 +37,7 @@ indexHtml="""
            <div class="btn-group navbar-btn">
               {%if user_name != None%}
                 {{user_name}} <a href="/logout">Logout</a><br>{{email}}
-                
+
               {% else %}
                 <br>
                 <a href="/login">Login</a>
@@ -51,10 +51,10 @@ indexHtml="""
 		<!-- this is where content will be injected by angular-->
     <div ng-view></div>
   </div>
-  
+
   <footer class="text-center">
   </footer>
-  
+
 </body>
 </html>
 """
@@ -97,7 +97,7 @@ indexNoAccess="""
            <div class="btn-group navbar-btn">
               {%if user_name != None%}
                 {{user_name}} <a href="/logout">Logout</a><br>{{email}}
-                
+
               {% else %}
                 <br>
                 <a href="/login">Login</a>
@@ -112,10 +112,10 @@ indexNoAccess="""
 		<!-- this is where content will be injected by angular-->
     <div ng-view></div>
   </div>
-  
+
   <footer class="text-center">
   </footer>
-  
+
 </body>
 </html>
 """

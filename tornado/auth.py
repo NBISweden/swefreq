@@ -45,7 +45,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
     def get_current_token(self):
         return self.get_secure_cookie("access_token")
-    
+
     def get_current_user_name(self):
         # Fix ridiculous bug with quotation marks showing on the web
         user = self.get_current_user()
@@ -83,7 +83,7 @@ class GoogleUser(object):
                 self.authenticated = True
             self.display_name = info.get('displayName', '')
             self.emails = [email['value'] for email in info.get('emails')]
-            
+
     def is_authorized(self, user_view):
         """Checks that the user is actually authorised to use genomics-status.
         """

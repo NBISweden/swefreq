@@ -41,7 +41,7 @@
 	    });
 	};
 	this.getUsers();
-	
+
 	this.denyUser = function(userData){
 	    $http.get('/denyUser/' + userData.email).success(function(data){
 		localThis.getUsers();
@@ -53,7 +53,7 @@
 		localThis.getUsers();
 	    });
 	};
-							       
+
 	this.approvedUser = function(userData){
 	    $http.get('/approveUser/' + userData.email).success(function(data){
 		$http.get('/getOutsandingRequests').success(function(data){

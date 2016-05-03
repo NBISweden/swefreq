@@ -25,7 +25,7 @@ class query(auth.UnsafeHandler):
             return
         lRes = lookupAllele(sChr, int(iPos), alternateBase, "dummy", dataset)
         self.write(str(lRes))
-        
+
 def lookupAllele(chrom, pos, allele, reference, dataset):
     """CHeck if an allele is present in the database
     Args:
@@ -62,7 +62,7 @@ def lookupAllele(chrom, pos, allele, reference, dataset):
         return int(allele[1:])+1 == len(res['ref'])
 
     raise Exception("Can't find the thingy") # Should probably be a 4XX response
-        
+
 class home(auth.UnsafeHandler):
     def get(self, *args, **kwargs):
         t = template.Template(applicationTemplate.indexHead)
@@ -75,7 +75,7 @@ class home(auth.UnsafeHandler):
             t = template.Template(applicationTemplate.notAuthorizedHtml)
             logging.info(self.get_current_user())
         self.write(t.generate(user_name=self.get_current_user(), email=self.get_current_email()))
-        
+
 class getUser(auth.UnsafeHandler):
     def get(self, *args, **kwargs):
         sUser = self.get_current_user()
@@ -91,14 +91,14 @@ class getUser(auth.UnsafeHandler):
         tRes = db.query("""select full_user from swefreq.users where
                               email='%s' and swefreq_admin='YES'""" % sEmail)
         lAdmin = True if len(tRes) == 1 else False
-        
+
         logging.info("getUser: " + str(sUser) + ' ' + str(sEmail))
         self.finish(json.dumps({'user':sUser,
                                 'email':sEmail,
                                 'trusted':lTrusted,
                                 'isInDatabase':lDatabase,
                                 'admin':lAdmin}))
-        
+
 class requestAccess(auth.UnsafeHandler):
     def get(self, *args, **kwargs):
         sUser = self.get_current_user()
@@ -140,7 +140,7 @@ class logEvent(auth.SafeHandler):
                                from swefreq.users where email = '%s'""" % sEmail)
             db.execute("""update swefreq.users set download_count='%s'
                           where email='%s'""" % (int(tRes[0].download_count)+1, sEmail))
-            
+
 class approveUser(auth.SafeHandler):
     def get(self, sEmail):
         sLoggedInEmail = self.get_current_email()
@@ -150,7 +150,7 @@ class approveUser(auth.SafeHandler):
             return
         db.update("""update swefreq.users set full_user = 'YES'
         where email = '%s'""" % sEmail)
-        
+
 class deleteUser(auth.SafeHandler):
     def get(self, sEmail):
         sLoggedInEmail = self.get_current_email()

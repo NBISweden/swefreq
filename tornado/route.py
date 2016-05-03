@@ -57,7 +57,7 @@ class Application(tornado.web.Application):
 
         # google oauth key
         self.oauth_key = settings["google_oauth"]["key"]
-        
+
         # Setup the Tornado Application
         tornado.web.Application.__init__(self, handlers, **settings)
 
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     # Start HTTP Server
     http_server = tornado.httpserver.HTTPServer(application, ssl_options = ssl_options)
     http_server.listen(8080)
-    
+
     # Get a handle to the instance of IOLoop
     ioloop = tornado.ioloop.IOLoop.instance()
 
