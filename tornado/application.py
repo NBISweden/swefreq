@@ -113,6 +113,13 @@ class requestAccess(auth.UnsafeHandler):
             affiliation = self.get_argument("affiliation", default='', strip=False)
         except:
             return
+        # This is the only chance for XSRF in the application
+        # avoid it by checking that the email sent by google is the same as
+        # supplied by the form post
+        sEmail = self.get_current_email()
+        if sEmail != email:
+            return
+
         sSql = """
         insert into swefreq.users (username, email, affiliation, full_user)
         values ('%s', '%s', '%s', '%s')
