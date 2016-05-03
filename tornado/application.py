@@ -15,16 +15,53 @@ db = database.Connection(host = secrets.mysqlHost,
 
 class query(auth.UnsafeHandler):
     def get(self, *args, **kwargs):
-        sChr = self.get_argument('chromosome', '')
-        iPos = self.get_argument('position', '')
+        sChr = self.get_argument('chrom', '')
+        iPos = self.get_argument('pos', '')
         dataset = self.get_argument('dataset', '')
-        alternateBase = self.get_argument('alternateBases', '')
+        allele = self.get_argument('allele', '')
+        reference = self.get_argument('ref', 'dummy')
 
-        if sChr == '' or iPos == '' or not iPos.isdigit() or alternateBase == '' or dataset == '':
-            self.write('Error in arguments')
+        if sChr == '' or iPos == '' or not iPos.isdigit() or allele == '' or dataset == '':
+            self.send_error(400)
             return
-        lRes = lookupAllele(sChr, int(iPos), alternateBase, "dummy", dataset)
-        self.write(str(lRes))
+        exists = lookupAllele(sChr, int(iPos), allele, reference, dataset)
+        if self.get_argument('format', '') == 'text':
+            self.set_header('Content-Type', 'text/plain')
+            self.write(str(exists))
+        else:
+            self.write({
+                'response': {
+                    'exists': exists,
+                    'observed': 0,
+                    },
+                'query': {
+                    'chromosome': sChr,
+                    'position': iPos,
+                    'allele': allele,
+                    'dataset': dataset,
+                    'reference': reference
+                    },
+                'beacon': 'nbis-beacon'
+                })
+
+class info(auth.UnsafeHandler):
+    def get(self, *args, **kwargs):
+        self.write({
+            'id': u'nbis-beacon',
+            'name': u'NBIS Beacon',
+            'organization': u'NBIS',
+            'api': u'0.2',
+            #'description': u'Swefreq beacon from NBIS',
+            #'datasets': [],
+            #'homepage': u'http://'
+            #'email': u'swefreq-beacon@nbis.se',
+            #'auth': 'None', # u'oauth2'
+            'queries': [
+                'https://130.238.29.100:8080/query?chrom=1&pos=13372&dataset=exac&allele=C',
+                'https://130.238.29.100:8080/query?dataset=exac&chrom=2&pos=46199&allele=ICAG&format=text',
+                'https://130.238.29.100:8080/query?dataset=exac&chrom=2&pos=45561&allele=D3'
+                ] #
+            })
 
 def lookupAllele(chrom, pos, allele, reference, dataset):
     """CHeck if an allele is present in the database
