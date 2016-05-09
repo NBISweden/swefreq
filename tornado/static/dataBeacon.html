@@ -1,6 +1,6 @@
 <!-- dataBeacon.html -->
 
-<div ng-controller="dataBeaconController as dataBeaconCtrl">
+<div ng-controller="dataBeaconController">
     <div class="container">
         <form class="form-horizontal" role="form">
             <div class="row clearfix">
@@ -22,22 +22,22 @@
             </div>
             <div class="row clearfix">
                 <div class="col-sm-2 column">
-                    <input type="text" class="form-control" id="chromosome" ng-model="dataBeaconCtrl.data.chromosome" ng-disabled="false" placeholder="5">
+                    <input type="text" class="form-control" id="chromosome" ng-model="chromosome" ng-disabled="false" placeholder="5">
                 </div>
                 <div class="col-sm-2 column">
-                    <input type="text" class="form-control" id="position" ng-model="dataBeaconCtrl.data.position" ng-disabled="false" placeholder="12345">
+                    <input type="text" class="form-control" id="position" ng-model="position" ng-disabled="false" placeholder="12345">
                 </div>
                 <div class="col-sm-2 column">
-                    <input type="text" class="form-control" id="allele" ng-model="dataBeaconCtrl.data.allele" ng-disabled="false" placeholder="C">
+                    <input type="text" class="form-control" id="allele" ng-model="allele" ng-disabled="false" placeholder="C">
                 </div>
                 <div class="col-sm-2 column">
-                    <input type="text" class="form-control" id="reference" ng-model="dataBeaconCtrl.data.reference" ng-disabled="false" placeholder="hg20">
+                    <input type="text" class="form-control" id="reference" ng-model="reference" ng-disabled="false" placeholder="hg20">
                 </div>
                 <div class="col-sm-2 column">
-                    <input type="text" class="form-control" id="dataset" ng-model="dataBeaconCtrl.data.dataset" ng-disabled="false" placeholder="exac">
+                    <input type="text" class="form-control" id="dataset" ng-model="dataset" ng-disabled="false" placeholder="exac">
                 </div>
                 <div class="col-sm-2 column">
-                    <button ng-click="dataBeaconCtrl.search()" class="btn btn-default">Submit</button>
+                    <button ng-click="search()" class="btn btn-default">Submit</button>
                 </div>
             </div>
         </form>
@@ -45,7 +45,7 @@
             </div>
             <div class="row clearfix">
                 <div class='col-sm-3'></div>
-                <div class='col-sm-6'>{{dataBeaconCtrl.response}}</div>
+                <div class='col-sm-6'>{{response}}</div>
                 <div class='col-sm-3'></div>
             </div>
     </div>

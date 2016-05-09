@@ -66,19 +66,18 @@
      /////////////////////////////////////////////////////////////////////////////////////
 
     App.controller('dataBeaconController', function($http, $scope) {
-	var localThis = this;
-        this.search = function() {
-            $http.get('query', { 'params': { 'chrom': this.data.chromosome, 'pos': this.data.position, 'allele': this.data.allele, 'dataset': this.data.dataset}})
+        $scope.search = function() {
+            $http.get('query', { 'params': { 'chrom': $scope.chromosome, 'pos': $scope.position, 'allele': $scope.allele, 'dataset': $scope.dataset}})
                 .then(function (response){
                     if (response.data['response']['exists']) {
-                        localThis.response = "This allele exists in the dataset"
+                        $scope.response = "This allele exists in the dataset"
                     }
                     else {
-                        localThis.response = "Sorry, can't find it"
+                        $scope.response = "Sorry, can't find it"
                     }
                 },
                 function (response){
-                    localThis.response="ERROR";
+                    $scope.response="ERROR";
                 });
         }
     });
