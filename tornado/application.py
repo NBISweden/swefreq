@@ -52,7 +52,15 @@ class info(auth.UnsafeHandler):
             'organization': u'NBIS',
             'api': u'0.2',
             #'description': u'Swefreq beacon from NBIS',
-            #'datasets': [],
+            'datasets': [
+                {
+                    'id': 'exac',
+                    # 'description': 'Description',
+                    # 'size': { 'variants': 1234, 'samples': 12 },
+                    # 'data_uses': [] # Data use limitations
+                    'reference': 'hg20'
+                },
+            ],
             #'homepage': u'http://'
             #'email': u'swefreq-beacon@nbis.se',
             #'auth': 'None', # u'oauth2'
