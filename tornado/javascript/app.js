@@ -65,8 +65,30 @@
 
      /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('dataBeaconController', function($http, $scope) {
-	var localThis = this;
+    App.controller('dataBeaconController', function($http, $window) {
+        var beacon = this;
+        beacon.pattern = { 'chromosome': "\\d+" };
+        beacon.beacon_info = {};
+        $http.get('https://smog29-100.cloud.uppmax.uu.se:8080/info').success(function(data) {
+            beacon.beacon_info = data;
+            beacon.datasets = data['datasets'];
+        });
+        beacon.search = function() {
+            $http.get('query', { 'params': { 'chrom': beacon.chromosome, 'pos': beacon.position, 'allele': beacon.allele, 'dataset': beacon.dataset}})
+                .then(function (response){
+                    if (response.data['response']['exists']) {
+                        beacon.response = "Yes";
+                        beacon.color = 'green';
+                    }
+                    else {
+                        beacon.response = "No";
+                        beacon.color = "red";
+                    }
+                },
+                function (response){
+                    beacon.response="ERROR";
+                });
+        }
     });
 
      /////////////////////////////////////////////////////////////////////////////////////

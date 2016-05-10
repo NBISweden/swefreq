@@ -1,12 +1,52 @@
 <!-- dataBeacon.html -->
 
-<div ng-controller="dataBeaconController as dataBeaconCtrl">
-  <br>
-  <br>
-  <div class="col-xs-2"></div>
-  <div class="col-xs-8">
-    Data Beacon queries here
-  </div>
-  <div class="col-xs-2">
-  </div>
+<div ng-controller="dataBeaconController as beacon">
+    <div class="container">
+        <form role="form" name="beacon_form">
+            <div class="row">
+                <div class="col-sm-2">
+                    <label for="chromosome" class="sr-only">Chromosome</label>
+                    <input type="text" required 
+                        ng-pattern='/^([1-9]|1[0-9]|2[0-2]|X|Y|x|y)$/'
+                        class="form-control"
+                        id="chromosome"
+                        name="chromosome"
+                        ng-model="beacon.chromosome"
+                        ng-disabled="false"
+                        placeholder="Chromosome">
+                </div>
+                <div class="col-sm-2">
+                    <label for="position" class="sr-only">Position</label>
+                    <input type="number" required class="form-control" id="position" ng-model="beacon.position" ng-disabled="false" placeholder="Position">
+                </div>
+                <div class="col-sm-2">
+                    <label for="allele" class="sr-only">Allele</label>
+                    <input type="text" required
+                           ng-pattern='/^(I?[ATCGatcg]+|D\d+)$/'
+                        class="form-control" id="allele" ng-model="beacon.allele" name='allele' ng-disabled="false" placeholder="Allele">
+                </div>
+                <div class="col-sm-2">
+                    <label for="reference" class="sr-only">Reference</label>
+                    <select class='form-control' ng-model='beacon.reference' ng-options='d.reference as d.reference for d in beacon.datasets'>
+                         <option style="display:none" value="">Reference</option>
+                    </select>
+                </div>
+                <div class="col-sm-2">
+                    <label for="dataset" class="sr-only">Dataset</label>
+                    <select class='form-control' ng-model='beacon.dataset' required ng-options='d.id as d.id for d in beacon.datasets'>
+                        <option style="display:none; color: red" value="">Dataset</option>
+                    </select>
+                </div>
+                <div class="col-sm-2">
+                    <button ng-click="beacon.search()" class="btn btn-default">Is it there?</button>
+                </div>
+            </div>
+        </form>
+        <div class="row">
+            <div class="col-xs-12" style="height:50px;"></div>
+        </div>
+        <div class="row">
+            <div class='col-xs-11'><h1 style="color:{{beacon.color}}">{{beacon.response}}</h1></div>
+        </div>
+    </div>
 </div>
