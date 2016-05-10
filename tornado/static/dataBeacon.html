@@ -1,52 +1,52 @@
 <!-- dataBeacon.html -->
 
-<div ng-controller="dataBeaconController">
+<div ng-controller="dataBeaconController as beacon">
     <div class="container">
-        <form class="form-horizontal" role="form">
-            <div class="row clearfix">
-                <div class="col-sm-2 column">
-                    <label for="chromosome" class="control-label">Chromosome</label>
+        <form role="form" name="beacon_form">
+            <div class="row">
+                <div class="col-sm-2">
+                    <label for="chromosome" class="sr-only">Chromosome</label>
+                    <input type="text" required 
+                        ng-pattern='/^([1-9]|1[0-9]|2[0-2]|X|Y|x|y)$/'
+                        class="form-control"
+                        id="chromosome"
+                        name="chromosome"
+                        ng-model="beacon.chromosome"
+                        ng-disabled="false"
+                        placeholder="Chromosome">
                 </div>
-                <div class="col-sm-2 column">
-                    <label for="position" class="control-label">Position</label>
+                <div class="col-sm-2">
+                    <label for="position" class="sr-only">Position</label>
+                    <input type="number" required class="form-control" id="position" ng-model="beacon.position" ng-disabled="false" placeholder="Position">
                 </div>
-                <div class="col-sm-2 column">
-                    <label for="allele" class="control-label">Allele</label>
+                <div class="col-sm-2">
+                    <label for="allele" class="sr-only">Allele</label>
+                    <input type="text" required
+                           ng-pattern='/^(I?[ATCGatcg]+|D\d+)$/'
+                        class="form-control" id="allele" ng-model="beacon.allele" name='allele' ng-disabled="false" placeholder="Allele">
                 </div>
-                <div class="col-sm-2 column">
-                    <label for="reference" class="control-label">Reference</label>
+                <div class="col-sm-2">
+                    <label for="reference" class="sr-only">Reference</label>
+                    <select class='form-control' ng-model='beacon.reference' ng-options='d.reference as d.reference for d in beacon.datasets'>
+                         <option style="display:none" value="">Reference</option>
+                    </select>
                 </div>
-                <div class="col-sm-2 column">
-                    <label for="dataset" class="control-label">Dataset</label>
+                <div class="col-sm-2">
+                    <label for="dataset" class="sr-only">Dataset</label>
+                    <select class='form-control' ng-model='beacon.dataset' required ng-options='d.id as d.id for d in beacon.datasets'>
+                        <option style="display:none; color: red" value="">Dataset</option>
+                    </select>
                 </div>
-            </div>
-            <div class="row clearfix">
-                <div class="col-sm-2 column">
-                    <input type="text" class="form-control" id="chromosome" ng-model="chromosome" ng-disabled="false" placeholder="5">
-                </div>
-                <div class="col-sm-2 column">
-                    <input type="text" class="form-control" id="position" ng-model="position" ng-disabled="false" placeholder="12345">
-                </div>
-                <div class="col-sm-2 column">
-                    <input type="text" class="form-control" id="allele" ng-model="allele" ng-disabled="false" placeholder="C">
-                </div>
-                <div class="col-sm-2 column">
-                    <input type="text" class="form-control" id="reference" ng-model="reference" ng-disabled="false" placeholder="hg20">
-                </div>
-                <div class="col-sm-2 column">
-                    <input type="text" class="form-control" id="dataset" ng-model="dataset" ng-disabled="false" placeholder="exac">
-                </div>
-                <div class="col-sm-2 column">
-                    <button ng-click="search()" class="btn btn-default">Submit</button>
+                <div class="col-sm-2">
+                    <button ng-click="beacon.search()" class="btn btn-default">Is it there?</button>
                 </div>
             </div>
         </form>
-            <div class="row clearfix">
-            </div>
-            <div class="row clearfix">
-                <div class='col-sm-3'></div>
-                <div class='col-sm-6'>{{response}}</div>
-                <div class='col-sm-3'></div>
-            </div>
+        <div class="row">
+            <div class="col-xs-12" style="height:50px;"></div>
+        </div>
+        <div class="row">
+            <div class='col-xs-11'><h1 style="color:{{beacon.color}}">{{beacon.response}}</h1></div>
+        </div>
     </div>
 </div>

@@ -65,19 +65,28 @@
 
      /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('dataBeaconController', function($http, $scope) {
-        $scope.search = function() {
-            $http.get('query', { 'params': { 'chrom': $scope.chromosome, 'pos': $scope.position, 'allele': $scope.allele, 'dataset': $scope.dataset}})
+    App.controller('dataBeaconController', function($http, $window) {
+        var beacon = this;
+        beacon.pattern = { 'chromosome': "\\d+" };
+        beacon.beacon_info = {};
+        $http.get('https://smog29-100.cloud.uppmax.uu.se:8080/info').success(function(data) {
+            beacon.beacon_info = data;
+            beacon.datasets = data['datasets'];
+        });
+        beacon.search = function() {
+            $http.get('query', { 'params': { 'chrom': beacon.chromosome, 'pos': beacon.position, 'allele': beacon.allele, 'dataset': beacon.dataset}})
                 .then(function (response){
                     if (response.data['response']['exists']) {
-                        $scope.response = "This allele exists in the dataset"
+                        beacon.response = "Yes";
+                        beacon.color = 'green';
                     }
                     else {
-                        $scope.response = "Sorry, can't find it"
+                        beacon.response = "No";
+                        beacon.color = "red";
                     }
                 },
                 function (response){
-                    $scope.response="ERROR";
+                    beacon.response="ERROR";
                 });
         }
     });
