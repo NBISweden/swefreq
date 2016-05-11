@@ -24,7 +24,7 @@ class query(auth.UnsafeHandler):
         if sChr == '' or iPos == '' or not iPos.isdigit() or allele == '' or dataset == '':
             self.send_error(400)
             return
-        exists = lookupAllele(sChr, int(iPos), allele, reference, dataset)
+        exists = lookupAllele(sChr.upper(), int(iPos), allele.upper(), reference, dataset)
         if self.get_argument('format', '') == 'text':
             self.set_header('Content-Type', 'text/plain')
             self.write(str(exists))
