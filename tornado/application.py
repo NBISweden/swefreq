@@ -119,7 +119,9 @@ class home(auth.UnsafeHandler):
         else:
             t = template.Template(applicationTemplate.notAuthorizedHtml)
             logging.info(self.get_current_user())
-        self.write(t.generate(user_name=self.get_current_user(), email=self.get_current_email()))
+        self.write(t.generate(user_name=self.get_current_user(),
+                              email=self.get_current_email(),
+                              ExAC=secrets.ExAC_server))
 
 class getUser(auth.UnsafeHandler):
     def get(self, *args, **kwargs):
