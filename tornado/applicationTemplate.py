@@ -30,7 +30,7 @@ indexHtml="""
       </div>
       <ul class="nav navbar-nav navbar-right">
            <a href="/#/dataBeacon/" role="button" class="btn btn-default">Data Beacon</a>
-           <a href="/#/exacBrowser/" role="button" class="btn btn-default">ExAC Browser</a>
+           <a href="{{ExAC}}" role="button" class="btn btn-default">ExAC Browser</a>
            <a href="/#/downloadData/" role="button" class="btn btn-default">Download Data</a>
            &nbsp;
            &nbsp;
@@ -67,6 +67,10 @@ notAuthorizedHtml="""
         <a class="navbar-brand pull-left" href="/#/">SweFreq</a>
       </div>
       <ul class="nav navbar-nav navbar-right">
+           <a href="/#/dataBeacon/" role="button" class="btn btn-default">Data Beacon</a>
+           <a href="{{ExAC}}" role="button" class="btn btn-default">ExAC Browser</a>
+           &nbsp;
+           &nbsp;
            <div class="btn-group navbar-btn">
                 <br>
                 <a href="/login">Login</a>

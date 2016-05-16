@@ -35,6 +35,8 @@ class Application(tornado.web.Application):
         handlers = [
             (r"/", application.home),
             (r"/static/(home.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
+            (r"/static/(dataBeacon.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
+            (r"/static/(exacBrowser.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
             (r"/static/(.*)", auth.SafeStaticFileHandler, {"path": "static/"}),
             (r"/javascript/(.*)", tornado.web.StaticFileHandler, {"path": "javascript/"}),
             (r'/(favicon.ico)', tornado.web.StaticFileHandler, {"path": "static/"}),
