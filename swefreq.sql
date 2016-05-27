@@ -3,7 +3,7 @@
 -- mysql -u root -p < swefreq.sql
 
 CREATE DATABASE `swefreq` /*!40100 DEFAULT CHARACTER SET latin1 */;
-CREATE USER swefreq@localhost IDENTIFIED BY '34sweFreq12';
+CREATE USER swefreq@localhost IDENTIFIED BY '';
 GRANT ALL PRIVILEGES ON swefreq.* TO swefreq@localhost;
 FLUSH PRIVILEGES;
 USE swefreq;
