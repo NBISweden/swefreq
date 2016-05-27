@@ -39,9 +39,25 @@
                 </div>
                 <div class="col-sm-2">
                     <button ng-click="beacon.search()" class="btn btn-default">Is it there?</button>
+                    <a ng-click="showDetails = ! showDetails">Help</a>
                 </div>
             </div>
         </form>
+        <div class="row">
+            <div class="col-xs-12" style="height:25px;"></div>
+        </div>
+        <div class="row" ng-show="showDetails">
+            <div class="col-xs-12">
+                Allele is any string of nucleotides A,C,T,G or D#, IXXX for
+                deletion and insertion, respectively. For deletion you need to
+                specify the length, that is D3 for a 3 bp deletion. With
+                insertions you specify the inserted sequence but prefix it with
+                the base imediately before (and adjust position accordingly).
+                Example: an insertion of TA on position 45 would be specified as
+                ICTA on position 44 (given that C is what is on the position
+                prior to the insertion).
+            </div>
+        </div>
         <div class="row">
             <div class="col-xs-12" style="height:50px;"></div>
         </div>
