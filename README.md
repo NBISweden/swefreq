@@ -12,12 +12,15 @@ The application has only been tested with python 2.7.10. It will most likely wor
 2. Create a file named `secrets.py` and place it in the same directory as `route.py`
 3. MySql. Only tested with 5.6, but should work with version 4 and above
 
-The file `secrets.py` file should define the following python variables:
+The file `secrets.py` should define the following python variables:
 
 	# Google app-keys
 	googleKey = 
 	googleSecret = 
-	
+
+	# URI that google will redirect login to
+	redirect_uri = 
+
 	# MySql settings
 	mysqlHost = 
 	mysqlSchema = 
@@ -59,4 +62,4 @@ You need to create an administrative user by inserting one row into the `swefreq
 To start the server:
 
 	source /path/to/bin/activate                   # activate your virtualenv
-	python /path/to/directory/containing/route.py
+	python /path/to/route.py

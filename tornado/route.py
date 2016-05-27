@@ -15,7 +15,7 @@ import secrets
 tornado.log.enable_pretty_logging()
 logging.getLogger().setLevel(logging.DEBUG)
 
-redirect_uri = "https://smog29-100.cloud.uppmax.uu.se:8080/login"
+redirect_uri = secrets.redirect_uri
 
 # Setup the Tornado Application
 cookie_secret = base64.b64encode(uuid.uuid4().bytes + uuid.uuid4().bytes)
@@ -75,7 +75,7 @@ if __name__ == '__main__':
 
     # Start HTTP Server
     http_server = tornado.httpserver.HTTPServer(application, ssl_options = ssl_options)
-    http_server.listen(8080)
+    http_server.listen(443)
 
     # Get a handle to the instance of IOLoop
     ioloop = tornado.ioloop.IOLoop.instance()
