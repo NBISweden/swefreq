@@ -33,6 +33,14 @@ The file `secrets.py` should define the following python variables:
 	
 	# URL to the ExAC server
 	ExAC_server = 
+	
+	# port to bind application
+	appPort =
+	
+	# ssl certificate files
+	cert = 
+	key = 
+
 
 
 If you have `virtualenv` and `pip` installed then you can do the following to install the required python packages. Locate the `requirements.txt` file in the `swefreq` repository.

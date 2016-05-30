@@ -67,15 +67,20 @@ class Application(tornado.web.Application):
 if __name__ == '__main__':
     # Instantiate Application
     application = Application(settings)
-
+    """
     ssl_options = {
         'certfile': os.path.join('cert/server.crt'),
         'keyfile': os.path.join('cert/myserver.key')
         }
+    """
+    ssl_options = {
+        'certfile': os.path.join(secrets.cert),
+        'keyfile': os.path.join(secrets.key)
+        }
 
     # Start HTTP Server
     http_server = tornado.httpserver.HTTPServer(application, ssl_options = ssl_options)
-    http_server.listen(443)
+    http_server.listen(secrets.appPort)
 
     # Get a handle to the instance of IOLoop
     ioloop = tornado.ioloop.IOLoop.instance()
