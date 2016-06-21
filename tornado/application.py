@@ -46,6 +46,7 @@ class query(auth.UnsafeHandler):
 
 class info(auth.UnsafeHandler):
     def get(self, *args, **kwargs):
+        query_uri = "%s://%s/query?" % (self.request.protocol, self.request.host)
         self.write({
             'id': u'nbis-beacon',
             'name': u'NBIS Beacon',
@@ -61,13 +62,13 @@ class info(auth.UnsafeHandler):
                     'reference': 'hg20'
                 },
             ],
-            #'homepage': u'http://'
+            'homepage':  "%s://%s" % (self.request.protocol, self.request.host),
             #'email': u'swefreq-beacon@nbis.se',
             #'auth': 'None', # u'oauth2'
             'queries': [
-                'https://130.238.29.100:8080/query?chrom=1&pos=13372&dataset=exac&allele=C',
-                'https://130.238.29.100:8080/query?dataset=exac&chrom=2&pos=46199&allele=ICAG&format=text',
-                'https://130.238.29.100:8080/query?dataset=exac&chrom=2&pos=45561&allele=D3'
+                query_uri + 'chrom=1&pos=13372&dataset=exac&allele=C',
+                query_uri + 'dataset=exac&chrom=2&pos=46199&allele=ICAG&format=text',
+                query_uri + 'dataset=exac&chrom=2&pos=45561&allele=D3'
                 ] #
             })
 
