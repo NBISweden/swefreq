@@ -1,0 +1,648 @@
+{% extends "layout.html" %}
+{% block loads %}
+    <!-- jQuery and jQuery UI -->
+    <link rel="stylesheet" type="text/css" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
+
+    <!-- Google Fonts and Font awesome -->
+    <link rel="stylesheet" type="text/css" href='//fonts.googleapis.com/css?family=PT+Sans:400,700' />
+    <link rel="stylesheet" type="text/css" href='//fonts.googleapis.com/css?family=Open+Sans' />
+    <!-- ALREADY LOADED BY layout.html: link rel="stylesheet" type="text/css" href='//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css' / -->
+{% endblock %}
+{% block body %}
+    <!-- Render context vars in JS here -->
+    <script type="text/javascript">
+        window.variant = {{ variant|tojson|safe }};
+        window.base_coverage = {{ base_coverage|tojson|safe }};
+        window.any_covered = {{ any_covered|tojson|safe }};
+        window.consequence = {{ consequences|tojson|safe }};
+        window.metrics = {{ metrics|tojson|safe }};
+
+        $(document).ready(function() {
+            draw_region_coverage(window.base_coverage, 'mean', window.variant.ref);
+            $('.coverage_metric_buttons').change(function () {
+                var v = $(this).attr('id').replace('_covmet_button', '');
+                $('.coverage_subcat_selectors').hide();
+                if (v == 'covered') {
+                    $('#over_x_select_container').show();
+                    v = $('#over_x_select').val();
+                } else {
+                    $('#average_select_container').show();
+                    v = $("#average_select").val();
+                }
+                draw_region_coverage(window.base_coverage, v, window.variant.ref);
+            });
+            $('#over_x_select').change(function () {
+                draw_region_coverage(window.base_coverage, $(this).val(), window.variant.ref);
+            });
+            $('#average_select').change(function () {
+                draw_region_coverage(window.base_coverage, $(this).val(), window.variant.ref);
+            });
+        });
+    </script>
+    <style>
+    .d3_graph {
+        font: 10px sans-serif;
+    }
+
+    .bar rect {
+        fill: steelblue;
+        shape-rendering: crispEdges;
+    }
+
+    .bar text {
+        fill: #fff;
+    }
+
+    .axis path, .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+    }
+    </style>
+    <script>
+        var af_buckets = [0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1];
+        function get_af_bucket_text(bin) {
+            if (bin == 'singleton' || bin == 'doubleton') {
+                return 'This is the site quality distribution for all ' + bin + 's in ExAC.';
+            } else if (bin == '0.0001') {
+                return 'This is the site quality distribution for all variants with AF < ' + bin + ' in ExAC.';
+            } else {
+                return 'This is the site quality distribution for all variants with ' + af_buckets[af_buckets.indexOf(parseFloat(bin)) - 1] + ' < AF < ' + bin + ' in ExAC.';
+            }
+        }
+        $(document).ready(function() {
+            $('.frequency_display_buttons').change(function() {
+                $('.frequency_displays').hide();
+                var v = $(this).attr('id').replace('_button', '');
+                $('#' + v + '_container').show();
+            });
+
+            $('#frequency_table').tablesorter({
+                stringTo: 'bottom',
+                sortList: [[4,1], [0,0]],
+                headers: {
+                    4: {
+                        sorter: 'digit'
+                    }
+                }
+            });
+
+            if (window.variant != null && 'genotype_depths' in window.variant) {
+                draw_quality_histogram(window.variant.genotype_depths[1], '#quality_display_container', false, 'Depth', 'Variant Carriers');
+                $('.quality_display_buttons').change(function() {
+                    var v = $(this).attr('id').replace('_button', '');
+                    var f = $('.quality_full_site_buttons.active').attr('id') == 'variant_site_button' ? 0 : 1;
+                    var ylab = f ? 'Variant Carriers' : 'Individuals';
+                    draw_quality_histogram(window.variant[v][f], '#quality_display_container', false, $(this).text(), ylab);
+                });
+                $('.quality_full_site_buttons').change(function() {
+                    var v = $('.quality_display_buttons.active').attr('id').replace('_button', '');
+                    var f = $(this).attr('id') == 'variant_site_button' ? 0 : 1;
+                    var ylab = f ? 'Variant Carriers' : 'Individuals';
+                    draw_quality_histogram(window.variant[v][f], '#quality_display_container', false, $('.quality_display_buttons.active').text(), ylab);
+                });
+
+                // Quality metric histograms
+                var data = _.zip(_.map(window.metrics['Site Quality']['mids'], Math.exp), window.metrics['Site Quality']['hist']);
+                draw_quality_histogram(data, '#quality_metric_container', true, 'Site Quality', 'Variants');
+                var bin = window.metrics['Site Quality']['metric'].split('_')[1];
+                $('#site_quality_note').html(get_af_bucket_text(bin));
+                var pos = $('#quality_metric_select').val().split(': ')[1];
+                add_line_to_quality_histogram(data, pos, '#quality_metric_container', true);
+                var log_these = ['Site Quality', 'DP'];
+                $('#quality_metric_select').change(function() {
+                    var v = $(this).val().split(': ');
+                    var log = false;
+                    $('#site_quality_note').html('');
+                    var data;
+                    if (log_these.indexOf(v[0]) > -1) {
+                        data = _.zip(_.map(window.metrics[v[0]]['mids'], Math.exp), window.metrics[v[0]]['hist']);
+                        log = true;
+                    } else {
+                        data = _.zip(window.metrics[v[0]]['mids'], window.metrics[v[0]]['hist']);
+                    }
+                    if (v[0] == 'Site Quality') {
+                        var bin = window.metrics['Site Quality']['metric'].split('_')[1];
+                        $('#site_quality_note').html(get_af_bucket_text(bin));
+                    }
+                    draw_quality_histogram(data, '#quality_metric_container', log, v[0], 'Variants');
+                    add_line_to_quality_histogram(data, v[1], '#quality_metric_container', log);
+                });
+            } else {
+                $('#quality_metrics_container').hide();
+{#                $('#frequency_info_container').hide();#}
+            }
+        });
+    </script>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h1><span class="hidden-xs">Variant: </span>{{ variant.chrom }}:{{ variant.pos }} {{ variant.ref }} / {{ variant.alt }}</h1>
+                {% if variant.mnps %}
+                    {% for mnp in variant.mnps %}
+                        {% if mnp.category == 'UNCHANGED' %}
+                            <span class="label label-info">Note:</span>
+                        {% else %}
+                            <h5><span class="label label-warning">Warning!</span>
+                        {% endif %}
+                        This variant is found in phase with <a href="/variant/{{ mnp.site2 }}">{{ mnp.site2 }}</a>
+                        {% if mnp.site3 %}
+                            and <a href="/variant/{{ mnp.site3 }}">{{ mnp.site3 }}</a>
+                        {% endif %}
+                        in {{ mnp.number_samples }} individual{% if mnp.number_samples > 1 %}s{% endif %}{% if mnp.category != 'UNCHANGED' %}, altering its functional interpretation</h5>{% endif %}.
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+            {% if variant.orig_alt_alleles|length > 1 %}
+                <h5><span class="label label-info">Note:</span> This variant is multiallelic! The other alt alleles are:</h5>
+                <ul>
+                    {% for allele in variant.orig_alt_alleles %}
+                        {% if allele != variant.variant_id %}
+                            <li>
+                                <a href="/variant/{{ allele }}">{{ allele }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            </div>
+        </div>
+        <hr/>
+{#      Upper display #}
+        {% if variant.variant_id %}
+            {% if variant.allele_num < 97129.6 %}
+                <p><span class="label label-warning">Warning!</span> This variant is only covered in {{ (variant.allele_num/2)|int }} individuals (adjusted allele number = {{ variant.allele_num }}).<br/>
+                This means that the site is covered in fewer than 80% of the individuals in ExAC, which may indicate a low-quality site.</p>
+                <hr/>
+            {% endif %}
+            <div class="row">
+                <div class="col-md-6">
+                    <dl class="dl-horizontal" style="margin-bottom: 0px;">
+                        <dt>
+                            {% if variant.filter != "PASS" %}
+                                <span class="label label-danger">Filter Status</span>
+                            {% else %}
+                                Filter Status
+                            {% endif %}
+                        </dt>
+                        <dd>{{ variant.filter }}</dd>
+                        <dt>dbSNP</dt>
+                        {% if variant.rsid and variant.rsid != "." %}
+                            <dd><a href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?rs={{ variant.rsid }}" target="_blank">{{ variant.rsid }}</a></dd>
+                        {% else %}
+                            <dd>Not found in dbSNP</dd>
+                        {% endif %}
+                        <dt>Allele Frequency</dt>
+                        <dd>{% if variant.allele_freq %}{{ '%0.4g' % variant.allele_freq }}{% else %}NA (Allele Number = 0){% endif %}</dd>
+                        <dt>Allele Count</dt>
+                        <dd>{{ variant.allele_count }} / {{ variant.allele_num }}</dd>
+                        <dt>UCSC</dt>
+                        <dd>
+                            <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr{{ variant.chrom }}%3A{{ variant.pos }}-{{ variant.pos + variant.ref|length - 1 }}&position=chr{{ variant.chrom }}%3A{{ variant.pos - 25 }}-{{ variant.pos + variant.ref|length - 1 + 25 }}" target="_blank">
+                                {{ variant.variant_id }}
+                                <i class="fa fa-external-link"></i>
+                            </a>
+                        </dd>
+                        <dt>ClinVar</dt>
+                        <dd>
+                            {% if not variant.rsid or variant.rsid == "." %}
+                                <a href="http://www.ncbi.nlm.nih.gov/clinvar?term=({{ variant.chrom }}%5BChromosome%5D)%20AND%20{{ variant.pos }}%5BBase%20Position%20for%20Assembly%20GRCh37%5D" target="_blank">
+                            {% else %}
+                                <a href="http://www.ncbi.nlm.nih.gov/clinvar?term={{ variant.rsid }}%5BVariant%20ID%5D" target="_blank">
+                            {% endif %}
+                                Click to search for variant in Clinvar
+                                <i class="fa fa-external-link"></i>
+                            </a>
+                        </dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <div class="row">
+                        <div class="col-md-8 col-md-offset-1">
+                            <div class="panel-group" id="metrics_outer_accordion" role="tablist" aria-multiselectable="true">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading" role="tab" id="gt_quality_collapse_heading"   style="height: auto">
+                                        <div class="panel-title">
+                                            <a data-toggle="collapse" data-parent="#accordion" href="#gt_quality_collapse" aria-expanded="false" aria-controls="gt_quality_collapse">
+                                                <small>Genotype Quality Metrics</small>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div id="gt_quality_collapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="gt_quality_collapse_heading">
+                                        <div class="row">
+                                            <div class="col-md-10 col-md-offset-1">
+                                                <div id="quality_metrics_container">
+                                                    <span class="btn-group" data-toggle="buttons" id="quality_full_site_button_group">
+                                                        <button class="btn btn-primary btn-sm active quality_full_site_buttons" id="variant_carriers_button"
+                                                                data-tooltip="Show metric for only individuals with this allele.">
+                                                            <input type="radio"> Variant carriers
+                                                        </button>
+                                                        <button class="btn btn-primary btn-sm quality_full_site_buttons" id="variant_site_button"
+                                                                data-tooltip="Show metric for all individuals (at this site, whether or not they have this allele).">
+                                                            <input type="radio" > All individuals
+                                                        </button>
+                                                    </span>
+                                                    <div id="quality_display_container" class="d3_graph"></div>
+                                                    <small><span class="label label-info">Note:</span> Plot may include low-quality genotypes that were excluded from allele counts in the table above</small>
+                                                    <span class="btn-group" data-toggle="buttons" id="quality_display_button_group" >
+                                                        <button class="btn btn-primary btn-sm active quality_display_buttons" id="genotype_depths_button"
+                                                                data-tooltip="Per sample depth. Capped at 100X">
+                                                            <input type="radio"> Depth
+                                                        </button>
+                                                        <button class="btn btn-primary btn-sm quality_display_buttons" id="genotype_qualities_button"
+                                                                data-tooltip="Per sample genotype quality.">
+                                                            <input type="radio" > Genotype Quality
+                                                        </button>
+                                                    </span>
+                                                </div>
+                                                <br/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="panel panel-default">
+                                    <div class="panel-heading" role="tab" id="quality_collapse_heading"   style="height: auto">
+                                        <div class="panel-title">
+                                            <a data-toggle="collapse" data-parent="#accordion" href="#quality_collapse" aria-expanded="false" aria-controls="quality_collapse">
+                                                <small>Site Quality Metrics</small>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div id="quality_collapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="quality_collapse_heading">
+                                        <div class="row">
+                                            <div class="col-md-10 col-md-offset-1">
+                                                <div id="quality_metric_container"></div>
+                                                <small><div id="site_quality_note"></div></small>
+                                                <small><span class="label label-info">Note:</span> These are site-level quality metrics: they may be unpredictable for multi-allelic sites.</small>
+                                                <select id="quality_metric_select" class="form-control">
+                                                    <option><small>Site Quality: {{ variant.site_quality }}</small></option>
+                                                    {% for metric in variant.quality_metrics %}
+                                                        <option><small>{{ metric }}: {{ variant.quality_metrics[metric] }}</small></option>
+                                                    {% endfor %}
+                                                </select>
+                                                <br/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr/>
+        {% endif %}
+
+{#          Lower display#}
+        <div class="row">
+            <div class="col-md-6">
+                <div id="annotation_container">
+                {% if variant.variant_id %}
+                    <div class="section_header">Annotations</div>
+                    {% if variant.vep_annotations %}
+                        <p>This variant falls on {{ variant.transcripts|length }} transcripts in {{ variant.genes|length }} genes:</p>
+                        <div class="panel-group" id="annotation_accordion" style="margin-bottom: 0px;">
+                            <div class="row">
+                                {% if consequences|length > 1 %}
+                                    <div class="col-md-6" style="border-right: 1px dashed #AAA;">
+                                {% else %}
+                                    <div class="col-md-6">
+                                {% endif %}
+                                {% for consequence in consequences.keys()[:(((consequences|length + 1) / 2)|int)] %}
+                                    {% include 'variant_consequences.html' %}
+                                {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                {% for consequence in consequences.keys()[(((consequences|length + 1) / 2)|int):(consequences|length)] %}
+                                    {% include 'variant_consequences.html' %}
+                                {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <small><span class="label label-info">Note:</span> This list may not include additional transcripts in the same gene that the variant does not overlap.</small>
+                    {% else %}
+                        No annotations were found for this variant.
+                    {% endif %}
+                {% else %}
+                    <h3>This variant is not found in ExAC.</h3>
+                {% endif %}
+                </div>
+                <div id="browser_container">
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                {% if variant.pop_acs %}
+                    <div id="frequency_info_container">
+                        <div class="section_header">Population Frequencies</div>
+                        <div id="frequency_table_container" class="frequency_displays">
+                            {% with chrom = variant.chrom %}
+                            <table id="frequency_table">
+                                <thead>
+                                    <tr>
+                                        <th>Population</th>
+                                        <th>Allele Count</th>
+                                        <th>Allele Number</th>
+                                        {% if chrom != 'Y' %}
+                                            <th>Number of Homozygotes</th>
+                                        {% endif %}
+                                        {% if chrom == 'X' or chrom == 'Y' %}
+                                            <th>Number of Hemizygotes</th>
+                                        {% endif %}
+                                        <th>Allele Frequency</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for pop in variant.pop_acs %}
+                                        <tr>
+                                            <td>{{ pop }}</td>
+                                            <td>{{ variant.pop_acs[pop] }}</td>
+                                            <td>{{ variant.pop_ans[pop] }}</td>
+                                            {% if chrom != 'Y' %}
+                                                <td>{{ variant.pop_homs[pop] }}</td>
+                                            {% endif %}
+                                            {% if chrom == 'X' or chrom == 'Y' %}
+                                                <td>{{ variant.pop_hemis[pop] }}</td>
+                                            {% endif %}
+                                            {% if variant.pop_ans[pop] > 0 %}
+                                                <td>{{ '%0.4g' % (variant.pop_acs[pop]/variant.pop_ans[pop]) }}</td>
+                                            {% else %}
+                                                <td>NA</td>
+                                            {% endif %}
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td><b>Total</b></td>
+                                        <td><b>{{ variant.pop_acs.values()|sum }}</b></td>
+                                        <td><b>{{ variant.pop_ans.values()|sum }}</b></td>
+                                        {% if chrom != 'Y' %}
+                                            <td><b>{{ variant.pop_homs.values()|sum }}</b></td>
+                                        {% endif %}
+                                        {% if chrom == 'X' or chrom == 'Y' %}
+                                            <td><b>{{ variant.pop_hemis.values()|sum }}</b></td>
+                                        {% endif %}
+                                        <td><b>
+                                            {% if variant.allele_freq is not none %}
+                                                {{ '%0.4g' % variant.allele_freq }}
+                                            {% else %}
+                                                NA
+                                            {% endif %}
+                                        </b></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                            {% endwith %}
+                        </div>
+                    </div>
+                {% else %}
+                    {% if any_covered %}
+                        <div class="row">
+                            <span class="section_header">Coverage</span>
+                            {% if base_coverage|length > 1 %}
+                                {% include 'coverage_selectors.html' %}
+                            {% endif %}
+                        </div>
+                        <div id="region_coverage"></div>
+                    {% else %}
+                        <h3>This region is not covered in the ExAC dataset.</h3>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        {#% if read_viz|length > 0  %#}
+
+        <hr/>
+
+        <div class="row">
+	    <div class="col-md-12">
+	    <div class="section_header">Read Data</div>
+            <p />
+            This interactive <a href="https://github.com/igvteam/igv.js">IGV.js</a> visualization shows reads that went into calling this variant.<br>
+            {% if read_viz['het']['n_available'] > 0 or read_viz['hom']['n_available'] >0 %}
+                <small><span class="label label-info">Note:</span> These are reassembled reads produced by
+                    <a href="https://www.broadinstitute.org/gatk/gatkdocs/org_broadinstitute_gatk_tools_walkers_haplotypecaller_HaplotypeCaller.php#--bamOutput">
+                        GATK HaplotypeCaller --bamOutput
+                    </a> so they accurately represent what HaplotypeCaller was seeing when it called this variant.</small>
+            {% endif %}
+
+            <br><br>
+
+
+
+        {% if read_viz['het']['all_samples_missing'] or read_viz['hom']['all_samples_missing'] %}
+            <center>
+
+                    <h5 id='missing-data-note' style='margin-right:60%' >
+                        <span class="label label-info">Note:</span> &nbsp; Read data is not available for
+                        {% if read_viz['het']['n_available'] == 0 and read_viz['hom']['n_available'] == 0 %}
+                            this variant.
+                        {% elif read_viz['het']['all_samples_missing'] %}
+                            heterozygous samples.
+                        {% elif read_viz['hom']['all_samples_missing'] %}
+                            homozygous samples.
+                        {% endif %}
+
+                    </h5>
+
+                <!--
+                <h5 id='missing-additional-data-note' style='display:none; margin-right:60%' >
+                    <span class="label label-info">Note:</span> &nbsp; Oops! Additional read data is not available yet.
+                </h5>
+                -->
+            </center><br>
+
+        {% endif %}
+
+            <div id="igv-container"></div>
+            <br><br>
+
+            {% if read_viz['het']['n_available'] > 1 or read_viz['hom']['n_available'] > 1 %}
+                <center>
+                    <button class="btn btn-primary quality_full_site_buttons" style="disabled:true; width:130px; height: 32px;" id="load-more-het-button">Load +1 Het</button>
+                    &nbsp; &nbsp; &nbsp;
+                    <button class="btn btn-primary quality_full_site_buttons" style="disabled:true; width:130px; height: 32px;" id="load-more-hom-button">Load +1 Hom</button><br>
+                </center>
+            {% endif %}
+            <br>
+
+
+            <!-- IGV dependencies -->
+
+            <!-- igv.js -->
+            <!-- link rel="stylesheet" type="text/css" href="/igv-css/igv.css" -->
+            <!-- script type="text/javascript" src="/igv.min.js"></script -->
+
+            <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/igv.css') }}">
+            <script type="text/javascript" src="{{ url_for('static', filename='igv.min.js') }}"></script>
+
+            <!-- link rel="stylesheet" type="text/css" href="http://igv.org/web/beta/igv-beta.css" -->
+            <!-- script type="text/javascript" src="http://igv.org/web/beta/igv-beta.min.js"></script -->
+
+            <script type="text/javascript">
+
+                var get_bam_track_config = function(read_viz_data, het_or_hom, i) {
+                    return {
+                        type: 'bam',   
+                        indexed: true,
+                        alignmentShading: 'strand',
+                        url: '/read_viz/' + read_viz_data[het_or_hom]['urls'][i],
+                        name: het_or_hom + ' #'+(i+1),
+                        height: 300,
+                        minHeight: 300,
+                        autoHeight: false,
+                        readgroup: read_viz_data[het_or_hom]['readgroups'][i],  //readgroup: '1-157768000-G-C_hom10',
+                    };
+                };
+ 
+                // global igv settings
+                igv.CoverageMap.threshold=0.1;
+                
+                // temporary implementation of filtering IGV BamTracks by a user-specified ReadGroup
+                igv.BamReader.prototype.readFeatures_original = igv.BamReader.prototype.readFeatures;
+                igv.BamReader.prototype.readFeatures = function(chr, min, max, continuation, task) {
+
+                    //if a readgroup was passed to the BamTrack constructor, filter reads without this read group.
+                    if(this.config.readgroup) {
+                        var readgroup = this.config.readgroup;
+                        var continuation_original = continuation;
+                        var continuationNew = function(alignments) {
+                            //filter the alignments by read group
+                            //console.log("Filtering by RG == " + readgroup );
+                            alignments = alignments.filter(function (alignment) {
+                                alignment.tags(); //parses tags from their binary representation and populates the alignment.tagDict
+                                return alignment.tagDict['RG'] == readgroup;
+                            });
+
+                            //forward the filtered aligments to the original continuation
+                            return continuation_original(alignments);
+                        };
+                    }
+
+                    return this.readFeatures_original(chr, min, max, continuationNew, task);
+                };
+
+                //a dict of counts: n_expected_het, n_expected_hom, n_available_het, n_available_hom
+                var read_viz_data = {{ read_viz | tojson | safe }};
+
+                //counts number of het/hom bam tracks displayed so far
+                var tracks_counter = {"het": 0, "hom": 0};
+
+                //initialize IGV tracks
+                var tracks = [];
+                tracks.push({
+                    url: '/read_viz/gencode.v19.sorted.bed',
+                    name: "gencode v19",
+                    displayMode: "SQUISHED"
+                });
+                //tracks.push({ url: '/read_viz/exome_calling_regions.v1.bed', name: "ExAC calling regions" });
+                //tracks.push({ url: '/read_viz/self_chain.sorted.bed',        name: "UCSC self chain" });
+
+                if( location.hash == '#all' ) {
+                    //add all available tracks for het and hom and hide the 'load +1' buttons
+                    // this mode was requested by @konrad and @eric
+                    $('#load-more-het-button').hide();
+                    $('#load-more-hom-button').hide();
+
+                    ["het", "hom"].forEach(function (het_or_hom) {
+                        var n = read_viz_data[het_or_hom]['n_available'];
+                        for(var i = 0; i < n; i+=1) {
+                            tracks.push(get_bam_track_config(read_viz_data, het_or_hom, i)); 
+                            tracks_counter[het_or_hom] += 1;
+                        }
+                    });
+
+                } else {
+                    //add track #1 for het and hom (assuming they're available)
+                    ["het", "hom"].forEach(function (het_or_hom) {
+                        if (read_viz_data[het_or_hom]['n_available'] > 0) {
+                            tracks.push(get_bam_track_config(read_viz_data, het_or_hom, 0));
+                            tracks_counter[het_or_hom] += 1;
+                        }
+
+                        disable_load_one_more = tracks_counter[het_or_hom] >= read_viz_data[het_or_hom]['n_available'];
+                        $('#load-more-' + het_or_hom + '-button').prop('disabled', disable_load_one_more);
+                    });
+
+                    var load_one_more = function (het_or_hom) {
+                        if (tracks_counter[het_or_hom] < read_viz_data[het_or_hom]['n_available']) {
+                            var i = tracks_counter[het_or_hom];
+                            console.log(read_viz_data[het_or_hom]['urls'][i]);
+                            console.log(read_viz_data[het_or_hom]['readgroups'][i]);
+                            igv.browser.loadTrack(get_bam_track_config(read_viz_data, het_or_hom, i));
+                            tracks_counter[het_or_hom] += 1;
+                        }
+
+                        if (tracks_counter[het_or_hom] >= read_viz_data[het_or_hom]['n_available']) {
+                            $('#load-more-' + het_or_hom + '-button').prop('disabled', true);
+                        }
+                    };
+
+                    $('#load-more-het-button').click(function () {
+                        load_one_more("het");
+                    });
+
+                    $('#load-more-hom-button').click(function () {
+                        load_one_more("hom");
+                    });
+                }
+
+                //initialize IGV.js browser
+                var locus = '{{ variant.chrom }}:{{ variant.pos-150 }}-{{ variant.pos+150 }}';
+                var options = {
+                    showCommandBar: true,
+                    genome: 'hg19',
+                    locus: locus,
+                    showKaryo: false,
+                    tracks: tracks,
+                };
+
+                igv.createBrowser($("#igv-container")[0], options);
+
+
+                //IGV browser customizations
+                $(".igv-ideogram-content-div").hide();  //hide the IGV ideogram
+
+                //$(".igv-logo").hide();
+
+                $(".igvNavigationSearch").append(
+                        "<a id='reset-locus' title='Reset to original locus ("+locus+")'>"+
+                        "<i class='igv-app-icon fa fa-mail-reply shim-left-6'></i>"+
+                        "</a>");
+
+                // allow one more zoom-in level
+                igv.browser.pixelPerBasepairThreshold = function() {
+                    return 28.0;  //default is currently 14.0
+                };
+
+                //click handlers
+                $('#reset-locus').click(function() {
+                    igv.browser.search(locus);
+                });
+
+                igv.browser.trackViews.forEach(function (panel) {
+                    if(panel.track.name)
+                    {
+                        //add border between tracks
+                        panel.viewportDiv.style.borderBottom = panel.viewportDiv.style.borderLeft = "1px solid #cccccc";
+
+                    }
+                });
+
+          </script>
+            <style>
+                .igv-viewport-div {
+                    border-left: 1px solid #cccccc;
+                    border-bottom: 1px solid #cccccc;
+                }
+            </style>
+    </div>
+  </div>
+ </div>
+
+{#% endif %#}
+{% endblock %}
