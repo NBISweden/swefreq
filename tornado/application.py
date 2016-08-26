@@ -7,6 +7,10 @@ import json
 import secrets
 import torndb as database
 import pymongo
+import smtplib
+import email.mime.multipart
+from email.MIMEText import MIMEText
+
 
 db = database.Connection(host = secrets.mysqlHost,
                          database = secrets.mysqlSchema,
@@ -198,6 +202,19 @@ class approveUser(auth.SafeHandler):
             return
         db.update("""update swefreq.users set full_user = 'YES'
         where email = '%s'""" % sEmail)
+
+        msg = email.mime.multipart.MIMEMultipart()
+        msg['to'] = sEmail
+        msg['from'] = secrets.FROM_ADDRESS
+        msg['subject'] = 'Swefreq account created'
+        msg.add_header('reply-to', secrets.REPLY_TO_ADDRESS)
+        body = "Your Swefreq account has been activated."
+        msg.attach(MIMEText(body, 'plain'))
+
+
+        server = smtplib.SMTP(secrets.MAIL_SERVER)
+        server.sendmail(msg['from'], [msg['to']], msg.as_string())
+
 
 class deleteUser(auth.SafeHandler):
     def get(self, sEmail):
