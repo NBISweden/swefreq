@@ -69,7 +69,7 @@
         var beacon = this;
         beacon.pattern = { 'chromosome': "\\d+" };
         beacon.beacon_info = {};
-        $http.get('https://smog29-100.cloud.uppmax.uu.se:8080/info').success(function(data) {
+        $http.get('/info').success(function(data) {
             beacon.beacon_info = data;
             beacon.datasets = data['datasets'];
         });
