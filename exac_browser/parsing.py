@@ -7,13 +7,14 @@ from utils import *
 import copy
 
 POPS = {
-    'AFR': 'African',
-    'AMR': 'Latino',
-    'EAS': 'East Asian',
-    'FIN': 'European (Finnish)',
-    'NFE': 'European (Non-Finnish)',
-    'SAS': 'South Asian',
-    'OTH': 'Other'
+    #'AFR': 'African',
+    #'AMR': 'Latino',
+    #'EAS': 'East Asian',
+    #'FIN': 'European (Finnish)',
+    #'NFE': 'European (Non-Finnish)',
+    #'SAS': 'South Asian',
+    #'OTH': 'Other'
+	'KGA':	'SweFreq'
 }
 
 
@@ -73,6 +74,10 @@ def get_variants_from_sites_vcf(sites_vcf):
                 raise Exception("VEP_field_names is None. Make sure VCF header is present.")
             # This elegant parsing code below is copied from https://github.com/konradjk/loftee
             fields = line.split('\t')
+
+	    if fields[0].startswith('GL') or fields[0].startswith('MT'):
+    		continue
+
             info_field = dict([(x.split('=', 1)) if '=' in x else (x, x) for x in re.split(';(?=\w)', fields[7])])
             consequence_array = info_field['CSQ'].split(',') if 'CSQ' in info_field else []
             annotations = [dict(zip(vep_field_names, x.split('|'))) for x in consequence_array if len(vep_field_names) == len(x.split('|'))]
@@ -120,10 +125,10 @@ def get_variants_from_sites_vcf(sites_vcf):
                 variant['pop_acs'] = dict([(POPS[x], int(info_field['AC_%s' % x].split(',')[i])) for x in POPS])
                 variant['pop_ans'] = dict([(POPS[x], int(info_field['AN_%s' % x])) for x in POPS])
                 variant['pop_homs'] = dict([(POPS[x], int(info_field['Hom_%s' % x].split(',')[i])) for x in POPS])
-                variant['ac_male'] = info_field['AC_MALE']
-                variant['ac_female'] = info_field['AC_FEMALE']
-                variant['an_male'] = info_field['AN_MALE']
-                variant['an_female'] = info_field['AN_FEMALE']
+                #variant['ac_male'] = info_field['AC_MALE']
+                #variant['ac_female'] = info_field['AC_FEMALE']
+                #variant['an_male'] = info_field['AN_MALE']
+                #variant['an_female'] = info_field['AN_FEMALE']
                 variant['hom_count'] = sum(variant['pop_homs'].values())
                 if variant['chrom'] in ('X', 'Y'):
                     variant['pop_hemis'] = dict([(POPS[x], int(info_field['Hemi_%s' % x].split(',')[i])) for x in POPS])
