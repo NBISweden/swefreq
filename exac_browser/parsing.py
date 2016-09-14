@@ -14,7 +14,7 @@ POPS = {
     #'NFE': 'European (Non-Finnish)',
     #'SAS': 'South Asian',
     #'OTH': 'Other'
-	'KGA':	'SweFreq'
+	'KGA':	'SweGen'
 }
 
 
