@@ -41,6 +41,13 @@ The file `secrets.py` should define the following python variables:
 	cert = 
 	key = 
 
+	# e-mail config
+	MAIL_SERVER = 
+	FROM_ADDRESS = 
+	REPLY_TO_ADDRESS = 
+	ADMIN_ADDRESS = 
+
+
 
 
 If you have `virtualenv` and `pip` installed then you can do the following to install the required python packages. Locate the `requirements.txt` file in the `swefreq` repository.
