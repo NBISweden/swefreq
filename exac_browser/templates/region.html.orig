@@ -38,16 +38,13 @@
                 </p>
             {% endif %}
         {% endif %}
-{#        {% if genes_in_region %}
-#}
+        {% if genes_in_region %}
             {% if stop != None %}
-
                 <h3>Coverage summary</h3>
                 <div class="row">
-                     {% include 'region_display.html' %}
+                    {% include 'region_display.html' %}
                 </div>
             {% endif %}
-
             <div class="section_header">Genes</div>
             <ul>
                 {% for gene in genes_in_region %}
@@ -55,8 +52,7 @@
                 {% endfor %}
             </ul>
             <br/>
-{#        {% endif %}
-#}
+        {% endif %}
         {% if variants_in_region %}
             {% if rsid %}
                 <p>This is a dbSNP variant. Here are the possibilities</p>
