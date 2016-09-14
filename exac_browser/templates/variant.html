@@ -174,7 +174,7 @@
         {% if variant.variant_id %}
             {% if variant.allele_num < 1600.0 %}
                 <p><span class="label label-warning">Warning!</span> This variant is only covered in {{ (variant.allele_num/2)|int }} individuals (adjusted allele number = {{ variant.allele_num }}).<br/>
-                This means that the site is covered in fewer than 80% of the individuals in ExAC, which may indicate a low-quality site.</p>
+                This means that the site is covered in fewer than 80% of the individuals in SweGen, which may indicate a low-quality site.</p>
                 <hr/>
             {% endif %}
             <div class="row">
@@ -326,7 +326,7 @@
                         No annotations were found for this variant.
                     {% endif %}
                 {% else %}
-                    <h3>This variant is not found in ExAC.</h3>
+                    <h3>This variant is not found in SweGen.</h3>
                 {% endif %}
                 </div>
                 <div id="browser_container">
@@ -408,7 +408,7 @@
                         </div>
                         <div id="region_coverage"></div>
                     {% else %}
-                        <h3>This region is not covered in the ExAC dataset.</h3>
+                        <h3>This region is not covered in the SweGen dataset.</h3>
                     {% endif %}
                 {% endif %}
             </div>
