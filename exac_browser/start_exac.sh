@@ -9,4 +9,4 @@ if [ $( id -u ) -ne 0 ]; then
 fi
 
 source exac_env/bin/activate
-nohup python exac.py --host=0.0.0.0 >exac_browser.log 2>&1 &
+nohup python exac.py --host=0.0.0.0 >>exac_browser.log 2>&1 &
