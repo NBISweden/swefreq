@@ -87,7 +87,7 @@ def lookupAllele(chrom, pos, allele, reference, dataset):
     Returns:
         The string 'true' if the allele was found, otherwise the string 'false'
     """
-    client = pymongo.MongoClient(host=secrets.mongodbhost, port=secrets.monogdbport)
+    client = pymongo.MongoClient(host=secrets.mongodbhost, port=secrets.mongodbport)
 
     # The name of the dataset in the database is exac as required by the
     # exac browser we are using.
