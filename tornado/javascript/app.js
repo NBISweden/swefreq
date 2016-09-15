@@ -74,6 +74,8 @@
             beacon.datasets = data['datasets'];
         });
         beacon.search = function() {
+            beacon.color = 'black';
+            beacon.response = "Searching...";
             $http.get('query', { 'params': { 'chrom': beacon.chromosome, 'pos': beacon.position, 'allele': beacon.allele, 'dataset': beacon.dataset}})
                 .then(function (response){
                     if (response.data['response']['exists']) {
