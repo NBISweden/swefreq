@@ -59,11 +59,11 @@ class info(auth.UnsafeHandler):
             #'description': u'Swefreq beacon from NBIS',
             'datasets': [
                 {
-                    'id': 'exac',
+                    'id': 'SweGen',
                     # 'description': 'Description',
                     # 'size': { 'variants': 1234, 'samples': 12 },
                     # 'data_uses': [] # Data use limitations
-                    'reference': 'hg20'
+                    'reference': 'hg19'
                 },
             ],
             'homepage':  "%s://%s" % (self.request.protocol, self.request.host),
@@ -88,6 +88,12 @@ def lookupAllele(chrom, pos, allele, reference, dataset):
         The string 'true' if the allele was found, otherwise the string 'false'
     """
     client = pymongo.MongoClient(host=secrets.mongodbhost, port=secrets.monogdbport)
+
+    # The name of the dataset in the database is exac as required by the
+    # exac browser we are using.
+    if dataset == 'SweGen':
+        dataset = 'exac'
+
     mdb = client[dataset]
 
     if allele[0] == 'D' or allele[0] == 'I':
