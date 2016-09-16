@@ -81,7 +81,7 @@ def get_variants_from_sites_vcf(sites_vcf):
             info_field = dict([(x.split('=', 1)) if '=' in x else (x, x) for x in re.split(';(?=\w)', fields[7])])
             consequence_array = info_field['CSQ'].split(',') if 'CSQ' in info_field else []
             annotations = [dict(zip(vep_field_names, x.split('|'))) for x in consequence_array if len(vep_field_names) == len(x.split('|'))]
-            coding_annotations = [ann for ann in annotations if ann['Feature'].startswith('ENST')]
+            coding_annotations = annotations
 
             alt_alleles = fields[4].split(',')
 
