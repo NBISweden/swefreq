@@ -14,3 +14,10 @@
 
 .voffset2 { margin-top: 15px; }
 .hoffset2 { margin-left: 30px; }
+
+.navbar img { margin-top: -15px; }
+.big-swegen-logo {
+    float: right;
+    margin-left: 3em;
+    margin-top:2em
+}
