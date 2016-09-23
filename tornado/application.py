@@ -18,16 +18,43 @@ db = database.Connection(host = secrets.mysqlHost,
                          password = secrets.mysqlPasswd)
 
 class query(auth.UnsafeHandler):
+    def make_error_response(self):
+        ret_str = ""
+
+        checks = {
+                'dataset': lambda x: "" if x == 'SweGen' else "dataset has to be SweGen\n",
+                'ref': lambda x: "" if x == 'hg19' else "ref has to be hg19\n",
+                'pos': lambda x: "" if x.isdigit() else "pos has to be digit\n",
+        }
+
+        for arg in ['chrom', 'pos', 'dataset', 'allele', 'ref']:
+            try:
+                val = self.get_argument(arg)
+                if checks.has_key(arg):
+                    ret_str += checks[arg](val)
+            except:
+                ret_str += arg + " is missing\n"
+                if checks.has_key(arg):
+                    ret_str += checks[arg]("")
+
+        dataset = self.get_argument('dataset', 'MISSING')
+
+        return ret_str
+
     def get(self, *args, **kwargs):
+        the_errors = self.make_error_response()
+        if len(the_errors) > 0:
+            self.set_status(400);
+            self.set_header('Content-Type', 'text/plain');
+            self.write(the_errors);
+            return
+
         sChr = self.get_argument('chrom', '')
         iPos = self.get_argument('pos', '')
         dataset = self.get_argument('dataset', '')
         allele = self.get_argument('allele', '')
-        reference = self.get_argument('ref', 'dummy')
+        reference = self.get_argument('ref', '')
 
-        if sChr == '' or iPos == '' or not iPos.isdigit() or allele == '' or dataset == '':
-            self.send_error(400)
-            return
         exists = lookupAllele(sChr.upper(), int(iPos), allele.upper(), reference, dataset)
         if self.get_argument('format', '') == 'text':
             self.set_header('Content-Type', 'text/plain')
