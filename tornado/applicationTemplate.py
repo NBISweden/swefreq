@@ -33,13 +33,10 @@ indexHead="""
 indexHtml="""
   <!-- define angular controller -->
   <body ng-controller="mainController as mainCtrl">
-    <nav class="navbar navbar-default"
-         height="60">
+    <nav class="navbar navbar-default">
       <div class="container">
         <a class="navbar-brand pull-left"
-           href="/#/">
-          <img src="/javascript/swegen_logo_v1_trans_small.png" />
-        </a>
+           href="/#/">SweFreq</a>
         <ul class="nav navbar-nav navbar-right">
         <a href="/#/dataBeacon/"
            role="button"
@@ -73,9 +70,7 @@ notAuthorizedHtml="""
     <nav class="navbar navbar-default">
       <div class="container">
         <a class="navbar-brand pull-left"
-           href="/#/">
-          <img src="/javascript/swegen_logo_v1_trans_small.png" />
-        </a>
+           href="/#/">SweFreq</a>
         <ul class="nav navbar-nav navbar-right">
         <a href="/#/dataBeacon/"
            role="button"
@@ -103,9 +98,7 @@ indexNoAccess="""
     <nav class="navbar navbar-default">
       <div class="container">
         <a class="navbar-brand pull-left"
-           href="/#/">
-          <img src="/javascript/swegen_logo_v1_trans_small.png" />
-        </a>
+           href="/#/">SweFreq</a>
         <ul class="nav navbar-nav navbar-right">
         <a href="/#/requestAccess/"
            role="button"
