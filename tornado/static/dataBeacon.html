@@ -28,13 +28,11 @@
                 <div class="col-sm-2">
                     <label for="reference" class="sr-only">Reference</label>
                     <select class='form-control' ng-model='beacon.reference' ng-options='d.reference as d.reference for d in beacon.datasets'>
-                         <option style="display:none" value="">Reference</option>
                     </select>
                 </div>
                 <div class="col-sm-2">
                     <label for="dataset" class="sr-only">Dataset</label>
                     <select class='form-control' ng-model='beacon.dataset' required ng-options='d.id as d.id for d in beacon.datasets'>
-                        <option style="display:none; color: red" value="">Dataset</option>
                     </select>
                 </div>
                 <div class="col-sm-2">
