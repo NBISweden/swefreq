@@ -60,7 +60,13 @@ indexHtml="""
       <!-- this is where content will be injected by angular -->
       <div ng-view=""></div>
     </div>
-    <footer class="text-center"></footer>
+      </div>
+    <footer class="text-center">
+    <div class="col-sm-12 col-md-12 col-lg-7 col-lg-offset-2 logo-div">
+        <a href="https://nbis.se"><img class="logo" src="javascript/nbislogo-green-r.png" alt="NBIS"></a>
+        <a href="https://www.scilifelab.se"><img class="logo scilife" src="javascript/SLL_logo-r.png" alt="SciLifeLab"></a>
+    </div>
+    </footer>
   </body>
 </html>
 """
@@ -89,6 +95,12 @@ notAuthorizedHtml="""
       <!-- this is where content will be injected -->
       <div ng-view=""></div>
     </div>
+    <footer class="text-center">
+    <div class="col-sm-12 col-md-12 col-lg-7 col-lg-offset-2 logo-div">
+        <a href="https://nbis.se"><img class="logo" src="javascript/nbislogo-green-r.png" alt="NBIS"></a>
+        <a href="https://www.scilifelab.se"><img class="logo scilife" src="javascript/SLL_logo-r.png" alt="SciLifeLab"></a>
+    </div>
+    </footer>
   </body>
 </html>
 """
@@ -116,7 +128,12 @@ indexNoAccess="""
       <!-- this is where content will be injected by angular -->
       <div ng-view=""></div>
     </div>
-    <footer class="text-center"></footer>
+    <footer class="text-center">
+    <div class="col-sm-12 col-md-12 col-lg-7 col-lg-offset-2 logo-div">
+        <a href="https://nbis.se"><img class="logo" src="javascript/nbislogo-green-r.png" alt="NBIS"></a>
+        <a href="https://www.scilifelab.se"><img class="logo scilife" src="javascript/SLL_logo-r.png" alt="SciLifeLab"></a>
+    </div>
+    </footer>
   </body>
 </html>
 """
