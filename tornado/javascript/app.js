@@ -31,7 +31,7 @@
 		localThis.data.isInDatabase = data.isInDatabase;
 		localThis.data.admin = data.admin;
 		if(data.admin == true){
-		    $http.get('/getOutsandingRequests').success(function(data){
+                    $http.get('/getOutstandingRequests').success(function(data){
 			localThis.data.requests = data;
 		    });
 		    $http.get('/getApprovedUsers').success(function(data){
@@ -63,7 +63,7 @@
 
 	this.approvedUser = function(userData){
 	    $http.get('/approveUser/' + userData.email).success(function(data){
-		$http.get('/getOutsandingRequests').success(function(data){
+                $http.get('/getOutstandingRequests').success(function(data){
 		    localThis.getUsers();
 		});
 	    });

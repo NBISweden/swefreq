@@ -50,7 +50,7 @@ class Application(tornado.web.Application):
             ("/info", application.info),
             ("/deleteUser/(?P<sEmail>[^\/]+)", application.deleteUser),
             ("/denyUser/(?P<sEmail>[^\/]+)", application.denyUser),
-            ("/getOutsandingRequests", application.getOutsandingRequests),
+            ("/getOutstandingRequests", application.getOutstandingRequests),
             ("/requestAccess", application.requestAccess),
             ("/unauthorized", auth.UnAuthorizedHandler),
             ("/country_list", application.country_list),

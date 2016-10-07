@@ -336,7 +336,7 @@ class denyUser(auth.SafeHandler):
             return
         db.execute("""delete from swefreq.users where email = '%s'""" % sEmail)
 
-class getOutsandingRequests(auth.SafeHandler):
+class getOutstandingRequests(auth.SafeHandler):
     def get(self, *args, **kwargs):
         tRes = db.query("""select username, email, affiliation, country, create_date
         from swefreq.users where full_user = 'NO'""")
