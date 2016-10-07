@@ -42,6 +42,10 @@
             <a data-target="#allUsers"
                data-toggle="tab">Approved users</a>
           </li>
+          <li>
+            <a data-target="#emailList"
+               data-toggle="tab">Email-list</a>
+          </li>
         </ul>
         <div class="tab-content">
           <div class="tab-pane active"
@@ -50,16 +54,17 @@
               <br />
               <br />
               <div class="row">
-                <label class="col-md-4">Name</label>
+                <label class="col-md-3">Name</label>
                 <label class="col-md-3">E-mail</label>
-                <label class="col-md-3">Affiliation</label>
+                <label class="col-md-2">Affiliation</label>
+                <label class="col-md-2">Country</label>
                 <label class="col-md-2">Applied date</label>
               </div>
               <div ng-repeat="row in sweFreqCtrl.data.requests"
                    ng-class-odd="'odd'"
                    ng-class-even="'even'">
                 <div class="row top-buffer">
-                  <div class="col-md-4">
+                  <div class="col-md-3">
                   <div class="btn btn-primary btn-xs"
                        data-toggle="tooltip"
                        title="Give the user access"
@@ -70,7 +75,8 @@
                        ng-click="sweFreqCtrl.denyUser(row)">
                        Delete</div>{{row.user}}</div>
                   <div class="col-md-3 alignment">{{row.email}}</div>
-                  <div class="col-md-3 alignment">{{row.affiliation}}</div>
+                  <div class="col-md-2 alignment">{{row.affiliation}}</div>
+                  <div class="col-md-2 alignment">{{row.country}}</div>
                   <div class="col-md-2 alignment">{{row.applyDate}}</div>
                 </div>
               </div>
@@ -84,8 +90,9 @@
               <div class="row">
                 <label class="col-md-3">Name</label>
                 <label class="col-md-3">E-mail</label>
-                <label class="col-md-3">Affiliation</label>
-                <label class="col-md-3">Download count</label>
+                <label class="col-md-2">Affiliation</label>
+                <label class="col-md-2">Country</label>
+                <label class="col-md-2">Download count</label>
               </div>
               <div ng-repeat="row in sweFreqCtrl.data.approvedUsers"
                    ng-class-odd="'odd'"
@@ -98,9 +105,22 @@
                        ng-click="sweFreqCtrl.deleteUser(row)">
                        Revoke</div>{{row.user}}</div>
                   <div class="col-md-3 alignment">{{row.email}}</div>
-                  <div class="col-md-3 alignment">{{row.affiliation}}</div>
-                  <div class="col-md-3 alignment">{{row.downloadCount}}</div>
+                  <div class="col-md-2 alignment">{{row.affiliation}}</div>
+                  <div class="col-md-2 alignment">{{row.country}}</div>
+                  <div class="col-md-2 alignment">{{row.downloadCount}}</div>
                 </div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane"
+               id="emailList">
+            <br />
+            <div class="row">
+              <div class="col-xs-1"></div>
+              <div class="col-xs-10">
+                <span ng-repeat="email in sweFreqCtrl.data.emails">
+                  {{email}}{{$last ? '' : ', '}}
+                </span>
               </div>
             </div>
           </div>

@@ -53,6 +53,7 @@ class Application(tornado.web.Application):
             ("/getOutsandingRequests", application.getOutsandingRequests),
             ("/requestAccess", application.requestAccess),
             ("/unauthorized", auth.UnAuthorizedHandler),
+            ("/country_list", application.country_list),
             (r'.*', auth.BaseHandler),
         ]
 

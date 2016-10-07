@@ -36,6 +36,13 @@
 		    });
 		    $http.get('/getApprovedUsers').success(function(data){
 			localThis.data.approvedUsers = data;
+                        localThis.data.emails = []
+                        for (var idx in data) {
+                            var user = data[idx];
+                            if (user.newsletter == 1) {
+                                localThis.data.emails.push(user['email']);
+                            }
+                        }
 		    });
 		};
 	    });
@@ -127,15 +134,25 @@
     App.controller('requestController', function($http, $scope, $location) {
 	var localThis = this;
 	localThis.data = gData;
+        localThis.data.newsletter = true;
+        $http.get('/country_list').success(function(data) {
+            localThis.data['availableCountries'] = data['countries'];
+        });
 
-	this.sendRequest = function(locations){
+        this.sendRequest = function(valid){
+            if (!valid) {
+                return;
+            }
 	    $http.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded";
 	    $http({url:'/requestAccess',
 		   method:'POST',
 		   data:$.param({'email':localThis.data.email,
 				 'userName':localThis.data.userName,
-				 'affiliation':localThis.data.affiliation})
-		  })
+                                 'affiliation':localThis.data.affiliation,
+                                 'country': localThis.data.country['name'],
+                                 'newsletter': localThis.data.newsletter ? 1 : 0
+                        })
+                })
 		.success(function(data){
 		    console.log(data);
 		    $location.path("/addedRequest");

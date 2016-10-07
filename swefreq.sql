@@ -17,6 +17,8 @@ CREATE TABLE swefreq.users (
   `affiliation` varchar(100) DEFAULT NULL,
   `full_user` varchar(45) DEFAULT NULL,
   `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `country` varchar(100) DEFAULT NULL,
+  `newsletter` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`pk`),
   UNIQUE KEY `email_UNIQUE` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
