@@ -62,9 +62,11 @@ indexHtml="""
     </div>
       </div>
     <footer class="text-center">
-    <div class="col-sm-12 col-md-12 col-lg-7 col-lg-offset-2 logo-div">
-        <a href="https://nbis.se"><img class="logo" src="javascript/nbislogo-green-r.png" alt="NBIS"></a>
-        <a href="https://www.scilifelab.se"><img class="logo scilife" src="javascript/SLL_logo-r.png" alt="SciLifeLab"></a>
+    <div class="col-sm-12 col-md-12 col-lg-12 logo-div">
+        <a href="https://www.scilifelab.se"><img class="logo scilife" src="javascript/SLL_logo.png" alt="SciLifeLab"></a>
+        <a href="https://NGI"><img class="logo" src="" alt="NGI" width="125" height="50"></a>
+        <a href="https://nbis.se"><img class="logo" src="javascript/nbislogo-green.png" alt="NBIS"></a>
+        <a href="https://elixir.se"><img class="logo" src="javascript/ELIXIR_SWEDEN_white_background.png" alt="Elixir Sweden"></a>
     </div>
     </footer>
   </body>
@@ -96,9 +98,11 @@ notAuthorizedHtml="""
       <div ng-view=""></div>
     </div>
     <footer class="text-center">
-    <div class="col-sm-12 col-md-12 col-lg-7 col-lg-offset-2 logo-div">
-        <a href="https://nbis.se"><img class="logo" src="javascript/nbislogo-green-r.png" alt="NBIS"></a>
-        <a href="https://www.scilifelab.se"><img class="logo scilife" src="javascript/SLL_logo-r.png" alt="SciLifeLab"></a>
+    <div class="col-sm-12 col-md-12 col-lg-12 logo-div">
+        <a href="https://www.scilifelab.se"><img class="logo scilife" src="javascript/SLL_logo.png" alt="SciLifeLab"></a>
+        <a href="https://NGI"><img class="logo" src="" alt="NGI" width="125" height="50"></a>
+        <a href="https://nbis.se"><img class="logo" src="javascript/nbislogo-green.png" alt="NBIS"></a>
+        <a href="https://elixir.se"><img class="logo" src="javascript/ELIXIR_SWEDEN_white_background.png" alt="Elixir Sweden"></a>
     </div>
     </footer>
   </body>
@@ -129,9 +133,11 @@ indexNoAccess="""
       <div ng-view=""></div>
     </div>
     <footer class="text-center">
-    <div class="col-sm-12 col-md-12 col-lg-7 col-lg-offset-2 logo-div">
-        <a href="https://nbis.se"><img class="logo" src="javascript/nbislogo-green-r.png" alt="NBIS"></a>
-        <a href="https://www.scilifelab.se"><img class="logo scilife" src="javascript/SLL_logo-r.png" alt="SciLifeLab"></a>
+    <div class="col-sm-12 col-md-12 col-lg-12 logo-div">
+        <a href="https://www.scilifelab.se"><img class="logo scilife" src="javascript/SLL_logo.png" alt="SciLifeLab"></a>
+        <a href="https://NGI"><img class="logo" src="" alt="NGI" width="125" height="50"></a>
+        <a href="https://nbis.se"><img class="logo" src="javascript/nbislogo-green.png" alt="NBIS"></a>
+        <a href="https://elixir.se"><img class="logo" src="javascript/ELIXIR_SWEDEN_white_background.png" alt="Elixir Sweden"></a>
     </div>
     </footer>
   </body>
