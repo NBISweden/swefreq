@@ -64,7 +64,7 @@ indexHtml="""
     <footer class="text-center">
     <div class="col-sm-12 col-md-12 col-lg-12 logo-div">
         <a href="https://www.scilifelab.se"><img class="logo scilife" src="javascript/SLL_logo.png" alt="SciLifeLab"></a>
-        <a href="https://NGI"><img class="logo" src="" alt="NGI" width="125" height="50"></a>
+        <a href="https://ngisweden.scilifelab.se/"><img class="logo" src="javascript/ngisweden_logo.png" alt="NGI" width="125" height="50"></a>
         <a href="https://nbis.se"><img class="logo" src="javascript/nbislogo-green.png" alt="NBIS"></a>
         <a href="https://elixir.se"><img class="logo" src="javascript/ELIXIR_SWEDEN_white_background.png" alt="Elixir Sweden"></a>
     </div>
@@ -100,7 +100,7 @@ notAuthorizedHtml="""
     <footer class="text-center">
     <div class="col-sm-12 col-md-12 col-lg-12 logo-div">
         <a href="https://www.scilifelab.se"><img class="logo scilife" src="javascript/SLL_logo.png" alt="SciLifeLab"></a>
-        <a href="https://NGI"><img class="logo" src="" alt="NGI" width="125" height="50"></a>
+        <a href="https://ngisweden.scilifelab.se/"><img class="logo" src="javascript/ngisweden_logo.png" alt="NGI"></a>
         <a href="https://nbis.se"><img class="logo" src="javascript/nbislogo-green.png" alt="NBIS"></a>
         <a href="https://elixir.se"><img class="logo" src="javascript/ELIXIR_SWEDEN_white_background.png" alt="Elixir Sweden"></a>
     </div>
@@ -135,7 +135,7 @@ indexNoAccess="""
     <footer class="text-center">
     <div class="col-sm-12 col-md-12 col-lg-12 logo-div">
         <a href="https://www.scilifelab.se"><img class="logo scilife" src="javascript/SLL_logo.png" alt="SciLifeLab"></a>
-        <a href="https://NGI"><img class="logo" src="" alt="NGI" width="125" height="50"></a>
+        <a href="https://ngisweden.scilifelab.se/"><img class="logo" src="javascript/ngisweden_logo.png" alt="NGI" width="125" height="50"></a>
         <a href="https://nbis.se"><img class="logo" src="javascript/nbislogo-green.png" alt="NBIS"></a>
         <a href="https://elixir.se"><img class="logo" src="javascript/ELIXIR_SWEDEN_white_background.png" alt="Elixir Sweden"></a>
     </div>
