@@ -60,7 +60,9 @@ indexHtml="""
       <!-- this is where content will be injected by angular -->
       <div ng-view=""></div>
     </div>
-    <footer class="text-center"></footer>
+      </div>
+    <footer class="text-center">
+    </footer>
   </body>
 </html>
 """
@@ -89,6 +91,8 @@ notAuthorizedHtml="""
       <!-- this is where content will be injected -->
       <div ng-view=""></div>
     </div>
+    <footer class="text-center">
+    </footer>
   </body>
 </html>
 """
@@ -116,7 +120,8 @@ indexNoAccess="""
       <!-- this is where content will be injected by angular -->
       <div ng-view=""></div>
     </div>
-    <footer class="text-center"></footer>
+    <footer class="text-center">
+    </footer>
   </body>
 </html>
 """
