@@ -74,13 +74,8 @@ if __name__ == '__main__':
         'keyfile': os.path.join('cert/myserver.key')
         }
     """
-    ssl_options = {
-        'certfile': os.path.join(secrets.cert),
-        'keyfile': os.path.join(secrets.key)
-        }
-
     # Start HTTP Server
-    http_server = tornado.httpserver.HTTPServer(application, ssl_options = ssl_options)
+    http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(secrets.appPort)
 
     # Get a handle to the instance of IOLoop
