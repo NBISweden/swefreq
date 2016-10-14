@@ -12,6 +12,8 @@ import base64
 import uuid
 import secrets
 
+define("port", default=4000, help="run on the given port", type=int)
+
 tornado.log.enable_pretty_logging()
 logging.getLogger().setLevel(logging.DEBUG)
 
@@ -66,8 +68,10 @@ class Application(tornado.web.Application):
         tornado.web.Application.__init__(self, handlers, **settings)
 
 if __name__ == '__main__':
+    tornado.options.parse_command_line()
     # Instantiate Application
     application = Application(settings)
+    application.listen(options.port)
     """
     ssl_options = {
         'certfile': os.path.join('cert/server.crt'),
@@ -76,7 +80,6 @@ if __name__ == '__main__':
     """
     # Start HTTP Server
     http_server = tornado.httpserver.HTTPServer(application)
-    http_server.listen(secrets.appPort)
 
     # Get a handle to the instance of IOLoop
     ioloop = tornado.ioloop.IOLoop.instance()
