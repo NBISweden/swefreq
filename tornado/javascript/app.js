@@ -196,6 +196,10 @@
             .when('/exacBrowser/', {
                 templateUrl : 'static/exacBrowser.html'
             })
+        // Privacy Policy
+            .when('/privacyPolicy/', {
+                templateUrl : 'static/privacyPolicy.html'
+            })
     });
 })();
 
