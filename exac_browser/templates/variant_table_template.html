@@ -61,6 +61,9 @@
     </thead>
     <tbody>
     <% _.each(table_variants, function(variant) { %>
+        <% if (variant.alt == '*') {
+          return true;
+          } %>
         <tr class="table_variant" id="variant_<%= variant.variant_id %>"
             category="<%= variant.category %>" filter_status="<%= variant.filter %>" frequency="<%= variant.allele_freq %>">
             <td class="omit_csv">
