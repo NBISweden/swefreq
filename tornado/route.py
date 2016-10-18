@@ -8,8 +8,6 @@ import application
 from tornado import template
 from tornado.options import define, options
 import logging
-import base64
-import uuid
 import secrets
 
 define("port", default=4000, help="run on the given port", type=int)
@@ -20,9 +18,8 @@ logging.getLogger().setLevel(logging.DEBUG)
 redirect_uri = secrets.redirect_uri
 
 # Setup the Tornado Application
-cookie_secret = base64.b64encode(uuid.uuid4().bytes + uuid.uuid4().bytes)
 settings = {"debug": True,
-            "cookie_secret": cookie_secret,
+            "cookie_secret": secrets.cookie_secret,
             "login_url": "/login",
             "google_oauth": {
         "key": secrets.googleKey,
