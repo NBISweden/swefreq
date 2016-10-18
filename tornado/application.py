@@ -150,15 +150,20 @@ class home(auth.UnsafeHandler):
     def get(self, *args, **kwargs):
         t = template.Template(applicationTemplate.indexHead)
         self.write(t.generate())
+
+        is_admin = False
+
         if self.get_current_token() != None:
             t = template.Template(applicationTemplate.indexHtml)
+            is_admin = self.is_admin()
         elif self.get_current_user() != None:
             t = template.Template(applicationTemplate.indexNoAccess)
         else:
             t = template.Template(applicationTemplate.notAuthorizedHtml)
-            logging.info(self.get_current_user())
+
         self.write(t.generate(user_name=self.get_current_user(),
                               email=self.get_current_email(),
+                              is_admin=is_admin,
                               ExAC=secrets.ExAC_server))
 
 class getUser(auth.UnsafeHandler):
