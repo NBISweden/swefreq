@@ -12,6 +12,18 @@
     App.controller('mainController', function($http, $scope) {
         var localThis = this;
         localThis.data = gData;
+
+        this.getUsers = function(){
+            $http.get('/getUser').success(function(data){
+                console.log(data);
+                localThis.data.userName = data.user;
+                localThis.data.email = data.email;
+                localThis.data.trusted = data.trusted;
+                localThis.data.isInDatabase = data.isInDatabase;
+                localThis.data.admin = data.admin;
+            });
+        };
+        this.getUsers();
     });
 
     /////////////////////////////////////////////////////////////////////////////////////
