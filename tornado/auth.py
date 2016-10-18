@@ -17,7 +17,7 @@ db = database.Connection(host = secrets.mysqlHost,
 def isAuthorized(email):
     tRes = db.query("""select username
     from swefreq.users where email = '%s'
-    and full_user = 'YES'""" % (email))
+    and full_user""" % (email))
 
     if len(tRes)>0:
         return True, tRes[0]
@@ -59,7 +59,7 @@ class BaseHandler(tornado.web.RequestHandler):
     def is_admin(self):
         email = self.get_current_email()
         tRes = db.query("""select full_user from swefreq.users where
-                              email='%s' and swefreq_admin='YES'""" % email)
+                              email='%s' and swefreq_admin""" % email)
         lAdmin = True if len(tRes) == 1 else False
         return lAdmin
 
