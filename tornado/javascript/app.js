@@ -204,6 +204,10 @@
             .when('/admin/', {
                 templateUrl : 'static/admin.html'
             })
+        // Admin interface
+            .when('/about/', {
+                templateUrl : 'static/about.html'
+            })
     });
 })();
 
