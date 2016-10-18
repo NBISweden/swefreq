@@ -68,7 +68,7 @@ class BaseHandler(tornado.web.RequestHandler):
         http://tornado.readthedocs.org/en/latest/web.html#tornado.web.RequestHandler.write_error
         """
         reason = 'Page not found'
-        logging.info("Error do something here")
+        logging.info("Error do something here again")
 
 
 class GoogleUser(object):
@@ -105,14 +105,14 @@ class SafeHandler(BaseHandler):
     """ All handlers that need authentication and authorization should inherit
     from this class.
     """
-    @tornado.web.authenticated
     def prepare(self):
         """This method is called before any other method.
         Having the decorator @tornado.web.authenticated here implies that all
         the Handlers that inherit from this one are going to require
         authentication in all their methods.
         """
-        pass
+        if not self.current_user:
+            self.redirect('/static/not_authorized.html')
 
 class UnsafeHandler(BaseHandler):
     pass
