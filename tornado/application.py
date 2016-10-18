@@ -172,14 +172,14 @@ class getUser(auth.UnsafeHandler):
         sEmail = self.get_current_email()
 
         tRes = db.query("""select full_user from swefreq.users where
-                           email='%s' and full_user='YES'""" % sEmail)
+                           email='%s' and full_user""" % sEmail)
         lTrusted = True if len(tRes)==1 else False
 
         tRes = db.query("""select full_user from swefreq.users where
                               email='%s'""" % sEmail)
         lDatabase = True if len(tRes) == 1 else False
         tRes = db.query("""select full_user from swefreq.users where
-                              email='%s' and swefreq_admin='YES'""" % sEmail)
+                              email='%s' and swefreq_admin""" % sEmail)
         lAdmin = True if len(tRes) == 1 else False
 
         logging.info("getUser: " + str(sUser) + ' ' + str(sEmail))
@@ -274,7 +274,7 @@ class requestAccess(auth.UnsafeHandler):
         sSql = """
         insert into swefreq.users (username, email, affiliation, full_user, country, newsletter)
         values ('%s', '%s', '%s', '%s', '%s', '%s')
-        """ % (userName, email, affiliation, 'NO', country, newsletter)
+        """ % (userName, email, affiliation, 0, country, newsletter)
         try:
             logging.error("Executing: " + sSql)
             db.execute(sSql)
@@ -297,10 +297,10 @@ class approveUser(auth.SafeHandler):
     def get(self, sEmail):
         sLoggedInEmail = self.get_current_email()
         tRes = db.query("""select full_user from swefreq.users where
-                              email='%s' and swefreq_admin='YES'""" % sLoggedInEmail)
+                              email='%s' and swefreq_admin""" % sLoggedInEmail)
         if len(tRes) == 0:
             return
-        db.update("""update swefreq.users set full_user = 'YES'
+        db.update("""update swefreq.users set full_user = '1'
         where email = '%s'""" % sEmail)
 
         msg = email.mime.multipart.MIMEMultipart()
@@ -320,20 +320,20 @@ class deleteUser(auth.SafeHandler):
     def get(self, sEmail):
         sLoggedInEmail = self.get_current_email()
         tRes = db.query("""select email from swefreq.users where
-                              email='%s' and swefreq_admin='YES'""" % sLoggedInEmail)
+                              email='%s' and swefreq_admin""" % sLoggedInEmail)
         if len(tRes) == 0:
             return
         if sLoggedInEmail == sEmail:
             # Don't let the admin delete hens own account
             return
-        db.execute("""update swefreq.users set full_user = 'NO'
-        where email = '%s'""" % sEmail)
+        db.execute("""update swefreq.users set full_user = '0'
+                      where email = '%s'""" % sEmail)
 
 class denyUser(auth.SafeHandler):
     def get(self, sEmail):
         sLoggedInEmail = self.get_current_email()
         tRes = db.query("""select email from swefreq.users where
-                              email='%s' and swefreq_admin='YES'""" % sLoggedInEmail)
+                              email='%s' and swefreq_admin""" % sLoggedInEmail)
         if len(tRes) == 0:
             return
         if sLoggedInEmail == sEmail:
@@ -344,7 +344,7 @@ class denyUser(auth.SafeHandler):
 class getOutstandingRequests(auth.SafeHandler):
     def get(self, *args, **kwargs):
         tRes = db.query("""select username, email, affiliation, country, create_date
-        from swefreq.users where full_user = 'NO'""")
+        from swefreq.users where not full_user""")
         jRes = []
         for row in tRes:
             sDate = str(row.create_date).split(' ')[0]
@@ -360,7 +360,7 @@ class getApprovedUsers(auth.SafeHandler):
     def get(self, *args, **kwargs):
         tRes = db.query("""select username, email, affiliation, country,
         IFNULL(download_count, 0) as download_count, newsletter
-        from swefreq.users where full_user = 'YES'""")
+        from swefreq.users where full_user""")
         jRes = []
         for row in tRes:
             jRes.append({'user' : row.username,
