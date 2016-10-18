@@ -6,18 +6,18 @@
 vcf="$1"
 
 if [[ ${vcf%.gz} == "$vcf" ]]; then
-	prefilter="cat"
-	outfile="anon-$vcf.gz"
+    prefilter="cat"
+    outfile="anon-$vcf.gz"
 else
-	prefilter="zcat"
-	outfile="anon-$vcf"
+    prefilter="zcat"
+    outfile="anon-$vcf"
 fi
 
 $prefilter "$vcf" |
 awk '
     BEGIN   { OFS = "\t" }
     /^##/   { print; next }
-	    { print $1,$2,$3,$4,$5,$6,$7,$8 }' |
+        { print $1,$2,$3,$4,$5,$6,$7,$8 }' |
 bgzip >"$outfile"
 
 tabix -p vcf "$outfile"
