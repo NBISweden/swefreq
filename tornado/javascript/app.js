@@ -16,7 +16,7 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('sweFreqController', function($http, $scope) {
+    App.controller('adminController', function($http, $scope) {
         var localThis = this;
         this.userName = '';
         this.email = '';
@@ -199,6 +199,10 @@
         // Privacy Policy
             .when('/privacyPolicy/', {
                 templateUrl : 'static/privacyPolicy.html'
+            })
+        // Admin interface
+            .when('/admin/', {
+                templateUrl : 'static/admin.html'
             })
     });
 })();

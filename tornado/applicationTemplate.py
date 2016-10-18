@@ -46,7 +46,11 @@ indexHtml="""
            class="btn btn-default">ExAC Browser</a>
         <a href="/#/downloadData/"
            role="button"
-           class="btn btn-default">Download Data</a>&#160; &#160; 
+           class="btn btn-default">Download Data</a>
+        {%if is_admin %}
+        <a href="/#/admin/"
+           role="button"
+           class="btn btn-default">Admin</a>{% end %}&#160; &#160;
         <div class="btn-group navbar-btn">{%if user_name != None%}
         {{user_name}} 
         <a href="/logout">Logout</a>
