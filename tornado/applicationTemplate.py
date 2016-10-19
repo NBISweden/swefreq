@@ -28,6 +28,18 @@ indexHead="""
           type="text/css" />
     <!-- The application -->
     <script src="javascript/app.js"></script>
+
+    <!-- Google Analytics -->
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-85976442-1', 'auto');
+    ga('send', 'pageview');
+    </script>
+    <!-- End Google Analytics -->
   </head>
 """
 indexHtml="""
@@ -38,6 +50,12 @@ indexHtml="""
         <a class="navbar-brand pull-left"
            href="/#/">SweFreq</a>
         <ul class="nav navbar-nav navbar-right">
+        <a href="/#/about/"
+           role="button"
+           class="btn btn-default">About</a>
+        <a href="/#/terms/"
+           role="button"
+           class="btn btn-default">Terms of use</a>
         <a href="/#/dataBeacon/"
            role="button"
            class="btn btn-default">Data Beacon</a>
@@ -46,7 +64,11 @@ indexHtml="""
            class="btn btn-default">ExAC Browser</a>
         <a href="/#/downloadData/"
            role="button"
-           class="btn btn-default">Download Data</a>&#160; &#160; 
+           class="btn btn-default">Download Data</a>
+        {%if is_admin %}
+        <a href="/#/admin/"
+           role="button"
+           class="btn btn-default">Admin</a>{% end %}&#160; &#160;
         <div class="btn-group navbar-btn">{%if user_name != None%}
         {{user_name}} 
         <a href="/logout">Logout</a>
@@ -74,6 +96,12 @@ notAuthorizedHtml="""
         <a class="navbar-brand pull-left"
            href="/#/">SweFreq</a>
         <ul class="nav navbar-nav navbar-right">
+        <a href="/#/about/"
+           role="button"
+           class="btn btn-default">About</a>
+        <a href="/#/terms/"
+           role="button"
+           class="btn btn-default">Terms of use</a>
         <a href="/#/dataBeacon/"
            role="button"
            class="btn btn-default">Data Beacon</a>
@@ -104,6 +132,12 @@ indexNoAccess="""
         <a class="navbar-brand pull-left"
            href="/#/">SweFreq</a>
         <ul class="nav navbar-nav navbar-right">
+        <a href="/#/about/"
+           role="button"
+           class="btn btn-default">About</a>
+        <a href="/#/terms/"
+           role="button"
+           class="btn btn-default">Terms of use</a>
         <a href="/#/requestAccess/"
            role="button"
            class="btn btn-default">Request Access</a>&#160; &#160; 

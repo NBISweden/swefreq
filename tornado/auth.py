@@ -17,7 +17,7 @@ db = database.Connection(host = secrets.mysqlHost,
 def isAuthorized(email):
     tRes = db.query("""select username
     from swefreq.users where email = '%s'
-    and full_user = 'YES'""" % (email))
+    and full_user""" % (email))
 
     if len(tRes)>0:
         return True, tRes[0]
@@ -56,12 +56,19 @@ class BaseHandler(tornado.web.RequestHandler):
                 return user
         return user
 
+    def is_admin(self):
+        email = self.get_current_email()
+        tRes = db.query("""select full_user from swefreq.users where
+                              email='%s' and swefreq_admin""" % email)
+        lAdmin = True if len(tRes) == 1 else False
+        return lAdmin
+
     def write_error(self, status_code, **kwargs):
         """ Overwrites write_error method to have custom error pages.
         http://tornado.readthedocs.org/en/latest/web.html#tornado.web.RequestHandler.write_error
         """
         reason = 'Page not found'
-        logging.info("Error do something here")
+        logging.info("Error do something here again")
 
 
 class GoogleUser(object):
@@ -98,14 +105,14 @@ class SafeHandler(BaseHandler):
     """ All handlers that need authentication and authorization should inherit
     from this class.
     """
-    @tornado.web.authenticated
     def prepare(self):
         """This method is called before any other method.
         Having the decorator @tornado.web.authenticated here implies that all
         the Handlers that inherit from this one are going to require
         authentication in all their methods.
         """
-        pass
+        if not self.current_user:
+            self.redirect('/static/not_authorized.html')
 
 class UnsafeHandler(BaseHandler):
     pass

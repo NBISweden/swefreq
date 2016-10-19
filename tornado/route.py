@@ -8,8 +8,6 @@ import application
 from tornado import template
 from tornado.options import define, options
 import logging
-import base64
-import uuid
 import secrets
 
 define("port", default=4000, help="run on the given port", type=int)
@@ -20,9 +18,8 @@ logging.getLogger().setLevel(logging.DEBUG)
 redirect_uri = secrets.redirect_uri
 
 # Setup the Tornado Application
-cookie_secret = base64.b64encode(uuid.uuid4().bytes + uuid.uuid4().bytes)
 settings = {"debug": True,
-            "cookie_secret": cookie_secret,
+            "cookie_secret": secrets.cookie_secret,
             "login_url": "/login",
             "google_oauth": {
         "key": secrets.googleKey,
@@ -40,6 +37,9 @@ class Application(tornado.web.Application):
             (r"/static/(dataBeacon.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
             (r"/static/(exacBrowser.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
             (r"/static/(privacyPolicy.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
+            (r"/static/(not_authorized.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
+            (r"/static/(about.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
+            (r"/static/(terms.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
             (r"/static/(.*)", auth.SafeStaticFileHandler, {"path": "static/"}),
             (r"/javascript/(.*)", tornado.web.StaticFileHandler, {"path": "javascript/"}),
             (r'/(favicon.ico)', tornado.web.StaticFileHandler, {"path": "static/"}),

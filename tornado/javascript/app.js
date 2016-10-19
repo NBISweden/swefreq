@@ -12,11 +12,23 @@
     App.controller('mainController', function($http, $scope) {
         var localThis = this;
         localThis.data = gData;
+
+        this.getUsers = function(){
+            $http.get('/getUser').success(function(data){
+                console.log(data);
+                localThis.data.userName = data.user;
+                localThis.data.email = data.email;
+                localThis.data.trusted = data.trusted;
+                localThis.data.isInDatabase = data.isInDatabase;
+                localThis.data.admin = data.admin;
+            });
+        };
+        this.getUsers();
     });
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('sweFreqController', function($http, $scope) {
+    App.controller('adminController', function($http, $scope) {
         var localThis = this;
         this.userName = '';
         this.email = '';
@@ -199,6 +211,18 @@
         // Privacy Policy
             .when('/privacyPolicy/', {
                 templateUrl : 'static/privacyPolicy.html'
+            })
+        // Admin interface
+            .when('/admin/', {
+                templateUrl : 'static/admin.html'
+            })
+        // About
+            .when('/about/', {
+                templateUrl : 'static/about.html'
+            })
+        // Terms
+            .when('/terms/', {
+                templateUrl : 'static/terms.html'
             })
     });
 })();
