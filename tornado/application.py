@@ -126,25 +126,29 @@ def lookupAllele(chrom, pos, allele, reference, dataset):
     if allele[0] == 'D' or allele[0] == 'I':
         pos -= 1
 
-    res = mdb.variants.find_one({'chrom': chrom, 'pos': pos})
+    res = mdb.variants.find({'chrom': chrom, 'pos': pos})
     if not res:
         return False
 
-    # Just a (point) mutation
-    if allele[0] != 'D' and allele[0] != 'I':
-        return res['alt'] == allele
+    for r in res:
+        # Just a (point) mutation
+        if allele[0] != 'D' and allele[0] != 'I':
+            if r['alt'] == allele:
+                return True
 
-    # Insertion. Inserted sequence is from second position and onwards and
-    # should match allele
-    if allele[0] == 'I':
-        return res['alt'][1:] == allele[1:]
+        # Insertion. Inserted sequence is from second position and onwards and
+        # should match allele
+        if allele[0] == 'I':
+            if r['alt'][1:] == allele[1:]:
+                return True
 
-    # Deletion. Just check that the length of the ref is one more than the
-    # length of the deletion.
-    if allele[0] == 'D':
-        return int(allele[1:])+1 == len(res['ref'])
+        # Deletion. Just check that the length of the ref is one more than the
+        # length of the deletion.
+        if allele[0] == 'D':
+            if int(allele[1:])+1 == len(r['ref']):
+                return True
 
-    raise Exception("Can't find the thingy") # Should probably be a 4XX response
+    return False
 
 class home(auth.UnsafeHandler):
     def get(self, *args, **kwargs):
