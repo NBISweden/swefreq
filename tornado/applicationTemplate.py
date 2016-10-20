@@ -45,6 +45,7 @@ indexHead="""
 indexHtml="""
   <!-- define angular controller -->
   <body ng-controller="mainController as mainCtrl">
+    <consent></consent>
     <nav class="navbar navbar-default">
       <div class="container">
         <a class="navbar-brand pull-left"
@@ -91,6 +92,7 @@ indexHtml="""
 notAuthorizedHtml="""
   <!-- define angular controller -->
   <body ng-controller="mainController as mainCtrl">
+    <consent></consent>
     <nav class="navbar navbar-default">
       <div class="container">
         <a class="navbar-brand pull-left"
@@ -127,6 +129,7 @@ notAuthorizedHtml="""
 indexNoAccess="""
   <!-- define angular controller -->
   <body ng-controller="mainController as mainCtrl">
+    <consent></consent>
     <nav class="navbar navbar-default">
       <div class="container">
         <a class="navbar-brand pull-left"
