@@ -19,6 +19,7 @@ indexHead="""
     </script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular-route.min.js">
     </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular-cookies.min.js"></script>
     <!-- Angular grid gui -->
     <link rel="stylesheet"
           href="/javascript/main.css"
