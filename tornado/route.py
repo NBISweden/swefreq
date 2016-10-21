@@ -41,6 +41,7 @@ class Application(tornado.web.Application):
             (r"/static/(about.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
             (r"/static/(terms.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
             (r"/static/(.*)", auth.SafeStaticFileHandler, {"path": "static/"}),
+            (r"/release/(.*)", auth.AuthorizedStaticFileHandler, { "path": "release/"}),
             (r"/javascript/(.*)", tornado.web.StaticFileHandler, {"path": "javascript/"}),
             (r'/(favicon.ico)', tornado.web.StaticFileHandler, {"path": "static/"}),
             ("/login", auth.LoginHandler),
