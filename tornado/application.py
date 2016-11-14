@@ -79,9 +79,9 @@ class info(auth.UnsafeHandler):
     def get(self, *args, **kwargs):
         query_uri = "%s://%s/query?" % (self.request.protocol, self.request.host)
         self.write({
-            'id': u'nbis-beacon',
-            'name': u'NBIS Beacon',
-            'organization': u'NBIS',
+            'id': u'swefreq-beacon',
+            'name': u'Swefreq Beacon',
+            'organization': u'SciLifeLab',
             'api': u'0.2',
             #'description': u'Swefreq beacon from NBIS',
             'datasets': [
