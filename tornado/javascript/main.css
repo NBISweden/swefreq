@@ -31,6 +31,10 @@ footer img.logo {
     margin-right: auto;
 }
 
+.affiliate-logos {
+    margin-bottom: 10px;
+}
+
 img.logo.scilife {
     top: 8px;
     position: relative;
