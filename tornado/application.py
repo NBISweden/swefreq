@@ -49,13 +49,14 @@ class query(auth.UnsafeHandler):
             self.write(the_errors);
             return
 
-        sChr = self.get_argument('chrom', '')
-        iPos = self.get_argument('pos', '')
-        dataset = self.get_argument('dataset', '')
-        allele = self.get_argument('allele', '')
-        reference = self.get_argument('ref', '')
+        sChr      = self.get_argument('chrom', '').upper()
+        iPos      = self.get_argument('pos', '')
+        dataset   = self.get_argument('dataset', '')
+        allele    = self.get_argument('allele', '').upper()
+        reference = self.get_argument('ref', '').upper()
 
-        exists = lookupAllele(sChr.upper(), int(iPos), allele.upper(), reference, dataset)
+        exists = lookupAllele(sChr, int(iPos), allele, reference, dataset)
+
         if self.get_argument('format', '') == 'text':
             self.set_header('Content-Type', 'text/plain')
             self.write(str(exists))
@@ -124,32 +125,14 @@ def lookupAllele(chrom, pos, allele, reference, dataset):
     mdb = client[dataset]
     mdb.authenticate(secrets.mongo_user, secrets.mongo_password)
 
-    if allele[0] == 'D' or allele[0] == 'I':
-        pos -= 1
-
+    # Beacon is 0-based, our database is 1-based in coords.
+    pos += 1
     res = mdb.variants.find({'chrom': chrom, 'pos': pos})
     if not res:
         return False
 
-    for r in res:
-        # Just a (point) mutation
-        if allele[0] != 'D' and allele[0] != 'I':
-            if r['alt'] == allele:
-                return True
-
-        # Insertion. Inserted sequence is from second position and onwards and
-        # should match allele
-        if allele[0] == 'I':
-            if r['alt'][1:] == allele[1:]:
-                return True
-
-        # Deletion. Just check that the length of the ref is one more than the
-        # length of the deletion.
-        if allele[0] == 'D':
-            if int(allele[1:])+1 == len(r['ref']):
-                return True
-
-    return False
+    # Alt AND ref has to be the same, then we have a match
+    return r['alt'] == allele and r['ref'] == reference
 
 class home(auth.UnsafeHandler):
     def get(self, *args, **kwargs):
