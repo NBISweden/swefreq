@@ -84,7 +84,7 @@ def connect_db():
     """
     client = pymongo.MongoClient(host=app.config['DB_HOST'], port=app.config['DB_PORT'])
     db = client[app.config['DB_NAME']]
-    db.authenticate(app.config['DB_USER'], app_config['DB_PASS'])
+    db.authenticate(app.config['DB_USER'], app.config['DB_PASS'])
     return db
 
 def parse_tabix_file_subset(tabix_filenames, subset_i, subset_n, record_parser):
