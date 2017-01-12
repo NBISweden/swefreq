@@ -9,10 +9,10 @@ import logging
 import secrets
 import torndb as database
 
-db = database.Connection(host = secrets.mysqlHost,
-                         database = secrets.mysqlSchema,
-                         user = secrets.mysqlUser,
-                         password = secrets.mysqlPasswd)
+db = database.Connection(host = secrets.mysql_host,
+                         database = secrets.mysql_schema,
+                         user = secrets.mysql_user,
+                         password = secrets.mysql_passwd)
 
 def isAuthorized(email):
     tRes = db.query("""select username

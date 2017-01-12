@@ -12,10 +12,10 @@ import email.mime.multipart
 from email.MIMEText import MIMEText
 
 
-db = database.Connection(host = secrets.mysqlHost,
-                         database = secrets.mysqlSchema,
-                         user = secrets.mysqlUser,
-                         password = secrets.mysqlPasswd)
+db = database.Connection(host = secrets.mysql_host,
+                         database = secrets.mysql_schema,
+                         user = secrets.mysql_user,
+                         password = secrets.mysql_passwd)
 
 class query(auth.UnsafeHandler):
     def make_error_response(self):
@@ -114,7 +114,7 @@ def lookupAllele(chrom, pos, allele, reference, dataset):
     Returns:
         The string 'true' if the allele was found, otherwise the string 'false'
     """
-    client = pymongo.MongoClient(host=secrets.mongoHost, port=secrets.mongoPort)
+    client = pymongo.MongoClient(host=secrets.mongo_host, port=secrets.mongo_port)
 
     # The name of the dataset in the database is exac as required by the
     # exac browser we are using.
@@ -122,7 +122,7 @@ def lookupAllele(chrom, pos, allele, reference, dataset):
         dataset = 'exac'
 
     mdb = client[dataset]
-    mdb.authenticate(secrets.mongoUser, secrets.mongoPassword)
+    mdb.authenticate(secrets.mongo_user, secrets.mongo_password)
 
     if allele[0] == 'D' or allele[0] == 'I':
         pos -= 1
@@ -169,7 +169,7 @@ class home(auth.UnsafeHandler):
         self.write(t.generate(user_name=self.get_current_user(),
                               email=self.get_current_email(),
                               is_admin=is_admin,
-                              ExAC=secrets.ExAC_server))
+                              ExAC=secrets.exac_server))
 
 class getUser(auth.UnsafeHandler):
     def get(self, *args, **kwargs):
@@ -310,14 +310,14 @@ class approveUser(auth.SafeHandler):
 
         msg = email.mime.multipart.MIMEMultipart()
         msg['to'] = sEmail
-        msg['from'] = secrets.FROM_ADDRESS
+        msg['from'] = secrets.from_address
         msg['subject'] = 'Swefreq account created'
-        msg.add_header('reply-to', secrets.REPLY_TO_ADDRESS)
+        msg.add_header('reply-to', secrets.reply_to_address)
         body = "Your Swefreq account has been activated."
         msg.attach(MIMEText(body, 'plain'))
 
 
-        server = smtplib.SMTP(secrets.MAIL_SERVER)
+        server = smtplib.SMTP(secrets.mail_server)
         server.sendmail(msg['from'], [msg['to']], msg.as_string())
 
 
