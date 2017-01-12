@@ -22,12 +22,12 @@ settings = {"debug": True,
             "cookie_secret": secrets.cookie_secret,
             "login_url": "/login",
             "google_oauth": {
-        "key": secrets.googleKey,
-        "secret": secrets.googleSecret
-        },
+                "key": secrets.google_key,
+                "secret": secrets.google_secret
+            },
             "contact_person": 'mats.dahlberg@scilifelab.se',
             "redirect_uri": redirect_uri
-            }
+        }
 
 class Application(tornado.web.Application):
     def __init__(self, settings):
