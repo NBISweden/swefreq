@@ -1,5 +1,5 @@
 *.pyc
 ## Never check this in
-secrets.py
+secrets.json
 tornado/static/pilot.OF-0839.merged.AF.vcf.gz
 venv

@@ -114,7 +114,7 @@ def lookupAllele(chrom, pos, allele, reference, dataset):
     Returns:
         The string 'true' if the allele was found, otherwise the string 'false'
     """
-    client = pymongo.MongoClient(host=secrets.mongodbhost, port=secrets.mongodbport)
+    client = pymongo.MongoClient(host=secrets.mongoHost, port=secrets.mongoPort)
 
     # The name of the dataset in the database is exac as required by the
     # exac browser we are using.
@@ -122,6 +122,7 @@ def lookupAllele(chrom, pos, allele, reference, dataset):
         dataset = 'exac'
 
     mdb = client[dataset]
+    mdb.authenticate(secrets.mongoUser, secrets.mongoPassword)
 
     if allele[0] == 'D' or allele[0] == 'I':
         pos -= 1
