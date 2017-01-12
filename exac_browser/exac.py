@@ -40,13 +40,18 @@ app.config['COMPRESS_DEBUG'] = True
 cache = SimpleCache()
 
 EXAC_FILES_DIRECTORY = 'exac_data/'
+MONGO_SETTINGS_FILE = '../secrets.json'
+MONGO_SETTINGS = json.load( open( MONGO_SETTINGS_FILE ) )
+
 REGION_LIMIT = 1E5
 EXON_PADDING = 50
 # Load default config and override config from an environment variable
 app.config.update(dict(
-    DB_HOST='localhost',
-    DB_PORT=27017,
-    DB_NAME='exac', 
+    DB_HOST=MONGO_SETTINGS['mongoHost'],
+    DB_PORT=MONGO_SETTINGS['mongoPort'],
+    DB_NAME=MONGO_SETTINGS['mongoDb'],
+    DB_USER=MONGO_SETTINGS['mongoUser'],
+    DB_PASS=MONGO_SETTINGS['mongoPassword'],
     DEBUG=True,
     SECRET_KEY='development key',
     LOAD_DB_PARALLEL_PROCESSES = 4,  # contigs assigned to threads, so good to make this a factor of 24 (eg. 2,3,4,6,8)
@@ -78,8 +83,9 @@ def connect_db():
     Connects to the specific database.
     """
     client = pymongo.MongoClient(host=app.config['DB_HOST'], port=app.config['DB_PORT'])
-    return client[app.config['DB_NAME']]
-
+    db = client[app.config['DB_NAME']]
+    db.authenticate(app.config['DB_USER'], app_config['DB_PASS'])
+    return db
 
 def parse_tabix_file_subset(tabix_filenames, subset_i, subset_n, record_parser):
     """
