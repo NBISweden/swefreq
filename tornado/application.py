@@ -12,10 +12,10 @@ import email.mime.multipart
 from email.MIMEText import MIMEText
 
 
-db = database.Connection(host = secrets.mysqlHost,
-                         database = secrets.mysqlSchema,
-                         user = secrets.mysqlUser,
-                         password = secrets.mysqlPasswd)
+db = database.Connection(host = secrets.mysql_host,
+                         database = secrets.mysql_schema,
+                         user = secrets.mysql_user,
+                         password = secrets.mysql_passwd)
 
 class query(auth.UnsafeHandler):
     def make_error_response(self):
@@ -79,9 +79,9 @@ class info(auth.UnsafeHandler):
     def get(self, *args, **kwargs):
         query_uri = "%s://%s/query?" % (self.request.protocol, self.request.host)
         self.write({
-            'id': u'nbis-beacon',
-            'name': u'NBIS Beacon',
-            'organization': u'NBIS',
+            'id': u'swefreq-beacon',
+            'name': u'Swefreq Beacon',
+            'organization': u'SciLifeLab',
             'api': u'0.2',
             #'description': u'Swefreq beacon from NBIS',
             'datasets': [
@@ -97,7 +97,7 @@ class info(auth.UnsafeHandler):
             #'email': u'swefreq-beacon@nbis.se',
             #'auth': 'None', # u'oauth2'
             'queries': [
-                query_uri + 'dataset=SweGen&ref=hg19&chrom=1&pos=55500976&dataset=exac&allele=C',
+                query_uri + 'dataset=SweGen&ref=hg19&chrom=1&pos=55500976&allele=C',
                 query_uri + 'dataset=SweGen&ref=hg19&chrom=1&pos=55505553&allele=ICTG&format=text',
                 query_uri + 'dataset=SweGen&ref=hg19&chrom=2&pos=41938&allele=D1'
                 ] #
@@ -114,7 +114,7 @@ def lookupAllele(chrom, pos, allele, reference, dataset):
     Returns:
         The string 'true' if the allele was found, otherwise the string 'false'
     """
-    client = pymongo.MongoClient(host=secrets.mongodbhost, port=secrets.mongodbport)
+    client = pymongo.MongoClient(host=secrets.mongo_host, port=secrets.mongo_port)
 
     # The name of the dataset in the database is exac as required by the
     # exac browser we are using.
@@ -122,6 +122,7 @@ def lookupAllele(chrom, pos, allele, reference, dataset):
         dataset = 'exac'
 
     mdb = client[dataset]
+    mdb.authenticate(secrets.mongo_user, secrets.mongo_password)
 
     if allele[0] == 'D' or allele[0] == 'I':
         pos -= 1
@@ -168,7 +169,7 @@ class home(auth.UnsafeHandler):
         self.write(t.generate(user_name=self.get_current_user(),
                               email=self.get_current_email(),
                               is_admin=is_admin,
-                              ExAC=secrets.ExAC_server))
+                              ExAC=secrets.exac_server))
 
 class getUser(auth.UnsafeHandler):
     def get(self, *args, **kwargs):
@@ -309,14 +310,14 @@ class approveUser(auth.SafeHandler):
 
         msg = email.mime.multipart.MIMEMultipart()
         msg['to'] = sEmail
-        msg['from'] = secrets.FROM_ADDRESS
+        msg['from'] = secrets.from_address
         msg['subject'] = 'Swefreq account created'
-        msg.add_header('reply-to', secrets.REPLY_TO_ADDRESS)
+        msg.add_header('reply-to', secrets.reply_to_address)
         body = "Your Swefreq account has been activated."
         msg.attach(MIMEText(body, 'plain'))
 
 
-        server = smtplib.SMTP(secrets.MAIL_SERVER)
+        server = smtplib.SMTP(secrets.mail_server)
         server.sendmail(msg['from'], [msg['to']], msg.as_string())
 
 

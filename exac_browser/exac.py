@@ -40,13 +40,18 @@ app.config['COMPRESS_DEBUG'] = True
 cache = SimpleCache()
 
 EXAC_FILES_DIRECTORY = 'exac_data/'
+MONGO_SETTINGS_FILE = '../secrets.json'
+MONGO_SETTINGS = json.load( open( MONGO_SETTINGS_FILE ) )
+
 REGION_LIMIT = 1E5
 EXON_PADDING = 50
 # Load default config and override config from an environment variable
 app.config.update(dict(
-    DB_HOST='localhost',
-    DB_PORT=27017,
-    DB_NAME='exac', 
+    DB_HOST=MONGO_SETTINGS['mongoHost'],
+    DB_PORT=MONGO_SETTINGS['mongoPort'],
+    DB_NAME=MONGO_SETTINGS['mongoDb'],
+    DB_USER=MONGO_SETTINGS['mongoUser'],
+    DB_PASS=MONGO_SETTINGS['mongoPassword'],
     DEBUG=True,
     SECRET_KEY='development key',
     LOAD_DB_PARALLEL_PROCESSES = 4,  # contigs assigned to threads, so good to make this a factor of 24 (eg. 2,3,4,6,8)
@@ -78,8 +83,9 @@ def connect_db():
     Connects to the specific database.
     """
     client = pymongo.MongoClient(host=app.config['DB_HOST'], port=app.config['DB_PORT'])
-    return client[app.config['DB_NAME']]
-
+    db = client[app.config['DB_NAME']]
+    db.authenticate(app.config['DB_USER'], app.config['DB_PASS'])
+    return db
 
 def parse_tabix_file_subset(tabix_filenames, subset_i, subset_n, record_parser):
     """
@@ -118,7 +124,8 @@ def parse_tabix_file_subset(tabix_filenames, subset_i, subset_n, record_parser):
 
 
 def load_base_coverage():
-    def load_coverage(coverage_files, i, n, db):
+    def load_coverage(coverage_files, i, n):
+        db = connect_db()
         coverage_generator = parse_tabix_file_subset(coverage_files, i, n, get_base_coverage_from_file)
         try:
             db.base_coverage.insert(coverage_generator, w=0)
@@ -129,17 +136,28 @@ def load_base_coverage():
     db.base_coverage.drop()
     print("Dropped db.base_coverage")
     # load coverage first; variant info will depend on coverage
-    db.base_coverage.ensure_index('xpos')
 
     procs = []
     coverage_files = app.config['BASE_COVERAGE_FILES']
-    num_procs = app.config['LOAD_DB_PARALLEL_PROCESSES']
     random.shuffle(app.config['BASE_COVERAGE_FILES'])
-    for i in range(num_procs):
-        p = Process(target=load_coverage, args=(coverage_files, i, num_procs, db))
-        p.start()
-        procs.append(p)
-    return procs
+
+    # The coverage data fails to load if we do it just like when we
+    # load the VCF file.  We don't know exactly why.  Here, we loop
+    # sequentially with one single thread over the input files.  Our
+    # data is at preset 31Gb (compressed), and this takes 17 hours to
+    # load in this way.
+    #num_procs = app.config['LOAD_DB_PARALLEL_PROCESSES']
+    num_procs = 1;
+
+    for this_file in coverage_files:
+        for i in range(num_procs):
+            p = Process(target=load_coverage, args=([this_file], i, num_procs))
+            p.start()
+            procs.append(p)
+
+        [p.join() for p in procs]
+
+    db.base_coverage.ensure_index('xpos')
 
     #print 'Done loading coverage. Took %s seconds' % int(time.time() - start_time)
 
