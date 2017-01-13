@@ -97,7 +97,7 @@ class info(auth.UnsafeHandler):
             #'email': u'swefreq-beacon@nbis.se',
             #'auth': 'None', # u'oauth2'
             'queries': [
-                query_uri + 'dataset=SweGen&ref=hg19&chrom=1&pos=55500976&dataset=exac&allele=C',
+                query_uri + 'dataset=SweGen&ref=hg19&chrom=1&pos=55500976&allele=C',
                 query_uri + 'dataset=SweGen&ref=hg19&chrom=1&pos=55505553&allele=ICTG&format=text',
                 query_uri + 'dataset=SweGen&ref=hg19&chrom=2&pos=41938&allele=D1'
                 ] #
