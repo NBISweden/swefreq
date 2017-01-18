@@ -84,6 +84,9 @@ def get_coverage_for_bases(db, xstart, xstop=None):
     }
     ret = []
     for i in range(xstart, xstop+1):
+        # Filter the coverage, TODO: Should be done when loading data
+        if i % 10 != 0:
+            continue
         if i in coverages:
             ret.append(coverages[i])
         else:
