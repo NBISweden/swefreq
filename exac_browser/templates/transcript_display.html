@@ -32,7 +32,6 @@
         <span id="gene_plot_container" style="overflow-x:scroll; display: inline-block;"></span>
         <a class="btn btn-success" id="coverage_plot_download" target="_blank" download="{{ plot_id }}_coverage">Save coverage plot</a>
         <a class="btn btn-success" id="exon_plot_download" target="_blank" download="{{ plot_id }}_exon">Save exon image</a>
-        <a class="btn btn-success" id="cnv_plot_download" target="_blank" download="{{ plot_id }}_cnv">Save CNV image</a>
     </div>
 </div>
 <style>
@@ -469,7 +468,6 @@ function gene_chart(data, new_data, variant_data, _transcript, _cnvs) {
 
            // call to separate function to make the CNVs plot.
            var detail = get_plot_detail();
-           make_cnvs_svg(_cnvs, _transcript, detail, true);
 }
 
 function variant_colors(d) {
@@ -588,7 +586,6 @@ function change_coverage_chart(data, new_data, variant_data, _transcript, scale_
         .call(yAxis);
 
     $("#cnv_svg").remove();
-    make_cnvs_svg(window.cnvs, _transcript, scale_type, skip_utrs);
 }
 
 function create_new_data(data, coords) {
@@ -645,7 +642,6 @@ function get_plot_detail() {
 function refresh_links() {
     $("#coverage_plot_download").attr('href', set_plot_image('gene_plot_container', 0));
     $("#exon_plot_download").attr('href', set_plot_image('gene_plot_container', 1));
-    $("#cnv_plot_download").attr('href', set_plot_image('gene_plot_container', 2));
 }
 
 $(document).ready(function() {
@@ -768,8 +764,6 @@ $(document).ready(function() {
         var include_utrs = $('#include_utrs_checkbox').is(':checked');
         var detail = get_plot_detail();
         
-        make_cnvs_svg(window.cnvs, window.transcript, detail, !include_utrs);
-
     });
 
     refresh_links();
