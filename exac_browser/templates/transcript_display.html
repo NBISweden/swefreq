@@ -644,12 +644,50 @@ function refresh_links() {
     $("#exon_plot_download").attr('href', set_plot_image('gene_plot_container', 1));
 }
 
+/* Re add fake data points that were removed on the server  */
+function expand_the_coverage_stats(data) {
+    var out_data = [];
+    out_data.push(data[0]);
+    console.log("Expand coverage stats");
+
+    // These are the points where we should interpolate
+    var coverage_levels = ["1", "5", "10", "15", "20", "25", "30", "50", "100", "mean", "median" ];
+    for (var i = 1; i < data.length; i++) {
+        var pos = data[i]['pos'];
+        var last_pos = data[i-1]['pos'];
+        var distance = pos - last_pos;
+        if ( distance <= 10 && distance > 1 ) {
+            for (var pi = 1; pi<=distance; pi++) {
+                var copy = Object.assign({}, data[i-1]);
+                copy['pos'] += pi;
+
+                // Interpolate the values in between, k is from the line equation.
+                // This takes ~50ms on my machine, is it worth it?
+                /*
+                var L = data[i]['pos'] - data[i-1]['pos'];
+                for (var ki=0; ki<coverage_levels.length; ki++) {
+                    var k = (data[i][coverage_levels[ki]] - data[i-1][coverage_levels[ki]]) / L;
+                    copy[coverage_levels[ki]] += k * pi;
+                }
+                */
+
+                out_data.push(copy);
+            }
+        }
+        out_data.push(data[i]);
+    }
+    return out_data;
+}
+
 $(document).ready(function() {
     if ($(window).width() < 768) {
         $('#gene_plot_container').css('width', $(window).width() + "px");
     } else {
         $('#gene_plot_container').css('width', $(window).width()*10/12 + "px");
     }
+
+    window.coverage_stats = expand_the_coverage_stats(window.coverage_stats);
+
     precalc_coding_coordinates(window.transcript, window.coverage_stats, 'pos');
     precalc_coding_coordinates(window.transcript, window.variants_in_transcript, 'pos');
 
