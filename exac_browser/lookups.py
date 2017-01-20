@@ -83,7 +83,9 @@ def get_coverage_for_bases(db, xstart, xstop=None):
         )
     }
     ret = []
-    for i in range(xstart, xstop+1):
+    # We only store every 10'th base in the db, so we have to make the checks
+    # only then.
+    for i in range(xstart-xstart%10, xstop+1, 10):
         if i in coverages:
             ret.append(coverages[i])
         else:
