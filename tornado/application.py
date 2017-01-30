@@ -27,7 +27,7 @@ class query(auth.UnsafeHandler):
                 'pos': lambda x: "" if x.isdigit() else "pos has to be digit\n",
         }
 
-        for arg in ['chrom', 'pos', 'dataset', 'allele', 'ref']:
+        for arg in ['chrom', 'pos', 'dataset', 'referenceBases', 'alternateBases', 'ref']:
             try:
                 val = self.get_argument(arg)
                 if checks.has_key(arg):
@@ -52,10 +52,11 @@ class query(auth.UnsafeHandler):
         sChr      = self.get_argument('chrom', '').upper()
         iPos      = self.get_argument('pos', '')
         dataset   = self.get_argument('dataset', '')
-        allele    = self.get_argument('allele', '').upper()
+        referenceBases = self.get_argument('referenceBases', '').upper()
+        alternateBases = self.get_argument('alternateBases', '').upper()
         reference = self.get_argument('ref', '').upper()
 
-        exists = lookupAllele(sChr, int(iPos), allele, reference, dataset)
+        exists = lookupAllele(sChr, int(iPos), referenceBases, alternateBases, reference, dataset)
 
         if self.get_argument('format', '') == 'text':
             self.set_header('Content-Type', 'text/plain')
@@ -69,7 +70,8 @@ class query(auth.UnsafeHandler):
                 'query': {
                     'chromosome': sChr,
                     'position': iPos,
-                    'allele': allele,
+                    'referenceBases': referenceBases,
+                    'alternateBases': alternateBases,
                     'dataset': dataset,
                     'reference': reference
                     },
@@ -83,7 +85,7 @@ class info(auth.UnsafeHandler):
             'id': u'swefreq-beacon',
             'name': u'Swefreq Beacon',
             'organization': u'SciLifeLab',
-            'api': u'0.2',
+            'api': u'0.3',
             #'description': u'Swefreq beacon from NBIS',
             'datasets': [
                 {
@@ -98,18 +100,19 @@ class info(auth.UnsafeHandler):
             #'email': u'swefreq-beacon@nbis.se',
             #'auth': 'None', # u'oauth2'
             'queries': [
-                query_uri + 'dataset=SweGen&ref=hg19&chrom=1&pos=55500976&allele=C',
-                query_uri + 'dataset=SweGen&ref=hg19&chrom=1&pos=55505553&allele=ICTG&format=text',
-                query_uri + 'dataset=SweGen&ref=hg19&chrom=2&pos=41938&allele=D1'
+                query_uri + 'dataset=SweGen&ref=hg19&chrom=1&pos=55500975&referenceBases=C&alternateBases=T',
+                query_uri + 'dataset=SweGen&ref=hg19&chrom=1&pos=55505551&referenceBases=A&alternateBases=ACTG&format=text',
+                query_uri + 'dataset=SweGen&ref=hg19&chrom=2&pos=41936&referenceBases=AG&alternateBases=A'
                 ] #
             })
 
-def lookupAllele(chrom, pos, allele, reference, dataset):
+def lookupAllele(chrom, pos, referenceBases, alternateBases, reference, dataset):
     """CHeck if an allele is present in the database
     Args:
         chrom: The chromosome, format matches [1-22XY]
         pos: Coordinate within a chromosome. Position is a number and is 1-based
-        allele: Any string of nucleotides A,C,T,G or D, I for deletion and insertion, respectively.
+        allele: Any string of nucleotides A,C,T,G
+        alternate: Any string of nucleotides A,C,T,G
         reference: The human reference build that was used (currently unused)
         dataset: Dataset to look in (currently used to select Mongo database)
     Returns:
@@ -128,11 +131,11 @@ def lookupAllele(chrom, pos, allele, reference, dataset):
     # Beacon is 0-based, our database is 1-based in coords.
     pos += 1
     res = mdb.variants.find({'chrom': chrom, 'pos': pos})
-    if not res:
-        return False
+    for r in res:
+        if r['alt'] == alternateBases and r['ref'] == referenceBases:
+            return True
 
-    # Alt AND ref has to be the same, then we have a match
-    return r['alt'] == allele and r['ref'] == reference
+    return False
 
 class home(auth.UnsafeHandler):
     def get(self, *args, **kwargs):

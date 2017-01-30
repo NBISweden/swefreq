@@ -123,7 +123,7 @@
         beacon.search = function() {
             beacon.color = 'black';
             beacon.response = "Searching...";
-            $http.get('query', { 'params': { 'chrom': beacon.chromosome, 'pos': beacon.position, 'allele': beacon.allele, 'dataset': beacon.dataset, 'ref': beacon.reference}})
+            $http.get('query', { 'params': { 'chrom': beacon.chromosome, 'pos': beacon.position, 'alternateBases': beacon.alternateBases, 'referenceBases': beacon.referenceBases, 'dataset': beacon.dataset, 'ref': beacon.reference}})
                 .then(function (response){
                     if (response.data['response']['exists']) {
                         beacon.response = "Yes";
