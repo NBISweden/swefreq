@@ -3,6 +3,7 @@ indexHead="""
 <!-- define angular app -->
 <html ng-app="App">
   <head>
+    <title>SweFreq</title>
     <!-- SCROLLS -->
     <meta charset="utf-8" />
     <!-- Bootstrap -->
