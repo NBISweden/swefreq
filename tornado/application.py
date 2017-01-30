@@ -78,7 +78,7 @@ class query(auth.UnsafeHandler):
 
 class info(auth.UnsafeHandler):
     def get(self, *args, **kwargs):
-        query_uri = "%s://%s/query?" % (self.request.protocol, self.request.host)
+        query_uri = "%s://%s/query?" % ('https', self.request.host)
         self.write({
             'id': u'swefreq-beacon',
             'name': u'Swefreq Beacon',
@@ -94,7 +94,7 @@ class info(auth.UnsafeHandler):
                     'reference': 'hg19'
                 },
             ],
-            'homepage':  "%s://%s" % (self.request.protocol, self.request.host),
+            'homepage':  "%s://%s" % ('https', self.request.host),
             #'email': u'swefreq-beacon@nbis.se',
             #'auth': 'None', # u'oauth2'
             'queries': [
