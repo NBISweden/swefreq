@@ -2,7 +2,13 @@
 
 set -e
 
+if [[ ! -d "coverage" ]]; then
+    echo "Can not find directory 'coverage' here" >&2
+    exit 1
+fi
+
 mkdir coverage-thinned
+echo "Directory 'coverage-thinned' created" >&2
 
 for cov in coverage/Panel*.gz; do
     printf 'Processing "%s"... ' "$cov" >&2
