@@ -110,7 +110,7 @@ def lookupAllele(chrom, pos, referenceBases, alternateBases, reference, dataset)
     """CHeck if an allele is present in the database
     Args:
         chrom: The chromosome, format matches [1-22XY]
-        pos: Coordinate within a chromosome. Position is a number and is 1-based
+        pos: Coordinate within a chromosome. Position is a number and is 0-based
         allele: Any string of nucleotides A,C,T,G
         alternate: Any string of nucleotides A,C,T,G
         reference: The human reference build that was used (currently unused)
