@@ -126,16 +126,17 @@
             $http.get('query', { 'params': { 'chrom': beacon.chromosome, 'pos': beacon.position, 'alternateBases': beacon.alternateBases, 'referenceBases': beacon.referenceBases, 'dataset': beacon.dataset, 'ref': beacon.reference}})
                 .then(function (response){
                     if (response.data['response']['exists']) {
-                        beacon.response = "Yes";
+                        beacon.response = "Present";
                         beacon.color = 'green';
                     }
                     else {
-                        beacon.response = "No";
+                        beacon.response = "Absent";
                         beacon.color = "red";
                     }
                 },
                 function (response){
-                    beacon.response="ERROR";
+                    beacon.response="Error";
+                    beacon.color = 'black';
                 });
         }
     });
