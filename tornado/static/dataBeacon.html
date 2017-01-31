@@ -1,85 +1,84 @@
 <!-- dataBeacon.html -->
 
 <div ng-controller="dataBeaconController as beacon">
-    <div class="container">
-        <form role="form" name="beacon_form" class="form-horizontal">
-            <div class="form-group">
-                <label for="chromosome" class="col-sm-2 control-label">Chromosome</label>
-                <div class="col-sm-10">
-                    <input type="text" required 
-                        ng-pattern='/^([1-9]|1[0-9]|2[0-2]|X|Y|x|y)$/'
-                        class="form-control"
-                        id="chromosome"
-                        name="chromosome"
-                        ng-model="beacon.chromosome"
-                        ng-disabled="false"
-                        placeholder="Chromosome">
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="position" class="col-sm-2 control-label">Position</label>
-                <div class="col-sm-10">
-                    <input type="number" required class="form-control" id="position" ng-model="beacon.position" ng-disabled="false" placeholder="Position">
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="alternateBases" class="col-sm-2 control-label">Alternate Bases</label>
-                <div class="col-sm-10">
-                    <input type="text" required ng-pattern='/^([ATCGatcg]+)$/'
-                        class="form-control" id="alternateBases" ng-model="beacon.alternateBases" name='alternateBases'
-                        ng-disabled="false" placeholder="Alternate Bases">
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="referenceBases" class="col-sm-2 control-label">Reference Bases</label>
-                <div class="col-sm-10">
-                    <input type="text" required ng-pattern='/^([ATCGatcg]+)$/'
-                        class="form-control" id="referenceBases" ng-model="beacon.referenceBases" name='referenceBases'
-                        ng-disabled="false" placeholder="Reference Bases">
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="reference" class="col-sm-2 control-label">Reference</label>
-                <div class="col-sm-10">
-                    <select class='form-control' ng-model='beacon.reference' ng-options='d.reference as d.reference for d in beacon.datasets'></select>
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="dataset" class="col-sm-2 control-label">Dataset</label>
-                <div class="col-sm-10">
-                    <select class='form-control' ng-model='beacon.dataset' required ng-options='d.id as d.id for d in beacon.datasets'>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="col-sm-offset-2 col-sm-9">
-                    <button ng-click="beacon.search()" class="btn btn-primary">Is it there?</button>
-                </div>
-                <div class="col-sm-1">
-                    <a style='cursor: pointer' ng-click="showDetails = ! showDetails">Help</a>
-                </div
-            </div>
-        </form>
-        <div class="row">
-            <div class="col-xs-12" style="height:25px;"></div>
-        </div>
-        <div class="row" ng-show="showDetails">
-            <div class="col-xs-12">
-                Alternate bases and Reference bases follows the VCF 4.1
-                specification. Position counts from 0 and not from 1 (as it is
-                in the VCF spec, so remember to subtract one).
+    <div class="jumbotron ng-scope">
+        <div class="container">
+            <h2>SweFreq Beacon</h2>
+            <form role="form" name="beacon_form" class="form-horizontal">
+                <div class="form-group">
+                    <label for="chromosome" class="col-sm-3 control-label">Chromosome</label>
+                    <div class="col-sm-3">
+                        <input type="text" required
+                            ng-pattern='/^([1-9]|1[0-9]|2[0-2]|X|Y|x|y)$/'
+                            class="form-control"
+                            id="chromosome"
+                            name="chromosome"
+                            ng-model="beacon.chromosome"
+                            ng-disabled="false"
+                            placeholder="Chromosome">
+                    </div>
 
-                <p><em>Example</em>: an insertion of TA on position 45
-                (specified as 46 in VCF file) would be specified as CTA on
-                position 44 as alternate bases and C as reference base (given
-                that C is what is on the position prior to the insertion).
+                    <label for="position" class="col-sm-3 control-label">Position</label>
+                    <div class="col-sm-3">
+                        <input type="number" required class="form-control" id="position" ng-model="beacon.position" ng-disabled="false" placeholder="Position">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="alternateBases" class="col-sm-3 control-label">Alternate Bases</label>
+                    <div class="col-sm-3">
+                        <input type="text" required ng-pattern='/^([ATCGatcg]+)$/'
+                            class="form-control" id="alternateBases" ng-model="beacon.alternateBases" name='alternateBases'
+                            ng-disabled="false" placeholder="Alternate Bases">
+                    </div>
+
+                    <label for="referenceBases" class="col-sm-3 control-label">Reference Bases</label>
+                    <div class="col-sm-3">
+                        <input type="text" required ng-pattern='/^([ATCGatcg]+)$/'
+                            class="form-control" id="referenceBases" ng-model="beacon.referenceBases" name='referenceBases'
+                            ng-disabled="false" placeholder="Reference Bases">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="reference" class="col-sm-3 control-label">Reference</label>
+                    <div class="col-sm-3">
+                        <select class='form-control' ng-model='beacon.reference' ng-options='d.reference as d.reference for d in beacon.datasets'></select>
+                    </div>
+
+                    <label for="dataset" class="col-sm-3 control-label">Dataset</label>
+                    <div class="col-sm-3">
+                        <select class='form-control' ng-model='beacon.dataset' required ng-options='d.id as d.id for d in beacon.datasets'>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-offset-3 col-sm-8">
+                        <button ng-click="beacon.search()" class="btn btn-primary">Is it there?</button>
+                    </div>
+                    <div class="col-sm-1">
+                        <a style='cursor: pointer' ng-click="showDetails = ! showDetails">Help</a>
+                    </div>
+                </div>
+            </form>
+            <div class="row" ng-show="showDetails">
+                <div class="col-xs-12">
+                    <p><small>Alternate bases and Reference bases follows the VCF 4.1
+                    specification. Position counts from 0 and not from 1 (as it is
+                    in the VCF spec, so remember to subtract one).</small></p>
+
+                    <p><small><em>Example</em>: an insertion of TA on position 45
+                    (specified as 46 in VCF file) would be specified as CTA on
+                    position 44 as alternate bases and C as reference base (given
+                    that C is what is on the position prior to the insertion).</small></p>
+                </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-xs-12" style="height:50px;"></div>
-        </div>
-        <div class="row">
-            <div class='col-xs-11'><h1 style="color:{{beacon.color}}">{{beacon.response}}</h1></div>
-        </div>
+    </div>
+    <div class="container ng-scope">
+            <div class="row">
+                <div class="col-xs-12" style="height:50px;"></div>
+            </div>
+            <div class="row">
+                <div class='col-xs-11'><h1 style="color:{{beacon.color}}">{{beacon.response}}</h1></div>
+            </div>
     </div>
 </div>
