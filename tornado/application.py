@@ -307,7 +307,7 @@ class approveUser(auth.SafeHandler):
         server.sendmail(msg['from'], [msg['to']], msg.as_string())
 
 
-class deleteUser(auth.SafeHandler):
+class revokeUser(auth.SafeHandler):
     def get(self, sEmail):
         sLoggedInEmail = self.get_current_email()
         tRes = db.query("""select email from swefreq.users where
@@ -320,7 +320,7 @@ class deleteUser(auth.SafeHandler):
         db.execute("""update swefreq.users set full_user = '0'
                       where email = '%s'""" % sEmail)
 
-class denyUser(auth.SafeHandler):
+class deleteUser(auth.SafeHandler):
     def get(self, sEmail):
         sLoggedInEmail = self.get_current_email()
         tRes = db.query("""select email from swefreq.users where

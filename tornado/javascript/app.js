@@ -87,14 +87,14 @@
         };
         this.getUsers();
 
-        this.denyUser = function(userData){
-            $http.get('/denyUser/' + userData.email).success(function(data){
+        this.deleteUser = function(userData){
+            $http.get('/deleteUser/' + userData.email).success(function(data){
                 localThis.getUsers();
             });
         };
 
-        this.deleteUser = function(userData){
-            $http.get('/deleteUser/' + userData.email).success(function(data){
+        this.revokeUser = function(userData){
+            $http.get('/revokeUser/' + userData.email).success(function(data){
                 localThis.getUsers();
             });
         };

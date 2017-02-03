@@ -50,7 +50,7 @@
                   <div class="btn btn-danger btn-xs"
                        data-toggle="tooltip"
                        title="Delete from the database"
-                       ng-click="adminCtrl.denyUser(row)">
+                       ng-click="adminCtrl.deleteUser(row)">
                        Delete</div>{{row.user}}</div>
                   <div class="col-md-3 alignment">{{row.email}}</div>
                   <div class="col-md-2 alignment">{{row.affiliation}}</div>
@@ -80,7 +80,7 @@
                   <div class="btn btn-danger btn-xs"
                        data-toggle="tooltip"
                        title="Make the user pending again"
-                       ng-click="adminCtrl.deleteUser(row)">
+                       ng-click="adminCtrl.revokeUser(row)">
                        Revoke</div>{{row.user}}</div>
                   <div class="col-md-3 alignment">{{row.email}}</div>
                   <div class="col-md-2 alignment">{{row.affiliation}}</div>
