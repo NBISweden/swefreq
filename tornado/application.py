@@ -164,14 +164,14 @@ class getUser(auth.UnsafeHandler):
 
         tRes = db.query("""select full_user from swefreq.users where
                            email='%s' and full_user""" % sEmail)
-        lTrusted = True if len(tRes)==1 else False
+        lTrusted = len(tRes)==1
 
         tRes = db.query("""select full_user from swefreq.users where
                               email='%s'""" % sEmail)
-        lDatabase = True if len(tRes) == 1 else False
+        lDatabase = len(tRes) == 1
         tRes = db.query("""select full_user from swefreq.users where
                               email='%s' and swefreq_admin""" % sEmail)
-        lAdmin = True if len(tRes) == 1 else False
+        lAdmin = len(tRes) == 1
 
         logging.info("getUser: " + str(sUser) + ' ' + str(sEmail))
         self.finish(json.dumps({'user':sUser,
