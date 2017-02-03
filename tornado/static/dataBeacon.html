@@ -54,22 +54,8 @@
                     <div class="col-sm-offset-3 col-sm-8">
                         <button ng-click="beacon.search()" class="btn btn-primary">Search</button>
                     </div>
-                    <div class="col-sm-1">
-                        <a style='cursor: pointer' ng-click="showDetails = ! showDetails">Help</a>
-                    </div>
                 </div>
             </form>
-            <div class="row" ng-show="showDetails">
-                <div class="col-xs-12">
-                    <p><small>Alternate bases and Reference bases follows the VCF 4.1
-                    specification.</small></p>
-
-                    <p><small><em>Example</em>: an insertion of TA on position 45
-                    (specified as 46 in VCF file) would be specified as CTA on
-                    position 44 as alternate bases and C as reference base (given
-                    that C is what is on the position prior to the insertion).</small></p>
-                </div>
-            </div>
         </div>
     </div>
     <div class="container ng-scope">
