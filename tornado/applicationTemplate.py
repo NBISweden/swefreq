@@ -36,27 +36,38 @@ index="""
   <body ng-controller="mainController as mainCtrl">
     <nav class="navbar navbar-default">
       <div class="container">
-        <a class="navbar-brand" href="/#/">SweFreq</a>
-        <div class="navbar-right">
-          <a href="/#/about/" role="button" class="btn btn-default navbar-btn">About</a>
-          <a href="/#/terms/" role="button" class="btn btn-default navbar-btn">Terms of use</a>
-          <a href="/#/dataBeacon/" role="button" class="btn btn-default navbar-btn">Data Beacon</a>
-          <a href="{{ExAC}}" role="button" class="btn btn-default navbar-btn">ExAC Browser</a>
-        {%if has_access %}
-          <a href="/#/downloadData/" role="button" class="btn btn-default navbar-btn">Download Data</a>
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed"
+          data-toggle="collapse" data-target="#navbar-things"
+          aria-expanded="false">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/#/">SweFreq</a>
+        </div>
+
+        <div class="collapse navbar-collapse" id="navbar-things">
+        <ul class="nav navbar-nav navbar-right" bs-active-link>
+          <li><a href="/#/about/">About</a>
+          <li><a href="/#/terms/">Terms of use</a>
+          <li><a href="/#/dataBeacon/">Data Beacon</a>
+          <li><a href="{{ExAC}}">ExAC Browser</a>
+        {%if has_access%}
+          <li><a href="/#/downloadData/">Download Data</a>
         {%elif user_name != None %}
-          <a href="/#/requestAccess/" role="button" class="btn btn-default navbar-btn">Request Access</a>
+          <li><a href="/#/downloadData/">Download Data</a>
         {% end %}
         {%if is_admin %}
-          <a href="/#/admin/" role="button" class="btn btn-default navbar-btn">Admin</a>
+          <li><a href="/#/admin/">Admin</a>
         {% end %}
         {%if user_name != None%}
-          {{user_name}}
-          <a href="/logout" class="btn btn-text navbar-btn">Logout</a>
-          {{email}}
+          <li><a href="/logout" title="Logout {{user_name}}">Logout</a>
         {% else %}
-          <a href="/login" class="btn btn-text navbar-btn">Login</a>
+          <li><a href="/login">Login</a>
         {% end %}
+        </ul>
         </div>
       </div>
     </nav>
@@ -70,3 +81,4 @@ index="""
   </body>
 </html>
 """
+
