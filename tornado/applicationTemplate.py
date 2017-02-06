@@ -54,15 +54,15 @@ index="""
           <li><a href="/#/terms/">Terms of use</a>
           <li><a href="/#/dataBeacon/">Data Beacon</a>
           <li><a href="{{ExAC}}">ExAC Browser</a>
-        {%if has_access%}
+        {% if has_access %}
           <li><a href="/#/downloadData/">Download Data</a>
-        {%elif user_name%}
+        {% elif user_name %}
           <li><a href="/#/downloadData/">Download Data</a>
         {% end %}
-        {%if is_admin %}
+        {% if is_admin %}
           <li><a href="/#/admin/">Admin</a>
         {% end %}
-        {%if user_name%}
+        {% if user_name %}
           <li><a href="/logout" title="Logout {{user_name}}">Logout</a>
         {% else %}
           <li><a href="/login">Login</a>
