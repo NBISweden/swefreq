@@ -2,13 +2,11 @@
 <div ng-controller="adminController as adminCtrl">
   <br />
   <br />
-  <div class="col-xs-2"></div>
   <div ng-if="adminCtrl.data.admin == false">
     <p>You need to be logged in as an admin to use this page.
   </div>
   <div ng-if="adminCtrl.data.admin == true">
-    <div class="col-xs-1"></div>
-    <div class="col-xs-10">
+    <div class="row">
       <div id="exTab2"
            class="container">
         <ul class="nav nav-tabs">
@@ -28,83 +26,75 @@
         <div class="tab-content">
           <div class="tab-pane active"
                id="requestList">
-            <div class="col-xs-12">
-              <br />
-              <br />
-              <div class="row">
-                <label class="col-md-3">Name</label>
-                <label class="col-md-3">E-mail</label>
-                <label class="col-md-2">Affiliation</label>
-                <label class="col-md-2">Country</label>
-                <label class="col-md-2">Applied date</label>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                  <tr>
+                    <th></th>
+                    <th>Name</th>
+                    <th>E-mail</th>
+                    <th>Affiliation</th>
+                    <th>Country</th>
+                    <th>Applied date</th>
+                  </tr>
+                  <tr ng-repeat="row in adminCtrl.data.requests">
+                    <td>
+                      <div class="btn btn-primary btn-xs"
+                           data-toggle="tooltip"
+                           title="Give the user access"
+                           ng-click="adminCtrl.approvedUser(row)">Approve</div>
+                      <div class="btn btn-danger btn-xs"
+                           data-toggle="tooltip"
+                           title="Delete from the database"
+                           ng-click="adminCtrl.deleteUser(row)">
+                           Delete</div>
+                    </td>
+                    <td>{{row.user}}</td>
+                    <td>{{row.email}}</td>
+                    <td>{{row.affiliation}}</td>
+                    <td>{{row.country}}</td>
+                    <td>{{row.applyDate}}</td>
+                  </tr>
+                </table>
               </div>
-              <div ng-repeat="row in adminCtrl.data.requests"
-                   ng-class-odd="'odd'"
-                   ng-class-even="'even'">
-                <div class="row top-buffer">
-                  <div class="col-md-3">
-                  <div class="btn btn-primary btn-xs"
-                       data-toggle="tooltip"
-                       title="Give the user access"
-                       ng-click="adminCtrl.approvedUser(row)">Approve</div>
-                  <div class="btn btn-danger btn-xs"
-                       data-toggle="tooltip"
-                       title="Delete from the database"
-                       ng-click="adminCtrl.deleteUser(row)">
-                       Delete</div>{{row.user}}</div>
-                  <div class="col-md-3 alignment">{{row.email}}</div>
-                  <div class="col-md-2 alignment">{{row.affiliation}}</div>
-                  <div class="col-md-2 alignment">{{row.country}}</div>
-                  <div class="col-md-2 alignment">{{row.applyDate}}</div>
-                </div>
-              </div>
-            </div>
           </div>
           <div class="tab-pane"
                id="allUsers">
-            <div class="col-xs-12">
-              <br />
-              <br />
-              <div class="row">
-                <label class="col-md-3">Name</label>
-                <label class="col-md-3">E-mail</label>
-                <label class="col-md-2">Affiliation</label>
-                <label class="col-md-2">Country</label>
-                <label class="col-md-2">Download count</label>
-              </div>
-              <div ng-repeat="row in adminCtrl.data.approvedUsers"
-                   ng-class-odd="'odd'"
-                   ng-class-even="'even'">
-                <div class="row top-buffer">
-                  <div class="col-md-3">
-                  <div class="btn btn-danger btn-xs"
-                       data-toggle="tooltip"
-                       title="Make the user pending again"
-                       ng-click="adminCtrl.revokeUser(row)">
-                       Revoke</div>{{row.user}}</div>
-                  <div class="col-md-3 alignment">{{row.email}}</div>
-                  <div class="col-md-2 alignment">{{row.affiliation}}</div>
-                  <div class="col-md-2 alignment">{{row.country}}</div>
-                  <div class="col-md-2 alignment">{{row.downloadCount}}</div>
-                </div>
-              </div>
+            <div class="table-responsive">
+              <table class='table table-striped'>
+                <tr>
+                  <th></th>
+                  <th>Name</th>
+                  <th>E-mail</th>
+                  <th>Affiliation</th>
+                  <th>Country</th>
+                  <th>Download count</th>
+                </tr>
+                <tr ng-repeat="row in adminCtrl.data.approvedUsers">
+                    <td>
+                      <div class="btn btn-danger btn-xs"
+                           data-toggle="tooltip" title="Make the user pending again"
+                           ng-click="adminCtrl.revokeUser(row)">Revoke</div>
+                    </td>
+                  <td>{{row.user}}</td>
+                  <td>{{row.email}}</td>
+                  <td>{{row.affiliation}}</td>
+                  <td>{{row.country}}</td>
+                  <td>{{row.downloadCount}}</td>
+                </tr>
+              </table>
             </div>
           </div>
           <div class="tab-pane"
                id="emailList">
             <br />
             <div class="row">
-              <div class="col-xs-1"></div>
-              <div class="col-xs-10">
                 <span ng-repeat="email in adminCtrl.data.emails">
                   {{email}}{{$last ? '' : ', '}}
                 </span>
-              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <div class="row"></div>
 </div>
