@@ -51,11 +51,31 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <div class="col-sm-offset-3 col-sm-8">
+                    <div class="col-sm-offset-3 col-sm-7">
                         <button ng-click="beacon.search()" class="btn btn-primary">Search</button>
+                    </div>
+                    <div class="col-sm-2">
+                        <a style='cursor: pointer' ng-click="showDetails = !
+                            showDetails" class="pull-right">
+                            <span ng-show="! showDetails">Show</span>
+                            <span ng-show="showDetails">Hide</span>
+                            Help
+                        </a>
                     </div>
                 </div>
             </form>
+            <div class="row" ng-show="showDetails">
+                <div class="col-xs-12">
+                    <p><small>Reference and Alternate allele follows the 
+                    <a href="https://samtools.github.io/hts-specs/VCFv4.2.pdf">VCF 4.2
+                    specification</a>.</small></p>
+
+                    <p><small><em>Example</em>: an insertion of TA on position 45
+                    would be specified as CTA on position 44 as alternate
+                    allele and C as reference allele (given that C is what is
+                    on the position prior to the insertion).</small></p>
+                </div>
+            </div>
         </div>
     </div>
     <div class="container ng-scope">
