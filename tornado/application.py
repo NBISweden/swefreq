@@ -143,7 +143,7 @@ class home(auth.UnsafeHandler):
         is_admin = False
         has_access = False
 
-        if self.get_current_token() != None:
+        if self.get_current_token():
             has_access = True
             is_admin = self.is_admin()
 

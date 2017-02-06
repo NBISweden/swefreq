@@ -56,13 +56,13 @@ index="""
           <li><a href="{{ExAC}}">ExAC Browser</a>
         {%if has_access%}
           <li><a href="/#/downloadData/">Download Data</a>
-        {%elif user_name != None %}
+        {%elif user_name%}
           <li><a href="/#/downloadData/">Download Data</a>
         {% end %}
         {%if is_admin %}
           <li><a href="/#/admin/">Admin</a>
         {% end %}
-        {%if user_name != None%}
+        {%if user_name%}
           <li><a href="/logout" title="Logout {{user_name}}">Logout</a>
         {% else %}
           <li><a href="/login">Login</a>
