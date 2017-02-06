@@ -3,7 +3,6 @@ import tornado.auth
 import tornado.template as template
 import json
 import requests
-import applicationTemplate
 import secrets
 import logging
 import secrets
@@ -186,30 +185,6 @@ class LogoutHandler(tornado.web.RequestHandler, tornado.auth.GoogleOAuth2Mixin):
         self.clear_cookie("user")
         self.clear_cookie("email")
         self.redirect("/")
-
-class UnAuthorizedHandler(UnsafeHandler):
-    """ Serves a page with unauthorized notice and information about who to contact to get access. """
-    def get(self):
-        # The parameters email and name can contain anything,
-        # be careful not to evaluate them as code
-        email = self.get_argument("email", '')
-        name = self.get_argument("name", '')
-        contact = self.get_argument("contact", "contact@example.com")
-        t = template.Template(applicationTemplate.notAuthorizedHtml)
-        self.write(t.generate())
-
-class MainHandler(UnsafeHandler):
-    """ Serves the html front page upon request.
-    """
-    def get(self):
-        self.set_header('Access-Control-Allow-Origin', '*')
-        t = template.Template(applicationTemplate.indexHtml)
-        self.write(t.generate())
-
-        self.write("MainHandler")
-        #t = self.application.loader.load("index.html")
-        #self.write(t.generate(user=self.get_current_user_name()))
-
 
 class SafeStaticFileHandler(tornado.web.StaticFileHandler, SafeHandler):
     """ Serve static files for logged in users

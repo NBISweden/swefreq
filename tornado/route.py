@@ -56,7 +56,6 @@ class Application(tornado.web.Application):
             ("/denyUser/(?P<sEmail>[^\/]+)", application.denyUser),
             ("/getOutstandingRequests", application.getOutstandingRequests),
             ("/requestAccess", application.requestAccess),
-            ("/unauthorized", auth.UnAuthorizedHandler),
             ("/country_list", application.country_list),
             (r'.*', auth.BaseHandler),
         ]
