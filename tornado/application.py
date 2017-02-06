@@ -139,20 +139,16 @@ def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset):
 
 class home(auth.UnsafeHandler):
     def get(self, *args, **kwargs):
-        t = template.Template(applicationTemplate.indexHead)
-        self.write(t.generate())
-
+        t = template.Template(applicationTemplate.index)
         is_admin = False
+        has_access = False
 
-        if self.get_current_token() != None:
-            t = template.Template(applicationTemplate.indexHtml)
+        if self.get_current_token():
+            has_access = True
             is_admin = self.is_admin()
-        elif self.get_current_user() != None:
-            t = template.Template(applicationTemplate.indexNoAccess)
-        else:
-            t = template.Template(applicationTemplate.notAuthorizedHtml)
 
         self.write(t.generate(user_name=self.get_current_user(),
+                              has_access=has_access,
                               email=self.get_current_email(),
                               is_admin=is_admin,
                               ExAC=secrets.exac_server))
