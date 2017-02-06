@@ -1,4 +1,4 @@
-indexHead="""
+index="""
 <!DOCTYPE html>
 <!-- define angular app -->
 <html ng-app="App">
@@ -32,8 +32,6 @@ indexHead="""
     </script>
     <!-- End Google Analytics -->
   </head>
-"""
-indexHtml="""
   <!-- define angular controller -->
   <body ng-controller="mainController as mainCtrl">
     <nav class="navbar navbar-default">
@@ -44,7 +42,11 @@ indexHtml="""
           <a href="/#/terms/" role="button" class="btn btn-default navbar-btn">Terms of use</a>
           <a href="/#/dataBeacon/" role="button" class="btn btn-default navbar-btn">Data Beacon</a>
           <a href="{{ExAC}}" role="button" class="btn btn-default navbar-btn">ExAC Browser</a>
+        {%if has_access %}
           <a href="/#/downloadData/" role="button" class="btn btn-default navbar-btn">Download Data</a>
+        {%elif user_name != None %}
+          <a href="/#/requestAccess/" role="button" class="btn btn-default navbar-btn">Request Access</a>
+        {% end %}
         {%if is_admin %}
           <a href="/#/admin/" role="button" class="btn btn-default navbar-btn">Admin</a>
         {% end %}
@@ -64,59 +66,6 @@ indexHtml="""
       <div ng-view=""></div>
     </div>
       </div>
-    <footer class="text-center"></footer>
-  </body>
-</html>
-"""
-notAuthorizedHtml="""
-  <!-- define angular controller -->
-  <body ng-controller="mainController as mainCtrl">
-    <nav class="navbar navbar-default">
-      <div class="container">
-        <a class="navbar-brand" href="/#/">SweFreq</a>
-        <div class="navbar-right">
-          <a href="/#/about/" role="button" class="btn btn-default navbar-btn">About</a>
-          <a href="/#/terms/" role="button" class="btn btn-default navbar-btn">Terms of use</a>
-          <a href="/#/dataBeacon/" role="button" class="btn btn-default navbar-btn">Data Beacon</a>
-          <a href="{{ExAC}}" role="button" class="btn btn-default navbar-btn">ExAC Browser</a>
-          <a href="/login" class="btn btn-text navbar-btn">Login</a>
-        </div>
-      </div>
-    </nav>
-    <div id="main">
-      <!-- angular templating -->
-      <!-- this is where content will be injected -->
-      <div ng-view=""></div>
-    </div>
-    <footer class="text-center"></footer>
-  </body>
-</html>
-"""
-indexNoAccess="""
-  <!-- define angular controller -->
-  <body ng-controller="mainController as mainCtrl">
-    <nav class="navbar navbar-default">
-      <div class="container">
-        <a class="navbar-brand" href="/#/">SweFreq</a>
-        <div class="navbar-right">
-          <a href="/#/about/" role="button" class="btn btn-default navbar-btn">About</a>
-          <a href="/#/terms/" role="button" class="btn btn-default navbar-btn">Terms of use</a>
-          <a href="/#/requestAccess/" role="button" class="btn btn-default navbar-btn">Request Access</a>
-        {%if user_name != None%}
-          {{user_name}}
-          <a href="/logout" class="btn-text navbar-btn">Logout</a>
-          {{email}}
-        {% else %}
-          <a href="/login" class="btn-text navbar-btn">Login</a>
-        {% end %}
-        </div>
-      </div>
-    </nav>
-    <div id="main">
-      <!-- angular templating -->
-      <!-- this is where content will be injected by angular -->
-      <div ng-view=""></div>
-    </div>
     <footer class="text-center"></footer>
   </body>
 </html>
