@@ -57,7 +57,7 @@ index="""
         {% if has_access %}
           <li><a href="/#/downloadData/">Download Data</a>
         {% elif user_name %}
-          <li><a href="/#/downloadData/">Download Data</a>
+          <li><a href="/#/requestAccess/">Request Access</a>
         {% end %}
         {% if is_admin %}
           <li><a href="/#/admin/">Admin</a>
