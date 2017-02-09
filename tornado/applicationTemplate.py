@@ -53,7 +53,7 @@ index="""
           <li><a href="/#/about/">About</a>
           <li><a href="/#/terms/">Terms of use</a>
           <li><a href="/#/dataBeacon/">Data Beacon</a>
-          <li><a href="{{ExAC}}">ExAC Browser</a>
+          <li><a href="{{ExAC}}">SweGen Browser</a>
         {% if has_access %}
           <li><a href="/#/downloadData/">Download Data</a>
         {% elif user_name %}
