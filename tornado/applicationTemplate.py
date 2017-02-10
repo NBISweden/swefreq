@@ -45,7 +45,7 @@ index="""
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="/#/">SweFreq</a>
+          <a class="navbar-brand" href="/#/"><img height="50" src="/javascript/swefreq_ed_50px.png"></a>
         </div>
 
         <div class="collapse navbar-collapse" id="navbar-things">
