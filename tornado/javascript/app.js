@@ -34,6 +34,34 @@
         };
     });
 
+    // Modified from
+    // http://stackoverflow.com/questions/16199418/how-to-set-bootstrap-navbar-active-class-with-angular-js
+    App.directive('bsActiveLink', ['$location', function($location) {
+        return {
+            restrict: 'A',
+            replace: false,
+            link: function (scope, elem) {
+                // After the route has changed
+                scope.$on("$routeChangeSuccess", function () {
+                    $location.path()
+                    var hrefs = ['/#' + $location.path(),
+                                 '#' + $location.path(), //html5: false
+                                 $location.path()]; //html5: true
+
+                    angular.forEach(elem.find('a'), function(a) {
+                        a = angular.element(a);
+                        console.log(a.attr('href'));
+                        if ( -1 != hrefs.indexOf(a.attr('href')) ) {
+                            a.parent().addClass('active');
+                        } else {
+                            a.parent().removeClass('active');
+                        }
+                    });
+                })
+            }
+        }
+    }]);
+
 
     App.controller('mainController', function($http, $scope) {
         var localThis = this;
@@ -87,14 +115,14 @@
         };
         this.getUsers();
 
-        this.denyUser = function(userData){
-            $http.get('/denyUser/' + userData.email).success(function(data){
+        this.deleteUser = function(userData){
+            $http.get('/deleteUser/' + userData.email).success(function(data){
                 localThis.getUsers();
             });
         };
 
-        this.deleteUser = function(userData){
-            $http.get('/deleteUser/' + userData.email).success(function(data){
+        this.revokeUser = function(userData){
+            $http.get('/revokeUser/' + userData.email).success(function(data){
                 localThis.getUsers();
             });
         };
@@ -123,7 +151,7 @@
         beacon.search = function() {
             beacon.color = 'black';
             beacon.response = "Searching...";
-            $http.get('query', { 'params': { 'chrom': beacon.chromosome, 'pos': beacon.position, 'alternateBases': beacon.alternateBases, 'referenceBases': beacon.referenceBases, 'dataset': beacon.dataset, 'ref': beacon.reference}})
+            $http.get('query', { 'params': { 'chrom': beacon.chromosome, 'pos': beacon.position - 1, 'allele': beacon.allele, 'referenceAllele': beacon.referenceAllele, 'dataset': beacon.dataset, 'ref': beacon.reference}})
                 .then(function (response){
                     if (response.data['response']['exists']) {
                         beacon.response = "Present";

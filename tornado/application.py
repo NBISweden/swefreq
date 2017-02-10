@@ -27,7 +27,7 @@ class query(auth.UnsafeHandler):
                 'pos': lambda x: "" if x.isdigit() else "pos has to be digit\n",
         }
 
-        for arg in ['chrom', 'pos', 'dataset', 'referenceBases', 'alternateBases', 'ref']:
+        for arg in ['chrom', 'pos', 'dataset', 'referenceAllele', 'allele', 'ref']:
             try:
                 val = self.get_argument(arg)
                 if checks.has_key(arg):
@@ -52,11 +52,11 @@ class query(auth.UnsafeHandler):
         sChr      = self.get_argument('chrom', '').upper()
         iPos      = self.get_argument('pos', '')
         dataset   = self.get_argument('dataset', '')
-        referenceBases = self.get_argument('referenceBases', '').upper()
-        alternateBases = self.get_argument('alternateBases', '').upper()
+        referenceAllele = self.get_argument('referenceAllele', '').upper()
+        allele = self.get_argument('allele', '').upper()
         reference = self.get_argument('ref', '').upper()
 
-        exists = lookupAllele(sChr, int(iPos), referenceBases, alternateBases, reference, dataset)
+        exists = lookupAllele(sChr, int(iPos), referenceAllele, allele, reference, dataset)
 
         if self.get_argument('format', '') == 'text':
             self.set_header('Content-Type', 'text/plain')
@@ -70,8 +70,8 @@ class query(auth.UnsafeHandler):
                 'query': {
                     'chromosome': sChr,
                     'position': iPos,
-                    'referenceBases': referenceBases,
-                    'alternateBases': alternateBases,
+                    'referenceAllele': referenceAllele,
+                    'allele': allele,
                     'dataset': dataset,
                     'reference': reference
                     },
@@ -100,13 +100,13 @@ class info(auth.UnsafeHandler):
             #'email': u'swefreq-beacon@nbis.se',
             #'auth': 'None', # u'oauth2'
             'queries': [
-                query_uri + 'dataset=SweGen&ref=hg19&chrom=1&pos=55500975&referenceBases=C&alternateBases=T',
-                query_uri + 'dataset=SweGen&ref=hg19&chrom=1&pos=55505551&referenceBases=A&alternateBases=ACTG&format=text',
-                query_uri + 'dataset=SweGen&ref=hg19&chrom=2&pos=41936&referenceBases=AG&alternateBases=A'
+                query_uri + 'dataset=SweGen&ref=hg19&chrom=1&pos=55500975&referenceAllele=C&allele=T',
+                query_uri + 'dataset=SweGen&ref=hg19&chrom=1&pos=55505551&referenceAllele=A&allele=ACTG&format=text',
+                query_uri + 'dataset=SweGen&ref=hg19&chrom=2&pos=41936&referenceAllele=AG&allele=A'
                 ] #
             })
 
-def lookupAllele(chrom, pos, referenceBases, alternateBases, reference, dataset):
+def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset):
     """CHeck if an allele is present in the database
     Args:
         chrom: The chromosome, format matches [1-22XY]
@@ -132,27 +132,23 @@ def lookupAllele(chrom, pos, referenceBases, alternateBases, reference, dataset)
     pos += 1
     res = mdb.variants.find({'chrom': chrom, 'pos': pos})
     for r in res:
-        if r['alt'] == alternateBases and r['ref'] == referenceBases:
+        if r['alt'] == allele and r['ref'] == referenceAllele:
             return True
 
     return False
 
 class home(auth.UnsafeHandler):
     def get(self, *args, **kwargs):
-        t = template.Template(applicationTemplate.indexHead)
-        self.write(t.generate())
-
+        t = template.Template(applicationTemplate.index)
         is_admin = False
+        has_access = False
 
-        if self.get_current_token() != None:
-            t = template.Template(applicationTemplate.indexHtml)
+        if self.get_current_token():
+            has_access = True
             is_admin = self.is_admin()
-        elif self.get_current_user() != None:
-            t = template.Template(applicationTemplate.indexNoAccess)
-        else:
-            t = template.Template(applicationTemplate.notAuthorizedHtml)
 
         self.write(t.generate(user_name=self.get_current_user(),
+                              has_access=has_access,
                               email=self.get_current_email(),
                               is_admin=is_admin,
                               ExAC=secrets.exac_server))
@@ -164,14 +160,14 @@ class getUser(auth.UnsafeHandler):
 
         tRes = db.query("""select full_user from swefreq.users where
                            email='%s' and full_user""" % sEmail)
-        lTrusted = True if len(tRes)==1 else False
+        lTrusted = len(tRes)==1
 
         tRes = db.query("""select full_user from swefreq.users where
                               email='%s'""" % sEmail)
-        lDatabase = True if len(tRes) == 1 else False
+        lDatabase = len(tRes) == 1
         tRes = db.query("""select full_user from swefreq.users where
                               email='%s' and swefreq_admin""" % sEmail)
-        lAdmin = True if len(tRes) == 1 else False
+        lAdmin = len(tRes) == 1
 
         logging.info("getUser: " + str(sUser) + ' ' + str(sEmail))
         self.finish(json.dumps({'user':sUser,
@@ -307,7 +303,7 @@ class approveUser(auth.SafeHandler):
         server.sendmail(msg['from'], [msg['to']], msg.as_string())
 
 
-class deleteUser(auth.SafeHandler):
+class revokeUser(auth.SafeHandler):
     def get(self, sEmail):
         sLoggedInEmail = self.get_current_email()
         tRes = db.query("""select email from swefreq.users where
@@ -320,7 +316,7 @@ class deleteUser(auth.SafeHandler):
         db.execute("""update swefreq.users set full_user = '0'
                       where email = '%s'""" % sEmail)
 
-class denyUser(auth.SafeHandler):
+class deleteUser(auth.SafeHandler):
     def get(self, sEmail):
         sLoggedInEmail = self.get_current_email()
         tRes = db.query("""select email from swefreq.users where
