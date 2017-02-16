@@ -75,7 +75,7 @@ class query(auth.UnsafeHandler):
                     'dataset': dataset,
                     'reference': reference
                     },
-                'beacon': 'nbis-beacon'
+                'beacon': 'swefreq-beacon'
                 })
 
 class info(auth.UnsafeHandler):
