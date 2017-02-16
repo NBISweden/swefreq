@@ -1,9 +1,0 @@
-.DS_Store
-static/.DS_Store
-static/tablesorter-master
-.idea/
-*.pyc
-misc/
-.gitignore
-autocomplete_strings.txt
-gene_cache/
