@@ -66,6 +66,7 @@ class query(auth.UnsafeHandler):
                 'response': {
                     'exists': exists,
                     'observed': 0,
+                    'externalUrl': "%s://%s" % ('https', self.request.host),
                     },
                 'query': {
                     'chromosome': sChr,
