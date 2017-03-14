@@ -194,7 +194,7 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('exacBrowserController', function($http, $scope) {
+    App.controller('swegenBrowserController', function($http, $scope) {
         var localThis = this;
     });
 
@@ -260,8 +260,8 @@
                 templateUrl : 'static/addedRequest.html'
             })
         // ExAC Browser
-            .when('/exacBrowser/', {
-                templateUrl : 'static/exacBrowser.html'
+            .when('/swegenBrowser/', {
+                templateUrl : 'static/swegenBrowser.html'
             })
         // Privacy Policy
             .when('/privacyPolicy/', {
