@@ -35,7 +35,6 @@ class Application(tornado.web.Application):
             (r"/", application.home),
             (r"/static/(home.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
             (r"/static/(dataBeacon.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
-            (r"/static/(swegenBrowser.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
             (r"/static/(privacyPolicy.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
             (r"/static/(not_authorized.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
             (r"/static/(about.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
