@@ -194,12 +194,6 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('exacBrowserController', function($http, $scope) {
-        var localThis = this;
-    });
-
-    /////////////////////////////////////////////////////////////////////////////////////
-
     App.controller('requestController', function($http, $scope, $location) {
         var localThis = this;
         localThis.data = gData;
@@ -258,10 +252,6 @@
         // Request Access Sent
             .when('/addedRequest/', {
                 templateUrl : 'static/addedRequest.html'
-            })
-        // ExAC Browser
-            .when('/exacBrowser/', {
-                templateUrl : 'static/exacBrowser.html'
             })
         // Privacy Policy
             .when('/privacyPolicy/', {
