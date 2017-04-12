@@ -2,13 +2,13 @@
 -- as well as the tables. To run this file use:
 -- mysql -u root -p < swefreq.sql
 
-CREATE DATABASE `swefreq` /*!40100 DEFAULT CHARACTER SET latin1 */;
-CREATE USER swefreq@localhost IDENTIFIED BY '';
+CREATE DATABASE IF NOT EXISTS `swefreq` /*!40100 DEFAULT CHARACTER SET latin1 */;
+CREATE USER IF NOT EXISTS swefreq@localhost IDENTIFIED BY '';
 GRANT ALL PRIVILEGES ON swefreq.* TO swefreq@localhost;
 FLUSH PRIVILEGES;
 USE swefreq;
 
-CREATE TABLE swefreq.users (
+CREATE TABLE IF NOT EXISTS swefreq.users (
   `pk` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(100) DEFAULT NULL,
   `email` varchar(100) NOT NULL,
@@ -24,7 +24,7 @@ CREATE TABLE swefreq.users (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
-CREATE TABLE swefreq.user_log (
+CREATE TABLE IF NOT EXISTS swefreq.user_log (
   `pk` int(11) NOT NULL AUTO_INCREMENT,
   `email` varchar(100) DEFAULT NULL,
   `action` varchar(45) DEFAULT NULL,
