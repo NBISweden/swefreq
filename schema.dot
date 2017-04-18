@@ -21,7 +21,7 @@ digraph {
         dataset [ label=<<table border="1" cellborder="0">
             <tr><td border="1" sides="b"><b>dataset</b></td></tr>
             <tr><td align="left" port="pk">dataset_pk</td></tr>
-            <tr><td align="left">browswer_uri</td></tr>
+            <tr><td align="left">browser_uri</td></tr>
             <tr><td align="left">beacon_uri</td></tr>
             </table>> ];
 
