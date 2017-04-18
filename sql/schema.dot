@@ -11,7 +11,7 @@ digraph {
         user [ label=<<table border="1" cellborder="0" align="left">
             <tr><td border="1" sides="b" colspan="2"><b>user</b></td></tr>
             <tr><td align="left" port="pk">user_pk</td><td align="right"><i>int</i></td></tr>
-            <tr><td align="left">username</td><td align="right"><i>text</i></td></tr>
+            <tr><td align="left">name</td><td align="right"><i>text</i></td></tr>
             <tr><td align="left" port="email">email</td><td align="right"><i>text</i></td></tr>
             <tr><td align="left">affiliation</td><td align="right"><i>text</i></td></tr>
             <tr><td align="left">create_date</td><td align="right"><i>timestamp</i></td></tr>
