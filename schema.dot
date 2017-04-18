@@ -8,10 +8,9 @@ digraph {
         label = "Old schema"
     }
     */
-    { rank=same
-        users [ label=<<table border="1" cellborder="0" align="left">
-            <tr><td border="1" sides="b"><b>users</b></td></tr>
-            <tr><td align="left" port="pk">pk</td></tr>
+        user [ label=<<table border="1" cellborder="0" align="left">
+            <tr><td border="1" sides="b"><b>user</b></td></tr>
+            <tr><td align="left" port="pk">user_pk</td></tr>
             <tr><td align="left">username</td></tr>
             <tr><td align="left" port="email">email</td></tr>
             <tr><td align="left">affiliation</td></tr>
@@ -19,56 +18,55 @@ digraph {
             <tr><td align="left">country</td></tr>
             </table>> ];
 
+        dataset [ label=<<table border="1" cellborder="0">
+            <tr><td border="1" sides="b"><b>dataset</b></td></tr>
+            <tr><td align="left" port="pk">dataset_pk</td></tr>
+            <tr><td align="left">browswer_uri</td></tr>
+            <tr><td align="left">beacon_uri</td></tr>
+            </table>> ];
+
+        user_log [ label=<<table border="1" cellborder="0">
+            <tr><td border="1" sides="b"><b>user_log</b></td></tr>
+            <tr><td align="left" port="pk">user_log_pk</td></tr>
+            <tr><td align="left" port="user_pk">user_pk</td></tr>
+            <tr><td align="left" port="dataset">dataset_pk</td></tr>
+            <tr><td align="left">action</td></tr>
+            <tr><td align="left">ts</td></tr>
+            </table>> ];
+
         dataset_access [ label=<<table border="1" cellborder="0">
             <tr><td border="1" sides="b"><b>dataset_access</b></td></tr>
-            <tr><td align="left" port="pk">pk</td></tr>
+            <tr><td align="left" port="pk">dataset_access_pk</td></tr>
             <tr><td align="left" port="dataset">dataset_pk</td></tr>
             <tr><td align="left" port="user">user_pk</td></tr>
             <tr><td align="left">admin</td></tr>
             <tr><td align="left">consented</td></tr>
             </table>> ];
 
-        dataset [ label=<<table border="1" cellborder="0">
-            <tr><td border="1" sides="b"><b>dataset</b></td></tr>
-            <tr><td align="left" port="pk">pk</td></tr>
-            <tr><td align="left">browswer_uri</td></tr>
-            <tr><td align="left">beacon_uri</td></tr>
-            </table>> ];
-    }
-
-        user_log [ label=<<table border="1" cellborder="0">
-            <tr><td border="1" sides="b"><b>user_log</b></td></tr>
-            <tr><td align="left" port="pk">pk</td></tr>
-            <tr><td align="left" port="email">email</td></tr>
-            <tr><td align="left" port="dataset">dataset_pk</td></tr>
-            <tr><td align="left">action</td></tr>
-            <tr><td align="left">ts</td></tr>
-            </table>> ];
-
 
         dataset_version [ label=<<table border="1" cellborder="0">
             <tr><td border="1" sides="b"><b>dataset_version</b></td></tr>
-            <tr><td align="left" port="pk">pk</td></tr>
+            <tr><td align="left" port="pk">dataset_version_pk</td></tr>
             <tr><td align="left" port="dataset">dataset_pk</td></tr>
             <tr><td align="left">name</td></tr>
             <tr><td align="left">description</td></tr>
             <tr><td align="left">terms</td></tr>
             </table>> ];
 
-        dataset_files [ label=<<table border="1" cellborder="0">
-            <tr><td border="1" sides="b"><b>dataset_files</b></td></tr>
-            <tr><td align="left" port="pk">pk</td></tr>
+        dataset_file [ label=<<table border="1" cellborder="0">
+            <tr><td border="1" sides="b"><b>dataset_file</b></td></tr>
+            <tr><td align="left" port="pk">dataset_file_pk</td></tr>
             <tr><td align="left" port="dv">dataset_version_pk</td></tr>
             <tr><td align="left">name</td></tr>
             <tr><td align="left">uri</td></tr>
             </table>> ];
     
 
-        user_log:email -> users:email;
-        dataset_access:user -> users:pk
+        user_log:user_pk -> user:pk;
+        dataset_access:user -> user:pk
         dataset_access:dataset -> dataset:pk
         dataset_version:dataset -> dataset:pk
-        dataset_files:dv -> dataset_version:pk
+        dataset_file:dv -> dataset_version:pk
         user_log:dataset -> dataset:pk
 
 }
