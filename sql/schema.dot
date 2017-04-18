@@ -27,7 +27,6 @@ digraph {
 
         user_log [ label=<<table border="1" cellborder="0">
             <tr><td border="1" sides="b" colspan="2"><b>user_log</b></td></tr>
-            <tr><td align="left" port="pk">user_log_pk</td><td align="right"><i>int</i></td></tr>
             <tr><td align="left" port="user_pk">user_pk</td><td align="right"><i>int</i></td></tr>
             <tr><td align="left" port="dataset">dataset_pk</td><td align="right"><i>int</i></td></tr>
             <tr><td align="left">action</td><td align="right"><i>text</i></td></tr>
@@ -36,9 +35,9 @@ digraph {
 
         dataset_access [ label=<<table border="1" cellborder="0">
             <tr><td border="1" sides="b" colspan="2"><b>dataset_access</b></td></tr>
-            <tr><td align="left" port="pk">dataset_access_pk</td><td align="right"><i>int</i></td></tr>
             <tr><td align="left" port="dataset">dataset_pk</td><td align="right"><i>int</i></td></tr>
             <tr><td align="left" port="user">user_pk</td><td align="right"><i>int</i></td></tr>
+            <tr><td align="left">newsletter</td><td align="right"><i>bool</i></td></tr>
             <tr><td align="left">admin</td><td align="right"><i>bool</i></td></tr>
             <tr><td align="left">consented</td><td align="right"><i>bool</i></td></tr>
             </table>> ];
