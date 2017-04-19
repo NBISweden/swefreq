@@ -30,7 +30,9 @@ CREATE TABLE IF NOT EXISTS user_log (
     user_pk             INTEGER         NOT NULL,
     dataset_pk          INTEGER         NOT NULL,
     action              VARCHAR(45)     DEFAULT NULL,
-    ts                  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ts                  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT FOREIGN KEY (user_pk)    REFERENCES user(user_pk)
+    CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS dataset_access (
@@ -39,21 +41,26 @@ CREATE TABLE IF NOT EXISTS dataset_access (
     user_pk             INTEGER         NOT NULL,
     wants_newsletter    BOOLEAN         DEFAULT false,
     is_admin            BOOLEAN         DEFAULT false,
-    has_consented       BOOLEAN         DEFAULT false
+    has_consented       BOOLEAN         DEFAULT false,
+    CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
+    CONSTRAINT FOREIGN KEY (user_pk)    REFERENCES user(user_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS dataset_version (
     dataset_version_pk  INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
     dataset_pk          INTEGER         NOT NULL,
-    is_current          BOOLEAN         DEFAULT true,
     name                VARCHAR(100)    NOT NULL,
+    is_current          BOOLEAN         DEFAULT true,
     description         TEXT            NOT NULL,
-    terms               TEXT            NOT NULL
+    terms               TEXT            NOT NULL,
+    CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 REATE TABLE IF NOT EXISTS dataset_file (
     dataset_file_pk     INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
     dataset_version_pk  INTEGER         NOT NULL,
     name                VARCHAR(100)    NOT NULL,
-    uri                 VARCHAR(200)    NOT NULL
+    uri                 VARCHAR(200)    NOT NULL,
+    CONSTRAINT FOREIGN KEY (dataset_version_pk)
+        REFERENCES dataset_version(dataset_version_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
