@@ -10,7 +10,7 @@ USE swefreq;
 
 CREATE TABLE IF NOT EXISTS user (
     user_pk             INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    username            VARCHAR(100)    DEFAULT NULL,
+    name                VARCHAR(100)    DEFAULT NULL,
     email               VARCHAR(100)    NOT NULL,
     download_count      INTEGER         DEFAULT 0,
     affiliation         VARCHAR(100)    DEFAULT NULL,
