@@ -22,6 +22,11 @@ CREATE TABLE IF NOT EXISTS user (
   UNIQUE KEY email_idx (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE IF NOT EXISTS dataset (
+    dataset_pk      INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    browser_uri     VARCHAR(200)    NOT NULL,
+    beacon_uri      VARCHAR(200)    NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS user_log (
   user_log_pk       INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
