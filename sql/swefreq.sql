@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS user_log (
 
 CREATE TABLE IF NOT EXISTS dataset_access (
     dataset_access_pk   INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    dataset_pk          INTEGER         NOT NULL,
     user_pk             INTEGER         NOT NULL,
     wants_newsletter    BOOLEAN         DEFAULT false,
     is_admin            BOOLEAN         DEFAULT false,
