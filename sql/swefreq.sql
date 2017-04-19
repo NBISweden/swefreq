@@ -9,15 +9,15 @@ FLUSH PRIVILEGES;
 USE swefreq;
 
 CREATE TABLE IF NOT EXISTS user (
-  user_pk           INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
-  username          VARCHAR(100)    DEFAULT NULL,
-  email             VARCHAR(100)    NOT NULL,
-  download_count    INTEGER         DEFAULT 0,
-  affiliation       VARCHAR(100)    DEFAULT NULL,
-  full_user         BOOLEAN         DEFAULT false,
-  create_date       TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  country           VARCHAR(100)    DEFAULT NULL,
-  UNIQUE KEY email_idx (email)
+    user_pk         INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    username        VARCHAR(100)    DEFAULT NULL,
+    email           VARCHAR(100)    NOT NULL,
+    download_count  INTEGER         DEFAULT 0,
+    affiliation     VARCHAR(100)    DEFAULT NULL,
+    full_user       BOOLEAN         DEFAULT false,
+    create_date     TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    country         VARCHAR(100)    DEFAULT NULL,
+    UNIQUE KEY email_idx (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS dataset (
@@ -27,10 +27,11 @@ CREATE TABLE IF NOT EXISTS dataset (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS user_log (
-  user_log_pk       INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
-  email             VARCHAR(100)    DEFAULT NULL,
-  action            VARCHAR(45)     DEFAULT NULL,
-  ts                TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    user_log_pk     INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    user_pk         INTEGER         NOT NULL,
+    dataset_pk      INTEGER         NOT NULL,
+    action          VARCHAR(45)     DEFAULT NULL,
+    ts              TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS dataset_access (
@@ -40,4 +41,3 @@ CREATE TABLE IF NOT EXISTS dataset_access (
     admin               BOOLEAN     DEFAULT false,
     consented           BOOLEAN     DEFAULT false
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
