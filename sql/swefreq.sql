@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS user (
     email               VARCHAR(100)    NOT NULL,
     download_count      INTEGER         DEFAULT 0,
     affiliation         VARCHAR(100)    DEFAULT NULL,
-    full_user           BOOLEAN         DEFAULT false,
+    is_full_user        BOOLEAN         DEFAULT false,
     create_date         TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     country             VARCHAR(100)    DEFAULT NULL,
     UNIQUE KEY email_idx (email)
@@ -37,9 +37,9 @@ CREATE TABLE IF NOT EXISTS user_log (
 CREATE TABLE IF NOT EXISTS dataset_access (
     dataset_access_pk   INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
     user_pk             INTEGER         NOT NULL,
-    newsletter          BOOLEAN         DEFAULT false,
-    admin               BOOLEAN         DEFAULT false,
-    consented           BOOLEAN         DEFAULT false
+    wants_newsletter    BOOLEAN         DEFAULT false,
+    is_admin            BOOLEAN         DEFAULT false,
+    has_consented       BOOLEAN         DEFAULT false
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS dataset_version (
