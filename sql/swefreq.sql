@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS dataset_version (
     dataset_pk          INTEGER         NOT NULL,
     is_current          BOOLEAN         DEFAULT true,
     name                VARCHAR(100)    NOT NULL,
-    descritpion         TEXT            NOT NULL,
+    description         TEXT            NOT NULL,
     terms               TEXT            NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
