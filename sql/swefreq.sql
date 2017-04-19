@@ -15,7 +15,6 @@ CREATE TABLE IF NOT EXISTS user (
     affiliation         VARCHAR(100)    DEFAULT NULL,
     country             VARCHAR(100)    DEFAULT NULL,
     create_date         TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    is_full_user        BOOLEAN         DEFAULT false,
     download_count      INTEGER         DEFAULT 0,
     UNIQUE KEY email_idx (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
