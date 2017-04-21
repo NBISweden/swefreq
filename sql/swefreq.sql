@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS dataset_version (
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-REATE TABLE IF NOT EXISTS dataset_file (
+CREATE TABLE IF NOT EXISTS dataset_file (
     dataset_file_pk     INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
     dataset_version_pk  INTEGER         NOT NULL,
     name                VARCHAR(100)    NOT NULL,
