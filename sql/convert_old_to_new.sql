@@ -11,10 +11,13 @@ INSERT INTO user
     SELECT username, email, affiliation, country, create_date, download_count
     FROM users_old;
 
--- since table dataset is empty, insert 1 for dataset_pk (will point to
--- SweGen dataset later).
+-- Insert "fake" SweFreq dataset into 'dataset' table to be able
+-- to refer to it with the next INSERT.  We need to fill in
+-- 'dataset_access', 'dataset_file' and 'dataset_version' for this
+-- dataset later.
+INSERT INTO dataset (dataset_pk) VALUES (1);
+
 INSERT INTO user_log
     (user_pk, dataset_pk, action, ts)
     SELECT user_pk, 1, action, ts
     FROM user JOIN user_log_old ON (user.email = user_log_old.email);
-
