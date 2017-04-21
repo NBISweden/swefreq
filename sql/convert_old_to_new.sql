@@ -11,6 +11,8 @@ INSERT INTO user
     SELECT username, email, affiliation, country, create_date, download_count
     FROM users_old;
 
+UPDATE user SET download_count = 0 WHERE download_count IS NULL;
+
 -- Insert "fake" SweFreq dataset into 'dataset' table to be able
 -- to refer to it with the next INSERT.  We need to fill in
 -- 'dataset_access', 'dataset_file' and 'dataset_version' for this
