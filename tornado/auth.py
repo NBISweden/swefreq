@@ -97,16 +97,6 @@ class GoogleUser(object):
             self.display_name = info.get('displayName', '')
             self.emails = [email['value'] for email in info.get('emails')]
 
-    def is_authorized(self, user_view):
-        """Checks that the user is actually authorised to use genomics-status.
-        """
-        authenticated = False
-        for email in self.emails:
-            if user_view[email]:
-                self.valid_email = email
-                authenticated = True
-        return authenticated
-
 class SafeHandler(BaseHandler):
     """ All handlers that need authentication and authorization should inherit
     from this class.
