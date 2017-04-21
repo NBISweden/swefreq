@@ -7,10 +7,8 @@ RENAME TABLE user_log TO user_log_old;
 source swefreq.sql
 
 INSERT INTO user
-    (name, email, affiliation, country,
-        create_date, is_full_user, download_count)
-    SELECT username, email, affiliation, country,
-           create_date, full_user, download_count
+    (name, email, affiliation, country, create_date, download_count)
+    SELECT username, email, affiliation, country, create_date, download_count
     FROM users_old;
 
 -- since table dataset is empty, insert 1 for dataset_pk (will point to
