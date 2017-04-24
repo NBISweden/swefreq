@@ -19,3 +19,14 @@ INSERT INTO dataset (dataset_pk) VALUES (1);
 INSERT INTO user_log (user_pk, dataset_pk, action, ts)
 SELECT user_pk, 1, action, ts
     FROM user JOIN user_log_old ON (user.email = user_log_old.email);
+
+INSERT INTO dataset_access (dataset_pk, user_pk)
+SELECT DISTINCT dataset_pk, user_pk
+    FROM user_log;
+
+-- Fix dataset_access.wants_newsletter
+UPDATE dataset_access AS da, users_old AS uo, user AS u
+SET da.wants_newsletter = true
+    WHERE   da.user_pk = u.user_pk
+        AND u.email = uo.email
+        AND uo.newsletter = 1;
