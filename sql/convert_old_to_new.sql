@@ -31,3 +31,9 @@ SET wants_newsletter = true
         ( SELECT user_pk
             FROM user JOIN users_old ON (user.email = users_old.email)
             WHERE users_old.newsletter = 1 );
+
+-- Fix dataset_access.has_consented
+UPDATE dataset_access
+SET has_consented = true
+    WHERE user_pk IN
+        ( SELECT user_pk FROM user_log WHERE action = 'consent' );
