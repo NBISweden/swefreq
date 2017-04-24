@@ -28,7 +28,7 @@ SELECT DISTINCT dataset_pk, user_pk
 UPDATE dataset_access
 SET wants_newsletter = true
     WHERE user_pk IN
-        ( SELECT user_pk
+        ( SELECT DISTINCT user_pk
             FROM user JOIN users_old ON (user.email = users_old.email)
             WHERE users_old.newsletter = 1 );
 
@@ -36,4 +36,4 @@ SET wants_newsletter = true
 UPDATE dataset_access
 SET has_consented = true
     WHERE user_pk IN
-        ( SELECT user_pk FROM user_log WHERE action = 'consent' );
+        ( SELECT DISTINCT user_pk FROM user_log WHERE action = 'consent' );
