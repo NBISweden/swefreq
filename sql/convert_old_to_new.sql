@@ -37,3 +37,10 @@ UPDATE dataset_access
 SET has_consented = true
     WHERE user_pk IN
         ( SELECT DISTINCT user_pk FROM user_log WHERE action = 'consent' );
+
+-- Fix dataset_access.has_access (using the presence of the "download"
+-- action in the old data)
+UPDATE dataset_access
+SET has_access = true
+    WHERE user_pk IN
+        ( SELECT DISTINCT user_pk FROM user_log WHERE action = 'download' );
