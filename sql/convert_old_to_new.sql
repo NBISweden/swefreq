@@ -25,8 +25,9 @@ SELECT DISTINCT dataset_pk, user_pk
     FROM user_log;
 
 -- Fix dataset_access.wants_newsletter
-UPDATE dataset_access AS da, users_old AS uo, user AS u
-SET da.wants_newsletter = true
-    WHERE   da.user_pk = u.user_pk
-        AND u.email = uo.email
-        AND uo.newsletter = 1;
+UPDATE dataset_access
+SET wants_newsletter = true
+    WHERE user_pk IN
+        ( SELECT user_pk
+            FROM user JOIN users_old ON (user.email = users_old.email)
+            WHERE users_old.newsletter = 1 );
