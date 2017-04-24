@@ -44,7 +44,7 @@ SET has_access = true
     WHERE user_pk IN
         ( SELECT DISTINCT user_pk
             FROM user JOIN users_old ON (user.email = users_old.email)
-            WHERE users_old.full_user = 1);
+            WHERE users_old.full_user = 1 );
 
 -- Fix dataset_access.is_admin
 UPDATE dataset_access
@@ -52,5 +52,4 @@ SET is_admin = true
     WHERE user_pk IN
         ( SELECT DISTINCT user_pk
             FROM user JOIN users_old ON (user.email = users_old.email)
-            WHERE users_old.swefreq_admin = 1);
-
+            WHERE users_old.swefreq_admin = 1 );
