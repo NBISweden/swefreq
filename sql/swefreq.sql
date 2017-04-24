@@ -28,7 +28,9 @@ CREATE TABLE IF NOT EXISTS user_log (
     user_log_pk         INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
     user_pk             INTEGER         NOT NULL,
     dataset_pk          INTEGER         NOT NULL,
-    action              ENUM ('consent','download') DEFAULT NULL,
+    action  ENUM ('consent','download',
+                  'access_requested','access_granted','access_revoked')
+                                        DEFAULT NULL,
     ts                  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT FOREIGN KEY (user_pk)    REFERENCES user(user_pk),
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
