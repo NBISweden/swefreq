@@ -38,9 +38,10 @@ SET has_consented = true
     WHERE user_pk IN
         ( SELECT DISTINCT user_pk FROM user_log WHERE action = 'consent' );
 
--- Fix dataset_access.has_access (using the presence of the "download"
--- action in the old data)
+-- Fix dataset_access.has_access
 UPDATE dataset_access
 SET has_access = true
     WHERE user_pk IN
-        ( SELECT DISTINCT user_pk FROM user_log WHERE action = 'download' );
+        ( SELECT DISTINCT user_pk
+            FROM user JOIN users_old ON (user.email = users_old.email)
+            WHERE users_old.full_user = 1);
