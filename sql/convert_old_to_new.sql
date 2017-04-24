@@ -7,11 +7,9 @@ RENAME TABLE user_log TO user_log_old;
 source swefreq.sql
 
 INSERT INTO user
-    (name, email, affiliation, country, create_date, download_count)
-    SELECT username, email, affiliation, country, create_date, download_count
+    (name, email, affiliation, country, create_date)
+    SELECT username, email, affiliation, country, create_date
     FROM users_old;
-
-UPDATE user SET download_count = 0 WHERE download_count IS NULL;
 
 -- Insert "fake" SweFreq dataset into 'dataset' table to be able
 -- to refer to it with the next INSERT.  We need to fill in
