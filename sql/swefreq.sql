@@ -20,8 +20,8 @@ CREATE TABLE IF NOT EXISTS user (
 
 CREATE TABLE IF NOT EXISTS dataset (
     dataset_pk          INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    browser_uri         VARCHAR(200)    NOT NULL,
-    beacon_uri          VARCHAR(200)    NOT NULL
+    browser_uri         VARCHAR(200)    DEFAULT NULL,
+    beacon_uri          VARCHAR(200)    DEFAULT NULL,
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS user_log (
