@@ -97,16 +97,6 @@ class GoogleUser(object):
             self.display_name = info.get('displayName', '')
             self.emails = [email['value'] for email in info.get('emails')]
 
-    def is_authorized(self, user_view):
-        """Checks that the user is actually authorised to use genomics-status.
-        """
-        authenticated = False
-        for email in self.emails:
-            if user_view[email]:
-                self.valid_email = email
-                authenticated = True
-        return authenticated
-
 class SafeHandler(BaseHandler):
     """ All handlers that need authentication and authorization should inherit
     from this class.
@@ -144,15 +134,17 @@ class LoginHandler(tornado.web.RequestHandler, tornado.auth.GoogleOAuth2Mixin):
 
             self.set_secure_cookie('user', user.display_name)
             self.set_secure_cookie('email', user.emails[0])
-
-            if user.authenticated and lAuthorized:
+            if user.authenticated:
                 self.set_secure_cookie('access_token', user_token['access_token'])
-                #It will have at least one email (otherwise she couldn't log in)
-                url=self.get_secure_cookie("login_redirect")
-                self.clear_cookie("login_redirect")
-                if url is None:
-                    url = '/'
-            else:
+
+            # TODO: this should be removed when we start to support multiple
+            # datasets, I leave this here for now.
+            if lAuthorized:
+                self.set_secure_cookie('authorized', 'yes sir')
+
+            url = self.get_secure_cookie("login_redirect")
+            self.clear_cookie("login_redirect")
+            if url is None:
                 url = '/'
             self.redirect(url)
 
@@ -179,6 +171,9 @@ class LogoutHandler(tornado.web.RequestHandler, tornado.auth.GoogleOAuth2Mixin):
         http_client = tornado.httpclient.AsyncHTTPClient()
         http_client.fetch(sLogoutUrl, handle_request)
 
+        # TODO the `authorized` cookie is a stop-gap measure while moving to
+        # the new database schema
+        self.clear_cookie("authorized")
         self.clear_cookie("access_token")
         self.clear_cookie("login_redirect")
         self.set_secure_cookie('login_redirect', self.get_argument("next", '/'), 1)
