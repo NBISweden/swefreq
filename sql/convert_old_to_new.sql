@@ -14,7 +14,7 @@ SELECT username, email, affiliation, country, create_date
 -- to refer to it with the next INSERT.  We need to fill in
 -- 'dataset_access', 'dataset_file' and 'dataset_version' for this
 -- dataset later.
-INSERT INTO dataset (dataset_pk) VALUES (1);
+INSERT INTO dataset (dataset_pk, name) VALUES (1, "SweGen");
 
 INSERT INTO user_log (user_pk, dataset_pk, action, ts)
 SELECT user_pk, 1, action, ts
