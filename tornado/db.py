@@ -14,6 +14,7 @@ class BaseModel(Model):
 
 class Dataset(BaseModel):
     dataset     = PrimaryKeyField(db_column='dataset_pk')
+    name        = CharField()
     browser_uri = CharField(null=True)
     beacon_uri  = CharField(null=True)
 
@@ -49,7 +50,6 @@ class DatasetAccess(BaseModel):
 class DatasetVersion(BaseModel):
     dataset_version = PrimaryKeyField(db_column='dataset_version_pk')
     dataset         = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='versions')
-    name            = CharField()
     version         = CharField()
     ts              = DateTimeField()
     is_current      = IntegerField(null=True)
