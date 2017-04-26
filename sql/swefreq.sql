@@ -20,8 +20,10 @@ CREATE TABLE IF NOT EXISTS user (
 
 CREATE TABLE IF NOT EXISTS dataset (
     dataset_pk          INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    name                VARCHAR(100)    NOT NULL,
     browser_uri         VARCHAR(200)    DEFAULT NULL,
-    beacon_uri          VARCHAR(200)    DEFAULT NULL
+    beacon_uri          VARCHAR(200)    DEFAULT NULL,
+    CONSTRAINT UNIQUE (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS user_log (
@@ -52,7 +54,6 @@ CREATE TABLE IF NOT EXISTS dataset_access (
 CREATE TABLE IF NOT EXISTS dataset_version (
     dataset_version_pk  INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
     dataset_pk          INTEGER         NOT NULL,
-    name                VARCHAR(100)    NOT NULL,
     version             VARCHAR(20)     NOT NULL,
     ts                  TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
     is_current          BOOLEAN         DEFAULT true,
