@@ -1,6 +1,12 @@
 from peewee import *
+import secrets
 
-database = MySQLDatabase('swefreq', **{'host': 'localhost', 'user': 'swefreq'})
+database = MySQLDatabase(
+        secrets.mysql_schema,
+        host=secrets.mysql_host,
+        user=secrets.mysql_user,
+        password=secrets.mysql_passwd
+    )
 
 class BaseModel(Model):
     class Meta:
