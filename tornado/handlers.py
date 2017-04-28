@@ -1,12 +1,10 @@
-import tornado.web
-import tornado.auth
-import tornado.template as template
-import json
 import logging
 import peewee
+import tornado.auth
+import tornado.web
 
-import secrets
 import db
+import secrets
 
 
 class BaseHandler(tornado.web.RequestHandler):

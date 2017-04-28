@@ -1,19 +1,19 @@
-import tornado.template as template
-import tornado.gen
-import logging
 import applicationTemplate
-import auth
-import json
-import secrets
-import pymongo
-import smtplib
 import email.mime.multipart
 from email.MIMEText import MIMEText
+import json
+import logging
+import pymongo
+import smtplib
+import tornado.template as template
+import tornado.web
 
 import db
+import handlers
+import secrets
 
 
-class query(auth.UnsafeHandler):
+class query(handlers.UnsafeHandler):
     def make_error_response(self):
         ret_str = ""
 
@@ -75,7 +75,7 @@ class query(auth.UnsafeHandler):
                 'beacon': 'swefreq-beacon'
                 })
 
-class info(auth.UnsafeHandler):
+class info(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         query_uri = "%s://%s/query?" % ('https', self.request.host)
         self.write({
@@ -134,7 +134,7 @@ def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset):
 
     return False
 
-class home(auth.UnsafeHandler):
+class home(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         t = template.Template(applicationTemplate.index)
 
@@ -153,7 +153,7 @@ class home(auth.UnsafeHandler):
                               is_admin   = is_admin,
                               ExAC       = secrets.exac_server))
 
-class getUser(auth.UnsafeHandler):
+class getUser(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         user = self.current_user
 
@@ -176,7 +176,7 @@ class getUser(auth.UnsafeHandler):
         logging.info("getUser: " + str(ret['user']) + ' ' + str(ret['email']))
         self.finish(json.dumps(ret))
 
-class country_list(auth.UnsafeHandler):
+class country_list(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         self.write({'countries': map( lambda c: {'name': c}, self.country_list())})
 
@@ -237,7 +237,7 @@ class country_list(auth.UnsafeHandler):
                 "Yemen", "Zambia", "Zimbabwe" ];
 
 
-class requestAccess(auth.UnsafeHandler):
+class requestAccess(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         sUser = self.get_current_user()
         sEmail = self.get_current_email()
@@ -268,7 +268,7 @@ class requestAccess(auth.UnsafeHandler):
         except:
             logging.error("Error inserting " + userName + ' ' + email)
 
-class logEvent(auth.SafeHandler):
+class logEvent(handlers.SafeHandler):
     def get(self, sEvent):
         sEmail=self.get_current_email()
         sSql = """insert into swefreq.user_log (email, action) values ('%s', '%s')
@@ -280,7 +280,7 @@ class logEvent(auth.SafeHandler):
             db.execute("""update swefreq.users set download_count='%s'
                           where email='%s'""" % (int(tRes[0].download_count)+1, sEmail))
 
-class approveUser(auth.SafeHandler):
+class approveUser(handlers.SafeHandler):
     def get(self, sEmail):
         sLoggedInEmail = self.get_current_email()
         tRes = db.query("""select full_user from swefreq.users where
@@ -303,7 +303,7 @@ class approveUser(auth.SafeHandler):
         server.sendmail(msg['from'], [msg['to']], msg.as_string())
 
 
-class revokeUser(auth.SafeHandler):
+class revokeUser(handlers.SafeHandler):
     def get(self, sEmail):
         sLoggedInEmail = self.get_current_email()
         tRes = db.query("""select email from swefreq.users where
@@ -316,7 +316,7 @@ class revokeUser(auth.SafeHandler):
         db.execute("""update swefreq.users set full_user = '0'
                       where email = '%s'""" % sEmail)
 
-class deleteUser(auth.SafeHandler):
+class deleteUser(handlers.SafeHandler):
     def get(self, sEmail):
         sLoggedInEmail = self.get_current_email()
         tRes = db.query("""select email from swefreq.users where
@@ -328,7 +328,7 @@ class deleteUser(auth.SafeHandler):
             return
         db.execute("""delete from swefreq.users where email = '%s'""" % sEmail)
 
-class getOutstandingRequests(auth.SafeHandler):
+class getOutstandingRequests(handlers.SafeHandler):
     def get(self, *args, **kwargs):
         tRes = db.query("""select username, email, affiliation, country, create_date
         from swefreq.users where not full_user""")
@@ -343,7 +343,7 @@ class getOutstandingRequests(auth.SafeHandler):
             })
         self.finish(json.dumps(jRes))
 
-class getApprovedUsers(auth.SafeHandler):
+class getApprovedUsers(handlers.SafeHandler):
     def get(self, *args, **kwargs):
         tRes = db.query("""select username, email, affiliation, country,
         IFNULL(download_count, 0) as download_count, newsletter
@@ -358,9 +358,3 @@ class getApprovedUsers(auth.SafeHandler):
                          'newsletter': row.newsletter
             })
         self.finish(json.dumps(jRes))
-
-class StaticFileHandler(tornado.web.StaticFileHandler):
-    def get(self, path, include_body=True):
-        if path.endswith('woff'):
-            self.set_header('Content-Type','application/font-woff')
-        super(StaticFileHandler, self).get(path, include_body)
