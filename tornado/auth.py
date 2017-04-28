@@ -2,7 +2,6 @@ import tornado.web
 import tornado.auth
 import tornado.template as template
 import json
-import requests
 import logging
 import peewee
 
@@ -91,25 +90,6 @@ class BaseHandler(tornado.web.RequestHandler):
         logging.info("Error do something here again")
 
 
-class GoogleUser(object):
-    """Stores the information that google returns from a user throuhgh its secured API.
-    """
-    def __init__(self, user_token):
-        self.user_token = user_token
-        self._google_plus_api = "https://www.googleapis.com/plus/v1/people/me"
-        self.authenticated = False
-        #Fetch actual information from Google API
-
-        params = {'access_token': self.user_token.get('access_token')}
-        r = requests.get(self._google_plus_api, params=params)
-        if not r.status_code == requests.status_codes.codes.OK:
-            self.authenticated = False
-        else:
-            self.authenticated = True
-            info = json.loads(r.text)
-            self.display_name = info.get('displayName', '')
-            self.emails = [email['value'] for email in info.get('emails')]
-
 class SafeHandler(BaseHandler):
     """ All handlers that need authentication and authorization should inherit
     from this class.
@@ -136,19 +116,34 @@ class UnsafeHandler(BaseHandler):
     pass
 
 class LoginHandler(tornado.web.RequestHandler, tornado.auth.GoogleOAuth2Mixin):
+    """
+    See http://www.tornadoweb.org/en/stable/auth.html#google for documentation
+    on this. Here I have copied the example more or less verbatim.
+    """
     @tornado.gen.coroutine
     def get(self):
         if self.get_argument("code", False):
-            user_token =  yield self.get_authenticated_user(
+            logging.debug("Requesting user token")
+            user_token = yield self.get_authenticated_user(
                 redirect_uri=self.application.settings['redirect_uri'],
-                code=self.get_argument('code')
-                )
-            user = GoogleUser(user_token)
-            logging.info(user.display_name)
+                code=self.get_argument('code'))
 
-            self.set_secure_cookie('user', user.display_name)
-            self.set_secure_cookie('email', user.emails[0])
-            self.set_secure_cookie('access_token', user_token['access_token'])
+            logging.debug("Requesting user info")
+            user = yield self.oauth2_request(
+                    "https://www.googleapis.com/plus/v1/people/me",
+                    access_token=user_token["access_token"])
+
+            self.set_secure_cookie('user', user["displayName"])
+            self.set_secure_cookie('access_token', user_token["access_token"])
+
+            # There can be several emails registered for a user.
+            for email in user["emails"]:
+                if email.get('type', '') == 'account':
+                    self.set_secure_cookie('email', email['value'])
+                    break
+            else:
+                # No account email, just take the first one
+                self.set_secure_cookie('email', user['emails'][0]['value'])
 
             url = self.get_secure_cookie("login_redirect")
             self.clear_cookie("login_redirect")
@@ -157,6 +152,7 @@ class LoginHandler(tornado.web.RequestHandler, tornado.auth.GoogleOAuth2Mixin):
             self.redirect(url)
 
         else:
+            logging.debug("Redirecting to google for login")
             self.set_secure_cookie('login_redirect', self.get_argument("next", '/'), 1)
             self.authorize_redirect(
                         redirect_uri=self.application.settings['redirect_uri'],
