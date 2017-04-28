@@ -170,7 +170,7 @@ class getUser(handlers.UnsafeHandler):
                     'email':        user.email,
                     'trusted':      self.is_authorized(),
                     'admin':        self.is_admin(),
-                    'isInDatabase': user.is_dirty() # Not exactly in database
+                    'isInDatabase': not user.is_dirty() # Not exactly in database
             }
 
         logging.info("getUser: " + str(ret['user']) + ' ' + str(ret['email']))
@@ -237,36 +237,44 @@ class country_list(handlers.UnsafeHandler):
                 "Yemen", "Zambia", "Zimbabwe" ];
 
 
-class requestAccess(handlers.UnsafeHandler):
+class requestAccess(handlers.SafeHandler):
     def get(self, *args, **kwargs):
-        sUser = self.get_current_user()
-        sEmail = self.get_current_email()
-        logging.info("Request: " + sUser + ' ' + sEmail)
-        self.finish(json.dumps({'user':sUser, 'email':sEmail}))
+        user = self.current_user
+        name = user.name
+        email = user.email
+
+        logging.info("Request: " + name + ' ' + email)
+        self.finish(json.dumps({'user':name, 'email':email}))
 
     def post(self, *args, **kwargs):
-        userName = self.get_argument("userName", default='',strip=False)
-        email = self.get_argument("email", default='', strip=False)
+        userName    = self.get_argument("userName", default='',strip=False)
+        email       = self.get_argument("email", default='', strip=False)
         affiliation = self.get_argument("affiliation", strip=False)
-        country = self.get_argument("country", strip=False)
-        newsletter = self.get_argument("newsletter", strip=False)
+        country     = self.get_argument("country", strip=False)
+        newsletter  = self.get_argument("newsletter", strip=False)
 
         # This is the only chance for XSRF in the application
         # avoid it by checking that the email sent by google is the same as
         # supplied by the form post
-        sEmail = self.get_current_email()
-        if sEmail != email:
+        user = self.current_user
+        if user.email != email:
             return
 
-        sSql = """
-        insert into swefreq.users (username, email, affiliation, full_user, country, newsletter)
-        values ('%s', '%s', '%s', '%s', '%s', '%s')
-        """ % (userName, email, affiliation, 0, country, newsletter)
+        user.affiliation = affiliation
+        user.country = country
+        logging.info(u"Inserting into database: {}, {}".format(user.name, user.email))
+
         try:
-            logging.error("Executing: " + sSql)
-            db.execute(sSql)
-        except:
-            logging.error("Error inserting " + userName + ' ' + email)
+            with db.database.atomic():
+                user.save() # Save to database
+                db.DatasetAccess.create(
+                        user             = user,
+                        dataset          = self.dataset,
+                        wants_newsletter = newsletter
+                    )
+        except Exception as e:
+            logging.error(e)
+
 
 class logEvent(handlers.SafeHandler):
     def get(self, sEvent):
@@ -297,7 +305,6 @@ class approveUser(handlers.SafeHandler):
         msg.add_header('reply-to', secrets.reply_to_address)
         body = "Your Swefreq account has been activated."
         msg.attach(MIMEText(body, 'plain'))
-
 
         server = smtplib.SMTP(secrets.mail_server)
         server.sendmail(msg['from'], [msg['to']], msg.as_string())
