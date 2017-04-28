@@ -40,7 +40,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
         if email:
             try:
-                self.user = db.User.select().where( db.User.email == email ).get()
+                return db.User.select().where( db.User.email == email ).get()
             except peewee.DoesNotExist:
                 ## Not saved in the database yet
                 return db.User(email = email, name = name)
