@@ -5,17 +5,13 @@ import applicationTemplate
 import auth
 import json
 import secrets
-import torndb as database
 import pymongo
 import smtplib
 import email.mime.multipart
 from email.MIMEText import MIMEText
 
+import db
 
-db = database.Connection(host = secrets.mysql_host,
-                         database = secrets.mysql_schema,
-                         user = secrets.mysql_user,
-                         password = secrets.mysql_passwd)
 
 class query(auth.UnsafeHandler):
     def make_error_response(self):
@@ -141,41 +137,44 @@ def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset):
 class home(auth.UnsafeHandler):
     def get(self, *args, **kwargs):
         t = template.Template(applicationTemplate.index)
-        is_admin = False
-        has_access = False
 
-        if self.get_secure_cookie('authorized'):
-            has_access = True
-            is_admin = self.is_admin()
+        has_access = self.is_authorized()
+        is_admin   = self.is_admin()
 
-        self.write(t.generate(user_name=self.get_current_user(),
-                              has_access=has_access,
-                              email=self.get_current_email(),
-                              is_admin=is_admin,
-                              ExAC=secrets.exac_server))
+        name = None
+        email = None
+        if self.current_user:
+            name = self.current_user.name
+            email = self.current_user.email
+
+        self.write(t.generate(user_name  = name,
+                              has_access = has_access,
+                              email      = email,
+                              is_admin   = is_admin,
+                              ExAC       = secrets.exac_server))
 
 class getUser(auth.UnsafeHandler):
     def get(self, *args, **kwargs):
-        sUser = self.get_current_user()
-        sEmail = self.get_current_email()
+        user = self.current_user
 
-        tRes = db.query("""select full_user from swefreq.users where
-                           email='%s' and full_user""" % sEmail)
-        lTrusted = len(tRes)==1
+        ret = {
+                'user': None,
+                'email': None,
+                'trusted': False,
+                'admin': False,
+                'isInDatabase': False
+        }
+        if user:
+            ret = {
+                    'user':         user.name,
+                    'email':        user.email,
+                    'trusted':      self.is_authorized(),
+                    'admin':        self.is_admin(),
+                    'isInDatabase': user.is_dirty() # Not exactly in database
+            }
 
-        tRes = db.query("""select full_user from swefreq.users where
-                              email='%s'""" % sEmail)
-        lDatabase = len(tRes) == 1
-        tRes = db.query("""select full_user from swefreq.users where
-                              email='%s' and swefreq_admin""" % sEmail)
-        lAdmin = len(tRes) == 1
-
-        logging.info("getUser: " + str(sUser) + ' ' + str(sEmail))
-        self.finish(json.dumps({'user':sUser,
-                                'email':sEmail,
-                                'trusted':lTrusted,
-                                'isInDatabase':lDatabase,
-                                'admin':lAdmin}))
+        logging.info("getUser: " + str(ret['user']) + ' ' + str(ret['email']))
+        self.finish(json.dumps(ret))
 
 class country_list(auth.UnsafeHandler):
     def get(self, *args, **kwargs):
