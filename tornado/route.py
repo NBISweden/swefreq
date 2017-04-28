@@ -5,7 +5,7 @@ import tornado.web
 from tornado.options import define, options
 
 import application
-import auth
+import handlers
 import secrets
 
 define("port", default=4000, help="run on the given port", type=int)
@@ -29,7 +29,7 @@ settings = {"debug": True,
 
 class Application(tornado.web.Application):
     def __init__(self, settings):
-        handlers = [
+        self.declared_handlers = [
             (r"/", application.home),
             (r"/static/(home.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
             (r"/static/(dataBeacon.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
@@ -37,12 +37,12 @@ class Application(tornado.web.Application):
             (r"/static/(not_authorized.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
             (r"/static/(about.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
             (r"/static/(terms.html)", tornado.web.StaticFileHandler, {"path": "static/"}),
-            (r"/static/(.*)", auth.SafeStaticFileHandler, {"path": "static/"}),
-            (r"/release/(.*)", auth.AuthorizedStaticFileHandler, { "path": "release/"}),
+            (r"/static/(.*)", handlers.SafeStaticFileHandler, {"path": "static/"}),
+            (r"/release/(.*)", handlers.AuthorizedStaticFileHandler, { "path": "release/"}),
             (r"/javascript/(.*)", tornado.web.StaticFileHandler, {"path": "javascript/"}),
             (r'/(favicon.ico)', tornado.web.StaticFileHandler, {"path": "static/"}),
-            ("/login", auth.LoginHandler),
-            ("/logout", auth.LogoutHandler),
+            ("/login", handlers.LoginHandler),
+            ("/logout", handlers.LogoutHandler),
             ("/logEvent/(?P<sEvent>[^\/]+)", application.logEvent),
             ("/getUser", application.getUser),
             ("/getApprovedUsers", application.getApprovedUsers),
@@ -54,16 +54,14 @@ class Application(tornado.web.Application):
             ("/getOutstandingRequests", application.getOutstandingRequests),
             ("/requestAccess", application.requestAccess),
             ("/country_list", application.country_list),
-            (r'.*', auth.BaseHandler),
+            (r'.*', handlers.BaseHandler),
         ]
-
-        self.declared_handlers = handlers
 
         # google oauth key
         self.oauth_key = settings["google_oauth"]["key"]
 
         # Setup the Tornado Application
-        tornado.web.Application.__init__(self, handlers, **settings)
+        tornado.web.Application.__init__(self, self.declared_handlers, **settings)
 
 if __name__ == '__main__':
     tornado.options.parse_command_line()
