@@ -9,15 +9,6 @@ import peewee
 import secrets
 import db
 
-def isAuthorized(email):
-    tRes = db.query("""select username
-    from swefreq.users where email = '%s'
-    and full_user""" % (email))
-
-    if len(tRes)>0:
-        return True, tRes[0]
-    else:
-        return False, None
 
 class BaseHandler(tornado.web.RequestHandler):
     """Base Handler. Handlers should not inherit from this
@@ -114,9 +105,8 @@ class GoogleUser(object):
         if not r.status_code == requests.status_codes.codes.OK:
             self.authenticated = False
         else:
+            self.authenticated = True
             info = json.loads(r.text)
-            if isAuthorized([email['value'] for email in info.get('emails')][0]):
-                self.authenticated = True
             self.display_name = info.get('displayName', '')
             self.emails = [email['value'] for email in info.get('emails')]
 
@@ -155,17 +145,10 @@ class LoginHandler(tornado.web.RequestHandler, tornado.auth.GoogleOAuth2Mixin):
                 )
             user = GoogleUser(user_token)
             logging.info(user.display_name)
-            (lAuthorized, saUser) = isAuthorized(user.emails[0])
 
             self.set_secure_cookie('user', user.display_name)
             self.set_secure_cookie('email', user.emails[0])
-            if user.authenticated:
-                self.set_secure_cookie('access_token', user_token['access_token'])
-
-            # TODO: this should be removed when we start to support multiple
-            # datasets, I leave this here for now.
-            if lAuthorized:
-                self.set_secure_cookie('authorized', 'yes sir')
+            self.set_secure_cookie('access_token', user_token['access_token'])
 
             url = self.get_secure_cookie("login_redirect")
             self.clear_cookie("login_redirect")
@@ -196,9 +179,6 @@ class LogoutHandler(tornado.web.RequestHandler, tornado.auth.GoogleOAuth2Mixin):
         http_client = tornado.httpclient.AsyncHTTPClient()
         http_client.fetch(sLogoutUrl, handle_request)
 
-        # TODO the `authorized` cookie is a stop-gap measure while moving to
-        # the new database schema
-        self.clear_cookie("authorized")
         self.clear_cookie("access_token")
         self.clear_cookie("login_redirect")
         self.set_secure_cookie('login_redirect', self.get_argument("next", '/'), 1)
