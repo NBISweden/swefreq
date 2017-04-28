@@ -1,13 +1,11 @@
-import tornado.autoreload
+import logging
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
-import auth
-import os
-import application
-from tornado import template
 from tornado.options import define, options
-import logging
+
+import application
+import auth
 import secrets
 
 define("port", default=4000, help="run on the given port", type=int)

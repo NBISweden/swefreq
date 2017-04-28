@@ -1,16 +1,16 @@
-import tornado.template as template
-import tornado.gen
-import logging
 import applicationTemplate
-import auth
-import json
-import secrets
-import pymongo
-import smtplib
 import email.mime.multipart
 from email.MIMEText import MIMEText
+import json
+import logging
+import pymongo
+import smtplib
+import tornado.template as template
+import tornado.web
 
+import auth
 import db
+import secrets
 
 
 class query(auth.UnsafeHandler):
