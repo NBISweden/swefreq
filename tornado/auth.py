@@ -3,25 +3,12 @@ import tornado.auth
 import tornado.template as template
 import json
 import requests
-import secrets
 import logging
+import peewee
+
 import secrets
-import torndb as database
+import db
 
-db = database.Connection(host = secrets.mysql_host,
-                         database = secrets.mysql_schema,
-                         user = secrets.mysql_user,
-                         password = secrets.mysql_passwd)
-
-def isAuthorized(email):
-    tRes = db.query("""select username
-    from swefreq.users where email = '%s'
-    and full_user""" % (email))
-
-    if len(tRes)>0:
-        return True, tRes[0]
-    else:
-        return False, None
 
 class BaseHandler(tornado.web.RequestHandler):
     """Base Handler. Handlers should not inherit from this
@@ -36,38 +23,65 @@ class BaseHandler(tornado.web.RequestHandler):
         """
         raise tornado.web.HTTPError(404, reason='Page not found')
 
+    def prepare(self):
+        try:
+            self.dataset = db.Dataset.select().where( db.Dataset.name == 'SweGen').get()
+        except peewee.DoesNotExist:
+            ## TODO Can't find dataset, should return a 404 page.
+            pass
+
     def get_current_user(self):
-        return self.get_secure_cookie("user")
+        email = self.get_secure_cookie('email')
+        name  = self.get_secure_cookie('user')
 
-    def get_current_email(self):
-        return self.get_secure_cookie("email")
+        # Fix ridiculous bug with quotation marks showing on the web
+        if name and (name[0] == '"') and (name[-1] == '"'):
+            name = user[1:-1]
 
-    def get_current_token(self):
-        return self.get_secure_cookie("access_token")
+        if email:
+            try:
+                self.user = db.User.select().where( db.User.email == email ).get()
+            except peewee.DoesNotExist:
+                ## Not saved in the database yet
+                return db.User(email = email, name = name)
+        else:
+            return None
 
     def get_current_user_name(self):
-        # Fix ridiculous bug with quotation marks showing on the web
-        user = self.get_current_user()
+        user = self.current_user
         if user:
-            if (user[0] == '"') and (user[-1] == '"'):
-                return user[1:-1]
-            else:
-                return user
-        return user
+            return user.name
+        return None
 
     def is_admin(self):
-        email = self.get_current_email()
-        tRes = db.query("""select full_user from swefreq.users where
-                              email='%s' and swefreq_admin""" % email)
-        lAdmin = True if len(tRes) == 1 else False
-        return lAdmin
+        user = self.current_user
+        if not user:
+            return False
+
+        try:
+            db.DatasetAccess.select().where(
+                    db.DatasetAccess.user == user,
+                    db.DatasetAccess.dataset == self.dataset,
+                    db.DatasetAccess.is_admin
+                ).get()
+            return True
+        except peewee.DoesNotExist:
+            return False
 
     def is_authorized(self):
-        email = self.get_current_email()
-        tRes = db.query("""select full_user from swefreq.users where
-                              email='%s' and full_user""" % email)
-        lAdmin = True if len(tRes) == 1 else False
-        return lAdmin
+        user = self.current_user
+        if not user:
+            return False
+
+        try:
+            db.DatasetAccess.select().where(
+                    db.DatasetAccess.user == user,
+                    db.DatasetAccess.dataset == self.dataset,
+                    db.DatasetAccess.has_access
+                ).get()
+            return True
+        except peewee.DoesNotExist:
+            return False
 
     def write_error(self, status_code, **kwargs):
         """ Overwrites write_error method to have custom error pages.
@@ -91,9 +105,8 @@ class GoogleUser(object):
         if not r.status_code == requests.status_codes.codes.OK:
             self.authenticated = False
         else:
+            self.authenticated = True
             info = json.loads(r.text)
-            if isAuthorized([email['value'] for email in info.get('emails')][0]):
-                self.authenticated = True
             self.display_name = info.get('displayName', '')
             self.emails = [email['value'] for email in info.get('emails')]
 
@@ -107,11 +120,13 @@ class SafeHandler(BaseHandler):
         the Handlers that inherit from this one are going to require
         authentication in all their methods.
         """
+        super(SafeHandler, self).prepare()
         if not self.current_user:
             self.redirect('/static/not_authorized.html')
 
 class AuthorizedHandler(BaseHandler):
     def prepare(self):
+        super(AurhizedHandler, self).prepare()
         if not self.current_user:
             self.redirect('/static/not_authorized.html')
         if not self.is_authorized():
@@ -130,17 +145,10 @@ class LoginHandler(tornado.web.RequestHandler, tornado.auth.GoogleOAuth2Mixin):
                 )
             user = GoogleUser(user_token)
             logging.info(user.display_name)
-            (lAuthorized, saUser) = isAuthorized(user.emails[0])
 
             self.set_secure_cookie('user', user.display_name)
             self.set_secure_cookie('email', user.emails[0])
-            if user.authenticated:
-                self.set_secure_cookie('access_token', user_token['access_token'])
-
-            # TODO: this should be removed when we start to support multiple
-            # datasets, I leave this here for now.
-            if lAuthorized:
-                self.set_secure_cookie('authorized', 'yes sir')
+            self.set_secure_cookie('access_token', user_token['access_token'])
 
             url = self.get_secure_cookie("login_redirect")
             self.clear_cookie("login_redirect")
@@ -171,9 +179,6 @@ class LogoutHandler(tornado.web.RequestHandler, tornado.auth.GoogleOAuth2Mixin):
         http_client = tornado.httpclient.AsyncHTTPClient()
         http_client.fetch(sLogoutUrl, handle_request)
 
-        # TODO the `authorized` cookie is a stop-gap measure while moving to
-        # the new database schema
-        self.clear_cookie("authorized")
         self.clear_cookie("access_token")
         self.clear_cookie("login_redirect")
         self.set_secure_cookie('login_redirect', self.get_argument("next", '/'), 1)
