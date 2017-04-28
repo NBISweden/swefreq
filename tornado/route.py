@@ -72,12 +72,7 @@ if __name__ == '__main__':
     # Instantiate Application
     application = Application(settings)
     application.listen(options.port)
-    """
-    ssl_options = {
-        'certfile': os.path.join('cert/server.crt'),
-        'keyfile': os.path.join('cert/myserver.key')
-        }
-    """
+
     # Start HTTP Server
     http_server = tornado.httpserver.HTTPServer(application)
 
