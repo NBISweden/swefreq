@@ -33,8 +33,8 @@ class User(BaseModel):
 
 class DatasetAccess(BaseModel):
     dataset_access   = PrimaryKeyField(db_column='dataset_access_pk')
-    dataset          = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='access')
-    user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='access')
+    dataset          = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset')
+    user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user')
     wants_newsletter = IntegerField(null=True)
     is_admin         = IntegerField(null=True)
     has_consented    = IntegerField(null=True)
@@ -48,7 +48,7 @@ class DatasetAccess(BaseModel):
 
 class DatasetVersion(BaseModel):
     dataset_version = PrimaryKeyField(db_column='dataset_version_pk')
-    dataset         = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='versions')
+    dataset         = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset')
     version         = CharField()
     ts              = DateTimeField()
     is_current      = IntegerField(null=True)
@@ -60,7 +60,7 @@ class DatasetVersion(BaseModel):
 
 class DatasetFile(BaseModel):
     dataset_file    = PrimaryKeyField(db_column='dataset_file_pk')
-    dataset_version = ForeignKeyField(db_column='dataset_version_pk', rel_model=DatasetVersion, to_field='dataset_version', related_name='files')
+    dataset_version = ForeignKeyField(db_column='dataset_version_pk', rel_model=DatasetVersion, to_field='dataset_version')
     name            = CharField()
     uri             = CharField()
 
