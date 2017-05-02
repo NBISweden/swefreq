@@ -324,7 +324,24 @@ class revokeUser(handlers.AdminHandler):
         if self.current_user.email == sEmail:
             # Don't let the admin delete hens own account
             return
-        db.execute("""delete from swefreq.users where email = '%s'""" % sEmail)
+
+        with db.database.atomic():
+            user = db.User.select().where(db.User.email == sEmail).get()
+
+            da = db.DatasetAccess.select(
+                    ).join(
+                        db.User
+                    ).where(
+                        db.User.email == sEmail,
+                        db.DatasetAccess.dataset == self.dataset
+                    ).get()
+            da.delete_instance()
+
+            db.UserLog.create(
+                    user = user,
+                    dataset = self.dataset,
+                    action = 'access_revoked'
+                )
 
 class getOutstandingRequests(handlers.SafeHandler):
     def get(self, *args, **kwargs):
