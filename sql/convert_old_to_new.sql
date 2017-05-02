@@ -6,8 +6,8 @@ RENAME TABLE user_log TO user_log_old;
 
 source swefreq.sql
 
-INSERT INTO user (name, email, affiliation, country, create_date)
-SELECT username, email, affiliation, country, create_date
+INSERT INTO user (name, email, affiliation, country)
+SELECT username, email, affiliation, country
     FROM users_old;
 
 -- Insert "fake" SweFreq dataset into 'dataset' table to be able
