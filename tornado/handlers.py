@@ -102,6 +102,18 @@ class SafeHandler(BaseHandler):
         if not self.current_user:
             self.redirect('/static/not_authorized.html')
 
+class AdminHandler(SafeHandler):
+    def prepare(self):
+        super(AdminHandler, self).prepare()
+        user = self.current_user
+        dataset = self.dataset
+        da = db.DatasetAccess().select().where(
+                db.DatasetAccess.user == user,
+                db.DatasetAccess.dataset == dataset
+            ).get()
+        if not da.is_admin:
+            self.redirect('/static/not_authorized.html')
+
 class AuthorizedHandler(BaseHandler):
     def prepare(self):
         super(AurhizedHandler, self).prepare()

@@ -289,13 +289,8 @@ class logEvent(handlers.SafeHandler):
             db.execute("""update swefreq.users set download_count='%s'
                           where email='%s'""" % (int(tRes[0].download_count)+1, sEmail))
 
-class approveUser(handlers.SafeHandler):
+class approveUser(handlers.AdminHandler):
     def get(self, sEmail):
-        sLoggedInEmail = self.get_current_email()
-        tRes = db.query("""select full_user from swefreq.users where
-                              email='%s' and swefreq_admin""" % sLoggedInEmail)
-        if len(tRes) == 0:
-            return
         db.update("""update swefreq.users set full_user = '1'
         where email = '%s'""" % sEmail)
 
@@ -311,27 +306,17 @@ class approveUser(handlers.SafeHandler):
         server.sendmail(msg['from'], [msg['to']], msg.as_string())
 
 
-class revokeUser(handlers.SafeHandler):
+class revokeUser(handlers.AdminHandler):
     def get(self, sEmail):
-        sLoggedInEmail = self.get_current_email()
-        tRes = db.query("""select email from swefreq.users where
-                              email='%s' and swefreq_admin""" % sLoggedInEmail)
-        if len(tRes) == 0:
-            return
-        if sLoggedInEmail == sEmail:
+        if self.current_user.email == sEmail:
             # Don't let the admin delete hens own account
             return
         db.execute("""update swefreq.users set full_user = '0'
                       where email = '%s'""" % sEmail)
 
-class deleteUser(handlers.SafeHandler):
+class deleteUser(handlers.AdminHandler):
     def get(self, sEmail):
-        sLoggedInEmail = self.get_current_email()
-        tRes = db.query("""select email from swefreq.users where
-                              email='%s' and swefreq_admin""" % sLoggedInEmail)
-        if len(tRes) == 0:
-            return
-        if sLoggedInEmail == sEmail:
+        if self.current_user.email == sEmail:
             # Don't let the admin delete hens own account
             return
         db.execute("""delete from swefreq.users where email = '%s'""" % sEmail)
