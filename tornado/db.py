@@ -27,7 +27,6 @@ class User(BaseModel):
     email       = CharField(unique=True)
     affiliation = CharField(null=True)
     country     = CharField(null=True)
-    create_date = DateTimeField()
 
     class Meta:
         db_table = 'user'
