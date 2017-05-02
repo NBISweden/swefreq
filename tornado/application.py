@@ -291,8 +291,21 @@ class logEvent(handlers.SafeHandler):
 
 class approveUser(handlers.AdminHandler):
     def get(self, sEmail):
-        db.update("""update swefreq.users set full_user = '1'
-        where email = '%s'""" % sEmail)
+        with db.database.atomic():
+            user = db.User.select().where(db.User.email == sEmail).get()
+
+            da = db.DatasetAccess.select().where(
+                        db.DatasetAccess.user == user,
+                        db.DatasetAccess.dataset == self.dataset
+                ).get()
+            da.has_access = True
+            da.save()
+
+            db.UserLog.create(
+                    user = user,
+                    dataset = self.dataset,
+                    action = 'access_granted'
+                )
 
         msg = email.mime.multipart.MIMEMultipart()
         msg['to'] = sEmail
