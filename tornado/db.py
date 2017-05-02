@@ -68,11 +68,11 @@ class DatasetFile(BaseModel):
         db_table = 'dataset_file'
 
 class UserLog(BaseModel):
-    user_log   = PrimaryKeyField(db_column='user_log_pk')
-    user       = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user')
-    dataset_pk = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset')
-    action     = CharField(null=True)
-    ts         = DateTimeField()
+    user_log = PrimaryKeyField(db_column='user_log_pk')
+    user     = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user')
+    dataset  = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset')
+    action   = CharField(null=True)
+    ts       = DateTimeField()
 
     class Meta:
         db_table = 'user_log'
