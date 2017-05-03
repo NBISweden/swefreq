@@ -324,14 +324,6 @@ class revokeUser(handlers.AdminHandler):
         if self.current_user.email == sEmail:
             # Don't let the admin delete hens own account
             return
-        db.execute("""update swefreq.users set full_user = '0'
-                      where email = '%s'""" % sEmail)
-
-class deleteUser(handlers.AdminHandler):
-    def get(self, sEmail):
-        if self.current_user.email == sEmail:
-            # Don't let the admin delete hens own account
-            return
         db.execute("""delete from swefreq.users where email = '%s'""" % sEmail)
 
 class getOutstandingRequests(handlers.SafeHandler):

@@ -115,12 +115,6 @@
         };
         this.getUsers();
 
-        this.deleteUser = function(userData){
-            $http.get('/deleteUser/' + userData.email).success(function(data){
-                localThis.getUsers();
-            });
-        };
-
         this.revokeUser = function(userData){
             $http.get('/revokeUser/' + userData.email).success(function(data){
                 localThis.getUsers();
