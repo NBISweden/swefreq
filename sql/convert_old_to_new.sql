@@ -16,6 +16,17 @@ SELECT username, email, affiliation, country
 -- dataset later.
 INSERT INTO dataset (dataset_pk, name) VALUES (1, "SweGen");
 
+-- Insert the actions for "access_requested" and "access_granted" using
+-- users_old.create_date as timestamp.
+INSERT INTO user_log (user_pk, dataset_pk, action, ts)
+SELECT user_pk, 1, "access_requested", users_old.create_date
+    FROM user JOIN users_old ON (user.email = users_old.email);
+
+INSERT INTO user_log (user_pk, dataset_pk, action, ts)
+SELECT user_pk, 1, "access_granted", users_old.create_date
+    FROM user JOIN users_old ON (user.email = users_old.email);
+
+-- Insert the rest of the user_log entries.
 INSERT INTO user_log (user_pk, dataset_pk, action, ts)
 SELECT user_pk, 1, action, ts
     FROM user JOIN user_log_old ON (user.email = user_log_old.email);
