@@ -9,14 +9,12 @@ import handlers
 import secrets
 
 define("port", default=4000, help="run on the given port", type=int)
-
-tornado.log.enable_pretty_logging()
-logging.getLogger().setLevel(logging.DEBUG)
+define("develop", default=False, help="Run in develop environment", type=bool)
 
 redirect_uri = secrets.redirect_uri
 
 # Setup the Tornado Application
-settings = {"debug": True,
+settings = {"debug": False,
             "cookie_secret": secrets.cookie_secret,
             "login_url": "/login",
             "google_oauth": {
@@ -67,7 +65,14 @@ class Application(tornado.web.Application):
         tornado.web.Application.__init__(self, self.declared_handlers, **settings)
 
 if __name__ == '__main__':
+    tornado.log.enable_pretty_logging()
     tornado.options.parse_command_line()
+
+    if options.develop:
+        settings['debug'] = True
+        settings['develop'] = True
+        logging.getLogger().setLevel(logging.DEBUG)
+
     # Instantiate Application
     application = Application(settings)
     application.listen(options.port)
