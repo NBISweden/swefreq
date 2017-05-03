@@ -49,7 +49,6 @@ class Application(tornado.web.Application):
             ("/approveUser/(?P<sEmail>[^\/]+)", application.approveUser),
             ("/query", application.query),
             ("/info", application.info),
-            ("/deleteUser/(?P<sEmail>[^\/]+)", application.deleteUser),
             ("/revokeUser/(?P<sEmail>[^\/]+)", application.revokeUser),
             ("/getOutstandingRequests", application.getOutstandingRequests),
             ("/requestAccess", application.requestAccess),
