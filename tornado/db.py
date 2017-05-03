@@ -67,12 +67,29 @@ class DatasetFile(BaseModel):
     class Meta:
         db_table = 'dataset_file'
 
+class EnumField(Field):
+    db_field = 'string' # The same as for CharField
+
+    def __init__(self, values=[], *args, **kwargs):
+        self.values = values
+        super(EnumField, self).__init__(*args, **kwargs)
+
+    def db_value(self, value):
+        if value not in self.values:
+            raise ValueError("Illegal value for '{}'".format(self.db_column))
+        return value
+
+    def python_value(self, value):
+        if value not in self.values:
+            raise ValueError("Illegal value for '{}'".format(self.db_column))
+        return value
+
 class UserLog(BaseModel):
-    user_log   = PrimaryKeyField(db_column='user_log_pk')
-    user       = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user')
-    dataset_pk = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset')
-    action     = CharField(null=True)
-    ts         = DateTimeField()
+    user_log = PrimaryKeyField(db_column='user_log_pk')
+    user     = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user')
+    dataset  = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset')
+    action   = EnumField(null=True, values=['consent','download','access_requested','access_granted','access_revoked'])
+    ts       = DateTimeField()
 
     class Meta:
         db_table = 'user_log'

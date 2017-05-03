@@ -3,6 +3,7 @@ import email.mime.multipart
 from email.MIMEText import MIMEText
 import json
 import logging
+import peewee
 import pymongo
 import smtplib
 import tornado.template as template
@@ -337,31 +338,68 @@ class deleteUser(handlers.SafeHandler):
 
 class getOutstandingRequests(handlers.SafeHandler):
     def get(self, *args, **kwargs):
-        tRes = db.query("""select username, email, affiliation, country, create_date
-        from swefreq.users where not full_user""")
-        jRes = []
-        for row in tRes:
-            sDate = str(row.create_date).split(' ')[0]
-            jRes.append({'user' : row.username,
-                         'email' : row.email,
-                         'affiliation' : row.affiliation,
-                         'country' : row.country,
-                         'applyDate' : sDate
+        q = db.User.select(db.User).join(
+                db.DatasetAccess
+            ).switch(
+                db.User
+            ).join(
+                db.UserLog,
+                on=(   (db.UserLog.user    == db.User.user)
+                     & (db.UserLog.dataset == db.DatasetAccess.dataset)
+                )
+            ).where(
+                db.DatasetAccess.dataset    == self.dataset,
+                db.DatasetAccess.has_access == 0,
+                db.UserLog.action           == 'access_requested'
+            ).annotate(
+                db.UserLog,
+                peewee.fn.Max(db.UserLog.ts).alias('apply_date')
+            )
+
+        json_response = []
+        for user in q:
+            apply_date = user.apply_date.strftime('%Y-%m-%d')
+            json_response.append({
+                'user':        user.name,
+                'email':       user.email,
+                'affiliation': user.affiliation,
+                'country':     user.country,
+                'applyDate':   apply_date
             })
-        self.finish(json.dumps(jRes))
+
+        self.finish(json.dumps(json_response))
 
 class getApprovedUsers(handlers.SafeHandler):
     def get(self, *args, **kwargs):
-        tRes = db.query("""select username, email, affiliation, country,
-        IFNULL(download_count, 0) as download_count, newsletter
-        from swefreq.users where full_user""")
-        jRes = []
-        for row in tRes:
-            jRes.append({'user' : row.username,
-                         'email' : row.email,
-                         'affiliation' : row.affiliation,
-                         'country' : row.country,
-                         'downloadCount' : row.download_count,
-                         'newsletter': row.newsletter
-            })
-        self.finish(json.dumps(jRes))
+        ## All users that have access to the dataset and how many times they have
+        ## downloaded it
+        query = db.User.select(
+                db.User, db.DatasetAccess.wants_newsletter
+            ).join(
+                db.DatasetAccess
+            ).switch(
+                db.User
+            ).join(
+                db.UserLog,
+                peewee.JOIN.LEFT_OUTER,
+                on=(   (db.User.user        == db.UserLog.user)
+                     & (db.UserLog.action   == 'download')
+                     & (db.UserLog.dataset  == db.DatasetAccess.dataset)
+                )
+            ).where(
+                db.DatasetAccess.dataset    == self.dataset,
+                db.DatasetAccess.has_access == 1
+            ).annotate(db.UserLog)
+
+        json_response = []
+        for user in query:
+            json_response.append({
+                    'user':          user.name,
+                    'email':         user.email,
+                    'affiliation':   user.affiliation,
+                    'country':       user.country,
+                    'downloadCount': user.count,
+                    'newsletter':    user.dataset_access.wants_newsletter
+                })
+
+        self.finish(json.dumps(json_response))
