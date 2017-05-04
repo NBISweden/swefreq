@@ -288,6 +288,11 @@ class requestAccess(handlers.SafeHandler):
                         dataset          = self.dataset,
                         wants_newsletter = newsletter
                     )
+                db.UserLog.create(
+                        user = user,
+                        dataset = self.dataset,
+                        action = 'access_requested'
+                    )
         except Exception as e:
             logging.error(e)
 
