@@ -163,15 +163,30 @@ class getUser(handlers.UnsafeHandler):
                 'email': None,
                 'trusted': False,
                 'admin': False,
-                'isInDatabase': False
+                'has_requested_access': False
         }
         if user:
+            ### TODO there should probably be another way to figure out whether
+            ## someone already has access or not. REST-endpoint or something
+            ## similar, not really sure yet how this should be handled. I'm adding
+            ## it here now so we can get the information to the browser.
+
+            has_requested_access = False
+            try:
+                db.DatasetAccess.select().where(
+                        db.DatasetAccess.user == user,
+                        db.DatasetAccess.dataset == self.dataset).get()
+                has_requested_access = True
+            except:
+                has_requested_access = False
+
+
             ret = {
                     'user':         user.name,
                     'email':        user.email,
                     'trusted':      self.is_authorized(),
                     'admin':        self.is_admin(),
-                    'isInDatabase': not user.is_dirty() # Not exactly in database
+                    'has_requested_access': has_requested_access
             }
 
         logging.info("getUser: " + str(ret['user']) + ' ' + str(ret['email']))
@@ -272,6 +287,11 @@ class requestAccess(handlers.SafeHandler):
                         user             = user,
                         dataset          = self.dataset,
                         wants_newsletter = newsletter
+                    )
+                db.UserLog.create(
+                        user = user,
+                        dataset = self.dataset,
+                        action = 'access_requested'
                     )
         except Exception as e:
             logging.error(e)
