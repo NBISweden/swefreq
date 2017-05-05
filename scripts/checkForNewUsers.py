@@ -1,24 +1,42 @@
-import torndb as database
-import secrets
-import smtplib
 import email.mime.multipart
 from email.MIMEText import MIMEText
+import peewee
+import smtplib
 
-db = database.Connection(host = secrets.mysqlHost,
-                         database = secrets.mysqlSchema,
-                         user = secrets.mysqlUser,
-                         password = secrets.mysqlPasswd)
+import db
+import secrets
 
-tRes = db.query("""select username, email, affiliation, create_date
-                   from swefreq.users where not full_user""")
-if len(tRes) > 0:
-    msg = email.mime.multipart.MIMEMultipart()
-    msg['to'] = secrets.ADMIN_ADDRESS
-    msg['from'] = secrets.FROM_ADDRESS
-    msg['subject'] = 'Pending Swefreq requests'
-    msg.add_header('reply-to', secrets.REPLY_TO_ADDRESS)
-    body = "There are pending requests for swefreq accounts, please visit http://swefreq.nbis.se"
+try:
+    q = db.User.select(db.User).join(
+            db.DatasetAccess
+        ).switch(
+            db.User
+        ).join(
+            db.UserLog,
+            on=(   (db.UserLog.user    == db.User.user)
+                 & (db.UserLog.dataset == db.DatasetAccess.dataset)
+            )
+        ).where(
+            db.DatasetAccess.dataset    == 1,
+            db.DatasetAccess.has_access == 0,
+            db.UserLog.action           == 'access_requested'
+        ).annotate(
+            db.UserLog,
+            peewee.fn.Max(db.UserLog.ts).alias('apply_date')
+        ).get()
+
+    msg             = email.mime.multipart.MIMEMultipart()
+    msg['to']       = secrets.admin_address
+    msg['from']     = secrets.from_address
+    msg['subject']  = 'Pending Swefreq requests'
+    msg['reply-to'] = secrets.reply_to_address
+    body            = "There are pending requests for swefreq accounts, please visit http://swefreq.nbis.se"
     msg.attach(MIMEText(body, 'plain'))
 
-    server = smtplib.SMTP(secrets.MAIL_SERVER)
+    server = smtplib.SMTP(secrets.mail_server)
     server.sendmail(msg['from'], [msg['to']], msg.as_string())
+except peewee.DoesNotExist:
+    pass
+except Exception as e:
+    print "Can't send email"
+    print "e"
