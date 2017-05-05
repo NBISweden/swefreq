@@ -40,4 +40,4 @@ except peewee.DoesNotExist:
     pass
 except Exception as e:
     print "Can't send email"
-    print "e"
+    print e
