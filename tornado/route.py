@@ -28,7 +28,7 @@ settings = {"debug": False,
 class Application(tornado.web.Application):
     def __init__(self, settings):
         self.declared_handlers = [
-            (r"/",                               application.home),
+            (r"/",                               application.Home),
             ## Static handlers
             (r"/static/(home.html)",             tornado.web.StaticFileHandler,              {"path": "static/"}),
             (r"/static/(dataBeacon.html)",       tornado.web.StaticFileHandler,              {"path": "static/"}),
@@ -44,16 +44,16 @@ class Application(tornado.web.Application):
             ("/login",                           handlers.LoginHandler),
             ("/logout",                          handlers.LogoutHandler),
             ## API Methods
-            ("/logEvent/(?P<sEvent>[^\/]+)",     application.logEvent),
-            ("/getUser",                         application.getUser),
-            ("/getApprovedUsers",                application.getApprovedUsers),
-            ("/approveUser/(?P<sEmail>[^\/]+)",  application.approveUser),
-            ("/query",                           application.query),
-            ("/info",                            application.info),
-            ("/revokeUser/(?P<sEmail>[^\/]+)",   application.revokeUser),
-            ("/getOutstandingRequests",          application.getOutstandingRequests),
-            ("/requestAccess",                   application.requestAccess),
-            ("/country_list",                    application.country_list),
+            ("/logEvent/(?P<sEvent>[^\/]+)",     application.LogEvent),
+            ("/getUser",                         application.GetUser),
+            ("/getApprovedUsers",                application.GetApprovedUsers),
+            ("/approveUser/(?P<sEmail>[^\/]+)",  application.ApproveUser),
+            ("/query",                           application.Query),
+            ("/info",                            application.Info),
+            ("/revokeUser/(?P<sEmail>[^\/]+)",   application.RevokeUser),
+            ("/getOutstandingRequests",          application.GetOutstandingRequests),
+            ("/requestAccess",                   application.RequestAccess),
+            ("/country_list",                    application.CountryList),
             ## Catch all
             (r'.*',                              handlers.BaseHandler),
         ]
