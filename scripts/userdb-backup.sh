@@ -13,7 +13,7 @@ backup_file="$backup_dir/tornado-userdb.$( date '+%Y%m%d-%H%M%S' ).dump"
 
 test -d "$backup_base" || exit 1
 
-tmpbackup="$backup_base/in_progress.dump"
+tmpbackup="$( mktemp -p "$backup_base" )"
 
 # Dump database, and remove the "Dump completed" comment at the end to
 # be able to compare with previous dump.
