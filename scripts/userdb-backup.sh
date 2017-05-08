@@ -2,7 +2,7 @@
 
 # This script is running hourly on Hertz to backup the user database.
 # The cronjob belongs to user "andkaha" and is simply
-#   @hourly "/data/SweFreq/userdb-backup.sh"
+#   @hourly /data/SweFreq/userdb-backup.sh >/dev/null 2>&1
 
 PATH="/bin:/usr/bin:$PATH"
 export PATH
