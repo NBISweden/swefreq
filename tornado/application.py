@@ -1,6 +1,6 @@
 import applicationTemplate
 import email.mime.multipart
-from email.MIMEText import MIMEText
+from email.mime.text import MIMEText
 import json
 import logging
 import peewee
