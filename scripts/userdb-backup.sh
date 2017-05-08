@@ -31,6 +31,9 @@ then
 
     # Create a symbolic link to the latest backup
     ln -sf "$backup_file.gz" "$backup_base/latest.dump.gz"
+
+    echo 'New backup made'
 else
     rm -f "$tmpbackup.gz"
+    echo 'No new backup needed'
 fi
