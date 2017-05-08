@@ -27,11 +27,11 @@ class Query(handlers.UnsafeHandler):
         for arg in ['chrom', 'pos', 'dataset', 'referenceAllele', 'allele', 'ref']:
             try:
                 val = self.get_argument(arg)
-                if checks.has_key(arg):
+                if arg in checks:
                     ret_str += checks[arg](val)
             except:
                 ret_str += arg + " is missing\n"
-                if checks.has_key(arg):
+                if arg in checks:
                     ret_str += checks[arg]("")
 
         dataset = self.get_argument('dataset', 'MISSING')
@@ -80,10 +80,10 @@ class Info(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         query_uri = "%s://%s/query?" % ('https', self.request.host)
         self.write({
-            'id': u'swefreq-beacon',
-            'name': u'Swefreq Beacon',
-            'organization': u'SciLifeLab',
-            'api': u'0.3',
+            'id': 'swefreq-beacon',
+            'name': 'Swefreq Beacon',
+            'organization': 'SciLifeLab',
+            'api': '0.3',
             #'description': u'Swefreq beacon from NBIS',
             'datasets': [
                 {
@@ -194,7 +194,7 @@ class GetUser(handlers.UnsafeHandler):
 
 class CountryList(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
-        self.write({'countries': map( lambda c: {'name': c}, self.country_list())})
+        self.write({'countries': [{'name': c} for c in self.country_list()]})
 
     def country_list(self):
         return ["Afghanistan", "Albania", "Algeria", "American Samoa", "Andorra",
@@ -278,7 +278,7 @@ class RequestAccess(handlers.SafeHandler):
 
         user.affiliation = affiliation
         user.country = country
-        logging.info(u"Inserting into database: {}, {}".format(user.name, user.email))
+        logging.info("Inserting into database: {}, {}".format(user.name, user.email))
 
         try:
             with db.database.atomic():
