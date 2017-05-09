@@ -2,7 +2,7 @@
 
 # This script is running hourly on Hertz to backup the user database.
 # The cronjob belongs to user "andkaha" and is simply
-#   @hourly "/data/SweFreq/userdb-backup.sh"
+#   @hourly /data/SweFreq/userdb-backup.sh >/dev/null 2>&1
 
 PATH="/bin:/usr/bin:$PATH"
 export PATH
@@ -13,7 +13,7 @@ backup_file="$backup_dir/tornado-userdb.$( date '+%Y%m%d-%H%M%S' ).dump"
 
 test -d "$backup_base" || exit 1
 
-tmpbackup="$backup_base/in_progress.dump"
+tmpbackup="$( mktemp -p "$backup_base" )"
 
 # Dump database, and remove the "Dump completed" comment at the end to
 # be able to compare with previous dump.
@@ -31,6 +31,9 @@ then
 
     # Create a symbolic link to the latest backup
     ln -sf "$backup_file.gz" "$backup_base/latest.dump.gz"
+
+    echo 'New backup made'
 else
     rm -f "$tmpbackup.gz"
+    echo 'No new backup needed'
 fi
