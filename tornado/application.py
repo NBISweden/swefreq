@@ -1,23 +1,20 @@
-import tornado.template as template
-import tornado.gen
-import logging
 import applicationTemplate
-import auth
-import json
-import secrets
-import torndb as database
-import pymongo
-import smtplib
 import email.mime.multipart
 from email.MIMEText import MIMEText
+import json
+import logging
+import peewee
+import pymongo
+import smtplib
+import tornado.template as template
+import tornado.web
+
+import db
+import handlers
+import secrets
 
 
-db = database.Connection(host = secrets.mysql_host,
-                         database = secrets.mysql_schema,
-                         user = secrets.mysql_user,
-                         password = secrets.mysql_passwd)
-
-class query(auth.UnsafeHandler):
+class query(handlers.UnsafeHandler):
     def make_error_response(self):
         ret_str = ""
 
@@ -79,7 +76,7 @@ class query(auth.UnsafeHandler):
                 'beacon': 'swefreq-beacon'
                 })
 
-class info(auth.UnsafeHandler):
+class info(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         query_uri = "%s://%s/query?" % ('https', self.request.host)
         self.write({
@@ -138,46 +135,64 @@ def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset):
 
     return False
 
-class home(auth.UnsafeHandler):
+class home(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         t = template.Template(applicationTemplate.index)
-        is_admin = False
-        has_access = False
 
-        if self.get_current_token():
-            has_access = True
-            is_admin = self.is_admin()
+        has_access = self.is_authorized()
+        is_admin   = self.is_admin()
 
-        self.write(t.generate(user_name=self.get_current_user(),
-                              has_access=has_access,
-                              email=self.get_current_email(),
-                              is_admin=is_admin,
-                              ExAC=secrets.exac_server))
+        name = None
+        email = None
+        if self.current_user:
+            name = self.current_user.name
+            email = self.current_user.email
 
-class getUser(auth.UnsafeHandler):
+        self.write(t.generate(user_name  = name,
+                              has_access = has_access,
+                              email      = email,
+                              is_admin   = is_admin,
+                              ExAC       = secrets.exac_server))
+
+class getUser(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
-        sUser = self.get_current_user()
-        sEmail = self.get_current_email()
+        user = self.current_user
 
-        tRes = db.query("""select full_user from swefreq.users where
-                           email='%s' and full_user""" % sEmail)
-        lTrusted = len(tRes)==1
+        ret = {
+                'user': None,
+                'email': None,
+                'trusted': False,
+                'admin': False,
+                'has_requested_access': False
+        }
+        if user:
+            ### TODO there should probably be another way to figure out whether
+            ## someone already has access or not. REST-endpoint or something
+            ## similar, not really sure yet how this should be handled. I'm adding
+            ## it here now so we can get the information to the browser.
 
-        tRes = db.query("""select full_user from swefreq.users where
-                              email='%s'""" % sEmail)
-        lDatabase = len(tRes) == 1
-        tRes = db.query("""select full_user from swefreq.users where
-                              email='%s' and swefreq_admin""" % sEmail)
-        lAdmin = len(tRes) == 1
+            has_requested_access = False
+            try:
+                db.DatasetAccess.select().where(
+                        db.DatasetAccess.user == user,
+                        db.DatasetAccess.dataset == self.dataset).get()
+                has_requested_access = True
+            except:
+                has_requested_access = False
 
-        logging.info("getUser: " + str(sUser) + ' ' + str(sEmail))
-        self.finish(json.dumps({'user':sUser,
-                                'email':sEmail,
-                                'trusted':lTrusted,
-                                'isInDatabase':lDatabase,
-                                'admin':lAdmin}))
 
-class country_list(auth.UnsafeHandler):
+            ret = {
+                    'user':         user.name,
+                    'email':        user.email,
+                    'trusted':      self.is_authorized(),
+                    'admin':        self.is_admin(),
+                    'has_requested_access': has_requested_access
+            }
+
+        logging.info("getUser: " + str(ret['user']) + ' ' + str(ret['email']))
+        self.finish(json.dumps(ret))
+
+class country_list(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         self.write({'countries': map( lambda c: {'name': c}, self.country_list())})
 
@@ -238,38 +253,51 @@ class country_list(auth.UnsafeHandler):
                 "Yemen", "Zambia", "Zimbabwe" ];
 
 
-class requestAccess(auth.UnsafeHandler):
+class requestAccess(handlers.SafeHandler):
     def get(self, *args, **kwargs):
-        sUser = self.get_current_user()
-        sEmail = self.get_current_email()
-        logging.info("Request: " + sUser + ' ' + sEmail)
-        self.finish(json.dumps({'user':sUser, 'email':sEmail}))
+        user = self.current_user
+        name = user.name
+        email = user.email
+
+        logging.info("Request: " + name + ' ' + email)
+        self.finish(json.dumps({'user':name, 'email':email}))
 
     def post(self, *args, **kwargs):
-        userName = self.get_argument("userName", default='',strip=False)
-        email = self.get_argument("email", default='', strip=False)
+        userName    = self.get_argument("userName", default='',strip=False)
+        email       = self.get_argument("email", default='', strip=False)
         affiliation = self.get_argument("affiliation", strip=False)
-        country = self.get_argument("country", strip=False)
-        newsletter = self.get_argument("newsletter", strip=False)
+        country     = self.get_argument("country", strip=False)
+        newsletter  = self.get_argument("newsletter", strip=False)
 
         # This is the only chance for XSRF in the application
         # avoid it by checking that the email sent by google is the same as
         # supplied by the form post
-        sEmail = self.get_current_email()
-        if sEmail != email:
+        user = self.current_user
+        if user.email != email:
             return
 
-        sSql = """
-        insert into swefreq.users (username, email, affiliation, full_user, country, newsletter)
-        values ('%s', '%s', '%s', '%s', '%s', '%s')
-        """ % (userName, email, affiliation, 0, country, newsletter)
-        try:
-            logging.error("Executing: " + sSql)
-            db.execute(sSql)
-        except:
-            logging.error("Error inserting " + userName + ' ' + email)
+        user.affiliation = affiliation
+        user.country = country
+        logging.info(u"Inserting into database: {}, {}".format(user.name, user.email))
 
-class logEvent(auth.SafeHandler):
+        try:
+            with db.database.atomic():
+                user.save() # Save to database
+                db.DatasetAccess.create(
+                        user             = user,
+                        dataset          = self.dataset,
+                        wants_newsletter = newsletter
+                    )
+                db.UserLog.create(
+                        user = user,
+                        dataset = self.dataset,
+                        action = 'access_requested'
+                    )
+        except Exception as e:
+            logging.error(e)
+
+
+class logEvent(handlers.SafeHandler):
     def get(self, sEvent):
         sEmail=self.get_current_email()
         sSql = """insert into swefreq.user_log (email, action) values ('%s', '%s')
@@ -281,15 +309,23 @@ class logEvent(auth.SafeHandler):
             db.execute("""update swefreq.users set download_count='%s'
                           where email='%s'""" % (int(tRes[0].download_count)+1, sEmail))
 
-class approveUser(auth.SafeHandler):
+class approveUser(handlers.AdminHandler):
     def get(self, sEmail):
-        sLoggedInEmail = self.get_current_email()
-        tRes = db.query("""select full_user from swefreq.users where
-                              email='%s' and swefreq_admin""" % sLoggedInEmail)
-        if len(tRes) == 0:
-            return
-        db.update("""update swefreq.users set full_user = '1'
-        where email = '%s'""" % sEmail)
+        with db.database.atomic():
+            user = db.User.select().where(db.User.email == sEmail).get()
+
+            da = db.DatasetAccess.select().where(
+                        db.DatasetAccess.user == user,
+                        db.DatasetAccess.dataset == self.dataset
+                ).get()
+            da.has_access = True
+            da.save()
+
+            db.UserLog.create(
+                    user = user,
+                    dataset = self.dataset,
+                    action = 'access_granted'
+                )
 
         msg = email.mime.multipart.MIMEMultipart()
         msg['to'] = sEmail
@@ -299,69 +335,98 @@ class approveUser(auth.SafeHandler):
         body = "Your Swefreq account has been activated."
         msg.attach(MIMEText(body, 'plain'))
 
-
         server = smtplib.SMTP(secrets.mail_server)
         server.sendmail(msg['from'], [msg['to']], msg.as_string())
 
 
-class revokeUser(auth.SafeHandler):
+class revokeUser(handlers.AdminHandler):
     def get(self, sEmail):
-        sLoggedInEmail = self.get_current_email()
-        tRes = db.query("""select email from swefreq.users where
-                              email='%s' and swefreq_admin""" % sLoggedInEmail)
-        if len(tRes) == 0:
-            return
-        if sLoggedInEmail == sEmail:
+        if self.current_user.email == sEmail:
             # Don't let the admin delete hens own account
             return
-        db.execute("""update swefreq.users set full_user = '0'
-                      where email = '%s'""" % sEmail)
 
-class deleteUser(auth.SafeHandler):
-    def get(self, sEmail):
-        sLoggedInEmail = self.get_current_email()
-        tRes = db.query("""select email from swefreq.users where
-                              email='%s' and swefreq_admin""" % sLoggedInEmail)
-        if len(tRes) == 0:
-            return
-        if sLoggedInEmail == sEmail:
-            # Don't let the admin delete hens own account
-            return
-        db.execute("""delete from swefreq.users where email = '%s'""" % sEmail)
+        with db.database.atomic():
+            user = db.User.select().where(db.User.email == sEmail).get()
 
-class getOutstandingRequests(auth.SafeHandler):
+            da = db.DatasetAccess.select(
+                    ).join(
+                        db.User
+                    ).where(
+                        db.User.email == sEmail,
+                        db.DatasetAccess.dataset == self.dataset
+                    ).get()
+            da.delete_instance()
+
+            db.UserLog.create(
+                    user = user,
+                    dataset = self.dataset,
+                    action = 'access_revoked'
+                )
+
+class getOutstandingRequests(handlers.SafeHandler):
     def get(self, *args, **kwargs):
-        tRes = db.query("""select username, email, affiliation, country, create_date
-        from swefreq.users where not full_user""")
-        jRes = []
-        for row in tRes:
-            sDate = str(row.create_date).split(' ')[0]
-            jRes.append({'user' : row.username,
-                         'email' : row.email,
-                         'affiliation' : row.affiliation,
-                         'country' : row.country,
-                         'applyDate' : sDate
-            })
-        self.finish(json.dumps(jRes))
+        q = db.User.select(db.User).join(
+                db.DatasetAccess
+            ).switch(
+                db.User
+            ).join(
+                db.UserLog,
+                on=(   (db.UserLog.user    == db.User.user)
+                     & (db.UserLog.dataset == db.DatasetAccess.dataset)
+                )
+            ).where(
+                db.DatasetAccess.dataset    == self.dataset,
+                db.DatasetAccess.has_access == 0,
+                db.UserLog.action           == 'access_requested'
+            ).annotate(
+                db.UserLog,
+                peewee.fn.Max(db.UserLog.ts).alias('apply_date')
+            )
 
-class getApprovedUsers(auth.SafeHandler):
+        json_response = []
+        for user in q:
+            apply_date = user.apply_date.strftime('%Y-%m-%d')
+            json_response.append({
+                'user':        user.name,
+                'email':       user.email,
+                'affiliation': user.affiliation,
+                'country':     user.country,
+                'applyDate':   apply_date
+            })
+
+        self.finish(json.dumps(json_response))
+
+class getApprovedUsers(handlers.SafeHandler):
     def get(self, *args, **kwargs):
-        tRes = db.query("""select username, email, affiliation, country,
-        IFNULL(download_count, 0) as download_count, newsletter
-        from swefreq.users where full_user""")
-        jRes = []
-        for row in tRes:
-            jRes.append({'user' : row.username,
-                         'email' : row.email,
-                         'affiliation' : row.affiliation,
-                         'country' : row.country,
-                         'downloadCount' : row.download_count,
-                         'newsletter': row.newsletter
-            })
-        self.finish(json.dumps(jRes))
+        ## All users that have access to the dataset and how many times they have
+        ## downloaded it
+        query = db.User.select(
+                db.User, db.DatasetAccess.wants_newsletter
+            ).join(
+                db.DatasetAccess
+            ).switch(
+                db.User
+            ).join(
+                db.UserLog,
+                peewee.JOIN.LEFT_OUTER,
+                on=(   (db.User.user        == db.UserLog.user)
+                     & (db.UserLog.action   == 'download')
+                     & (db.UserLog.dataset  == db.DatasetAccess.dataset)
+                )
+            ).where(
+                db.DatasetAccess.dataset    == self.dataset,
+                db.DatasetAccess.has_access == 1
+            ).annotate(db.UserLog)
 
-class StaticFileHandler(tornado.web.StaticFileHandler):
-    def get(self, path, include_body=True):
-        if path.endswith('woff'):
-            self.set_header('Content-Type','application/font-woff')
-        super(StaticFileHandler, self).get(path, include_body)
+        json_response = []
+        for user in query:
+            json_response.append({
+                    'user':          user.name,
+                    'email':         user.email,
+                    'affiliation':   user.affiliation,
+                    'country':       user.country,
+                    'downloadCount': user.count,
+                    'newsletter':    user.dataset_access.wants_newsletter
+                })
+
+        self.finish(json.dumps(json_response))

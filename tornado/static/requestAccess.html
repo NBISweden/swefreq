@@ -4,7 +4,7 @@
   <br />
   <br />
   <br />
-  <div ng-if="requestCtrl.data.isInDatabase == false">
+  <div ng-if="requestCtrl.data.has_requested_access == false">
     <div class="container">
       <div class="row clearfix">
         <div class="col-md-12 column">
@@ -91,7 +91,7 @@
       </div>
     </div>
   </div>
-  <div ng-if="requestCtrl.data.isInDatabase == true">
+  <div ng-if="requestCtrl.data.has_requested_access == true">
     <div class="col-sm-1"></div>
     <div class="col-sm-4">
       <label>You have already applied for access</label>

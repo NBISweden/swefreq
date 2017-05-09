@@ -1,27 +1,11 @@
-import tornado.web
-import tornado.auth
-import tornado.template as template
-import json
-import requests
-import secrets
 import logging
+import peewee
+import tornado.auth
+import tornado.web
+
+import db
 import secrets
-import torndb as database
 
-db = database.Connection(host = secrets.mysql_host,
-                         database = secrets.mysql_schema,
-                         user = secrets.mysql_user,
-                         password = secrets.mysql_passwd)
-
-def isAuthorized(email):
-    tRes = db.query("""select username
-    from swefreq.users where email = '%s'
-    and full_user""" % (email))
-
-    if len(tRes)>0:
-        return True, tRes[0]
-    else:
-        return False, None
 
 class BaseHandler(tornado.web.RequestHandler):
     """Base Handler. Handlers should not inherit from this
@@ -36,38 +20,65 @@ class BaseHandler(tornado.web.RequestHandler):
         """
         raise tornado.web.HTTPError(404, reason='Page not found')
 
+    def prepare(self):
+        try:
+            self.dataset = db.Dataset.select().where( db.Dataset.name == 'SweGen').get()
+        except peewee.DoesNotExist:
+            ## TODO Can't find dataset, should return a 404 page.
+            pass
+
     def get_current_user(self):
-        return self.get_secure_cookie("user")
+        email = self.get_secure_cookie('email')
+        name  = self.get_secure_cookie('user')
 
-    def get_current_email(self):
-        return self.get_secure_cookie("email")
+        # Fix ridiculous bug with quotation marks showing on the web
+        if name and (name[0] == '"') and (name[-1] == '"'):
+            name = user[1:-1]
 
-    def get_current_token(self):
-        return self.get_secure_cookie("access_token")
+        if email:
+            try:
+                return db.User.select().where( db.User.email == email ).get()
+            except peewee.DoesNotExist:
+                ## Not saved in the database yet
+                return db.User(email = email, name = name)
+        else:
+            return None
 
     def get_current_user_name(self):
-        # Fix ridiculous bug with quotation marks showing on the web
-        user = self.get_current_user()
+        user = self.current_user
         if user:
-            if (user[0] == '"') and (user[-1] == '"'):
-                return user[1:-1]
-            else:
-                return user
-        return user
+            return user.name
+        return None
 
     def is_admin(self):
-        email = self.get_current_email()
-        tRes = db.query("""select full_user from swefreq.users where
-                              email='%s' and swefreq_admin""" % email)
-        lAdmin = True if len(tRes) == 1 else False
-        return lAdmin
+        user = self.current_user
+        if not user:
+            return False
+
+        try:
+            db.DatasetAccess.select().where(
+                    db.DatasetAccess.user == user,
+                    db.DatasetAccess.dataset == self.dataset,
+                    db.DatasetAccess.is_admin
+                ).get()
+            return True
+        except peewee.DoesNotExist:
+            return False
 
     def is_authorized(self):
-        email = self.get_current_email()
-        tRes = db.query("""select full_user from swefreq.users where
-                              email='%s' and full_user""" % email)
-        lAdmin = True if len(tRes) == 1 else False
-        return lAdmin
+        user = self.current_user
+        if not user:
+            return False
+
+        try:
+            db.DatasetAccess.select().where(
+                    db.DatasetAccess.user == user,
+                    db.DatasetAccess.dataset == self.dataset,
+                    db.DatasetAccess.has_access
+                ).get()
+            return True
+        except peewee.DoesNotExist:
+            return False
 
     def write_error(self, status_code, **kwargs):
         """ Overwrites write_error method to have custom error pages.
@@ -76,36 +87,6 @@ class BaseHandler(tornado.web.RequestHandler):
         reason = 'Page not found'
         logging.info("Error do something here again")
 
-
-class GoogleUser(object):
-    """Stores the information that google returns from a user throuhgh its secured API.
-    """
-    def __init__(self, user_token):
-        self.user_token = user_token
-        self._google_plus_api = "https://www.googleapis.com/plus/v1/people/me"
-        self.authenticated = False
-        #Fetch actual information from Google API
-
-        params = {'access_token': self.user_token.get('access_token')}
-        r = requests.get(self._google_plus_api, params=params)
-        if not r.status_code == requests.status_codes.codes.OK:
-            self.authenticated = False
-        else:
-            info = json.loads(r.text)
-            if isAuthorized([email['value'] for email in info.get('emails')][0]):
-                self.authenticated = True
-            self.display_name = info.get('displayName', '')
-            self.emails = [email['value'] for email in info.get('emails')]
-
-    def is_authorized(self, user_view):
-        """Checks that the user is actually authorised to use genomics-status.
-        """
-        authenticated = False
-        for email in self.emails:
-            if user_view[email]:
-                self.valid_email = email
-                authenticated = True
-        return authenticated
 
 class SafeHandler(BaseHandler):
     """ All handlers that need authentication and authorization should inherit
@@ -117,11 +98,25 @@ class SafeHandler(BaseHandler):
         the Handlers that inherit from this one are going to require
         authentication in all their methods.
         """
+        super(SafeHandler, self).prepare()
         if not self.current_user:
+            self.redirect('/static/not_authorized.html')
+
+class AdminHandler(SafeHandler):
+    def prepare(self):
+        super(AdminHandler, self).prepare()
+        user = self.current_user
+        dataset = self.dataset
+        da = db.DatasetAccess().select().where(
+                db.DatasetAccess.user == user,
+                db.DatasetAccess.dataset == dataset
+            ).get()
+        if not da.is_admin:
             self.redirect('/static/not_authorized.html')
 
 class AuthorizedHandler(BaseHandler):
     def prepare(self):
+        super(AurhizedHandler, self).prepare()
         if not self.current_user:
             self.redirect('/static/not_authorized.html')
         if not self.is_authorized():
@@ -131,32 +126,43 @@ class UnsafeHandler(BaseHandler):
     pass
 
 class LoginHandler(tornado.web.RequestHandler, tornado.auth.GoogleOAuth2Mixin):
+    """
+    See http://www.tornadoweb.org/en/stable/auth.html#google for documentation
+    on this. Here I have copied the example more or less verbatim.
+    """
     @tornado.gen.coroutine
     def get(self):
         if self.get_argument("code", False):
-            user_token =  yield self.get_authenticated_user(
+            logging.debug("Requesting user token")
+            user_token = yield self.get_authenticated_user(
                 redirect_uri=self.application.settings['redirect_uri'],
-                code=self.get_argument('code')
-                )
-            user = GoogleUser(user_token)
-            logging.info(user.display_name)
-            (lAuthorized, saUser) = isAuthorized(user.emails[0])
+                code=self.get_argument('code'))
 
-            self.set_secure_cookie('user', user.display_name)
-            self.set_secure_cookie('email', user.emails[0])
+            logging.debug("Requesting user info")
+            user = yield self.oauth2_request(
+                    "https://www.googleapis.com/plus/v1/people/me",
+                    access_token=user_token["access_token"])
 
-            if user.authenticated and lAuthorized:
-                self.set_secure_cookie('access_token', user_token['access_token'])
-                #It will have at least one email (otherwise she couldn't log in)
-                url=self.get_secure_cookie("login_redirect")
-                self.clear_cookie("login_redirect")
-                if url is None:
-                    url = '/'
+            self.set_secure_cookie('user', user["displayName"])
+            self.set_secure_cookie('access_token', user_token["access_token"])
+
+            # There can be several emails registered for a user.
+            for email in user["emails"]:
+                if email.get('type', '') == 'account':
+                    self.set_secure_cookie('email', email['value'])
+                    break
             else:
+                # No account email, just take the first one
+                self.set_secure_cookie('email', user['emails'][0]['value'])
+
+            url = self.get_secure_cookie("login_redirect")
+            self.clear_cookie("login_redirect")
+            if url is None:
                 url = '/'
             self.redirect(url)
 
         else:
+            logging.debug("Redirecting to google for login")
             self.set_secure_cookie('login_redirect', self.get_argument("next", '/'), 1)
             self.authorize_redirect(
                         redirect_uri=self.application.settings['redirect_uri'],

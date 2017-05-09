@@ -73,7 +73,7 @@
                 localThis.data.userName = data.user;
                 localThis.data.email = data.email;
                 localThis.data.trusted = data.trusted;
-                localThis.data.isInDatabase = data.isInDatabase;
+                localThis.data.has_requested_access = data.has_requested_access;
                 localThis.data.admin = data.admin;
             });
         };
@@ -94,7 +94,7 @@
                 localThis.data.userName = data.user;
                 localThis.data.email = data.email;
                 localThis.data.trusted = data.trusted;
-                localThis.data.isInDatabase = data.isInDatabase;
+                localThis.data.has_requested_access = data.has_requested_access;
                 localThis.data.admin = data.admin;
                 if(data.admin == true){
                     $http.get('/getOutstandingRequests').success(function(data){
@@ -114,12 +114,6 @@
             });
         };
         this.getUsers();
-
-        this.deleteUser = function(userData){
-            $http.get('/deleteUser/' + userData.email).success(function(data){
-                localThis.getUsers();
-            });
-        };
 
         this.revokeUser = function(userData){
             $http.get('/revokeUser/' + userData.email).success(function(data){
