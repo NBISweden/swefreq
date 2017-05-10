@@ -53,4 +53,11 @@ else
 fi
 
 # Use rsync to sync the "release" directory
-rsync --archive --verbose --progress "$container_dir/" "$release_backups/"
+rsync --archive --no-perms \
+    --verbose --progress "$container_dir/" "$release_backups/"
+
+# Fix permissions and ownership on the whole /data/SweFreq directory
+# hierarchy.  It should be readable/writable by user and group, but not
+# accessible to others.  The group should be "users".
+chgrp -R users "$data_home"
+chmod -R ug+rw,o-rwx "$data_home"
