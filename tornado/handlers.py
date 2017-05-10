@@ -116,7 +116,7 @@ class AdminHandler(SafeHandler):
 
 class AuthorizedHandler(BaseHandler):
     def prepare(self):
-        super(AurhizedHandler, self).prepare()
+        super(AuthorizedHandler, self).prepare()
         if not self.current_user:
             self.redirect('/static/not_authorized.html')
         if not self.is_authorized():

@@ -299,15 +299,17 @@ class requestAccess(handlers.SafeHandler):
 
 class logEvent(handlers.SafeHandler):
     def get(self, sEvent):
-        sEmail=self.get_current_email()
-        sSql = """insert into swefreq.user_log (email, action) values ('%s', '%s')
-        """ % (sEmail, sEvent)
-        db.execute(sSql)
-        if sEvent == 'download':
-            tRes = db.query("""select ifnull(download_count, 0) as download_count
-                               from swefreq.users where email = '%s'""" % sEmail)
-            db.execute("""update swefreq.users set download_count='%s'
-                          where email='%s'""" % (int(tRes[0].download_count)+1, sEmail))
+        user = self.current_user
+
+        ok_events = ['download','consent']
+        if sEvent in ok_events:
+            db.UserLog.create(
+                    user = user,
+                    dataset = self.dataset,
+                    action = sEvent
+                )
+        else:
+            raise tornado.web.HTTPError(400, reason="Can't log that")
 
 class approveUser(handlers.AdminHandler):
     def get(self, sEmail):
@@ -365,32 +367,16 @@ class revokeUser(handlers.AdminHandler):
 
 class getOutstandingRequests(handlers.SafeHandler):
     def get(self, *args, **kwargs):
-        q = db.User.select(db.User).join(
-                db.DatasetAccess
-            ).switch(
-                db.User
-            ).join(
-                db.UserLog,
-                on=(   (db.UserLog.user    == db.User.user)
-                     & (db.UserLog.dataset == db.DatasetAccess.dataset)
-                )
-            ).where(
-                db.DatasetAccess.dataset    == self.dataset,
-                db.DatasetAccess.has_access == 0,
-                db.UserLog.action           == 'access_requested'
-            ).annotate(
-                db.UserLog,
-                peewee.fn.Max(db.UserLog.ts).alias('apply_date')
-            )
+        requests = db.get_outstanding_requests(self.dataset)
 
         json_response = []
-        for user in q:
-            apply_date = user.apply_date.strftime('%Y-%m-%d')
+        for request in requests:
+            apply_date = request.apply_date.strftime('%Y-%m-%d')
             json_response.append({
-                'user':        user.name,
-                'email':       user.email,
-                'affiliation': user.affiliation,
-                'country':     user.country,
+                'user':        request.name,
+                'email':       request.email,
+                'affiliation': request.affiliation,
+                'country':     request.country,
                 'applyDate':   apply_date
             })
 
