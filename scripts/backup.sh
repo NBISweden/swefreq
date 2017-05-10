@@ -27,7 +27,7 @@ elif [ ! -d "$release_backups" ]; then
     exit 1
 fi
 
-trap 'rm -f "$tmpbackup"' EXIT
+trap 'rm -f "$tmpbackup" "$tmpbackup.gz"' EXIT
 tmpbackup="$( mktemp -p "$userdb_base" )"
 
 # Dump database, and remove the "Dump completed" comment at the end to
