@@ -93,3 +93,22 @@ class UserLog(BaseModel):
 
     class Meta:
         db_table = 'user_log'
+
+def get_outstanding_requests(dataset):
+    return User.select(User).join(
+            DatasetAccess
+        ).switch(
+            User
+        ).join(
+            UserLog,
+            on=(   (UserLog.user    == User.user)
+                 & (UserLog.dataset == DatasetAccess.dataset)
+            )
+        ).where(
+            DatasetAccess.dataset    == dataset,
+            DatasetAccess.has_access == 0,
+            UserLog.action           == 'access_requested'
+        ).annotate(
+            UserLog,
+            fn.Max(UserLog.ts).alias('apply_date')
+        )

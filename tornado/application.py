@@ -365,32 +365,16 @@ class revokeUser(handlers.AdminHandler):
 
 class getOutstandingRequests(handlers.SafeHandler):
     def get(self, *args, **kwargs):
-        q = db.User.select(db.User).join(
-                db.DatasetAccess
-            ).switch(
-                db.User
-            ).join(
-                db.UserLog,
-                on=(   (db.UserLog.user    == db.User.user)
-                     & (db.UserLog.dataset == db.DatasetAccess.dataset)
-                )
-            ).where(
-                db.DatasetAccess.dataset    == self.dataset,
-                db.DatasetAccess.has_access == 0,
-                db.UserLog.action           == 'access_requested'
-            ).annotate(
-                db.UserLog,
-                peewee.fn.Max(db.UserLog.ts).alias('apply_date')
-            )
+        requests = db.get_outstanding_requests(self.dataset)
 
         json_response = []
-        for user in q:
-            apply_date = user.apply_date.strftime('%Y-%m-%d')
+        for request in requests:
+            apply_date = request.apply_date.strftime('%Y-%m-%d')
             json_response.append({
-                'user':        user.name,
-                'email':       user.email,
-                'affiliation': user.affiliation,
-                'country':     user.country,
+                'user':        request.name,
+                'email':       request.email,
+                'affiliation': request.affiliation,
+                'country':     request.country,
                 'applyDate':   apply_date
             })
 
