@@ -299,15 +299,17 @@ class requestAccess(handlers.SafeHandler):
 
 class logEvent(handlers.SafeHandler):
     def get(self, sEvent):
-        sEmail=self.get_current_email()
-        sSql = """insert into swefreq.user_log (email, action) values ('%s', '%s')
-        """ % (sEmail, sEvent)
-        db.execute(sSql)
-        if sEvent == 'download':
-            tRes = db.query("""select ifnull(download_count, 0) as download_count
-                               from swefreq.users where email = '%s'""" % sEmail)
-            db.execute("""update swefreq.users set download_count='%s'
-                          where email='%s'""" % (int(tRes[0].download_count)+1, sEmail))
+        user = self.current_user
+
+        ok_events = ['download','consent']
+        if sEvent in ok_events:
+            db.UserLog.create(
+                    user = user,
+                    dataset = self.dataset,
+                    action = sEvent
+                )
+        else:
+            raise tornado.web.HTTPError(400, reason="Can't log that")
 
 class approveUser(handlers.AdminHandler):
     def get(self, sEmail):
