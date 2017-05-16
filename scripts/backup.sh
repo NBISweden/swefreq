@@ -17,7 +17,7 @@ userdb_dir="$userdb_base/$( date '+%Y-%m' )"
 userdb_file="$userdb_dir/tornado-userdb.$( date '+%Y%m%d-%H%M%S' ).dump"
 
 release_backups="$data_home/data-backup/release"
-container_dir="/var/lib/lxd/containers/swefreq-web/rootfs/opt/swefreq/tornado/release"
+container_dir="ubuntu@swefreq-web:/opt/swefreq/tornado/release"
 
 if [ ! -d "$userdb_base" ]; then
     printf '"%s" missing\n' "$userdb_base" >&2
