@@ -4,7 +4,6 @@ import tornado.auth
 import tornado.web
 
 import db
-import secrets
 
 
 class BaseHandler(tornado.web.RequestHandler):

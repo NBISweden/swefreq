@@ -6,20 +6,20 @@ from tornado.options import define, options
 
 import application
 import handlers
-import secrets
+import settings
 
 define("port", default=4000, help="run on the given port", type=int)
 define("develop", default=False, help="Run in develop environment", type=bool)
 
-redirect_uri = secrets.redirect_uri
+redirect_uri = settings.redirect_uri
 
 # Setup the Tornado Application
 settings = {"debug": False,
-            "cookie_secret": secrets.cookie_secret,
+            "cookie_secret": settings.cookie_secret,
             "login_url": "/login",
             "google_oauth": {
-                "key": secrets.google_key,
-                "secret": secrets.google_secret
+                "key": settings.google_key,
+                "secret": settings.google_secret
             },
             "contact_person": 'mats.dahlberg@scilifelab.se',
             "redirect_uri": redirect_uri

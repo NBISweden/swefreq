@@ -1,11 +1,11 @@
 from peewee import *
-import secrets
+import settings
 
 database = MySQLDatabase(
-        secrets.mysql_schema,
-        host=secrets.mysql_host,
-        user=secrets.mysql_user,
-        password=secrets.mysql_passwd
+        settings.mysql_schema,
+        host=settings.mysql_host,
+        user=settings.mysql_user,
+        password=settings.mysql_passwd
     )
 
 class BaseModel(Model):
