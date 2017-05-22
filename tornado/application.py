@@ -11,7 +11,7 @@ import tornado.web
 
 import db
 import handlers
-import secrets
+import settings
 
 
 class query(handlers.UnsafeHandler):
@@ -116,7 +116,7 @@ def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset):
     Returns:
         The string 'true' if the allele was found, otherwise the string 'false'
     """
-    client = pymongo.MongoClient(host=secrets.mongo_host, port=secrets.mongo_port)
+    client = pymongo.MongoClient(host=settings.mongo_host, port=settings.mongo_port)
 
     # The name of the dataset in the database is exac as required by the
     # exac browser we are using.
@@ -124,7 +124,7 @@ def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset):
         dataset = 'exac'
 
     mdb = client[dataset]
-    mdb.authenticate(secrets.mongo_user, secrets.mongo_password)
+    mdb.authenticate(settings.mongo_user, settings.mongo_password)
 
     # Beacon is 0-based, our database is 1-based in coords.
     pos += 1
@@ -152,7 +152,7 @@ class home(handlers.UnsafeHandler):
                               has_access = has_access,
                               email      = email,
                               is_admin   = is_admin,
-                              ExAC       = secrets.exac_server))
+                              ExAC       = settings.exac_server))
 
 class getUser(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
@@ -331,13 +331,13 @@ class approveUser(handlers.AdminHandler):
 
         msg = email.mime.multipart.MIMEMultipart()
         msg['to'] = sEmail
-        msg['from'] = secrets.from_address
+        msg['from'] = settings.from_address
         msg['subject'] = 'Swefreq account created'
-        msg.add_header('reply-to', secrets.reply_to_address)
+        msg.add_header('reply-to', settings.reply_to_address)
         body = "Your Swefreq account has been activated."
         msg.attach(MIMEText(body, 'plain'))
 
-        server = smtplib.SMTP(secrets.mail_server)
+        server = smtplib.SMTP(settings.mail_server)
         server.sendmail(msg['from'], [msg['to']], msg.as_string())
 
 
