@@ -2,6 +2,7 @@ import logging
 import peewee
 import tornado.auth
 import tornado.web
+import os.path
 
 import db
 
@@ -196,7 +197,24 @@ class SafeStaticFileHandler(tornado.web.StaticFileHandler, SafeHandler):
     """
     pass
 
-class AuthorizedStaticFileHandler(tornado.web.StaticFileHandler, AuthorizedHandler):
-    """ Serve static files for authenticated users
+class AuthorizedStaticNginxFileHanlder(AuthorizedHandler):
+    """ Serve static files for authenticated users from the nginx frontend
+
+    Requires a ``path`` argument in constructor which should be the root of
+    the nginx frontend where the files can be found. Then configure the nginx
+    frontend something like this
+
+        location <path> {
+            internal;
+            alias <location of files>;
+        }
     """
-    pass
+    def initialize(self, path):
+        if not path.startswith("/"):
+            path = "/" + path
+        self.root = path
+
+    def get(self, file):
+        abspath = os.path.abspath(os.path.join(self.root, file))
+        self.set_header("X-Accel-Redirect", abspath)
+        self.finish()
