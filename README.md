@@ -14,19 +14,19 @@ The application has only been tested with Python 2.7.10. It will most likely wor
    Console](https://console.developers.google.com/) for enabling
    authentication.
 
-2. Rename the file `settings_sample.json` into `settings.json` and edit all
+3. Rename the file `settings_sample.json` into `settings.json` and edit all
    the values.
 
-3. Install MySQL. Only tested with 5.6, but should work with version 4 and above
+4. Install MySQL. Only tested with 5.6, but should work with version 4 and above
 
-4. If you have `virtualenv` and `pip` installed then you can do the following
+5. If you have `virtualenv` and `pip` installed then you can do the following
    to install the required Python packages. Locate the `requirements.txt` file
    in the `swefreq` repository.
 
     source /path/to/bin/activate             # activate your virtualenv
     pip install -r /path/to/requrements.txt  # install the required Python packages
 
-5. Create the MySQL database, user and tables with the following command:
+6. Create the MySQL database, user and tables with the following command:
 
        mysql -u root -p < ./sql/swefreq.sql
 
