@@ -14,7 +14,7 @@ import handlers
 import settings
 
 
-class query(handlers.UnsafeHandler):
+class Query(handlers.UnsafeHandler):
     def make_error_response(self):
         ret_str = ""
 
@@ -76,7 +76,7 @@ class query(handlers.UnsafeHandler):
                 'beacon': 'swefreq-beacon'
                 })
 
-class info(handlers.UnsafeHandler):
+class Info(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         query_uri = "%s://%s/query?" % ('https', self.request.host)
         self.write({
@@ -135,7 +135,7 @@ def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset):
 
     return False
 
-class home(handlers.UnsafeHandler):
+class Home(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         t = template.Template(applicationTemplate.index)
 
@@ -154,7 +154,7 @@ class home(handlers.UnsafeHandler):
                               is_admin   = is_admin,
                               ExAC       = settings.exac_server))
 
-class getUser(handlers.UnsafeHandler):
+class GetUser(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         user = self.current_user
 
@@ -192,7 +192,7 @@ class getUser(handlers.UnsafeHandler):
         logging.info("getUser: " + str(ret['user']) + ' ' + str(ret['email']))
         self.finish(json.dumps(ret))
 
-class country_list(handlers.UnsafeHandler):
+class CountryList(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         self.write({'countries': map( lambda c: {'name': c}, self.country_list())})
 
@@ -253,7 +253,7 @@ class country_list(handlers.UnsafeHandler):
                 "Yemen", "Zambia", "Zimbabwe" ];
 
 
-class requestAccess(handlers.SafeHandler):
+class RequestAccess(handlers.SafeHandler):
     def get(self, *args, **kwargs):
         user = self.current_user
         name = user.name
@@ -297,7 +297,7 @@ class requestAccess(handlers.SafeHandler):
             logging.error(e)
 
 
-class logEvent(handlers.SafeHandler):
+class LogEvent(handlers.SafeHandler):
     def get(self, sEvent):
         user = self.current_user
 
@@ -311,7 +311,7 @@ class logEvent(handlers.SafeHandler):
         else:
             raise tornado.web.HTTPError(400, reason="Can't log that")
 
-class approveUser(handlers.AdminHandler):
+class ApproveUser(handlers.AdminHandler):
     def get(self, sEmail):
         with db.database.atomic():
             user = db.User.select().where(db.User.email == sEmail).get()
@@ -341,7 +341,7 @@ class approveUser(handlers.AdminHandler):
         server.sendmail(msg['from'], [msg['to']], msg.as_string())
 
 
-class revokeUser(handlers.AdminHandler):
+class RevokeUser(handlers.AdminHandler):
     def get(self, sEmail):
         if self.current_user.email == sEmail:
             # Don't let the admin delete hens own account
@@ -365,7 +365,7 @@ class revokeUser(handlers.AdminHandler):
                     action = 'access_revoked'
                 )
 
-class getOutstandingRequests(handlers.SafeHandler):
+class GetOutstandingRequests(handlers.SafeHandler):
     def get(self, *args, **kwargs):
         requests = db.get_outstanding_requests(self.dataset)
 
@@ -382,7 +382,7 @@ class getOutstandingRequests(handlers.SafeHandler):
 
         self.finish(json.dumps(json_response))
 
-class getApprovedUsers(handlers.SafeHandler):
+class GetApprovedUsers(handlers.SafeHandler):
     def get(self, *args, **kwargs):
         ## All users that have access to the dataset and how many times they have
         ## downloaded it
