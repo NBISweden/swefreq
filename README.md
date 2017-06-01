@@ -4,7 +4,7 @@ SweFreq - Swedish Frequency database
 Installation
 ------------
 
-The application has only been tested with Python 2.7.10. It will most likely work with at least other 2.7 versions.
+The application has only been tested with python 3.5.2. It will most likely work with at least other 3.5 versions.
 
 `virtualenv` is not a requirement but it will help you to install the application.
 
