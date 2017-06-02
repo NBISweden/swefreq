@@ -32,7 +32,7 @@ tmpbackup="$( mktemp -p "$userdb_base" )"
 
 # Dump database, and remove the "Dump completed" comment at the end to
 # be able to compare with previous dump.
-lxc exec swefreq-web -- mysqldump -u swefreq swefreq |
+lxc exec swefreq-db -- mysqldump -u swefreq swefreq |
 sed '/^-- Dump completed on/d' >"$tmpbackup"
 
 gzip --best "$tmpbackup"

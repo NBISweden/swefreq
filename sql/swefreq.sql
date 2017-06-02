@@ -1,12 +1,7 @@
--- Script for creating swefreq-database and swefreq-user
--- as well as the tables. To run this file use:
--- mysql -u root -p < swefreq.sql
+-- Script for creating the swefreq tables. To run this file use:
+-- mysql < swefreq.sql
+-- Possibly with mysql credentials
 
-CREATE DATABASE IF NOT EXISTS swefreq /*!40100 DEFAULT CHARACTER SET latin1 */;
-CREATE USER IF NOT EXISTS swefreq@localhost IDENTIFIED BY '';
-GRANT ALL PRIVILEGES ON swefreq.* TO swefreq@localhost;
-FLUSH PRIVILEGES;
-USE swefreq;
 
 CREATE TABLE IF NOT EXISTS user (
     user_pk             INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
