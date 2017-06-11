@@ -1,6 +1,6 @@
 import json
 
-json_settings_fh = open("../secrets.json")
+json_settings_fh = open("../settings.json")
 json_settings = json.load(json_settings_fh)
 
 google_key = json_settings["googleKey"]

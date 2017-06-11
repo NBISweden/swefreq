@@ -6,20 +6,20 @@ from tornado.options import define, options
 
 import application
 import handlers
-import secrets
+import settings
 
 define("port", default=4000, help="run on the given port", type=int)
 define("develop", default=False, help="Run in develop environment", type=bool)
 
-redirect_uri = secrets.redirect_uri
+redirect_uri = settings.redirect_uri
 
 # Setup the Tornado Application
 settings = {"debug": False,
-            "cookie_secret": secrets.cookie_secret,
+            "cookie_secret": settings.cookie_secret,
             "login_url": "/login",
             "google_oauth": {
-                "key": secrets.google_key,
-                "secret": secrets.google_secret
+                "key": settings.google_key,
+                "secret": settings.google_secret
             },
             "contact_person": 'mats.dahlberg@scilifelab.se',
             "redirect_uri": redirect_uri
@@ -28,32 +28,32 @@ settings = {"debug": False,
 class Application(tornado.web.Application):
     def __init__(self, settings):
         self.declared_handlers = [
-            (r"/",                               application.home),
+            (r"/",                               application.Home),
             ## Static handlers
-            (r"/static/(home.html)",             tornado.web.StaticFileHandler,         {"path": "static/"}),
-            (r"/static/(dataBeacon.html)",       tornado.web.StaticFileHandler,         {"path": "static/"}),
-            (r"/static/(privacyPolicy.html)",    tornado.web.StaticFileHandler,         {"path": "static/"}),
-            (r"/static/(not_authorized.html)",   tornado.web.StaticFileHandler,         {"path": "static/"}),
-            (r"/static/(about.html)",            tornado.web.StaticFileHandler,         {"path": "static/"}),
-            (r"/static/(terms.html)",            tornado.web.StaticFileHandler,         {"path": "static/"}),
-            (r"/static/(.*)",                    handlers.SafeStaticFileHandler,        {"path": "static/"}),
-            (r'/(favicon.ico)',                  tornado.web.StaticFileHandler,         {"path": "static/"}),
-            (r"/javascript/(.*)",                tornado.web.StaticFileHandler,         {"path": "javascript/"}),
-            (r"/release/(.*)",                   handlers.AuthorizedStaticFileHandler,  {"path": "release/"}),
+            (r"/static/(home.html)",             tornado.web.StaticFileHandler,              {"path": "static/"}),
+            (r"/static/(dataBeacon.html)",       tornado.web.StaticFileHandler,              {"path": "static/"}),
+            (r"/static/(privacyPolicy.html)",    tornado.web.StaticFileHandler,              {"path": "static/"}),
+            (r"/static/(not_authorized.html)",   tornado.web.StaticFileHandler,              {"path": "static/"}),
+            (r"/static/(about.html)",            tornado.web.StaticFileHandler,              {"path": "static/"}),
+            (r"/static/(terms.html)",            tornado.web.StaticFileHandler,              {"path": "static/"}),
+            (r"/static/(.*)",                    handlers.SafeStaticFileHandler,             {"path": "static/"}),
+            (r'/(favicon.ico)',                  tornado.web.StaticFileHandler,              {"path": "static/"}),
+            (r"/javascript/(.*)",                tornado.web.StaticFileHandler,              {"path": "javascript/"}),
+            (r"/release/(.*)",                   handlers.AuthorizedStaticNginxFileHanlder,  {"path": "/release-files/"}),
             ## Authentication
             ("/login",                           handlers.LoginHandler),
             ("/logout",                          handlers.LogoutHandler),
             ## API Methods
-            ("/logEvent/(?P<sEvent>[^\/]+)",     application.logEvent),
-            ("/getUser",                         application.getUser),
-            ("/getApprovedUsers",                application.getApprovedUsers),
-            ("/approveUser/(?P<sEmail>[^\/]+)",  application.approveUser),
-            ("/query",                           application.query),
-            ("/info",                            application.info),
-            ("/revokeUser/(?P<sEmail>[^\/]+)",   application.revokeUser),
-            ("/getOutstandingRequests",          application.getOutstandingRequests),
-            ("/requestAccess",                   application.requestAccess),
-            ("/country_list",                    application.country_list),
+            ("/logEvent/(?P<sEvent>[^\/]+)",     application.LogEvent),
+            ("/getUser",                         application.GetUser),
+            ("/getApprovedUsers",                application.GetApprovedUsers),
+            ("/approveUser/(?P<sEmail>[^\/]+)",  application.ApproveUser),
+            ("/query",                           application.Query),
+            ("/info",                            application.Info),
+            ("/revokeUser/(?P<sEmail>[^\/]+)",   application.RevokeUser),
+            ("/getOutstandingRequests",          application.GetOutstandingRequests),
+            ("/requestAccess",                   application.RequestAccess),
+            ("/country_list",                    application.CountryList),
             ## Catch all
             (r'.*',                              handlers.BaseHandler),
         ]

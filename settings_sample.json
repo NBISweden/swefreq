@@ -1,0 +1,25 @@
+{
+    "cookieSecret" : "Something random for tornado to sign cookies with",
+
+    "googleKey" : "a key from google",
+    "googleSecret" : "a secret from google",
+    "redirectUri" : "https://google oauth redirect uri",
+
+    "mysqlHost" : "127.0.0.1",
+    "mysqlPasswd" : "password",
+    "mysqlSchema" : "swefreq",
+    "mysqlUser" : "swefreq",
+
+    "mongoDb" : "exac",
+    "mongoHost" : "mongodb host",
+    "mongoPassword" : "password",
+    "mongoPort" : 27017,
+    "mongoUser" : "exac",
+
+    "exacServer" : "https://url for exac server",
+
+    "adminAddress" : "someone@example.com",
+    "replyToAddress" : "no-reply@example.com",
+    "fromAddress" : "no-reply@example.com",
+    "mailServer" : "smtp.example.com"
+}

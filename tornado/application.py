@@ -1,6 +1,6 @@
 import applicationTemplate
 import email.mime.multipart
-from email.MIMEText import MIMEText
+from email.mime.text import MIMEText
 import json
 import logging
 import peewee
@@ -11,10 +11,10 @@ import tornado.web
 
 import db
 import handlers
-import secrets
+import settings
 
 
-class query(handlers.UnsafeHandler):
+class Query(handlers.UnsafeHandler):
     def make_error_response(self):
         ret_str = ""
 
@@ -27,11 +27,11 @@ class query(handlers.UnsafeHandler):
         for arg in ['chrom', 'pos', 'dataset', 'referenceAllele', 'allele', 'ref']:
             try:
                 val = self.get_argument(arg)
-                if checks.has_key(arg):
+                if arg in checks:
                     ret_str += checks[arg](val)
             except:
                 ret_str += arg + " is missing\n"
-                if checks.has_key(arg):
+                if arg in checks:
                     ret_str += checks[arg]("")
 
         dataset = self.get_argument('dataset', 'MISSING')
@@ -76,14 +76,14 @@ class query(handlers.UnsafeHandler):
                 'beacon': 'swefreq-beacon'
                 })
 
-class info(handlers.UnsafeHandler):
+class Info(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         query_uri = "%s://%s/query?" % ('https', self.request.host)
         self.write({
-            'id': u'swefreq-beacon',
-            'name': u'Swefreq Beacon',
-            'organization': u'SciLifeLab',
-            'api': u'0.3',
+            'id': 'swefreq-beacon',
+            'name': 'Swefreq Beacon',
+            'organization': 'SciLifeLab',
+            'api': '0.3',
             #'description': u'Swefreq beacon from NBIS',
             'datasets': [
                 {
@@ -116,7 +116,7 @@ def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset):
     Returns:
         The string 'true' if the allele was found, otherwise the string 'false'
     """
-    client = pymongo.MongoClient(host=secrets.mongo_host, port=secrets.mongo_port)
+    client = pymongo.MongoClient(host=settings.mongo_host, port=settings.mongo_port)
 
     # The name of the dataset in the database is exac as required by the
     # exac browser we are using.
@@ -124,7 +124,7 @@ def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset):
         dataset = 'exac'
 
     mdb = client[dataset]
-    mdb.authenticate(secrets.mongo_user, secrets.mongo_password)
+    mdb.authenticate(settings.mongo_user, settings.mongo_password)
 
     # Beacon is 0-based, our database is 1-based in coords.
     pos += 1
@@ -135,7 +135,7 @@ def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset):
 
     return False
 
-class home(handlers.UnsafeHandler):
+class Home(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         t = template.Template(applicationTemplate.index)
 
@@ -152,9 +152,9 @@ class home(handlers.UnsafeHandler):
                               has_access = has_access,
                               email      = email,
                               is_admin   = is_admin,
-                              ExAC       = secrets.exac_server))
+                              ExAC       = settings.exac_server))
 
-class getUser(handlers.UnsafeHandler):
+class GetUser(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         user = self.current_user
 
@@ -192,9 +192,9 @@ class getUser(handlers.UnsafeHandler):
         logging.info("getUser: " + str(ret['user']) + ' ' + str(ret['email']))
         self.finish(json.dumps(ret))
 
-class country_list(handlers.UnsafeHandler):
+class CountryList(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
-        self.write({'countries': map( lambda c: {'name': c}, self.country_list())})
+        self.write({'countries': [{'name': c} for c in self.country_list()]})
 
     def country_list(self):
         return ["Afghanistan", "Albania", "Algeria", "American Samoa", "Andorra",
@@ -253,7 +253,7 @@ class country_list(handlers.UnsafeHandler):
                 "Yemen", "Zambia", "Zimbabwe" ];
 
 
-class requestAccess(handlers.SafeHandler):
+class RequestAccess(handlers.SafeHandler):
     def get(self, *args, **kwargs):
         user = self.current_user
         name = user.name
@@ -278,7 +278,7 @@ class requestAccess(handlers.SafeHandler):
 
         user.affiliation = affiliation
         user.country = country
-        logging.info(u"Inserting into database: {}, {}".format(user.name, user.email))
+        logging.info("Inserting into database: {}, {}".format(user.name, user.email))
 
         try:
             with db.database.atomic():
@@ -297,7 +297,7 @@ class requestAccess(handlers.SafeHandler):
             logging.error(e)
 
 
-class logEvent(handlers.SafeHandler):
+class LogEvent(handlers.SafeHandler):
     def get(self, sEvent):
         user = self.current_user
 
@@ -311,7 +311,7 @@ class logEvent(handlers.SafeHandler):
         else:
             raise tornado.web.HTTPError(400, reason="Can't log that")
 
-class approveUser(handlers.AdminHandler):
+class ApproveUser(handlers.AdminHandler):
     def get(self, sEmail):
         with db.database.atomic():
             user = db.User.select().where(db.User.email == sEmail).get()
@@ -331,17 +331,17 @@ class approveUser(handlers.AdminHandler):
 
         msg = email.mime.multipart.MIMEMultipart()
         msg['to'] = sEmail
-        msg['from'] = secrets.from_address
+        msg['from'] = settings.from_address
         msg['subject'] = 'Swefreq account created'
-        msg.add_header('reply-to', secrets.reply_to_address)
+        msg.add_header('reply-to', settings.reply_to_address)
         body = "Your Swefreq account has been activated."
         msg.attach(MIMEText(body, 'plain'))
 
-        server = smtplib.SMTP(secrets.mail_server)
+        server = smtplib.SMTP(settings.mail_server)
         server.sendmail(msg['from'], [msg['to']], msg.as_string())
 
 
-class revokeUser(handlers.AdminHandler):
+class RevokeUser(handlers.AdminHandler):
     def get(self, sEmail):
         if self.current_user.email == sEmail:
             # Don't let the admin delete hens own account
@@ -365,7 +365,7 @@ class revokeUser(handlers.AdminHandler):
                     action = 'access_revoked'
                 )
 
-class getOutstandingRequests(handlers.SafeHandler):
+class GetOutstandingRequests(handlers.SafeHandler):
     def get(self, *args, **kwargs):
         requests = db.get_outstanding_requests(self.dataset)
 
@@ -382,7 +382,7 @@ class getOutstandingRequests(handlers.SafeHandler):
 
         self.finish(json.dumps(json_response))
 
-class getApprovedUsers(handlers.SafeHandler):
+class GetApprovedUsers(handlers.SafeHandler):
     def get(self, *args, **kwargs):
         ## All users that have access to the dataset and how many times they have
         ## downloaded it

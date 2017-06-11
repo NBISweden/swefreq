@@ -17,7 +17,7 @@ userdb_dir="$userdb_base/$( date '+%Y-%m' )"
 userdb_file="$userdb_dir/tornado-userdb.$( date '+%Y%m%d-%H%M%S' ).dump"
 
 release_backups="$data_home/data-backup/release"
-container_dir="/var/lib/lxd/containers/swefreq-web/rootfs/opt/swefreq/tornado/release"
+container_dir="ubuntu@swefreq-proxy:/opt/release"
 
 if [ ! -d "$userdb_base" ]; then
     printf '"%s" missing\n' "$userdb_base" >&2
@@ -32,7 +32,8 @@ tmpbackup="$( mktemp -p "$userdb_base" )"
 
 # Dump database, and remove the "Dump completed" comment at the end to
 # be able to compare with previous dump.
-lxc exec swefreq-web -- mysqldump -u swefreq swefreq |
+lxc exec swefreq-web -- \
+mysqldump --user=swefreq --host=swefreq-db swefreq |
 sed '/^-- Dump completed on/d' >"$tmpbackup"
 
 gzip --best "$tmpbackup"
@@ -53,4 +54,11 @@ else
 fi
 
 # Use rsync to sync the "release" directory
-rsync --archive --verbose --progress "$container_dir/" "$release_backups/"
+rsync --archive --no-perms \
+    --verbose --progress "$container_dir/" "$release_backups/"
+
+# Fix permissions and ownership on the whole /data/SweFreq directory
+# hierarchy.  It should be readable/writable by user and group, but not
+# accessible to others.  The group should be "users".
+chgrp -R users "$data_home"
+chmod -R ug+rw,o-rwx "$data_home"
