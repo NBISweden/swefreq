@@ -54,7 +54,7 @@ else
 fi
 
 # Use rsync to sync the "release" directory
-rsync --archive --no-perms \
+rsync --archive --ignore-existing --no-perms \
     --verbose --progress "$container_dir/" "$release_backups/"
 
 # Fix permissions and ownership on the whole /data/SweFreq directory
