@@ -14,7 +14,8 @@ class BaseModel(Model):
 
 class Dataset(BaseModel):
     dataset     = PrimaryKeyField(db_column='dataset_pk')
-    name        = CharField()
+    short_name  = CharField()
+    full_name   = CharField()
     browser_uri = CharField(null=True)
     beacon_uri  = CharField(null=True)
 

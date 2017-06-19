@@ -23,7 +23,7 @@ class BaseHandler(tornado.web.RequestHandler):
     def prepare(self):
         db.database.connect()
         try:
-            self.dataset = db.Dataset.select().where( db.Dataset.name == 'SweGen').get()
+            self.dataset = db.Dataset.select().where( db.Dataset.short_name == 'SweGen').get()
         except peewee.DoesNotExist:
             ## TODO Can't find dataset, should return a 404 page.
             pass
