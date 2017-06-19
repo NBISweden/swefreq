@@ -14,10 +14,11 @@ CREATE TABLE IF NOT EXISTS user (
 
 CREATE TABLE IF NOT EXISTS dataset (
     dataset_pk          INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    name                VARCHAR(100)    NOT NULL,
+    short_name          VARCHAR(50)     NOT NULL,
+    full_name           VARCHAR(100)    NOT NULL,
     browser_uri         VARCHAR(200)    DEFAULT NULL,
     beacon_uri          VARCHAR(200)    DEFAULT NULL,
-    CONSTRAINT UNIQUE (name)
+    CONSTRAINT UNIQUE (short_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS user_log (
