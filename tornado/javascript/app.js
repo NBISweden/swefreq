@@ -82,6 +82,24 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
+    App.controller('homeController', function($http, $scope, $sce) {
+        var localThis = this;
+        localThis.getDataset = function(){
+            $http.get('/getDataset').success(function(data){
+                localThis.short_name  = data.short_name;
+                localThis.full_name   = data.full_name;
+                localThis.description = data.description;
+                localThis.terms       = data.terms;
+            });
+        };
+        localThis.getDataset();
+        localThis.getDescription = function(){
+            return $sce.trustAsHtml(localThis.description);
+        };
+    });
+
+    /////////////////////////////////////////////////////////////////////////////////////
+
     App.controller('adminController', function($http, $scope) {
         var localThis = this;
         this.userName = '';
