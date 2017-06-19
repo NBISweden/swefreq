@@ -19,6 +19,9 @@ class Dataset(BaseModel):
     browser_uri = CharField(null=True)
     beacon_uri  = CharField(null=True)
 
+    def current_version(self):
+        return DatasetVersion.get(DatasetVersion.is_current==1, DatasetVersion.dataset==self)
+
     class Meta:
         db_table = 'dataset'
 
