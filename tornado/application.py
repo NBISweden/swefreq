@@ -154,6 +154,22 @@ class Home(handlers.UnsafeHandler):
                               is_admin   = is_admin,
                               ExAC       = settings.exac_server))
 
+
+class GetDataset(handlers.UnsafeHandler):
+    def get(self, *args, **kwargs):
+        current_version = self.dataset.current_version()
+
+        ret = {
+            'short_name': self.dataset.short_name,
+            'full_name': self.dataset.full_name,
+            'description': current_version.description,
+            'terms': current_version.terms,
+            'version': current_version.version
+        }
+
+        self.finish(json.dumps(ret))
+
+
 class GetUser(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         user = self.current_user

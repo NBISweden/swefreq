@@ -46,6 +46,7 @@ class Application(tornado.web.Application):
             ## API Methods
             ("/logEvent/(?P<sEvent>[^\/]+)",     application.LogEvent),
             ("/getUser",                         application.GetUser),
+            ("/getDataset",                      application.GetDataset),
             ("/getApprovedUsers",                application.GetApprovedUsers),
             ("/approveUser/(?P<sEmail>[^\/]+)",  application.ApproveUser),
             ("/query",                           application.Query),

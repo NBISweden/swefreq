@@ -1,23 +1,12 @@
 <!-- home.html -->
 <div class="jumbotron">
-  <div class="container">
-    <img src="/javascript/swegen_logo_v1_trans_400.png"
-    class="big-swegen-logo" alt='SweGen logo' />
-    <h2>SweGen Variant Frequency Database</h2>
-      <p>This server hosts whole-genome variant frequencies for 1000
-      Swedish individuals generated within the SweGen project. The
-      frequency data is intended to be used as a resource for the research
-      community and clinical genetics laboratories. Individual positions in
-      the genome can be viewed using the Data Beacon or SweGen Browser by
-      clicking the links above. To access the variant frequency file you
-      need to register.</p>
-      <p>Please note that the 1000 individuals included in the SweGen
-      project represent a cross-section of the Swedish population and that
-      no disease information has been used for the selection. The frequency
-      data may therefore include genetic variants that are associated with,
-      or causative of, disease.</p>
-      <p>We request that any use of data from the SweGen project cite
-      <a href="http://biorxiv.org/content/early/2016/10/17/081505">this preprint on bioRxiv</a>.</p>
+  <div ng-controller="homeController as home"
+    <div class="container">
+      <img src="/javascript/swegen_logo_v1_trans_400.png"
+      class="big-swegen-logo" alt='SweGen logo' />
+      <h2>{{ home.full_name }}</h2>
+      <div ng-bind-html="home.getDescription()"></div>
+    </div>
   </div>
 </div>
 
