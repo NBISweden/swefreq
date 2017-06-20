@@ -63,7 +63,7 @@ rsync --archive --ignore-existing --no-perms \
 chgrp -R users "$data_home"
 chmod -R ug+rw,o-rwx "$data_home"
 
-# Remove temporary files befor running the off-site backup.
+# Remove temporary files before running the off-site backup.
 rm -f "$tmpbackup" "$tmpbackup.gz"
 
 # Do off-site backup.
