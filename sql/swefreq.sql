@@ -1,5 +1,5 @@
 -- Script for creating the swefreq tables. To run this file use:
--- mysql < swefreq.sql
+-- mysql databasename <swefreq.sql
 -- Possibly with mysql credentials
 
 
