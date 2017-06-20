@@ -62,3 +62,9 @@ rsync --archive --ignore-existing --no-perms \
 # accessible to others.  The group should be "users".
 chgrp -R users "$data_home"
 chmod -R ug+rw,o-rwx "$data_home"
+
+# Remove temporary files befor running the off-site backup.
+rm -f "$tmpbackup" "$tmpbackup.gz"
+
+# Do off-site backup.
+/opt/tivoli/tsm/client/ba/bin/dsmc incr /data/SweFreq
