@@ -183,7 +183,7 @@
 
      /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('downloadDataController', function($http, $scope) {
+    App.controller('downloadDataController', function($http, $scope, $sce) {
         this.lChecked = true;
         var localThis = this;
         localThis.download_text = 'Download';
@@ -204,6 +204,20 @@
                 console.log("Downloading");
                 localThis.download_text = 'Preparing';
             });
+        };
+
+        localThis.getDataset = function(){
+            $http.get('/getDataset').success(function(data){
+                localThis.short_name  = data.short_name;
+                localThis.full_name   = data.full_name;
+                localThis.description = data.description;
+                localThis.terms       = data.terms;
+                localThis.version     = data.version;
+            });
+        };
+        localThis.getDataset();
+        localThis.getTerms = function(){
+            return $sce.trustAsHtml(localThis.terms);
         };
     });
 
