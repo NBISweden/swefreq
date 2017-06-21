@@ -432,3 +432,16 @@ class GetApprovedUsers(handlers.SafeHandler):
                 })
 
         self.finish(json.dumps(json_response))
+
+class ServeLogo(handlers.UnsafeHandler):
+    def get(self, dataset, *args, **kwargs):
+        logo_entry = db.DatasetLogo.select(
+                db.DatasetLogo
+            ).join(
+                db.Dataset
+            ).where(
+                db.Dataset.short_name == dataset
+            ).get()
+        self.set_header("Content-Type", logo_entry.mimetype)
+        self.write(logo_entry.data)
+        self.finish()
