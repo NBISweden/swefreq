@@ -435,13 +435,18 @@ class GetApprovedUsers(handlers.SafeHandler):
 
 class ServeLogo(handlers.UnsafeHandler):
     def get(self, dataset, *args, **kwargs):
-        logo_entry = db.DatasetLogo.select(
-                db.DatasetLogo
-            ).join(
-                db.Dataset
-            ).where(
-                db.Dataset.short_name == dataset
-            ).get()
+        try:
+            logo_entry = db.DatasetLogo.select(
+                    db.DatasetLogo
+                ).join(
+                    db.Dataset
+                ).where(
+                    db.Dataset.short_name == dataset
+                ).get()
+        except:
+            self.send_error(status_code=404)
+            return
+
         self.set_header("Content-Type", logo_entry.mimetype)
         self.write(logo_entry.data)
         self.finish()
