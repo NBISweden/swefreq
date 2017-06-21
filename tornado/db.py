@@ -71,6 +71,15 @@ class DatasetFile(BaseModel):
     class Meta:
         db_table = 'dataset_file'
 
+class DatasetLogo(BaseModel):
+    dataset_logo = PrimaryKeyField(db_column='dataset_logo_pk')
+    dataset      = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset')
+    mimetype     = CharField()
+    data         = BlobField()
+
+    class Meta:
+        db_table = 'dataset_logo'
+
 class EnumField(Field):
     db_field = 'string' # The same as for CharField
 
