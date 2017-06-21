@@ -70,6 +70,6 @@ CREATE TABLE IF NOT EXISTS dataset_logo (
     dataset_logo_pk     INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
     dataset_pk          INTEGER         NOT NULL,
     mimetype            VARCHAR(50)     NOT NULL,
-    data                BLOB            NOT NULL,
+    data                MEDIUMBLOB      NOT NULL,
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
