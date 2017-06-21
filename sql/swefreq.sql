@@ -71,5 +71,6 @@ CREATE TABLE IF NOT EXISTS dataset_logo (
     dataset_pk          INTEGER         NOT NULL,
     mimetype            VARCHAR(50)     NOT NULL,
     data                MEDIUMBLOB      NOT NULL,
+    CONSTRAINT UNIQUE (dataset_pk),
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
