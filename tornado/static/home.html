@@ -2,8 +2,9 @@
 <div class="jumbotron">
   <div ng-controller="homeController as home"
     <div class="container">
-      <img src="/javascript/swegen_logo_v1_trans_400.png"
-      class="big-swegen-logo" alt='SweGen logo' />
+      <div ng-if="home.has_image">
+          <img ng-src="/dataset_logo/{{ home.short_name }}" class="big-swegen-logo" alt='{{ home.short_name }} logo' />
+      </div>
       <h2>{{ home.full_name }}</h2>
       <div ng-bind-html="home.getDescription()"></div>
     </div>

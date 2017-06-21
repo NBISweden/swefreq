@@ -164,7 +164,8 @@ class GetDataset(handlers.UnsafeHandler):
             'full_name': self.dataset.full_name,
             'description': current_version.description,
             'terms': current_version.terms,
-            'version': current_version.version
+            'version': current_version.version,
+            'has_image': self.dataset.has_image()
         }
 
         self.finish(json.dumps(ret))
@@ -432,3 +433,21 @@ class GetApprovedUsers(handlers.SafeHandler):
                 })
 
         self.finish(json.dumps(json_response))
+
+class ServeLogo(handlers.UnsafeHandler):
+    def get(self, dataset, *args, **kwargs):
+        try:
+            logo_entry = db.DatasetLogo.select(
+                    db.DatasetLogo
+                ).join(
+                    db.Dataset
+                ).where(
+                    db.Dataset.short_name == dataset
+                ).get()
+        except:
+            self.send_error(status_code=404)
+            return
+
+        self.set_header("Content-Type", logo_entry.mimetype)
+        self.write(logo_entry.data)
+        self.finish()

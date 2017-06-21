@@ -90,6 +90,7 @@
                 localThis.full_name   = data.full_name;
                 localThis.description = data.description;
                 localThis.terms       = data.terms;
+                localThis.has_image   = data.has_image;
             });
         };
         localThis.getDataset();
@@ -213,6 +214,7 @@
                 localThis.description = data.description;
                 localThis.terms       = data.terms;
                 localThis.version     = data.version;
+                localThis.has_image   = data.has_image;
             });
         };
         localThis.getDataset();
