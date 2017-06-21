@@ -22,6 +22,13 @@ class Dataset(BaseModel):
     def current_version(self):
         return DatasetVersion.get(DatasetVersion.is_current==1, DatasetVersion.dataset==self)
 
+    def has_image(self):
+        try:
+            DatasetLogo.get(DatasetLogo.dataset == self)
+            return True
+        except:
+            return False
+
     class Meta:
         db_table = 'dataset'
 

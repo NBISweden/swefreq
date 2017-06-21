@@ -164,7 +164,8 @@ class GetDataset(handlers.UnsafeHandler):
             'full_name': self.dataset.full_name,
             'description': current_version.description,
             'terms': current_version.terms,
-            'version': current_version.version
+            'version': current_version.version,
+            'has_image': self.dataset.has_image()
         }
 
         self.finish(json.dumps(ret))
