@@ -14,11 +14,13 @@
 					      ng-change="downloadDataCtrl.isChecked()">
     <br/><br>
 
-	 <a class="btn btn-primary btn-download"
-	 ng-class="{'disabled': downloadDataCtrl.lChecked}"
-	 download="swegen_20161223.tar"
-	 href="/release/swegen_20161223.tar"
-	 ng-click="downloadDataCtrl.downloadData()">{{downloadDataCtrl.download_text}}</a>
+     <div ng-repeat="file in downloadDataCtrl.files">
+         <a class="btn btn-primary btn-download"
+            ng-class="{'disabled': downloadDataCtrl.lChecked}"
+            download="{{file.name}}"
+            href="{{file.uri}}"
+            ng-click="downloadDataCtrl.downloadData()">Download</a>
+     </div>
 
   </div>
   <div class="col-xs-2"></div>

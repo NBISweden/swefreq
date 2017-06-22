@@ -158,6 +158,7 @@ class Home(handlers.UnsafeHandler):
 class GetDataset(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         current_version = self.dataset.current_version()
+        files = [{'name': f.name, 'uri': f.uri} for f in current_version.datasetfile_set]
 
         ret = {
             'short_name': self.dataset.short_name,
@@ -165,7 +166,8 @@ class GetDataset(handlers.UnsafeHandler):
             'description': current_version.description,
             'terms': current_version.terms,
             'version': current_version.version,
-            'has_image': self.dataset.has_image()
+            'has_image': self.dataset.has_image(),
+            'files': files
         }
 
         self.finish(json.dumps(ret))
