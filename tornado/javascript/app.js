@@ -187,7 +187,6 @@
     App.controller('downloadDataController', function($http, $scope, $sce) {
         this.lChecked = true;
         var localThis = this;
-        localThis.download_text = 'Download';
         localThis.data = gData;
         this.isChecked = function(){
             if(localThis.lChecked){
@@ -201,9 +200,7 @@
 
         this.downloadData = function(){
             $http.get('/logEvent/download').success(function(data){
-                localThis.lChecked = true;
-                console.log("Downloading");
-                localThis.download_text = 'Preparing';
+                console.log("Downloading")
             });
         };
 
