@@ -212,6 +212,7 @@
                 localThis.terms       = data.terms;
                 localThis.version     = data.version;
                 localThis.has_image   = data.has_image;
+                localThis.files = data.files;
             });
         };
         localThis.getDataset();
