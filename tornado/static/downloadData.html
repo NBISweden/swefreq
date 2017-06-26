@@ -9,18 +9,23 @@
 
     <div ng-bind-html="downloadDataCtrl.getTerms()"></div>
 
-    <p><b>I hereby consent to the agreement:</b> <input type="checkbox"
-					      ng-model="downloadDataCtrl.checked"
-					      ng-change="downloadDataCtrl.isChecked()">
-    <br/><br>
+    <h2>Download</h2>
+    <p><b>I hereby consent to the agreement:</b>
+    <input type="checkbox" ng-model="downloadDataCtrl.checked" ng-change="downloadDataCtrl.isChecked()">
+    </p>
 
-     <div ng-repeat="file in downloadDataCtrl.files">
-         <a class="btn btn-primary btn-download"
-            ng-class="{'disabled': downloadDataCtrl.lChecked}"
-            download="{{file.name}}"
-            href="{{file.uri}}"
-            ng-click="downloadDataCtrl.downloadData()">Download</a>
-     </div>
+    <table class="table">
+        <tbody>
+        <tr ng-repeat="file in downloadDataCtrl.files" class="table">
+            <td>{{file.name}}</td>
+            <td><a class="btn btn-primary btn-download"
+                   ng-class="{'disabled': downloadDataCtrl.lChecked}"
+                   download="{{file.name}}"
+                   href="{{file.uri}}"
+                   ng-click="downloadDataCtrl.downloadData()">Download</a></td>
+        </tr>
+        </tbody>
+     </table>
 
   </div>
   <div class="col-xs-2"></div>
