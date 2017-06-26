@@ -14,9 +14,20 @@ class BaseModel(Model):
 
 class Dataset(BaseModel):
     dataset     = PrimaryKeyField(db_column='dataset_pk')
-    name        = CharField()
+    short_name  = CharField()
+    full_name   = CharField()
     browser_uri = CharField(null=True)
     beacon_uri  = CharField(null=True)
+
+    def current_version(self):
+        return DatasetVersion.get(DatasetVersion.is_current==1, DatasetVersion.dataset==self)
+
+    def has_image(self):
+        try:
+            DatasetLogo.get(DatasetLogo.dataset == self)
+            return True
+        except:
+            return False
 
     class Meta:
         db_table = 'dataset'
@@ -66,6 +77,15 @@ class DatasetFile(BaseModel):
 
     class Meta:
         db_table = 'dataset_file'
+
+class DatasetLogo(BaseModel):
+    dataset_logo = PrimaryKeyField(db_column='dataset_logo_pk')
+    dataset      = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset')
+    mimetype     = CharField()
+    data         = BlobField()
+
+    class Meta:
+        db_table = 'dataset_logo'
 
 class EnumField(Field):
     db_field = 'string' # The same as for CharField

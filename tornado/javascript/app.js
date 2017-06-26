@@ -82,6 +82,25 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
+    App.controller('homeController', function($http, $scope, $sce) {
+        var localThis = this;
+        localThis.getDataset = function(){
+            $http.get('/getDataset').success(function(data){
+                localThis.short_name  = data.short_name;
+                localThis.full_name   = data.full_name;
+                localThis.description = data.description;
+                localThis.terms       = data.terms;
+                localThis.has_image   = data.has_image;
+            });
+        };
+        localThis.getDataset();
+        localThis.getDescription = function(){
+            return $sce.trustAsHtml(localThis.description);
+        };
+    });
+
+    /////////////////////////////////////////////////////////////////////////////////////
+
     App.controller('adminController', function($http, $scope) {
         var localThis = this;
         this.userName = '';
@@ -165,10 +184,9 @@
 
      /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('downloadDataController', function($http, $scope) {
+    App.controller('downloadDataController', function($http, $scope, $sce) {
         this.lChecked = true;
         var localThis = this;
-        localThis.download_text = 'Download';
         localThis.data = gData;
         this.isChecked = function(){
             if(localThis.lChecked){
@@ -182,10 +200,24 @@
 
         this.downloadData = function(){
             $http.get('/logEvent/download').success(function(data){
-                localThis.lChecked = true;
-                console.log("Downloading");
-                localThis.download_text = 'Preparing';
+                console.log("Downloading")
             });
+        };
+
+        localThis.getDataset = function(){
+            $http.get('/getDataset').success(function(data){
+                localThis.short_name  = data.short_name;
+                localThis.full_name   = data.full_name;
+                localThis.description = data.description;
+                localThis.terms       = data.terms;
+                localThis.version     = data.version;
+                localThis.has_image   = data.has_image;
+                localThis.files = data.files;
+            });
+        };
+        localThis.getDataset();
+        localThis.getTerms = function(){
+            return $sce.trustAsHtml(localThis.terms);
         };
     });
 

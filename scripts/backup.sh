@@ -54,7 +54,7 @@ else
 fi
 
 # Use rsync to sync the "release" directory
-rsync --archive --no-perms \
+rsync --archive --ignore-existing --no-perms \
     --verbose --progress "$container_dir/" "$release_backups/"
 
 # Fix permissions and ownership on the whole /data/SweFreq directory
@@ -62,3 +62,9 @@ rsync --archive --no-perms \
 # accessible to others.  The group should be "users".
 chgrp -R users "$data_home"
 chmod -R ug+rw,o-rwx "$data_home"
+
+# Remove temporary files before running the off-site backup.
+rm -f "$tmpbackup" "$tmpbackup.gz"
+
+# Do off-site backup.
+/opt/tivoli/tsm/client/ba/bin/dsmc incr /data/SweFreq

@@ -46,6 +46,7 @@ class Application(tornado.web.Application):
             ## API Methods
             ("/logEvent/(?P<sEvent>[^\/]+)",     application.LogEvent),
             ("/getUser",                         application.GetUser),
+            ("/getDataset",                      application.GetDataset),
             ("/getApprovedUsers",                application.GetApprovedUsers),
             ("/approveUser/(?P<sEmail>[^\/]+)",  application.ApproveUser),
             ("/query",                           application.Query),
@@ -54,6 +55,7 @@ class Application(tornado.web.Application):
             ("/getOutstandingRequests",          application.GetOutstandingRequests),
             ("/requestAccess",                   application.RequestAccess),
             ("/country_list",                    application.CountryList),
+            ("/dataset_logo/(?P<dataset>[^\/]+)", application.ServeLogo),
             ## Catch all
             (r'.*',                              handlers.BaseHandler),
         ]

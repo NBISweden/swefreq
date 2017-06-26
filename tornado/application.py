@@ -154,6 +154,25 @@ class Home(handlers.UnsafeHandler):
                               is_admin   = is_admin,
                               ExAC       = settings.exac_server))
 
+
+class GetDataset(handlers.UnsafeHandler):
+    def get(self, *args, **kwargs):
+        current_version = self.dataset.current_version()
+        files = [{'name': f.name, 'uri': f.uri} for f in current_version.datasetfile_set]
+
+        ret = {
+            'short_name': self.dataset.short_name,
+            'full_name': self.dataset.full_name,
+            'description': current_version.description,
+            'terms': current_version.terms,
+            'version': current_version.version,
+            'has_image': self.dataset.has_image(),
+            'files': files
+        }
+
+        self.finish(json.dumps(ret))
+
+
 class GetUser(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         user = self.current_user
@@ -416,3 +435,21 @@ class GetApprovedUsers(handlers.SafeHandler):
                 })
 
         self.finish(json.dumps(json_response))
+
+class ServeLogo(handlers.UnsafeHandler):
+    def get(self, dataset, *args, **kwargs):
+        try:
+            logo_entry = db.DatasetLogo.select(
+                    db.DatasetLogo
+                ).join(
+                    db.Dataset
+                ).where(
+                    db.Dataset.short_name == dataset
+                ).get()
+        except:
+            self.send_error(status_code=404)
+            return
+
+        self.set_header("Content-Type", logo_entry.mimetype)
+        self.write(logo_entry.data)
+        self.finish()

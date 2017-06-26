@@ -1,5 +1,5 @@
 -- Script for creating the swefreq tables. To run this file use:
--- mysql < swefreq.sql
+-- mysql databasename <swefreq.sql
 -- Possibly with mysql credentials
 
 
@@ -14,10 +14,11 @@ CREATE TABLE IF NOT EXISTS user (
 
 CREATE TABLE IF NOT EXISTS dataset (
     dataset_pk          INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    name                VARCHAR(100)    NOT NULL,
+    short_name          VARCHAR(50)     NOT NULL,
+    full_name           VARCHAR(100)    NOT NULL,
     browser_uri         VARCHAR(200)    DEFAULT NULL,
     beacon_uri          VARCHAR(200)    DEFAULT NULL,
-    CONSTRAINT UNIQUE (name)
+    CONSTRAINT UNIQUE (short_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS user_log (
@@ -63,4 +64,13 @@ CREATE TABLE IF NOT EXISTS dataset_file (
     uri                 VARCHAR(200)    NOT NULL,
     CONSTRAINT FOREIGN KEY (dataset_version_pk)
         REFERENCES dataset_version(dataset_version_pk)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS dataset_logo (
+    dataset_logo_pk     INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    dataset_pk          INTEGER         NOT NULL,
+    mimetype            VARCHAR(50)     NOT NULL,
+    data                MEDIUMBLOB      NOT NULL,
+    CONSTRAINT UNIQUE (dataset_pk),
+    CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
