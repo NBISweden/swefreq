@@ -74,3 +74,18 @@ CREATE TABLE IF NOT EXISTS dataset_logo (
     CONSTRAINT UNIQUE (dataset_pk),
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- Extra tables for dataset meta-data:
+
+CREATE TABLE IF NOT EXISTS study (
+    study_pk            INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    pi_name             VARCHAR(100)    NOT NULL,
+    pi_email            VARCHAR(100)    NOT NULL,
+    contact_name        VARCHAR(100)    NOT NULL,
+    contact_email       VARCHAR(100)    NOT NULL,
+    title               VARCHAR(100)    NOT NULL,
+    description         TEXT            DEFAULT NULL,
+    ts                  TIMESTAMP       NOT NULL,
+    ref_doi             VARCHAR(100)    DEFAULT NULL,
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
