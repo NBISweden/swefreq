@@ -89,3 +89,13 @@ CREATE TABLE IF NOT EXISTS study (
     ref_doi             VARCHAR(100)    DEFAULT NULL,
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE IF NOT EXISTS sample_set (
+    sample_set_pk       INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    study_pk            INTEGER         NOT NULL,
+    ethnicity           VARCHAR(50)     DEFAULT NULL,
+    collection          VARCHAR(100)    DEFAULT NULL,
+    size                INTEGER         NOT NULL,
+    CONSTRAINT FOREIGN KEY (study_pk) REFERENCES study(study_pk)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+
