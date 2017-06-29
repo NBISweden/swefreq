@@ -102,8 +102,6 @@ CREATE TABLE IF NOT EXISTS sample_set (
     study_pk            INTEGER         NOT NULL,
     ethnicity           VARCHAR(50)     DEFAULT NULL,
     collection          VARCHAR(100)    DEFAULT NULL,
-    size                INTEGER         NOT NULL,
+    sample_size         INTEGER         NOT NULL,
     CONSTRAINT FOREIGN KEY (study_pk) REFERENCES study(study_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-
