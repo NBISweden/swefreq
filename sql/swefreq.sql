@@ -19,6 +19,11 @@ CREATE TABLE IF NOT EXISTS dataset (
     full_name           VARCHAR(100)    NOT NULL,
     browser_uri         VARCHAR(200)    DEFAULT NULL,
     beacon_uri          VARCHAR(200)    DEFAULT NULL,
+    avg_seq_depth       FLOAT           DEFAULT NULL,
+    seq_type            VARCHAR(50)     DEFAULT NULL,
+    seq_tech            VARCHAR(50)     DEFAULT NULL,
+    seq_center          VARCHAR(100)    DEFAULT NULL,
+    dataset_size        INTEGER         NOT NULL,
     CONSTRAINT UNIQUE (short_name),
     CONSTRAINT FOREIGN KEY (sample_set_pk)
         REFERENCES sample_set(sample_set_pk)
