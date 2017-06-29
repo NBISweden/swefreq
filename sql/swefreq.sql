@@ -37,13 +37,16 @@ CREATE TABLE IF NOT EXISTS dataset_access (
     dataset_access_pk   INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
     dataset_pk          INTEGER         NOT NULL,
     user_pk             INTEGER         NOT NULL,
+    sample_set_pk       INTEGER         NOT NULL,
     wants_newsletter    BOOLEAN         DEFAULT false,
     is_admin            BOOLEAN         DEFAULT false,
     has_consented       BOOLEAN         DEFAULT false,
     has_access          BOOLEAN         DEFAULT false,
     CONSTRAINT UNIQUE (dataset_pk, user_pk),
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk),
-    CONSTRAINT FOREIGN KEY (user_pk)    REFERENCES user(user_pk)
+    CONSTRAINT FOREIGN KEY (user_pk)    REFERENCES user(user_pk),
+    CONSTRAINT FOREIGN KEY (sample_set_pk)
+        REFERENCES sample_set(sample_set_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS dataset_version (
