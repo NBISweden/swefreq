@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS dataset_version (
     is_current          BOOLEAN         DEFAULT true,
     description         TEXT            NOT NULL,
     terms               TEXT            NOT NULL,
+    var_call_ref        VARCHAR(50)     DEFAULT NULL,
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
