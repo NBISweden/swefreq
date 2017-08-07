@@ -14,11 +14,19 @@ CREATE TABLE IF NOT EXISTS user (
 
 CREATE TABLE IF NOT EXISTS dataset (
     dataset_pk          INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    sample_set_pk       INTEGER         NOT NULL,
     short_name          VARCHAR(50)     NOT NULL,
     full_name           VARCHAR(100)    NOT NULL,
     browser_uri         VARCHAR(200)    DEFAULT NULL,
     beacon_uri          VARCHAR(200)    DEFAULT NULL,
-    CONSTRAINT UNIQUE (short_name)
+    avg_seq_depth       FLOAT           DEFAULT NULL,
+    seq_type            VARCHAR(50)     DEFAULT NULL,
+    seq_tech            VARCHAR(50)     DEFAULT NULL,
+    seq_center          VARCHAR(100)    DEFAULT NULL,
+    dataset_size        INTEGER         UNSIGNED NOT NULL,
+    CONSTRAINT UNIQUE (short_name),
+    CONSTRAINT FOREIGN KEY (sample_set_pk)
+        REFERENCES sample_set(sample_set_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS user_log (
@@ -54,6 +62,7 @@ CREATE TABLE IF NOT EXISTS dataset_version (
     is_current          BOOLEAN         DEFAULT true,
     description         TEXT            NOT NULL,
     terms               TEXT            NOT NULL,
+    var_call_ref        VARCHAR(50)     DEFAULT NULL,
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -73,4 +82,27 @@ CREATE TABLE IF NOT EXISTS dataset_logo (
     data                MEDIUMBLOB      NOT NULL,
     CONSTRAINT UNIQUE (dataset_pk),
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- Extra tables for dataset meta-data:
+
+CREATE TABLE IF NOT EXISTS study (
+    study_pk            INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    pi_name             VARCHAR(100)    NOT NULL,
+    pi_email            VARCHAR(100)    NOT NULL,
+    contact_name        VARCHAR(100)    NOT NULL,
+    contact_email       VARCHAR(100)    NOT NULL,
+    title               VARCHAR(100)    NOT NULL,
+    description         TEXT            DEFAULT NULL,
+    ts                  TIMESTAMP       NOT NULL,
+    ref_doi             VARCHAR(100)    DEFAULT NULL,
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS sample_set (
+    sample_set_pk       INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    study_pk            INTEGER         NOT NULL,
+    ethnicity           VARCHAR(50)     DEFAULT NULL,
+    collection          VARCHAR(100)    DEFAULT NULL,
+    sample_size         INTEGER         NOT NULL,
+    CONSTRAINT FOREIGN KEY (study_pk) REFERENCES study(study_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
