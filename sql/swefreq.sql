@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS dataset (
     seq_type            VARCHAR(50)     DEFAULT NULL,
     seq_tech            VARCHAR(50)     DEFAULT NULL,
     seq_center          VARCHAR(100)    DEFAULT NULL,
-    dataset_size        INTEGER         NOT NULL,
+    dataset_size        INTEGER         UNSIGNED NOT NULL,
     CONSTRAINT UNIQUE (short_name),
     CONSTRAINT FOREIGN KEY (sample_set_pk)
         REFERENCES sample_set(sample_set_pk)
