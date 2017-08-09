@@ -11,18 +11,18 @@ digraph {
         user [ label=<<table border="1" cellborder="0" align="left">
             <tr><td border="1" sides="b" colspan="2"><b>user</b></td></tr>
             <tr><td align="left" port="pk">user_pk</td><td align="right"><i>int</i></td></tr>
-            <tr><td align="left">name</td><td align="right"><i>text</i></td></tr>
+            <tr><td align="left">name</td><td align="right"><i>text|null</i></td></tr>
             <tr><td align="left" port="email">email</td><td align="right"><i>text</i></td></tr>
-            <tr><td align="left">affiliation</td><td align="right"><i>text</i></td></tr>
-            <tr><td align="left">country</td><td align="right"><i>text</i></td></tr>
+            <tr><td align="left">affiliation</td><td align="right"><i>text|null</i></td></tr>
+            <tr><td align="left">country</td><td align="right"><i>text|null</i></td></tr>
             </table>> ];
 
         dataset [ label=<<table border="1" cellborder="0">
             <tr><td border="1" sides="b" colspan="2"><b>dataset</b></td></tr>
             <tr><td align="left" port="pk">dataset_pk</td><td align="right"><i>int</i></td></tr>
             <tr><td align="left">name</td>                <td align="right"><i>text</i></td></tr>
-            <tr><td align="left">browser_uri</td>         <td align="right"><i>text</i></td></tr>
-            <tr><td align="left">beacon_uri</td>          <td align="right"><i>text</i></td></tr>
+            <tr><td align="left">browser_uri</td>         <td align="right"><i>text|null</i></td></tr>
+            <tr><td align="left">beacon_uri</td>          <td align="right"><i>text|null</i></td></tr>
             </table>> ];
 
         user_log [ label=<<table border="1" cellborder="0">
@@ -30,7 +30,7 @@ digraph {
             <tr><td align="left" port="user_log_pk">user_log_pk</td><td align="right"><i>int</i></td></tr>
             <tr><td align="left" port="user_pk">user_pk</td><td align="right"><i>int</i></td></tr>
             <tr><td align="left" port="dataset">dataset_pk</td><td align="right"><i>int</i></td></tr>
-            <tr><td align="left">action</td><td align="right"><i>enum</i></td></tr>
+            <tr><td align="left">action</td><td align="right"><i>enum|null</i></td></tr>
             <tr><td align="left">ts</td><td align="right"><i>timestamp</i></td></tr>
             </table>> ];
 
@@ -39,10 +39,10 @@ digraph {
             <tr><td align="left">dataset_access_pk</td><td align="right"><i>int</i></td></tr>
             <tr><td align="left" port="dataset">dataset_pk</td><td align="right"><i>int</i></td></tr>
             <tr><td align="left" port="user">user_pk</td><td align="right"><i>int</i></td></tr>
-            <tr><td align="left">wants_newsletter</td><td align="right"><i>bool</i></td></tr>
-            <tr><td align="left">is_admin</td><td align="right"><i>bool</i></td></tr>
-            <tr><td align="left">has_consented</td><td align="right"><i>bool</i></td></tr>
-            <tr><td align="left">has_access</td><td align="right"><i>bool</i></td></tr>
+            <tr><td align="left">wants_newsletter</td><td align="right"><i>bool|false</i></td></tr>
+            <tr><td align="left">is_admin</td><td align="right"><i>bool|false</i></td></tr>
+            <tr><td align="left">has_consented</td><td align="right"><i>bool|false</i></td></tr>
+            <tr><td align="left">has_access</td><td align="right"><i>bool|false</i></td></tr>
             </table>> ];
 
 
@@ -52,7 +52,7 @@ digraph {
             <tr><td align="left" port="dataset">dataset_pk</td><td align="right"><i>int</i></td></tr>
             <tr><td align="left">version</td><td align="right"><i>text</i></td></tr>
             <tr><td align="left">ts</td><td align="right"><i>timestamp</i></td></tr>
-            <tr><td align="left">is_current</td><td align="right"><i>bool</i></td></tr>
+            <tr><td align="left">is_current</td><td align="right"><i>bool|true</i></td></tr>
             <tr><td align="left">description</td><td align="right"><i>text</i></td></tr>
             <tr><td align="left">terms</td><td align="right"><i>text</i></td></tr>
             </table>> ];
