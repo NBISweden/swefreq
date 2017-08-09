@@ -1,13 +1,7 @@
 digraph {
     ranksep=1 nodesep=1 rankdir=BT
     node [ shape = none ]
-    /*
-    subgraph cluster0 {
-        user_log_old [ label="{user_log|pk\lemail\laction\lts\l}" ]
-        users_old [ label="{users|pk\lusername\lemail\ldownload_count\lswefreq_admin\laffiliation\lfull_user\lcreate_date\lcountry\lnewsletter\l}" ]
-        label = "Old schema"
-    }
-    */
+
         user [ label=<<table border="1" cellborder="0" align="left">
             <tr><td border="1" sides="b" colspan="2"><b>user</b></td></tr>
             <tr><td align="left" port="pk">user_pk</td><td align="right"><i>int</i></td></tr>
