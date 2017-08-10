@@ -47,7 +47,16 @@ ALTER TABLE dataset ADD COLUMN (
         seq_type        VARCHAR(50)     DEFAULT NULL,
         seq_tech        VARCHAR(50)     DEFAULT NULL,
         seq_center      VARCHAR(100)    DEFAULT NULL,
-        dataset_size    INTEGER         UNSIGNED NOT NULL );
+        dataset_size    INTEGER         UNSIGNED DEFAULT NULL );
+
+-- Insert junk values into dataset.dataset_size.
+
+UPDATE dataset SET dataset_size = 0;
+
+-- Correct the dataset.dataset_size column.
+
+ALTER TABLE dataset MODIFY COLUMN dataset_size INTEGER UNSIGNED NOT NULL;
+
 
 -- New foreign key in the dataset table.
 
