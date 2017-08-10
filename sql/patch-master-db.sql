@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS study (
     title               VARCHAR(100)    NOT NULL,
     description         TEXT            DEFAULT NULL,
     ts                  TIMESTAMP       NOT NULL,
-    ref_doi             VARCHAR(100)    DEFAULT NULL,
+    ref_doi             VARCHAR(100)    DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS sample_set (
