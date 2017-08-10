@@ -26,6 +26,18 @@ CREATE TABLE IF NOT EXISTS sample_set (
     CONSTRAINT FOREIGN KEY (study_pk) REFERENCES study(study_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+-- Insert a placeholder study and sample set.
+
+INSERT INTO study
+        (study_pk, pi_name, pi_email, contact_name, contact_email, title, ts)
+VALUES  (1, "Tom", "tom@example.com",
+        "Matt", "matt@example.com",
+        "Placeholder study", now());
+
+INSERT INTO sample_set
+        (study_pk, sample_size)
+VALUES  (1, 0);
+
 -- Add the new columns to the dataset table. We don't care about
 -- ordering the columns in the same order as in the schema file.
 
