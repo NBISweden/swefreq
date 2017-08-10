@@ -57,6 +57,9 @@ UPDATE dataset SET dataset_size = 0;
 
 ALTER TABLE dataset MODIFY COLUMN dataset_size INTEGER UNSIGNED NOT NULL;
 
+-- Insert reference to placeholder sample set.
+
+UPDATE dataset SET sample_set_pk = 1;
 
 -- New foreign key in the dataset table.
 
