@@ -12,12 +12,42 @@ class BaseModel(Model):
     class Meta:
         database = database
 
+class Study(BaseModel):
+    study         = PrimaryKeyField(db_column='study_pk')
+    pi_name       = CharField()
+    pi_email      = CharField()
+    contact_name  = CharField()
+    contact_email = CharField()
+    title         = CharField()
+    description   = TextField(null=True)
+    ts            = DateTimeField()
+    ref_doi       = CharField(null=True)
+
+    class Meta:
+        db_table = 'study'
+
+class SampleSet(BaseModel):
+    sample_set  = PrimaryKeyField(db_column='sample_set_pk')
+    study       = ForeignKeyField(db_column='study_pk', rel_model=Study, to_field='study')
+    ethnicity   = CharField(null=True)
+    collection  = CharField(null=True)
+    sample_size = IntegerField()
+
+    class Meta:
+        db_table = 'sample_set'
+
 class Dataset(BaseModel):
-    dataset     = PrimaryKeyField(db_column='dataset_pk')
-    short_name  = CharField()
-    full_name   = CharField()
-    browser_uri = CharField(null=True)
-    beacon_uri  = CharField(null=True)
+    dataset       = PrimaryKeyField(db_column='dataset_pk')
+    sample_set    = ForeignKeyField(db_column='sample_set_pk', rel_model=SampleSet, to_field='sample_set')
+    short_name    = CharField()
+    full_name     = CharField()
+    browser_uri   = CharField(null=True)
+    beacon_uri    = CharField(null=True)
+    avg_seq_depth = FloatField(null=True)
+    seq_type      = CharField(null=True)
+    seq_tech      = CharField(null=True)
+    seq_center    = CharField(null=True)
+    dataset_size  = IntegerField()
 
     def current_version(self):
         return DatasetVersion.get(DatasetVersion.is_current==1, DatasetVersion.dataset==self)
@@ -65,6 +95,7 @@ class DatasetVersion(BaseModel):
     is_current      = IntegerField(null=True)
     description     = TextField()
     terms           = TextField()
+    var_call_ref    = CharField(null=True)
 
     class Meta:
         db_table = 'dataset_version'
