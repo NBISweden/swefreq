@@ -46,6 +46,14 @@ digraph {
             </table>> ];
 
 
+        dataset_logo [ label=<<table border="1" cellborder="0">
+            <tr><td border="1" sides="b" colspan="2"><b>dataset_logo</b></td></tr>
+            <tr><td align="left" port="pk">dataset_logo_pk</td><td align="right"><i>int</i></td></tr>
+            <tr><td align="left" port="dataset">dataset_pk</td><td align="right"><i>int</i></td></tr>
+            <tr><td align="left">mimetype</td><td align="right"><i>text</i></td></tr>
+            <tr><td align="left">data</td><td align="right"><i>blob</i></td></tr>
+            </table>> ];
+
         dataset_version [ label=<<table border="1" cellborder="0">
             <tr><td border="1" sides="b" colspan="2"><b>dataset_version</b></td></tr>
             <tr><td align="left" port="pk">dataset_version_pk</td><td align="right"><i>int</i></td></tr>
@@ -96,5 +104,5 @@ digraph {
         dataset_version:dataset -> dataset:pk
         dataset_file:dv -> dataset_version:pk
         user_log:dataset -> dataset:pk
-
+        dataset_logo:dataset -> dataset:pk
 }
