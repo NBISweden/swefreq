@@ -1,13 +1,17 @@
 .navbar img { margin-top: -15px; }
+
 .jumbotron {
   margin: 48px 0;
 }
+
 .big-swegen-logo {
     float: right;
     margin-left: 3em;
     margin-top:2em
 }
 
+
+// Affiliate footer
 footer img.logo {
     display: block;
     margin-left: auto;
@@ -21,4 +25,16 @@ footer img.logo {
 img.logo.scilife {
     top: 8px;
     position: relative;
+}
+
+
+// For beacon form validation
+input.ng-dirty.ng-valid, select.ng-dirty.ng-valid {
+    border: 1px solid Green;
+    background-color: #F5FFF5;
+}
+
+input.ng-dirty.ng-invalid, select.ng-dirty.ng-invalid {
+    border: 1px solid Red;
+    background-color: #FFF5F5;
 }
