@@ -15,9 +15,8 @@ index="""
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular-route.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular-cookies.min.js"></script>
-    <!-- Angular grid gui -->
+    <!-- CSS -->
     <link rel="stylesheet" href="/javascript/main.css" type="text/css" />
-    <link rel="stylesheet" href="/javascript/local.css" type="text/css" />
     <!-- The application -->
     <script src="javascript/app.js"></script>
 
