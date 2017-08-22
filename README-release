@@ -1,45 +1,66 @@
 I. SweGen variant frequency dataset (release 20170823)
--------------------------------------------------------
+-----------------------------------------------------------------------
 
-The files in this folder contains frequencies of single nucleotide vatiants (SNVs) and structural variants (SVs)
-calculated from the 1000 in the SweGen dataset, aligned to the hg19 (GRCh37) genome assembly. 
+The files in this folder contains frequencies of single nucleotide
+vatiants (SNVs) and structural variants (SVs) calculated from the 1000
+in the SweGen dataset, aligned to the hg19 (GRCh37) genome assembly.
 
 
 II. File list
---------------
+-----------------------------------------------------------------------
 
-README                                                    This file
-anon-SweGen_STR_NSPHS_1000samples_SV_hg19.bed.gz          BED file containg frequencies of SV elements
-anon-SweGen_STR_NSPHS_1000samples_SNV_hg19.vcf.gz         VCF file containg SNV frequencies for all 1000 SweGen
-                                                          individuals (i.e. SNPs and small indels)
-anon-SweGen_STR_NSPHS_1000samples_freq_hg19.vcf.gz.tbi    Tab index file for SNV frequencies
-terms_of_use.txt                                          Terms of use for the dataset
+README
 
-For details regarding software and parameters used for SNV and SV analysis,
-please read the SweGen publication (see citation in section IV below).
+        - This file
+
+anon-SweGen_STR_NSPHS_1000samples_SV_hg19.bed.gz
+
+        - BED file containg frequencies of SV elements
+          anon-SweGen_STR_NSPHS_1000samples_SNV_hg19.vcf.gz VCF file
+          containg SNV frequencies for all 1000 SweGen individuals
+          (i.e. SNPs and small indels)
+
+anon-SweGen_STR_NSPHS_1000samples_freq_hg19.vcf.gz.tbi
+
+        - Tab index file for SNV frequencies
+
+terms_of_use.txt
+
+        - Terms of use for the dataset
+
+For details regarding software and parameters used for SNV and SV
+analysis, please read the SweGen publication (see citation in section
+IV below).
 
 
 III. How to use the SV data for filtering analyses
----------------------------------------------------
+-----------------------------------------------------------------------
 
-The best way to use the SV data for filtering is to use the wgs-structvar pipeline,
-https://github.com/NBISweden/wgs-structvar. Using this ensures that the same protocol is used as in this analysis. Just
-copy the SV file into the mask_cohort subdirectory of the wgs-structvar directory and add 'mask_cohort' to the steps
-argument when running the pipeline. The default is to filter everything with a 95% reciprocal overlap. This can be
-configured with the two parameters '--sg_mask_ovlp' and '--no_sg_reciprocal'. If you want to relax the filtering by
-allowing rare events to be kept you have to preprocess the SV file, example with removing singleton events with awk:
+The best way to use the SV data for filtering is to use the
+wgs-structvar pipeline, https://github.com/NBISweden/wgs-structvar.
+Using this ensures that the same protocol is used as in this analysis.
+Just copy the SV file into the mask_cohort subdirectory of the
+wgs-structvar directory and add 'mask_cohort' to the steps argument
+when running the pipeline.  The default is to filter everything with a
+95% reciprocal overlap.  This can be configured with the two parameters
+'--sg_mask_ovlp' and '--no_sg_reciprocal'.  If you want to relax the
+filtering by allowing rare events to be kept you have to preprocess the
+SV file, example with removing singleton events with awk:
 
-        awk '$NF>1{print}' <SV file> > filtered.bed
+    awk '$NF>1{print}' <SV file> > filtered.bed
 
 
-If you want to do the filtering manually it can be done like this with bedtools:
+If you want to do the filtering manually it can be done like this with
+bedtools:
 
-        bedtools intersect -header -v -a <your file> -b <SV file> -f 0.95 -r
+    bedtools intersect -header -v -a <your file> -b <SV file> -f 0.95 -r
 
 
 IV. Citation
--------------
+-----------------------------------------------------------------------
 
 Any use of the SweGen dataset should cite the following publication:
 
-Ameur A, et al. SweGen: A whole-genome data resource of genetic variability in a cross-section of the Swedish population. Eur J Hum Genet 2017; (doi: 10.1038/ejhg.2017.130)
+Ameur A, et al. SweGen: A whole-genome data resource of genetic
+variability in a cross-section of the Swedish population. Eur J Hum
+Genet 2017; (doi: 10.1038/ejhg.2017.130)
