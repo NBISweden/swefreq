@@ -44,7 +44,8 @@ class BaseHandler(tornado.web.RequestHandler):
                 return db.User.select().where( db.User.email == email ).get()
             except peewee.DoesNotExist:
                 ## Not saved in the database yet
-                return db.User(email = email, name = name)
+                return db.User(email = email.decode('utf-8'),
+                               name  = name.decode('utf-8'))
         else:
             return None
 
