@@ -1,17 +1,17 @@
 {
     "study": {
-        "pi_name": "",
-        "pi_email": "",
-        "contact_name": "",
-        "contact_nemail": "",
-        "title": "",
-        "description": "",
+        "pi_name": "Ulf Gyllensten",
+        "pi_email": "Ulf.Gyllensten@igp.uu.se",
+        "contact_name": "The SweGen Project",
+        "contact_email": "swegen@scilifelab.se",
+        "title": "SweGen",
+        "description": "SweGen variant frequency dataset",
         "ts": "",
-        "ref_doi": ""
+        "ref_doi": "10.1038/ejhg.2017.130"
     },
     "sample_set": {
-        "ethnicity": "",
-        "collection": "",
-        "sample_size": 0
+        "ethnicity": "Swedish",
+        "collection": "feature/swegen-metadata",
+        "sample_size": 1000
     }
 }
