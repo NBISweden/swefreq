@@ -11,7 +11,7 @@
   },
   "sample_set": {
     "ethnicity": "Swedish",
-    "collection": "feature/swegen-metadata",
+    "collection": "Swedish Twin Registry",
     "sample_size": 1000
   }
 }
