@@ -1,0 +1,17 @@
+{
+    "study": {
+        "pi_name": "",
+        "pi_email": "",
+        "contact_name": "",
+        "contact_nemail": "",
+        "title": "",
+        "description": "",
+        "ts": "",
+        "ref_doi": ""
+    },
+    "sample_set": {
+        "ethnicity": "",
+        "collection": "",
+        "sample_size": 0
+    }
+}
