@@ -1,8 +1,6 @@
 -- Patches a database that is using the master checkout of the
 -- swefreq.sql schema definition to the develop version.
 
-USE swefreq;
-
 -- Add the two new meta data tables.
 
 CREATE TABLE IF NOT EXISTS study (
