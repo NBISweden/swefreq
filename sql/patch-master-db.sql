@@ -1,8 +1,6 @@
 -- Patches a database that is using the master checkout of the
 -- swefreq.sql schema definition to the develop version.
 
-USE swefreq;
-
 -- Add the two new meta data tables.
 
 CREATE TABLE IF NOT EXISTS study (
@@ -26,17 +24,17 @@ CREATE TABLE IF NOT EXISTS sample_set (
     CONSTRAINT FOREIGN KEY (study_pk) REFERENCES study(study_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- Insert a placeholder study and sample set.
+-- Insert study and sample set.
 
 INSERT INTO study
-        (study_pk, pi_name, pi_email, contact_name, contact_email, title, ts)
-VALUES  (1, "Tom", "tom@example.com",
-        "Matt", "matt@example.com",
-        "Placeholder study", now());
+        (study_pk, pi_name, pi_email, contact_name, contact_email, title, ts, ref_doi)
+VALUES  (1, "Ulf Gyllensten", "Ulf.Gyllensten@igp.uu.se",
+        "the SweGen project", "swegen@scilifelab.se",
+        "SweGen", now(), "10.1038/ejhg.2017.130");
 
 INSERT INTO sample_set
-        (study_pk, sample_size)
-VALUES  (1, 0);
+        (study_pk, sample_size, ethnicity, collection)
+VALUES  (1, 1000, "Swedish", "Swedish Twin Registry");
 
 -- Add the new columns to the dataset table. We don't care about
 -- ordering the columns in the same order as in the schema file.
@@ -49,15 +47,17 @@ ALTER TABLE dataset ADD COLUMN (
         seq_center      VARCHAR(100)    DEFAULT NULL,
         dataset_size    INTEGER         UNSIGNED DEFAULT NULL );
 
--- Insert junk values into dataset.dataset_size.
+-- Insert correct values into dataset.dataset_size.
 
-UPDATE dataset SET dataset_size = 0;
+UPDATE dataset SET dataset_size = 1000, seq_type = "WGS",
+        seq_tech = "Illumina HiSeq X", avg_seq_depth= 36.7,
+        seq_center = "NGI, Scilifelab";
 
 -- Correct the dataset.dataset_size column.
 
 ALTER TABLE dataset MODIFY COLUMN dataset_size INTEGER UNSIGNED NOT NULL;
 
--- Insert reference to placeholder sample set.
+-- Insert reference to the sample set.
 
 UPDATE dataset SET sample_set_pk = 1;
 
@@ -70,3 +70,5 @@ ALTER TABLE dataset ADD CONSTRAINT
 
 ALTER TABLE dataset_version ADD COLUMN
         var_call_ref    VARCHAR(50)     DEFAULT NULL;
+
+UPDATE dataset_version SET var_call_ref="hg19";
