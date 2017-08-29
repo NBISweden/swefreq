@@ -233,29 +233,12 @@ class RevokeUser(handlers.AdminHandler):
                     action = 'access_revoked'
                 )
 
-class GetOutstandingRequests(handlers.SafeHandler):
-    def get(self, dataset, *args, **kwargs):
-        dataset = db.get_dataset(dataset)
-        requests = db.get_outstanding_requests(dataset)
 
-        json_response = []
-        for request in requests:
-            apply_date = request.apply_date.strftime('%Y-%m-%d')
-            json_response.append({
-                'user':        request.name,
-                'email':       request.email,
-                'affiliation': request.affiliation,
-                'country':     request.country,
-                'applyDate':   apply_date
-            })
-
-        self.finish(json.dumps(json_response))
-
-class GetApprovedUsers(handlers.SafeHandler):
+class DatasetUsers(handlers.SafeHandler):
     def get(self, dataset, *args, **kwargs):
         dataset = db.get_dataset(dataset)
         query = db.User.select(
-                db.User, db.DatasetAccess.wants_newsletter
+                db.User, db.DatasetAccess.wants_newsletter, db.DatasetAccess.has_access
             ).join(
                 db.DatasetAccess
             ).switch(
@@ -269,7 +252,6 @@ class GetApprovedUsers(handlers.SafeHandler):
                 )
             ).where(
                 db.DatasetAccess.dataset    == dataset,
-                db.DatasetAccess.has_access == 1
             ).annotate(db.UserLog)
 
         json_response = []
@@ -280,7 +262,8 @@ class GetApprovedUsers(handlers.SafeHandler):
                     'affiliation':   user.affiliation,
                     'country':       user.country,
                     'downloadCount': user.count,
-                    'newsletter':    user.dataset_access.wants_newsletter
+                    'newsletter':    user.dataset_access.wants_newsletter,
+                    'has_access':    user.dataset_access.has_access
                 })
 
         self.finish(json.dumps(json_response))
