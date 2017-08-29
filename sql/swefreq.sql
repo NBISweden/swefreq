@@ -34,8 +34,8 @@ CREATE TABLE IF NOT EXISTS user_log (
     user_pk             INTEGER         NOT NULL,
     dataset_pk          INTEGER         NOT NULL,
     action  ENUM ('consent','download',
-                  'access_requested','access_granted','access_revoked')
-                                        DEFAULT NULL,
+                  'access_requested','access_granted','access_revoked',
+                  'private_link')       DEFAULT NULL,
     ts                  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT FOREIGN KEY (user_pk)    REFERENCES user(user_pk),
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
@@ -82,6 +82,17 @@ CREATE TABLE IF NOT EXISTS dataset_logo (
     data                MEDIUMBLOB      NOT NULL,
     CONSTRAINT UNIQUE (dataset_pk),
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS linkhash (
+    linkhash_pk         INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    dataset_verison_pk  INTEGER         NOT NULL,
+    user_pk             INTEGER         NOT NULL,
+    hash                VARCHAR(64)     NOT NULL,
+    expires_ts          TIMESTAMP       NOT NULL,
+    CONSTRAINT FOREIGN KEY (dataset_version_pk)
+        REFERENCES dataset_version(dataset_version_pk),
+    CONSTRAINT FOREIGN KEY (user_pk) REFERENCES user(user_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- Extra tables for dataset meta-data:
