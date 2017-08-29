@@ -59,6 +59,7 @@ body {
     position: absolute;
     height: 80px;
     bottom: 0px;
+    width: 100%;
 }
 
 img.logo.scilife {
