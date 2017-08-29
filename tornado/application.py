@@ -32,7 +32,7 @@ class Home(handlers.UnsafeHandler):
 
 
 class GetDataset(handlers.UnsafeHandler):
-    def get(self, *args, **kwargs):
+    def get(self, dataset='', *args, **kwargs):
         current_version = self.dataset.current_version()
         files = [{'name': f.name, 'uri': f.uri} for f in current_version.datasetfile_set]
 
@@ -151,7 +151,7 @@ class CountryList(handlers.UnsafeHandler):
 
 
 class RequestAccess(handlers.SafeHandler):
-    def get(self, *args, **kwargs):
+    def get(self, dataset, *args, **kwargs):
         user = self.current_user
         name = user.name
         email = user.email
@@ -159,7 +159,7 @@ class RequestAccess(handlers.SafeHandler):
         logging.info("Request: " + name + ' ' + email)
         self.finish(json.dumps({'user':name, 'email':email}))
 
-    def post(self, *args, **kwargs):
+    def post(self, dataset, *args, **kwargs):
         userName    = self.get_argument("userName", default='',strip=False)
         email       = self.get_argument("email", default='', strip=False)
         affiliation = self.get_argument("affiliation", strip=False)
