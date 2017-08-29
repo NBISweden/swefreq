@@ -86,3 +86,10 @@ CREATE TABLE IF NOT EXISTS linkhash (
     CONSTRAINT FOREIGN KEY (user_pk) REFERENCES user(user_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+-- There's a new action ENUM in user_log too.
+
+ALTER TABLE user_log MODIFY COLUMN
+    action  ENUM ('consent','download',
+                  'access_requested','access_granted','access_revoked',
+                  'private_link')       DEFAULT NULL;
+
