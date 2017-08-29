@@ -34,8 +34,8 @@ CREATE TABLE IF NOT EXISTS user_log (
     user_pk             INTEGER         NOT NULL,
     dataset_pk          INTEGER         NOT NULL,
     action  ENUM ('consent','download',
-                  'access_requested','access_granted','access_revoked')
-                                        DEFAULT NULL,
+                  'access_requested','access_granted','access_revoked',
+                  'private_link')       DEFAULT NULL,
     ts                  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT FOREIGN KEY (user_pk)    REFERENCES user(user_pk),
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
