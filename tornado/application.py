@@ -13,20 +13,13 @@ import settings
 
 class Home(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
-        has_access = self.is_authorized()
-        is_admin   = self.is_admin()
-
         name = None
         email = None
         if self.current_user:
             name = self.current_user.name
             email = self.current_user.email
 
-        self.render('index.html',user_name  = name,
-                                 has_access = has_access,
-                                 email      = email,
-                                 is_admin   = is_admin,
-                                 ExAC       = settings.exac_server)
+        self.render('index.html', user_name=name, email=email)
 
 
 class GetDataset(handlers.UnsafeHandler):
@@ -55,39 +48,12 @@ class GetUser(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         user = self.current_user
 
-        ret = {
-                'user': None,
-                'email': None,
-                'trusted': False,
-                'admin': False,
-                'has_requested_access': False
-        }
+        ret = { 'user': None, 'email': None }
         if user:
-            ### TODO there should probably be another way to figure out whether
-            ## someone already has access or not. REST-endpoint or something
-            ## similar, not really sure yet how this should be handled. I'm adding
-            ## it here now so we can get the information to the browser.
+            ret = { 'user': user.name, 'email': user.email }
 
-            has_requested_access = False
-            try:
-                db.DatasetAccess.select().where(
-                        db.DatasetAccess.user == user,
-                        db.DatasetAccess.dataset == self.dataset).get()
-                has_requested_access = True
-            except:
-                has_requested_access = False
-
-
-            ret = {
-                    'user':         user.name,
-                    'email':        user.email,
-                    'trusted':      self.is_authorized(),
-                    'admin':        self.is_admin(),
-                    'has_requested_access': has_requested_access
-            }
-
-        logging.info("getUser: " + str(ret['user']) + ' ' + str(ret['email']))
         self.finish(json.dumps(ret))
+
 
 class CountryList(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):

@@ -51,36 +51,6 @@ class BaseHandler(tornado.web.RequestHandler):
             return user.name
         return None
 
-    def is_admin(self):
-        user = self.current_user
-        if not user:
-            return False
-
-        try:
-            db.DatasetAccess.select().where(
-                    db.DatasetAccess.user == user,
-                    db.DatasetAccess.dataset == self.dataset,
-                    db.DatasetAccess.is_admin
-                ).get()
-            return True
-        except peewee.DoesNotExist:
-            return False
-
-    def is_authorized(self):
-        user = self.current_user
-        if not user:
-            return False
-
-        try:
-            db.DatasetAccess.select().where(
-                    db.DatasetAccess.user == user,
-                    db.DatasetAccess.dataset == self.dataset,
-                    db.DatasetAccess.has_access
-                ).get()
-            return True
-        except peewee.DoesNotExist:
-            return False
-
     def write_error(self, status_code, **kwargs):
         """ Overwrites write_error method to have custom error pages.
         http://tornado.readthedocs.org/en/latest/web.html#tornado.web.RequestHandler.write_error
