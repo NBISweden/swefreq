@@ -30,20 +30,22 @@ class Home(handlers.UnsafeHandler):
 
 
 class GetDataset(handlers.UnsafeHandler):
-    def get(self, dataset='', *args, **kwargs):
-        current_version = self.dataset.current_version()
+    def get(self, dataset, *args, **kwargs):
+        dataset = db.get_dataset(dataset)
+
+        current_version = dataset.current_version()
         files = [{'name': f.name, 'uri': f.uri} for f in current_version.datasetfile_set]
 
         ret = {
-            'short_name': self.dataset.short_name,
-            'full_name': self.dataset.full_name,
-            'beacon_uri': self.dataset.beacon_uri,
-            'browser_uri': self.dataset.browser_uri,
+            'short_name':  dataset.short_name,
+            'full_name':   dataset.full_name,
+            'beacon_uri':  dataset.beacon_uri,
+            'browser_uri': dataset.browser_uri,
             'description': current_version.description,
-            'terms': current_version.terms,
-            'version': current_version.version,
-            'has_image': self.dataset.has_image(),
-            'files': files
+            'terms':       current_version.terms,
+            'version':     current_version.version,
+            'has_image':   dataset.has_image(),
+            'files':       files
         }
 
         self.finish(json.dumps(ret))
@@ -158,6 +160,8 @@ class RequestAccess(handlers.SafeHandler):
         self.finish(json.dumps({'user':name, 'email':email}))
 
     def post(self, dataset, *args, **kwargs):
+        dataset = db.get_dataset(dataset)
+
         userName    = self.get_argument("userName", default='',strip=False)
         email       = self.get_argument("email", default='', strip=False)
         affiliation = self.get_argument("affiliation", strip=False)
@@ -180,12 +184,12 @@ class RequestAccess(handlers.SafeHandler):
                 user.save() # Save to database
                 db.DatasetAccess.create(
                         user             = user,
-                        dataset          = self.dataset,
+                        dataset          = dataset,
                         wants_newsletter = newsletter
                     )
                 db.UserLog.create(
                         user = user,
-                        dataset = self.dataset,
+                        dataset = dataset,
                         action = 'access_requested'
                     )
         except Exception as e:
@@ -193,34 +197,36 @@ class RequestAccess(handlers.SafeHandler):
 
 
 class LogEvent(handlers.SafeHandler):
-    def get(self, sEvent):
+    def get(self, dataset, sEvent):
         user = self.current_user
 
         ok_events = ['download','consent']
         if sEvent in ok_events:
             db.UserLog.create(
                     user = user,
-                    dataset = self.dataset,
+                    dataset = db.get_dataset(dataset),
                     action = sEvent
                 )
         else:
             raise tornado.web.HTTPError(400, reason="Can't log that")
 
 class ApproveUser(handlers.AdminHandler):
-    def get(self, sEmail):
+    def get(self, dataset, sEmail):
         with db.database.atomic():
+            dataset = db.get_dataset(dataset)
+
             user = db.User.select().where(db.User.email == sEmail).get()
 
             da = db.DatasetAccess.select().where(
                         db.DatasetAccess.user == user,
-                        db.DatasetAccess.dataset == self.dataset
+                        db.DatasetAccess.dataset == dataset
                 ).get()
             da.has_access = True
             da.save()
 
             db.UserLog.create(
                     user = user,
-                    dataset = self.dataset,
+                    dataset = dataset,
                     action = 'access_granted'
                 )
 
@@ -237,12 +243,13 @@ class ApproveUser(handlers.AdminHandler):
 
 
 class RevokeUser(handlers.AdminHandler):
-    def get(self, sEmail):
+    def get(self, dataset, sEmail):
         if self.current_user.email == sEmail:
             # Don't let the admin delete hens own account
             return
 
         with db.database.atomic():
+            dataset = db.get_dataset(dataset)
             user = db.User.select().where(db.User.email == sEmail).get()
 
             da = db.DatasetAccess.select(
@@ -250,19 +257,20 @@ class RevokeUser(handlers.AdminHandler):
                         db.User
                     ).where(
                         db.User.email == sEmail,
-                        db.DatasetAccess.dataset == self.dataset
+                        db.DatasetAccess.dataset == dataset
                     ).get()
             da.delete_instance()
 
             db.UserLog.create(
                     user = user,
-                    dataset = self.dataset,
+                    dataset = dataset,
                     action = 'access_revoked'
                 )
 
 class GetOutstandingRequests(handlers.SafeHandler):
-    def get(self, *args, **kwargs):
-        requests = db.get_outstanding_requests(self.dataset)
+    def get(self, dataset, *args, **kwargs):
+        dataset = db.get_dataset(dataset)
+        requests = db.get_outstanding_requests(dataset)
 
         json_response = []
         for request in requests:
@@ -278,9 +286,8 @@ class GetOutstandingRequests(handlers.SafeHandler):
         self.finish(json.dumps(json_response))
 
 class GetApprovedUsers(handlers.SafeHandler):
-    def get(self, *args, **kwargs):
-        ## All users that have access to the dataset and how many times they have
-        ## downloaded it
+    def get(self, dataset, *args, **kwargs):
+        dataset = db.get_dataset(dataset)
         query = db.User.select(
                 db.User, db.DatasetAccess.wants_newsletter
             ).join(
@@ -295,7 +302,7 @@ class GetApprovedUsers(handlers.SafeHandler):
                      & (db.UserLog.dataset  == db.DatasetAccess.dataset)
                 )
             ).where(
-                db.DatasetAccess.dataset    == self.dataset,
+                db.DatasetAccess.dataset    == dataset,
                 db.DatasetAccess.has_access == 1
             ).annotate(db.UserLog)
 
