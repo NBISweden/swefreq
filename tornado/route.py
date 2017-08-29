@@ -23,7 +23,8 @@ settings = {"debug": False,
                 "secret": settings.google_secret
             },
             "contact_person": 'mats.dahlberg@scilifelab.se',
-            "redirect_uri": redirect_uri
+            "redirect_uri": redirect_uri,
+            "template_path": "templates/"
         }
 
 class Application(tornado.web.Application):

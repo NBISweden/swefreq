@@ -21,11 +21,6 @@ class BaseHandler(tornado.web.RequestHandler):
         """
         raise tornado.web.HTTPError(404, reason='Page not found')
 
-    def template_loader(self):
-        if not hasattr(self, '_loader'):
-            self._loader = template.Loader("templates/")
-        return self._loader
-
     def prepare(self):
         db.database.connect()
         try:

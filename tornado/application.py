@@ -13,8 +13,6 @@ import settings
 
 class Home(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
-        t = self.template_loader().load("index.html")
-
         has_access = self.is_authorized()
         is_admin   = self.is_admin()
 
@@ -24,11 +22,11 @@ class Home(handlers.UnsafeHandler):
             name = self.current_user.name
             email = self.current_user.email
 
-        self.write(t.generate(user_name  = name,
-                              has_access = has_access,
-                              email      = email,
-                              is_admin   = is_admin,
-                              ExAC       = settings.exac_server))
+        self.render('index.html',user_name  = name,
+                                 has_access = has_access,
+                                 email      = email,
+                                 is_admin   = is_admin,
+                                 ExAC       = settings.exac_server)
 
 
 class GetDataset(handlers.UnsafeHandler):
