@@ -84,6 +84,17 @@ CREATE TABLE IF NOT EXISTS dataset_logo (
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE IF NOT EXISTS linkhash (
+    linkhash_pk         INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    dataset_verison_pk  INTEGER         NOT NULL,
+    user_pk             INTEGER         NOT NULL,
+    hash                VARCHAR(64)     NOT NULL,
+    expires_ts          TIMESTAMP       NOT NULL,
+    CONSTRAINT FOREIGN KEY (dataset_version_pk)
+        REFERENCES dataset_version(dataset_version_pk),
+    CONSTRAINT FOREIGN KEY (user_pk) REFERENCES user(user_pk)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 -- Extra tables for dataset meta-data:
 
 CREATE TABLE IF NOT EXISTS study (
