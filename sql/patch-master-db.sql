@@ -72,3 +72,17 @@ ALTER TABLE dataset_version ADD COLUMN
         var_call_ref    VARCHAR(50)     DEFAULT NULL;
 
 UPDATE dataset_version SET var_call_ref="hg19";
+
+-- Add the linkhash table
+
+CREATE TABLE IF NOT EXISTS linkhash (
+    linkhash_pk         INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    dataset_verison_pk  INTEGER         NOT NULL,
+    user_pk             INTEGER         NOT NULL,
+    hash                VARCHAR(64)     NOT NULL,
+    expires_ts          TIMESTAMP       NOT NULL,
+    CONSTRAINT FOREIGN KEY (dataset_version_pk)
+        REFERENCES dataset_version(dataset_version_pk),
+    CONSTRAINT FOREIGN KEY (user_pk) REFERENCES user(user_pk)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
