@@ -22,6 +22,39 @@ class Home(handlers.UnsafeHandler):
         self.render('index.html', user_name=name, email=email)
 
 
+class ListDatasets(handlers.UnsafeHandler):
+    def get(self):
+        # List all datasets available to the current user, latest is_current
+        # earliear than now OR versions that are available in the future that
+        # the user is admin of.
+        q = db.Dataset.select(
+                db.Dataset, db.DatasetVersion, db.DatasetAccess, db.User
+            ).join(
+                db.DatasetVersion
+            ).switch(
+                db.Dataset
+            ).join(
+                db.DatasetAccess, peewee.JOIN.LEFT_OUTER
+            ).join(
+                db.User, peewee.JOIN.LEFT_OUTER
+            ).where(
+                ( db.User.email.is_null(True) | (db.User.email == 'johan.viklund@gmail.com')),
+                (
+                    (
+                        (db.DatasetVersion.is_current == 1)
+                        &
+                        (db.DatasetVersion.ts < peewee.fn.Now())
+                    )
+                    |
+                    (
+                        (db.DatasetVersion.ts > peewee.fn.Now())
+                        &
+                        (db.DatasetAccess.is_admin == 1)
+                    )
+                )
+            )
+
+
 class GetDataset(handlers.UnsafeHandler):
     def get(self, dataset, *args, **kwargs):
         dataset = db.get_dataset(dataset)
