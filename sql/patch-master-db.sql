@@ -93,3 +93,7 @@ ALTER TABLE user_log MODIFY COLUMN
                   'access_requested','access_granted','access_revoked',
                   'private_link')       DEFAULT NULL;
 
+-- Add dataset_version.avaliable_from_ts
+
+ALTER TABLE dataset_version ADD COLUMN
+    available_from_ts   TIMESTAMP       DEFAULT CURRENT_TIMESTAMP;
