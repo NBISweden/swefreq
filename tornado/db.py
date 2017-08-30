@@ -88,14 +88,15 @@ class DatasetAccess(BaseModel):
         )
 
 class DatasetVersion(BaseModel):
-    dataset_version = PrimaryKeyField(db_column='dataset_version_pk')
-    dataset         = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset')
-    version         = CharField()
-    ts              = DateTimeField()
-    is_current      = IntegerField(null=True)
-    description     = TextField()
-    terms           = TextField()
-    var_call_ref    = CharField(null=True)
+    dataset_version   = PrimaryKeyField(db_column='dataset_version_pk')
+    dataset           = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset')
+    version           = CharField()
+    is_current        = IntegerField(null=True)
+    description       = TextField()
+    terms             = TextField()
+    var_call_ref      = CharField(null=True)
+    available_from_ts = DateTimeField()
+    ref_doi           = CharField(null=True)
 
     class Meta:
         db_table = 'dataset_version'
@@ -118,6 +119,16 @@ class DatasetLogo(BaseModel):
     class Meta:
         db_table = 'dataset_logo'
 
+class Linkhash(BaseModel):
+    linkhash        = PrimaryKeyField(db_column='linkhash_pk')
+    dataset_version = ForeignKeyField(db_column='dataset_version_pk', rel_model=DatasetVersion, to_field='dataset_version')
+    user            = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user')
+    hash            = CharField()
+    expires_ts      = DateTimeField()
+
+    class Meta:
+        db_table = 'linkhash'
+
 class EnumField(Field):
     db_field = 'string' # The same as for CharField
 
@@ -139,7 +150,7 @@ class UserLog(BaseModel):
     user_log = PrimaryKeyField(db_column='user_log_pk')
     user     = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user')
     dataset  = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset')
-    action   = EnumField(null=True, values=['consent','download','access_requested','access_granted','access_revoked'])
+    action   = EnumField(null=True, values=['consent','download','access_requested','access_granted','access_revoked','private_link'])
     ts       = DateTimeField()
 
     class Meta:
