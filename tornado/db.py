@@ -96,6 +96,7 @@ class DatasetVersion(BaseModel):
     terms             = TextField()
     var_call_ref      = CharField(null=True)
     available_from_ts = DateTimeField()
+    ref_doi           = CharField(null=True)
 
     class Meta:
         db_table = 'dataset_version'
