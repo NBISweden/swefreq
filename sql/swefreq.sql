@@ -58,12 +58,12 @@ CREATE TABLE IF NOT EXISTS dataset_version (
     dataset_version_pk  INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
     dataset_pk          INTEGER         NOT NULL,
     version             VARCHAR(20)     NOT NULL,
-    ts                  TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
     is_current          BOOLEAN         DEFAULT true,
     description         TEXT            NOT NULL,
     terms               TEXT            NOT NULL,
     var_call_ref        VARCHAR(50)     DEFAULT NULL,
     available_from_ts   TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
+    ref_doi             VARCHAR(100)    DEFAULT NULL,
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
