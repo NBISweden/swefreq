@@ -88,14 +88,14 @@ class DatasetAccess(BaseModel):
         )
 
 class DatasetVersion(BaseModel):
-    dataset_version = PrimaryKeyField(db_column='dataset_version_pk')
-    dataset         = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset')
-    version         = CharField()
-    ts              = DateTimeField()
-    is_current      = IntegerField(null=True)
-    description     = TextField()
-    terms           = TextField()
-    var_call_ref    = CharField(null=True)
+    dataset_version   = PrimaryKeyField(db_column='dataset_version_pk')
+    dataset           = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset')
+    version           = CharField()
+    is_current        = IntegerField(null=True)
+    description       = TextField()
+    terms             = TextField()
+    var_call_ref      = CharField(null=True)
+    available_from_ts = DateTimeField()
 
     class Meta:
         db_table = 'dataset_version'
