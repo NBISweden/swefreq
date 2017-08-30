@@ -98,3 +98,5 @@ ALTER TABLE user_log MODIFY COLUMN
 ALTER TABLE dataset_version ADD COLUMN
     available_from_ts   TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
     ref_doi             VARCHAR(100)    DEFAULT NULL;
+
+ALTER TABLE dataset_version DROP COLUMN ts;
