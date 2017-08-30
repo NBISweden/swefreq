@@ -77,7 +77,7 @@ UPDATE dataset_version SET var_call_ref="hg19";
 
 CREATE TABLE IF NOT EXISTS linkhash (
     linkhash_pk         INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    dataset_verison_pk  INTEGER         NOT NULL,
+    dataset_version_pk  INTEGER         NOT NULL,
     user_pk             INTEGER         NOT NULL,
     hash                VARCHAR(64)     NOT NULL,
     expires_ts          TIMESTAMP       NOT NULL,
@@ -95,8 +95,9 @@ ALTER TABLE user_log MODIFY COLUMN
 
 -- Add dataset_version.avaliable_from_ts and dataset_version.ref_doi
 
-ALTER TABLE dataset_version ADD COLUMN
+ALTER TABLE dataset_version ADD COLUMN (
     available_from_ts   TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
-    ref_doi             VARCHAR(100)    DEFAULT NULL;
+    ref_doi             VARCHAR(100)    DEFAULT NULL
+);
 
 ALTER TABLE dataset_version DROP COLUMN ts;
