@@ -27,32 +27,56 @@ class ListDatasets(handlers.UnsafeHandler):
         # List all datasets available to the current user, latest is_current
         # earliear than now OR versions that are available in the future that
         # the user is admin of.
-        q = db.Dataset.select(
-                db.Dataset, db.DatasetVersion, db.DatasetAccess, db.User
-            ).join(
-                db.DatasetVersion
-            ).switch(
-                db.Dataset
-            ).join(
-                db.DatasetAccess, peewee.JOIN.LEFT_OUTER
-            ).join(
-                db.User, peewee.JOIN.LEFT_OUTER
-            ).where(
-                ( db.User.email.is_null(True) | (db.User.email == 'johan.viklund@gmail.com')),
-                (
+        user = self.get_current_user()
+        if user:
+            q = db.Dataset.select(
+                    db.Dataset, db.DatasetVersion
+                ).join(
+                    db.DatasetVersion
+                ).switch(
+                    db.Dataset
+                ).join(
+                    db.DatasetAccess, peewee.JOIN.LEFT_OUTER
+                ).join(
+                    db.User, peewee.JOIN.LEFT_OUTER
+                ).where(
+                    db.User.email.is_null(True) | (db.User.email == user.email),
                     (
                         (db.DatasetVersion.is_current == 1)
                         &
-                        (db.DatasetVersion.ts < peewee.fn.Now())
+                        (db.DatasetVersion.available_from_ts < peewee.fn.Now())
                     )
                     |
                     (
-                        (db.DatasetVersion.ts > peewee.fn.Now())
+                        (db.DatasetVersion.available_from_ts > peewee.fn.Now())
                         &
                         (db.DatasetAccess.is_admin == 1)
                     )
                 )
-            )
+        else:
+            q = db.Dataset.select(
+                    db.Dataset, db.DatasetVersion
+                ).join(
+                    db.DatasetVersion
+                ).where(
+                    (db.DatasetVersion.is_current == 1)
+                    &
+                    (db.DatasetVersion.available_from_ts < peewee.fn.Now())
+                )
+
+        ret = []
+        for row in q:
+            ret.append({
+                'short_name':  row.short_name,
+                'full_name':   row.full_name,
+                'beacon_uri':  row.beacon_uri,
+                'browser_uri': row.browser_uri,
+                'description': row.dataset_version.description,
+                'terms':       row.dataset_version.terms,
+                'has_image':   row.has_image(),
+            })
+
+        self.finish({'data':ret})
 
 
 class GetDataset(handlers.UnsafeHandler):
