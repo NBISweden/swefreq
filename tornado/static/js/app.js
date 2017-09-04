@@ -84,21 +84,25 @@
 
     App.controller('homeController', function($http, $scope, $sce) {
         var localThis = this;
-        localThis.getDataset = function(){
-            $http.get('/api/datasets/swegen').success(function(data){
-                localThis.short_name  = data.short_name;
-                localThis.full_name   = data.full_name;
-                localThis.beacon_uri  = data.beacon_uri;
-                localThis.browser_uri = data.browser_uri;
-                localThis.description = data.description;
-                localThis.terms       = data.terms;
-                localThis.has_image   = data.has_image;
+        localThis.datasets = [];
+        localThis.getDatasets = function(){
+            $http.get('/api/datasets').success(function(res){
+                var len = res.data.length;
+                for (var i = 0; i < len; i++) {
+                    d = res.data[i];
+                    localThis.datasets.push({
+                        'short_name':  d.short_name,
+                        'full_name':   d.full_name,
+                        'beacon_uri':  d.beacon_uri,
+                        'browser_uri': d.browser_uri,
+                        'description': $sce.trustAsHtml(d.description),
+                        'terms':       d.terms,
+                        'has_image':   d.has_image
+                    });
+                }
             });
         };
-        localThis.getDataset();
-        localThis.getDescription = function(){
-            return $sce.trustAsHtml(localThis.description);
-        };
+        localThis.getDatasets();
     });
 
     /////////////////////////////////////////////////////////////////////////////////////
