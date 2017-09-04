@@ -21,18 +21,8 @@ class BaseHandler(tornado.web.RequestHandler):
         """
         raise tornado.web.HTTPError(404, reason='Page not found')
 
-    def template_loader(self):
-        if not hasattr(self, '_loader'):
-            self._loader = template.Loader("templates/")
-        return self._loader
-
     def prepare(self):
         db.database.connect()
-        try:
-            self.dataset = db.Dataset.select().where( db.Dataset.short_name == 'SweGen').get()
-        except peewee.DoesNotExist:
-            ## TODO Can't find dataset, should return a 404 page.
-            pass
 
     def on_finish(self):
         db.database.close()
@@ -60,36 +50,6 @@ class BaseHandler(tornado.web.RequestHandler):
         if user:
             return user.name
         return None
-
-    def is_admin(self):
-        user = self.current_user
-        if not user:
-            return False
-
-        try:
-            db.DatasetAccess.select().where(
-                    db.DatasetAccess.user == user,
-                    db.DatasetAccess.dataset == self.dataset,
-                    db.DatasetAccess.is_admin
-                ).get()
-            return True
-        except peewee.DoesNotExist:
-            return False
-
-    def is_authorized(self):
-        user = self.current_user
-        if not user:
-            return False
-
-        try:
-            db.DatasetAccess.select().where(
-                    db.DatasetAccess.user == user,
-                    db.DatasetAccess.dataset == self.dataset,
-                    db.DatasetAccess.has_access
-                ).get()
-            return True
-        except peewee.DoesNotExist:
-            return False
 
     def write_error(self, status_code, **kwargs):
         """ Overwrites write_error method to have custom error pages.

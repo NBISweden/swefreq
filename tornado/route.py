@@ -23,39 +23,40 @@ settings = {"debug": False,
                 "secret": settings.google_secret
             },
             "contact_person": 'mats.dahlberg@scilifelab.se',
-            "redirect_uri": redirect_uri
+            "redirect_uri": redirect_uri,
+            "template_path": "templates/"
         }
 
 class Application(tornado.web.Application):
     def __init__(self, settings):
         self.declared_handlers = [
             ## Static handlers
-            (r"/static/(.*)",                         tornado.web.StaticFileHandler,              {"path": "static/"}),
-            (r'/(favicon.ico)',                       tornado.web.StaticFileHandler,              {"path": "static/img/"}),
-            (r"/release/(.*)",                        handlers.AuthorizedStaticNginxFileHanlder,  {"path": "/release-files/"}),
+            (r"/static/(.*)",                             tornado.web.StaticFileHandler,              {"path": "static/"}),
+            (r'/(favicon.ico)',                           tornado.web.StaticFileHandler,              {"path": "static/img/"}),
+            (r"/release/(.*)",                            handlers.AuthorizedStaticNginxFileHanlder,  {"path": "/release-files/"}),
             ## Authentication
-            ("/login",                                handlers.LoginHandler),
-            ("/logout",                               handlers.LogoutHandler),
+            ("/login",                                    handlers.LoginHandler),
+            ("/logout",                                   handlers.LogoutHandler),
             ## API Methods
-            ("/api/logEvent/(?P<sEvent>[^\/]+)",      application.LogEvent),
-            ("/api/getUser",                          application.GetUser),
-            ("/api/getDataset",                       application.GetDataset),
-            ("/api/requestAccess",                    application.RequestAccess),
-            ("/api/country_list",                     application.CountryList),
-            ("/api/dataset_logo/(?P<dataset>[^\/]+)", application.ServeLogo),
+            ("/api/countries",                                  application.CountryList),
+            ("/api/users/me",                                   application.GetUser),
+            ### Dataset Api
+            ("/api/datasets",                                                     application.ListDatasets),
+            ("/api/datasets/(?P<dataset>[^\/]+)",                                 application.GetDataset),
+            ("/api/datasets/(?P<dataset>[^\/]+)/log/(?P<sEvent>[^\/]+)",          application.LogEvent),
+            ("/api/datasets/(?P<dataset>[^\/]+)/logo",                            application.ServeLogo),
+            ("/api/datasets/(?P<dataset>[^\/]+)/users",                           application.DatasetUsers),
+            ("/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/request", application.RequestAccess),
+            ("/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/approve", application.ApproveUser),
+            ("/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/revoke",  application.RevokeUser),
             ### Beacon API
-            ("/api/query",                            beacon.Query),
-            ("/api/info",                             beacon.Info),
+            ("/api/query",                                beacon.Query),
+            ("/api/info",                                 beacon.Info),
             # # # # # Legacy beacon URIs # # # # #
-            ("/query",                                beacon.Query),
-            ("/info",                                 tornado.web.RedirectHandler, {"url": "/api/info"}),
-            ### Admin API
-            ("/api/getApprovedUsers",                 application.GetApprovedUsers),
-            ("/api/approveUser/(?P<sEmail>[^\/]+)",   application.ApproveUser),
-            ("/api/revokeUser/(?P<sEmail>[^\/]+)",    application.RevokeUser),
-            ("/api/getOutstandingRequests",           application.GetOutstandingRequests),
+            ("/query",                                    beacon.Query),
+            ("/info",                                     tornado.web.RedirectHandler, {"url": "/api/info"}),
             ## Catch all
-            (r'.*',                                   application.Home),
+            (r'.*',                                       application.Home),
         ]
 
         # google oauth key

@@ -174,3 +174,7 @@ def get_outstanding_requests(dataset):
             UserLog,
             fn.Max(UserLog.ts).alias('apply_date')
         )
+
+def get_dataset(dataset):
+    dataset = Dataset.select().where( Dataset.short_name == dataset).get()
+    return dataset

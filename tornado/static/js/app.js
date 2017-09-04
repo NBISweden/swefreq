@@ -68,7 +68,7 @@
         localThis.data = gData;
 
         this.getUsers = function(){
-            $http.get('/api/getUser').success(function(data){
+            $http.get('/api/users/me').success(function(data){
                 console.log(data);
                 localThis.data.userName = data.user;
                 localThis.data.email = data.email;
@@ -84,21 +84,25 @@
 
     App.controller('homeController', function($http, $scope, $sce) {
         var localThis = this;
-        localThis.getDataset = function(){
-            $http.get('/api/getDataset').success(function(data){
-                localThis.short_name  = data.short_name;
-                localThis.full_name   = data.full_name;
-                localThis.beacon_uri  = data.beacon_uri;
-                localThis.browser_uri = data.browser_uri;
-                localThis.description = data.description;
-                localThis.terms       = data.terms;
-                localThis.has_image   = data.has_image;
+        localThis.datasets = [];
+        localThis.getDatasets = function(){
+            $http.get('/api/datasets').success(function(res){
+                var len = res.data.length;
+                for (var i = 0; i < len; i++) {
+                    d = res.data[i];
+                    localThis.datasets.push({
+                        'short_name':  d.short_name,
+                        'full_name':   d.full_name,
+                        'beacon_uri':  d.beacon_uri,
+                        'browser_uri': d.browser_uri,
+                        'description': $sce.trustAsHtml(d.description),
+                        'terms':       d.terms,
+                        'has_image':   d.has_image
+                    });
+                }
             });
         };
-        localThis.getDataset();
-        localThis.getDescription = function(){
-            return $sce.trustAsHtml(localThis.description);
-        };
+        localThis.getDatasets();
     });
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -110,7 +114,7 @@
         localThis.data = gData;
 
         this.getUsers = function(){
-            $http.get('/api/getUser').success(function(data){
+            $http.get('/api/users/me').success(function(data){
                 console.log(data);
                 localThis.data.userName = data.user;
                 localThis.data.email = data.email;
@@ -118,10 +122,13 @@
                 localThis.data.has_requested_access = data.has_requested_access;
                 localThis.data.admin = data.admin;
                 if(data.admin == true){
-                    $http.get('/api/getOutstandingRequests').success(function(data){
+                    // TODO: Change this to one call that is then filtered into
+                    // the two different datasets? Or just filter in the view.
+                    // This is currently broken.
+                    $http.get('/api/datasets/swegen/users').success(function(data){
                         localThis.data.requests = data;
                     });
-                    $http.get('/api/getApprovedUsers').success(function(data){
+                    $http.get('/api/datasets/swegen/users').success(function(data){
                         localThis.data.approvedUsers = data;
                         localThis.data.emails = []
                         for (var idx in data) {
@@ -137,14 +144,14 @@
         this.getUsers();
 
         this.revokeUser = function(userData){
-            $http.get('/api/revokeUser/' + userData.email).success(function(data){
+            $http.get('/api/datasets/swegen/users/' + userData.email + '/revoke').success(function(data){
                 localThis.getUsers();
             });
         };
 
         this.approvedUser = function(userData){
-            $http.get('/api/approveUser/' + userData.email).success(function(data){
-                $http.get('/api/getOutstandingRequests').success(function(data){
+            $http.get('/api/datasets/swegen/users/' + userData.email + '/approve').success(function(data){
+                $http.get('/api/datasets/swegen/users/').success(function(data){
                     localThis.getUsers();
                 });
             });
@@ -192,7 +199,7 @@
         localThis.data = gData;
         this.isChecked = function(){
             if(localThis.lChecked){
-                $http.get('/api/logEvent/consent').success(function(data){
+                $http.get('/api/log/consent').success(function(data){
                     console.log('Consented');
                 });
             }
@@ -201,13 +208,13 @@
         };
 
         this.downloadData = function(){
-            $http.get('/api/logEvent/download').success(function(data){
+            $http.get('/api/log/download').success(function(data){
                 console.log("Downloading")
             });
         };
 
         localThis.getDataset = function(){
-            $http.get('/api/getDataset').success(function(data){
+            $http.get('/api/datasets/swegen').success(function(data){
                 localThis.short_name  = data.short_name;
                 localThis.full_name   = data.full_name;
                 localThis.description = data.description;
@@ -229,7 +236,7 @@
         var localThis = this;
         localThis.data = gData;
         localThis.data.newsletter = true;
-        $http.get('/api/country_list').success(function(data) {
+        $http.get('/api/countries').success(function(data) {
             localThis.data['availableCountries'] = data['countries'];
         });
 
@@ -238,7 +245,7 @@
                 return;
             }
             $http.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded";
-            $http({url:'/api/requestAccess',
+            $http({url:'/api/datasets/swegen/users/' + localThis.data.email + '/request',
                    method:'POST',
                    data:$.param({'email':localThis.data.email,
                                  'userName':localThis.data.userName,

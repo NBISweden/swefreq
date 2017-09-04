@@ -13,39 +13,89 @@ import settings
 
 class Home(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
-        t = self.template_loader().load("index.html")
-
-        has_access = self.is_authorized()
-        is_admin   = self.is_admin()
-
         name = None
         email = None
         if self.current_user:
             name = self.current_user.name
             email = self.current_user.email
 
-        self.write(t.generate(user_name  = name,
-                              has_access = has_access,
-                              email      = email,
-                              is_admin   = is_admin,
-                              ExAC       = settings.exac_server))
+        self.render('index.html', user_name=name, email=email)
+
+
+class ListDatasets(handlers.UnsafeHandler):
+    def get(self):
+        # List all datasets available to the current user, latest is_current
+        # earliear than now OR versions that are available in the future that
+        # the user is admin of.
+        user = self.get_current_user()
+        if user:
+            q = db.Dataset.select(
+                    db.Dataset, db.DatasetVersion
+                ).join(
+                    db.DatasetVersion
+                ).switch(
+                    db.Dataset
+                ).join(
+                    db.DatasetAccess, peewee.JOIN.LEFT_OUTER
+                ).join(
+                    db.User, peewee.JOIN.LEFT_OUTER
+                ).where(
+                    db.User.email.is_null(True) | (db.User.email == user.email),
+                    (
+                        (db.DatasetVersion.is_current == 1)
+                        &
+                        (db.DatasetVersion.available_from_ts < peewee.fn.Now())
+                    )
+                    |
+                    (
+                        (db.DatasetVersion.available_from_ts > peewee.fn.Now())
+                        &
+                        (db.DatasetAccess.is_admin == 1)
+                    )
+                )
+        else:
+            q = db.Dataset.select(
+                    db.Dataset, db.DatasetVersion
+                ).join(
+                    db.DatasetVersion
+                ).where(
+                    (db.DatasetVersion.is_current == 1)
+                    &
+                    (db.DatasetVersion.available_from_ts < peewee.fn.Now())
+                )
+
+        ret = []
+        for row in q:
+            ret.append({
+                'short_name':  row.short_name,
+                'full_name':   row.full_name,
+                'beacon_uri':  row.beacon_uri,
+                'browser_uri': row.browser_uri,
+                'description': row.dataset_version.description,
+                'terms':       row.dataset_version.terms,
+                'has_image':   row.has_image(),
+            })
+
+        self.finish({'data':ret})
 
 
 class GetDataset(handlers.UnsafeHandler):
-    def get(self, *args, **kwargs):
-        current_version = self.dataset.current_version()
+    def get(self, dataset, *args, **kwargs):
+        dataset = db.get_dataset(dataset)
+
+        current_version = dataset.current_version()
         files = [{'name': f.name, 'uri': f.uri} for f in current_version.datasetfile_set]
 
         ret = {
-            'short_name': self.dataset.short_name,
-            'full_name': self.dataset.full_name,
-            'beacon_uri': self.dataset.beacon_uri,
-            'browser_uri': self.dataset.browser_uri,
+            'short_name':  dataset.short_name,
+            'full_name':   dataset.full_name,
+            'beacon_uri':  dataset.beacon_uri,
+            'browser_uri': dataset.browser_uri,
             'description': current_version.description,
-            'terms': current_version.terms,
-            'version': current_version.version,
-            'has_image': self.dataset.has_image(),
-            'files': files
+            'terms':       current_version.terms,
+            'version':     current_version.version,
+            'has_image':   dataset.has_image(),
+            'files':       files
         }
 
         self.finish(json.dumps(ret))
@@ -55,39 +105,12 @@ class GetUser(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         user = self.current_user
 
-        ret = {
-                'user': None,
-                'email': None,
-                'trusted': False,
-                'admin': False,
-                'has_requested_access': False
-        }
+        ret = { 'user': None, 'email': None }
         if user:
-            ### TODO there should probably be another way to figure out whether
-            ## someone already has access or not. REST-endpoint or something
-            ## similar, not really sure yet how this should be handled. I'm adding
-            ## it here now so we can get the information to the browser.
+            ret = { 'user': user.name, 'email': user.email }
 
-            has_requested_access = False
-            try:
-                db.DatasetAccess.select().where(
-                        db.DatasetAccess.user == user,
-                        db.DatasetAccess.dataset == self.dataset).get()
-                has_requested_access = True
-            except:
-                has_requested_access = False
-
-
-            ret = {
-                    'user':         user.name,
-                    'email':        user.email,
-                    'trusted':      self.is_authorized(),
-                    'admin':        self.is_admin(),
-                    'has_requested_access': has_requested_access
-            }
-
-        logging.info("getUser: " + str(ret['user']) + ' ' + str(ret['email']))
         self.finish(json.dumps(ret))
+
 
 class CountryList(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
@@ -151,7 +174,7 @@ class CountryList(handlers.UnsafeHandler):
 
 
 class RequestAccess(handlers.SafeHandler):
-    def get(self, *args, **kwargs):
+    def get(self, dataset, *args, **kwargs):
         user = self.current_user
         name = user.name
         email = user.email
@@ -159,7 +182,9 @@ class RequestAccess(handlers.SafeHandler):
         logging.info("Request: " + name + ' ' + email)
         self.finish(json.dumps({'user':name, 'email':email}))
 
-    def post(self, *args, **kwargs):
+    def post(self, dataset, *args, **kwargs):
+        dataset = db.get_dataset(dataset)
+
         userName    = self.get_argument("userName", default='',strip=False)
         email       = self.get_argument("email", default='', strip=False)
         affiliation = self.get_argument("affiliation", strip=False)
@@ -182,12 +207,12 @@ class RequestAccess(handlers.SafeHandler):
                 user.save() # Save to database
                 db.DatasetAccess.create(
                         user             = user,
-                        dataset          = self.dataset,
+                        dataset          = dataset,
                         wants_newsletter = newsletter
                     )
                 db.UserLog.create(
                         user = user,
-                        dataset = self.dataset,
+                        dataset = dataset,
                         action = 'access_requested'
                     )
         except Exception as e:
@@ -195,34 +220,36 @@ class RequestAccess(handlers.SafeHandler):
 
 
 class LogEvent(handlers.SafeHandler):
-    def get(self, sEvent):
+    def get(self, dataset, sEvent):
         user = self.current_user
 
         ok_events = ['download','consent']
         if sEvent in ok_events:
             db.UserLog.create(
                     user = user,
-                    dataset = self.dataset,
+                    dataset = db.get_dataset(dataset),
                     action = sEvent
                 )
         else:
             raise tornado.web.HTTPError(400, reason="Can't log that")
 
 class ApproveUser(handlers.AdminHandler):
-    def get(self, sEmail):
+    def get(self, dataset, sEmail):
         with db.database.atomic():
+            dataset = db.get_dataset(dataset)
+
             user = db.User.select().where(db.User.email == sEmail).get()
 
             da = db.DatasetAccess.select().where(
                         db.DatasetAccess.user == user,
-                        db.DatasetAccess.dataset == self.dataset
+                        db.DatasetAccess.dataset == dataset
                 ).get()
             da.has_access = True
             da.save()
 
             db.UserLog.create(
                     user = user,
-                    dataset = self.dataset,
+                    dataset = dataset,
                     action = 'access_granted'
                 )
 
@@ -239,12 +266,13 @@ class ApproveUser(handlers.AdminHandler):
 
 
 class RevokeUser(handlers.AdminHandler):
-    def get(self, sEmail):
+    def get(self, dataset, sEmail):
         if self.current_user.email == sEmail:
             # Don't let the admin delete hens own account
             return
 
         with db.database.atomic():
+            dataset = db.get_dataset(dataset)
             user = db.User.select().where(db.User.email == sEmail).get()
 
             da = db.DatasetAccess.select(
@@ -252,39 +280,22 @@ class RevokeUser(handlers.AdminHandler):
                         db.User
                     ).where(
                         db.User.email == sEmail,
-                        db.DatasetAccess.dataset == self.dataset
+                        db.DatasetAccess.dataset == dataset
                     ).get()
             da.delete_instance()
 
             db.UserLog.create(
                     user = user,
-                    dataset = self.dataset,
+                    dataset = dataset,
                     action = 'access_revoked'
                 )
 
-class GetOutstandingRequests(handlers.SafeHandler):
-    def get(self, *args, **kwargs):
-        requests = db.get_outstanding_requests(self.dataset)
 
-        json_response = []
-        for request in requests:
-            apply_date = request.apply_date.strftime('%Y-%m-%d')
-            json_response.append({
-                'user':        request.name,
-                'email':       request.email,
-                'affiliation': request.affiliation,
-                'country':     request.country,
-                'applyDate':   apply_date
-            })
-
-        self.finish(json.dumps(json_response))
-
-class GetApprovedUsers(handlers.SafeHandler):
-    def get(self, *args, **kwargs):
-        ## All users that have access to the dataset and how many times they have
-        ## downloaded it
+class DatasetUsers(handlers.SafeHandler):
+    def get(self, dataset, *args, **kwargs):
+        dataset = db.get_dataset(dataset)
         query = db.User.select(
-                db.User, db.DatasetAccess.wants_newsletter
+                db.User, db.DatasetAccess.wants_newsletter, db.DatasetAccess.has_access
             ).join(
                 db.DatasetAccess
             ).switch(
@@ -297,8 +308,7 @@ class GetApprovedUsers(handlers.SafeHandler):
                      & (db.UserLog.dataset  == db.DatasetAccess.dataset)
                 )
             ).where(
-                db.DatasetAccess.dataset    == self.dataset,
-                db.DatasetAccess.has_access == 1
+                db.DatasetAccess.dataset    == dataset,
             ).annotate(db.UserLog)
 
         json_response = []
@@ -309,7 +319,8 @@ class GetApprovedUsers(handlers.SafeHandler):
                     'affiliation':   user.affiliation,
                     'country':       user.country,
                     'downloadCount': user.count,
-                    'newsletter':    user.dataset_access.wants_newsletter
+                    'newsletter':    user.dataset_access.wants_newsletter,
+                    'has_access':    user.dataset_access.has_access
                 })
 
         self.finish(json.dumps(json_response))
