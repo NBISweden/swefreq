@@ -28,7 +28,7 @@ class Study(BaseModel):
 
 class SampleSet(BaseModel):
     sample_set  = PrimaryKeyField(db_column='sample_set_pk')
-    study       = ForeignKeyField(db_column='study_pk', rel_model=Study, to_field='study')
+    study       = ForeignKeyField(db_column='study_pk', rel_model=Study, to_field='study', related_name='sample_set')
     ethnicity   = CharField(null=True)
     collection  = CharField(null=True)
     sample_size = IntegerField()
@@ -38,7 +38,7 @@ class SampleSet(BaseModel):
 
 class Dataset(BaseModel):
     dataset       = PrimaryKeyField(db_column='dataset_pk')
-    sample_set    = ForeignKeyField(db_column='sample_set_pk', rel_model=SampleSet, to_field='sample_set')
+    sample_set    = ForeignKeyField(db_column='sample_set_pk', rel_model=SampleSet, to_field='sample_set', related_name='datasets')
     short_name    = CharField()
     full_name     = CharField()
     browser_uri   = CharField(null=True)
@@ -74,8 +74,8 @@ class User(BaseModel):
 
 class DatasetAccess(BaseModel):
     dataset_access   = PrimaryKeyField(db_column='dataset_access_pk')
-    dataset          = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset')
-    user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user')
+    dataset          = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='access')
+    user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='access')
     wants_newsletter = IntegerField(null=True)
     is_admin         = IntegerField(null=True)
     has_consented    = IntegerField(null=True)
@@ -89,7 +89,7 @@ class DatasetAccess(BaseModel):
 
 class DatasetVersion(BaseModel):
     dataset_version   = PrimaryKeyField(db_column='dataset_version_pk')
-    dataset           = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset')
+    dataset           = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='versions')
     version           = CharField()
     is_current        = IntegerField(null=True)
     description       = TextField()
@@ -103,7 +103,7 @@ class DatasetVersion(BaseModel):
 
 
 class DatasetVersionCurrent(DatasetVersion):
-    dataset = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name="current_version")
+    dataset = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='current_version')
 
     class Meta:
         db_table = 'dataset_version_current'
@@ -111,7 +111,7 @@ class DatasetVersionCurrent(DatasetVersion):
 
 class DatasetFile(BaseModel):
     dataset_file    = PrimaryKeyField(db_column='dataset_file_pk')
-    dataset_version = ForeignKeyField(db_column='dataset_version_pk', rel_model=DatasetVersion, to_field='dataset_version')
+    dataset_version = ForeignKeyField(db_column='dataset_version_pk', rel_model=DatasetVersion, to_field='dataset_version', related_name='files')
     name            = CharField()
     uri             = CharField()
 
@@ -120,7 +120,7 @@ class DatasetFile(BaseModel):
 
 class DatasetLogo(BaseModel):
     dataset_logo = PrimaryKeyField(db_column='dataset_logo_pk')
-    dataset      = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset')
+    dataset      = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='logo')
     mimetype     = CharField()
     data         = BlobField()
 
@@ -129,8 +129,8 @@ class DatasetLogo(BaseModel):
 
 class Linkhash(BaseModel):
     linkhash        = PrimaryKeyField(db_column='linkhash_pk')
-    dataset_version = ForeignKeyField(db_column='dataset_version_pk', rel_model=DatasetVersion, to_field='dataset_version')
-    user            = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user')
+    dataset_version = ForeignKeyField(db_column='dataset_version_pk', rel_model=DatasetVersion, to_field='dataset_version', related_name='link_hashes')
+    user            = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='link_hashes')
     hash            = CharField()
     expires_ts      = DateTimeField()
 
@@ -156,8 +156,8 @@ class EnumField(Field):
 
 class UserLog(BaseModel):
     user_log = PrimaryKeyField(db_column='user_log_pk')
-    user     = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user')
-    dataset  = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset')
+    user     = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='logs')
+    dataset  = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='logs')
     action   = EnumField(null=True, values=['consent','download','access_requested','access_granted','access_revoked','private_link'])
     ts       = DateTimeField()
 
