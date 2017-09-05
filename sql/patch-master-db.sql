@@ -101,3 +101,12 @@ ALTER TABLE dataset_version ADD COLUMN (
 );
 
 ALTER TABLE dataset_version DROP COLUMN ts;
+
+-- add the view
+
+CREATE OR REPLACE VIEW dataset_version_current AS
+    SELECT * FROM dataset_version
+    WHERE (dataset_pk,dataset_version_pk) IN (
+        SELECT dataset_pk, MAX(dataset_version_pk) FROM dataset_version
+        WHERE available_from_ts < now()
+        GROUP BY dataset_pk );
