@@ -126,4 +126,5 @@ CREATE OR REPLACE VIEW dataset_version_current AS
     SELECT * FROM dataset_version
     WHERE (dataset_pk,version) IN (
         SELECT dataset_pk, MAX(version) FROM dataset_version
-        GROUP BY dataset_pk );
+        GROUP BY dataset_pk
+        HAVING available_from_ts < now() );
