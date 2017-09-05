@@ -118,3 +118,12 @@ CREATE TABLE IF NOT EXISTS sample_set (
     sample_size         INTEGER         NOT NULL,
     CONSTRAINT FOREIGN KEY (study_pk) REFERENCES study(study_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- dataset_version_current, a view that only contains the (most) current
+-- version of each entry dataset_version
+
+CREATE OR REPLACE VIEW dataset_version_current AS
+    SELECT * FROM dataset_version
+    WHERE (dataset_pk,version) IN (
+        SELECT dataset_pk, MAX(version) FROM dataset_version
+        GROUP BY dataset_pk );
