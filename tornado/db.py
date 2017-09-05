@@ -101,6 +101,14 @@ class DatasetVersion(BaseModel):
     class Meta:
         db_table = 'dataset_version'
 
+
+class DatasetVersionCurrent(DatasetVersion):
+    dataset = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name="current_version")
+
+    class Meta:
+        db_table = 'dataset_version_current'
+
+
 class DatasetFile(BaseModel):
     dataset_file    = PrimaryKeyField(db_column='dataset_file_pk')
     dataset_version = ForeignKeyField(db_column='dataset_version_pk', rel_model=DatasetVersion, to_field='dataset_version')
