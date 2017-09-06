@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS dataset_version (
     description         TEXT            NOT NULL,
     terms               TEXT            NOT NULL,
     var_call_ref        VARCHAR(50)     DEFAULT NULL,
-    available_from_ts   TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
+    available_from      TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
     ref_doi             VARCHAR(100)    DEFAULT NULL,
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS linkhash (
     dataset_verison_pk  INTEGER         NOT NULL,
     user_pk             INTEGER         NOT NULL,
     hash                VARCHAR(64)     NOT NULL,
-    expires_ts          TIMESTAMP       NOT NULL,
+    expires_on          TIMESTAMP       NOT NULL,
     CONSTRAINT FOREIGN KEY (dataset_version_pk)
         REFERENCES dataset_version(dataset_version_pk),
     CONSTRAINT FOREIGN KEY (user_pk) REFERENCES user(user_pk)
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS study (
     contact_email       VARCHAR(100)    NOT NULL,
     title               VARCHAR(100)    NOT NULL,
     description         TEXT            DEFAULT NULL,
-    ts                  TIMESTAMP       NOT NULL,
+    publication_date    DATE            NOT NULL,
     ref_doi             VARCHAR(100)    DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -126,5 +126,5 @@ CREATE OR REPLACE VIEW dataset_version_current AS
     SELECT * FROM dataset_version
     WHERE (dataset_pk,dataset_version_pk) IN (
         SELECT dataset_pk, MAX(dataset_version_pk) FROM dataset_version
-        WHERE available_from_ts < now()
+        WHERE available_from < now()
         GROUP BY dataset_pk );
