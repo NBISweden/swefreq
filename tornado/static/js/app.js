@@ -90,15 +90,9 @@
                 var len = res.data.length;
                 for (var i = 0; i < len; i++) {
                     d = res.data[i];
-                    localThis.datasets.push({
-                        'short_name':  d.short_name,
-                        'full_name':   d.full_name,
-                        'beacon_uri':  d.beacon_uri,
-                        'browser_uri': d.browser_uri,
-                        'description': $sce.trustAsHtml(d.description),
-                        'terms':       d.terms,
-                        'has_image':   d.has_image
-                    });
+                    d.version.description = $sce.trustAsHtml(d.version.description)
+
+                    localThis.datasets.push(d);
                 }
             });
         };
