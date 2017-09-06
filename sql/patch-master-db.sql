@@ -31,7 +31,7 @@ INSERT INTO study
         publication_date, ref_doi)
 VALUES  (1, "Ulf Gyllensten", "Ulf.Gyllensten@igp.uu.se",
         "the SweGen project", "swegen@scilifelab.se",
-        "SweGen", '2017-08-23', "10.1038/ejhg.2017.130");
+        "SweGen", '2016-12-23', "10.1038/ejhg.2017.130");
 
 INSERT INTO sample_set
         (study_pk, sample_size, ethnicity, collection)
