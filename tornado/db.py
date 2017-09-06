@@ -13,15 +13,15 @@ class BaseModel(Model):
         database = database
 
 class Study(BaseModel):
-    study         = PrimaryKeyField(db_column='study_pk')
-    pi_name       = CharField()
-    pi_email      = CharField()
-    contact_name  = CharField()
-    contact_email = CharField()
-    title         = CharField()
-    description   = TextField(null=True)
-    ts            = DateTimeField()
-    ref_doi       = CharField(null=True)
+    study            = PrimaryKeyField(db_column='study_pk')
+    pi_name          = CharField()
+    pi_email         = CharField()
+    contact_name     = CharField()
+    contact_email    = CharField()
+    title            = CharField()
+    description      = TextField(null=True)
+    publication_date = DateTimeField()
+    ref_doi          = CharField(null=True)
 
     class Meta:
         db_table = 'study'
@@ -88,15 +88,15 @@ class DatasetAccess(BaseModel):
         )
 
 class DatasetVersion(BaseModel):
-    dataset_version   = PrimaryKeyField(db_column='dataset_version_pk')
-    dataset           = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='versions')
-    version           = CharField()
-    is_current        = IntegerField(null=True)
-    description       = TextField()
-    terms             = TextField()
-    var_call_ref      = CharField(null=True)
-    available_from_ts = DateTimeField()
-    ref_doi           = CharField(null=True)
+    dataset_version = PrimaryKeyField(db_column='dataset_version_pk')
+    dataset         = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='versions')
+    version         = CharField()
+    is_current      = IntegerField(null=True)
+    description     = TextField()
+    terms           = TextField()
+    var_call_ref    = CharField(null=True)
+    available_from  = DateTimeField()
+    ref_doi         = CharField(null=True)
 
     class Meta:
         db_table = 'dataset_version'
@@ -132,7 +132,7 @@ class Linkhash(BaseModel):
     dataset_version = ForeignKeyField(db_column='dataset_version_pk', rel_model=DatasetVersion, to_field='dataset_version', related_name='link_hashes')
     user            = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='link_hashes')
     hash            = CharField()
-    expires_ts      = DateTimeField()
+    expires_on      = DateTimeField()
 
     class Meta:
         db_table = 'linkhash'
