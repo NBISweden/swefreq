@@ -22,6 +22,32 @@ class Home(handlers.UnsafeHandler):
         self.render('index.html', user_name=name, email=email)
 
 
+def build_dataset_structure(dataset_version, user=None, dataset=None):
+    if dataset is None:
+        dataset = dataset_version.dataset.get()
+    r = {}
+    for key in ['short_name', 'full_name', 'browser_uri',
+            'beacon_uri', 'avg_seq_depth', 'seq_type', 'seq_tech',
+            'seq_center', 'dataset_size']:
+        r[key] = getattr(dataset, key)
+
+    r['version'] = {}
+    for key in ['version', 'description', 'terms', 'var_call_ref', 'available_from']:
+        r['version'][key] = getattr(dataset_version, key)
+    r['version']['available_from'] = r['version']['available_from'].strftime('%Y-%m-%d %H:%M')
+
+    r['has_image']  = dataset.has_image()
+    r['is_admin']   = False
+    r['has_access'] = False
+
+    if user:
+        if user.has_access(dataset):
+            r['has_access'] = True
+        if user.is_admin(dataset):
+            r['is_admin'] = True
+
+    return r
+
 class ListDatasets(handlers.UnsafeHandler):
     def get(self):
         # List all datasets available to the current user, latest is_current
@@ -31,53 +57,21 @@ class ListDatasets(handlers.UnsafeHandler):
 
         ret = []
         for version in db.DatasetVersionCurrent.select():
-            dataset = version.dataset.get()
-            r = {}
-            for key in ['short_name', 'full_name', 'browser_uri',
-                    'beacon_uri', 'avg_seq_depth', 'seq_type', 'seq_tech',
-                    'seq_center', 'dataset_size']:
-                r[key] = getattr(dataset, key)
-
-            r['version'] = {}
-            for key in ['version', 'description', 'terms', 'var_call_ref', 'available_from']:
-                r['version'][key] = getattr(version, key)
-            r['version']['available_from'] = r['version']['available_from'].strftime('%Y-%m-%d %H:%M')
-
-            r['has_image']  = dataset.has_image()
-            r['is_admin']   = False
-            r['has_access'] = False
-
-            if user:
-                if user.has_access(dataset):
-                    r['has_access'] = True
-                if user.is_admin(dataset):
-                    r['is_admin'] = True
-
-            ret.append(r)
+            ret.append( build_dataset_structure(version, user) )
 
         self.finish({'data':ret})
 
 
 class GetDataset(handlers.UnsafeHandler):
     def get(self, dataset, *args, **kwargs):
+        user = self.get_current_user()
+
         dataset = db.get_dataset(dataset)
+        current_version = dataset.current_version.get()
 
-        current_version = dataset.current_version()
-        files = [{'name': f.name, 'uri': f.uri} for f in current_version.datasetfile_set]
+        ret = build_dataset_structure(current_version, user, dataset)
 
-        ret = {
-            'short_name':  dataset.short_name,
-            'full_name':   dataset.full_name,
-            'beacon_uri':  dataset.beacon_uri,
-            'browser_uri': dataset.browser_uri,
-            'description': current_version.description,
-            'terms':       current_version.terms,
-            'version':     current_version.version,
-            'has_image':   dataset.has_image(),
-            'files':       files
-        }
-
-        self.finish(json.dumps(ret))
+        self.finish(ret)
 
 
 class GetUser(handlers.UnsafeHandler):
