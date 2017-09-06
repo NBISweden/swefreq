@@ -25,16 +25,9 @@ class Home(handlers.UnsafeHandler):
 def build_dataset_structure(dataset_version, user=None, dataset=None):
     if dataset is None:
         dataset = dataset_version.dataset
+    r = db.build_dict_from_row(dataset)
 
-    r = {}
-    for key in ['short_name', 'full_name', 'browser_uri',
-            'beacon_uri', 'avg_seq_depth', 'seq_type', 'seq_tech',
-            'seq_center', 'dataset_size']:
-        r[key] = getattr(dataset, key)
-
-    r['version'] = {}
-    for key in ['version', 'description', 'terms', 'var_call_ref', 'available_from']:
-        r['version'][key] = getattr(dataset_version, key)
+    r['version'] = db.build_dict_from_row(dataset_version)
     r['version']['available_from'] = r['version']['available_from'].strftime('%Y-%m-%d %H:%M')
 
     r['has_image']  = dataset.has_image()
