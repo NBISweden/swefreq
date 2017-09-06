@@ -63,6 +63,23 @@ class ListDatasets(handlers.UnsafeHandler):
         self.finish({'data':ret})
 
 
+class SampleSet(handlers.UnsafeHandler):
+    def get(self, dataset, *args, **kwargs):
+        user = self.get_current_user()
+        dataset = db.get_dataset(dataset)
+
+        sample_set = dataset.sample_set
+        study      = sample_set.study
+
+        ret = {
+            'sample_set': db.build_dict_from_row(sample_set),
+            'study':      db.build_dict_from_row(study)
+        }
+        ret['study']['publication_date'] = ret['study']['publication_date'].strftime('%Y-%m-%d')
+
+        self.finish(ret)
+
+
 class GetDataset(handlers.UnsafeHandler):
     def get(self, dataset, *args, **kwargs):
         user = self.get_current_user()
