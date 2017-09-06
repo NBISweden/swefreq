@@ -9,7 +9,7 @@
                      <div ng-if="dataset.has_image">
                          <img ng-src="/api/datasets/{{dataset.short_name}}/logo" class="dataset-logo" alt='{{ dataset.short_name }} logo' />
                      </div>
-                     <div ng-bind-html="dataset.description" />
+                     <div ng-bind-html="dataset.version.description" />
                  </div>
                  <div class="dataset-links">
                      <li><a href="#">More information</a></li>

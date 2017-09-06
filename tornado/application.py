@@ -24,7 +24,8 @@ class Home(handlers.UnsafeHandler):
 
 def build_dataset_structure(dataset_version, user=None, dataset=None):
     if dataset is None:
-        dataset = dataset_version.dataset.get()
+        dataset = dataset_version.dataset
+
     r = {}
     for key in ['short_name', 'full_name', 'browser_uri',
             'beacon_uri', 'avg_seq_depth', 'seq_type', 'seq_tech',
