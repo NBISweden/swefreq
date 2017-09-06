@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS study (
     contact_email       VARCHAR(100)    NOT NULL,
     title               VARCHAR(100)    NOT NULL,
     description         TEXT            DEFAULT NULL,
-    ts                  TIMESTAMP       NOT NULL,
+    publication_date    TIMESTAMP       NOT NULL,
     ref_doi             VARCHAR(100)    DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS sample_set (
 -- Insert study and sample set.
 
 INSERT INTO study
-        (study_pk, pi_name, pi_email, contact_name, contact_email, title, ts, ref_doi)
+        (study_pk, pi_name, pi_email, contact_name, contact_email, title,
+        publication_date, ref_doi)
 VALUES  (1, "Ulf Gyllensten", "Ulf.Gyllensten@igp.uu.se",
         "the SweGen project", "swegen@scilifelab.se",
         "SweGen", now(), "10.1038/ejhg.2017.130");
@@ -80,7 +81,7 @@ CREATE TABLE IF NOT EXISTS linkhash (
     dataset_version_pk  INTEGER         NOT NULL,
     user_pk             INTEGER         NOT NULL,
     hash                VARCHAR(64)     NOT NULL,
-    expires_ts          TIMESTAMP       NOT NULL,
+    expires_on          TIMESTAMP       NOT NULL,
     CONSTRAINT FOREIGN KEY (dataset_version_pk)
         REFERENCES dataset_version(dataset_version_pk),
     CONSTRAINT FOREIGN KEY (user_pk) REFERENCES user(user_pk)
@@ -96,7 +97,7 @@ ALTER TABLE user_log MODIFY COLUMN
 -- Add dataset_version.avaliable_from_ts and dataset_version.ref_doi
 
 ALTER TABLE dataset_version ADD COLUMN (
-    available_from_ts   TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
+    available_from      TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
     ref_doi             VARCHAR(100)    DEFAULT NULL
 );
 
@@ -108,5 +109,5 @@ CREATE OR REPLACE VIEW dataset_version_current AS
     SELECT * FROM dataset_version
     WHERE (dataset_pk,dataset_version_pk) IN (
         SELECT dataset_pk, MAX(dataset_version_pk) FROM dataset_version
-        WHERE available_from_ts < now()
+        WHERE available_from < now()
         GROUP BY dataset_pk );
