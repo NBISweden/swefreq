@@ -1,3 +1,82 @@
 <div ng-controller="datasetController as datasetCtrl">
-    <h1>{{ datasetCtrl.dataset }}</h1>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <h1>{{ datasetCtrl.dataset.full_name }}</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div id="tab-bar">
+                <ul class="nav nav-tabs">
+                    <li class="active"><a data-target="#information" data-toggle="tab">Information</a></li>
+                    <li><a data-target="#terms" data-toggle="tab">Terms</a></li>
+                    <li><a data-target="#download" data-toggle="tab">Download</a></li>
+                </ul>
+
+                <div class="tab-content">
+                    <div class="tab-pane active" id="information">
+                        <div class="row">
+                            <div class="col-md-8 col-sm-8">
+                                <div class="dataset-panel">
+                                     <div class="dataset-body">
+                                         <div ng-if="dataset.has_image">
+                                             <img ng-src="/api/datasets/{{datasetCtrl.dataset.short_name}}/logo" class="dataset-logo" alt='{{ dataset.short_name }} logo' />
+                                         </div>
+                                         <div ng-bind-html="datasetCtrl.dataset.version.description" />
+                                     </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="dataset-panel">
+                                     <div class="dataset-heading">Dataset overview</div>
+                                     <div class="dataset-body">
+                                         <ul>
+                                            <li>Sequencing type: {{ datasetCtrl.dataset.seq_type }}
+                                            <li>Sequencing tech: {{ datasetCtrl.dataset.seq_tech }}
+                                            <li>Average Sequencing Depth: {{datasetCtrl.dataset.avg_seq_depth }}
+                                            <li>Sequencing Center: {{ datasetCtrl.dataset.seq_center }}
+                                            <li>Dataset Size: {{ datasetCtrl.dataset.dataset_size }}
+                                            <li>Variant Calling reference: {{ datasetCtrl.dataset.version.var_call_ref }}
+                                         </ul>
+                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="dataset-panel">
+                                     <div class="dataset-heading">Study</div>
+                                     <div class="dataset-body">
+                                         <ul>
+                                            <li>Title: {{ datasetCtrl.study.title }}
+                                            <li>DOI: {{ datasetCtrl.study.ref_doi }}
+                                            <li>Publication date: {{datasetCtrl.study.publication_date }}
+                                         </ul>
+                                     </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="dataset-panel">
+                                     <div class="dataset-heading">Study</div>
+                                     <div class="dataset-body">
+                                         <ul>
+                                            <li>Title: {{ datasetCtrl.study.title }}
+                                            <li>DOI: {{ datasetCtrl.study.ref_doi }}
+                                            <li>Publication date: {{datasetCtrl.study.publication_date }}
+                                         </ul>
+                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="terms">
+                         <div ng-bind-html="datasetCtrl.dataset.version.terms" />
+                    </div>
+                    <div class="tab-pane" id="download">
+                        files
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
