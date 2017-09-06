@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS study (
     contact_email       VARCHAR(100)    NOT NULL,
     title               VARCHAR(100)    NOT NULL,
     description         TEXT            DEFAULT NULL,
-    publication_date    TIMESTAMP       NOT NULL,
+    publication_date    DATE            NOT NULL,
     ref_doi             VARCHAR(100)    DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
