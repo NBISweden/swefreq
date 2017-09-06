@@ -28,53 +28,32 @@ class ListDatasets(handlers.UnsafeHandler):
         # earliear than now OR versions that are available in the future that
         # the user is admin of.
         user = self.get_current_user()
-        if user:
-            q = db.Dataset.select(
-                    db.Dataset, db.DatasetVersion
-                ).join(
-                    db.DatasetVersion
-                ).switch(
-                    db.Dataset
-                ).join(
-                    db.DatasetAccess, peewee.JOIN.LEFT_OUTER
-                ).join(
-                    db.User, peewee.JOIN.LEFT_OUTER
-                ).where(
-                    db.User.email.is_null(True) | (db.User.email == user.email),
-                    (
-                        (db.DatasetVersion.is_current == 1)
-                        &
-                        (db.DatasetVersion.available_from_ts < peewee.fn.Now())
-                    )
-                    |
-                    (
-                        (db.DatasetVersion.available_from_ts > peewee.fn.Now())
-                        &
-                        (db.DatasetAccess.is_admin == 1)
-                    )
-                )
-        else:
-            q = db.Dataset.select(
-                    db.Dataset, db.DatasetVersion
-                ).join(
-                    db.DatasetVersion
-                ).where(
-                    (db.DatasetVersion.is_current == 1)
-                    &
-                    (db.DatasetVersion.available_from_ts < peewee.fn.Now())
-                )
 
         ret = []
-        for row in q:
-            ret.append({
-                'short_name':  row.short_name,
-                'full_name':   row.full_name,
-                'beacon_uri':  row.beacon_uri,
-                'browser_uri': row.browser_uri,
-                'description': row.dataset_version.description,
-                'terms':       row.dataset_version.terms,
-                'has_image':   row.has_image(),
-            })
+        for version in db.DatasetVersionCurrent.select():
+            dataset = version.dataset.get()
+            r = {}
+            for key in ['short_name', 'full_name', 'browser_uri',
+                    'beacon_uri', 'avg_seq_depth', 'seq_type', 'seq_tech',
+                    'seq_center', 'dataset_size']:
+                r[key] = getattr(dataset, key)
+
+            r['version'] = {}
+            for key in ['version', 'description', 'terms', 'var_call_ref', 'available_from']:
+                r['version'][key] = getattr(version, key)
+            r['version']['available_from'] = r['version']['available_from'].strftime('%Y-%m-%d %H:%M')
+
+            r['has_image']  = dataset.has_image()
+            r['is_admin']   = False
+            r['has_access'] = False
+
+            if user:
+                if user.has_access(dataset):
+                    r['has_access'] = True
+                if user.is_admin(dataset):
+                    r['is_admin'] = True
+
+            ret.append(r)
 
         self.finish({'data':ret})
 
