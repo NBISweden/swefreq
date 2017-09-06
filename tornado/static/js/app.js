@@ -257,9 +257,20 @@
 
     ////////////////////////////////////////////////////////////////////////////
 
-    App.controller('datasetController', function($http, $scope, $routeParams) {
+    App.controller('datasetController', function($http, $scope, $routeParams, $sce) {
         var localThis = this;
-        localThis.dataset = $routeParams["dataset"];
+        short_name = $routeParams["dataset"];
+
+        $http.get('/api/datasets/' + short_name).success(function(data){
+            data.version.description = $sce.trustAsHtml( data.version.description );
+            data.version.terms       = $sce.trustAsHtml( data.version.terms );
+            localThis.dataset = data;
+        });
+
+        $http.get('/api/datasets/' + short_name + '/sample_set').success(function(data){
+            localThis.sample_set = data.sample_set;
+            localThis.study = data.study;
+        });
     });
 
     /////////////////////////////////////////////////////////////////////////////////////
