@@ -87,6 +87,14 @@ input.ng-dirty.ng-invalid, select.ng-dirty.ng-invalid {
     padding-bottom: 40px;
 }
 
+.infobox ul {
+    font-size: 90%;
+    list-style-type: none;
+    margin: 0;
+    margin-left: 10px;
+    padding:0;
+}
+
 // Dataset box CSS
 .dataset-panel {
     display: flex;
