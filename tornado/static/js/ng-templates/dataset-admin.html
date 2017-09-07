@@ -1,0 +1,18 @@
+<div ng-controller="datasetController as datasetCtrl">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <h1>{{ datasetCtrl.dataset.full_name }}</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div id="tab-bar">
+                <my-navbar tab="admin" dataset="{{datasetCtrl.dataset.short_name}}"></my-navbar>
+
+                <div class="tab-content">
+                    ADMIN
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

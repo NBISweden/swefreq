@@ -288,16 +288,20 @@
     // configure routes
     App.config(function($routeProvider, $locationProvider) {
         $routeProvider
-            .when('/',                 { templateUrl: 'static/js/ng-templates/home.html'          })
-            .when('/dataBeacon/',      { templateUrl: 'static/js/ng-templates/dataBeacon.html'    })
-            .when('/downloadData/',    { templateUrl: 'static/js/ng-templates/downloadData.html'  })
-            .when('/requestAccess/',   { templateUrl: 'static/js/ng-templates/requestAccess.html' })
-            .when('/addedRequest/',    { templateUrl: 'static/js/ng-templates/addedRequest.html'  })
-            .when('/privacyPolicy/',   { templateUrl: 'static/js/ng-templates/privacyPolicy.html' })
-            .when('/admin/',           { templateUrl: 'static/js/ng-templates/admin.html'         })
-            .when('/terms/',           { templateUrl: 'static/js/ng-templates/terms.html'         })
-            .when('/dataset/:dataset', { templateUrl: 'static/js/ng-templates/dataset.html'       })
-            .otherwise(                { templateUrl: 'static/js/ng-templates/404.html'           });
+            .when('/',                          { templateUrl: 'static/js/ng-templates/home.html'             })
+            .when('/dataBeacon/',               { templateUrl: 'static/js/ng-templates/dataBeacon.html'       })
+            .when('/downloadData/',             { templateUrl: 'static/js/ng-templates/downloadData.html'     })
+            .when('/requestAccess/',            { templateUrl: 'static/js/ng-templates/requestAccess.html'    })
+            .when('/addedRequest/',             { templateUrl: 'static/js/ng-templates/addedRequest.html'     })
+            .when('/privacyPolicy/',            { templateUrl: 'static/js/ng-templates/privacyPolicy.html'    })
+            .when('/admin/',                    { templateUrl: 'static/js/ng-templates/admin.html'            })
+            .when('/terms/',                    { templateUrl: 'static/js/ng-templates/terms.html'            })
+            .when('/dataset/:dataset',          { templateUrl: 'static/js/ng-templates/dataset.html'          })
+            .when('/dataset/:dataset/terms',    { templateUrl: 'static/js/ng-templates/dataset-terms.html'    })
+            .when('/dataset/:dataset/download', { templateUrl: 'static/js/ng-templates/dataset-download.html' })
+            .when('/dataset/:dataset/beacon',   { templateUrl: 'static/js/ng-templates/dataset-beacon.html'   })
+            .when('/dataset/:dataset/admin',    { templateUrl: 'static/js/ng-templates/dataset-admin.html'    })
+            .otherwise(                         { templateUrl: 'static/js/ng-templates/404.html'              });
 
         // Use the HTML5 History API
         $locationProvider.html5Mode(true);
