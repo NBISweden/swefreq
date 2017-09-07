@@ -12,8 +12,8 @@
                      <div ng-bind-html="dataset.version.description" />
                  </div>
                  <div class="dataset-links">
-                     <li><a href="#">More information</a></li>
-                     <li><a href="{{dataset.beacon_uri}}">Beacon</a></li>
+                     <li><a href="{{ '/dataset/' + dataset.short_name }}">More information</a></li>
+                     <li><a href="{{ '/dataset/' + dataset.short_name + '/beacon' }}">Beacon</a></li>
                      <li><a href="{{dataset.browser_uri}}">Graphical Browser</a></li>
                  </div>
             </div>

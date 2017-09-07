@@ -34,33 +34,38 @@
         };
     });
 
-    // Modified from
-    // http://stackoverflow.com/questions/16199418/how-to-set-bootstrap-navbar-active-class-with-angular-js
-    App.directive('bsActiveLink', ['$location', function($location) {
+    App.directive('myDatasetHeader', function() {
         return {
-            restrict: 'A',
-            replace: false,
-            link: function (scope, elem) {
-                // After the route has changed
-                scope.$on("$routeChangeSuccess", function () {
-                    $location.path()
-                    var hrefs = ['/#' + $location.path(),
-                                 '#' + $location.path(), //html5: false
-                                 $location.path()]; //html5: true
+            restrict: 'E',
+            templateUrl: 'static/js/ng-templates/dataset-header.html',
+            link: function(scope, element, attrs) {
+                scope.name = function() {
+                    return attrs.dataset;
+                };
+            },
+        };
+    });
 
-                    angular.forEach(elem.find('a'), function(a) {
-                        a = angular.element(a);
-                        console.log(a.attr('href'));
-                        if ( -1 != hrefs.indexOf(a.attr('href')) ) {
-                            a.parent().addClass('active');
-                        } else {
-                            a.parent().removeClass('active');
-                        }
-                    });
-                })
-            }
-        }
-    }]);
+    App.directive('myNavbar', function() {
+        return {
+            restrict: 'E',
+            templateUrl: 'static/js/ng-templates/dataset-navbar.html',
+            link: function(scope, element, attrs) {
+                scope.createUrl = function(subpage) {
+                    return '/dataset/' + attrs.dataset + '/' + subpage;
+                };
+                scope.isActive = function(tab) {
+                    if ( tab == attrs.tab ) {
+                        return 'active';
+                    }
+                    else {
+                        return '';
+                    }
+                };
+            },
+        };
+    });
+
 
 
     App.controller('mainController', function($http, $scope) {
@@ -255,6 +260,24 @@
         };
     });
 
+    ////////////////////////////////////////////////////////////////////////////
+
+    App.controller('datasetController', function($http, $scope, $routeParams, $sce) {
+        var localThis = this;
+        short_name = $routeParams["dataset"];
+
+        $http.get('/api/datasets/' + short_name).success(function(data){
+            data.version.description = $sce.trustAsHtml( data.version.description );
+            data.version.terms       = $sce.trustAsHtml( data.version.terms );
+            localThis.dataset = data;
+        });
+
+        $http.get('/api/datasets/' + short_name + '/sample_set').success(function(data){
+            localThis.sample_set = data.sample_set;
+            localThis.study = data.study;
+        });
+    });
+
     /////////////////////////////////////////////////////////////////////////////////////
 
     App.controller('addedRequestController', function($http, $scope) {
@@ -265,15 +288,20 @@
     // configure routes
     App.config(function($routeProvider, $locationProvider) {
         $routeProvider
-            .when('/',               { templateUrl: 'static/js/ng-templates/home.html'          })
-            .when('/dataBeacon/',    { templateUrl: 'static/js/ng-templates/dataBeacon.html'    })
-            .when('/downloadData/',  { templateUrl: 'static/js/ng-templates/downloadData.html'  })
-            .when('/requestAccess/', { templateUrl: 'static/js/ng-templates/requestAccess.html' })
-            .when('/addedRequest/',  { templateUrl: 'static/js/ng-templates/addedRequest.html'  })
-            .when('/privacyPolicy/', { templateUrl: 'static/js/ng-templates/privacyPolicy.html' })
-            .when('/admin/',         { templateUrl: 'static/js/ng-templates/admin.html'         })
-            .when('/terms/',         { templateUrl: 'static/js/ng-templates/terms.html'         })
-            .otherwise(              { templateUrl: 'static/js/ng-templates/404.html'           });
+            .when('/',                          { templateUrl: 'static/js/ng-templates/home.html'             })
+            .when('/dataBeacon/',               { templateUrl: 'static/js/ng-templates/dataBeacon.html'       })
+            .when('/downloadData/',             { templateUrl: 'static/js/ng-templates/downloadData.html'     })
+            .when('/requestAccess/',            { templateUrl: 'static/js/ng-templates/requestAccess.html'    })
+            .when('/addedRequest/',             { templateUrl: 'static/js/ng-templates/addedRequest.html'     })
+            .when('/privacyPolicy/',            { templateUrl: 'static/js/ng-templates/privacyPolicy.html'    })
+            .when('/admin/',                    { templateUrl: 'static/js/ng-templates/admin.html'            })
+            .when('/terms/',                    { templateUrl: 'static/js/ng-templates/terms.html'            })
+            .when('/dataset/:dataset',          { templateUrl: 'static/js/ng-templates/dataset.html'          })
+            .when('/dataset/:dataset/terms',    { templateUrl: 'static/js/ng-templates/dataset-terms.html'    })
+            .when('/dataset/:dataset/download', { templateUrl: 'static/js/ng-templates/dataset-download.html' })
+            .when('/dataset/:dataset/beacon',   { templateUrl: 'static/js/ng-templates/dataset-beacon.html'   })
+            .when('/dataset/:dataset/admin',    { templateUrl: 'static/js/ng-templates/dataset-admin.html'    })
+            .otherwise(                         { templateUrl: 'static/js/ng-templates/404.html'              });
 
         // Use the HTML5 History API
         $locationProvider.html5Mode(true);

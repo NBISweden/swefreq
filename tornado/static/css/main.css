@@ -59,6 +59,7 @@ body {
     position: absolute;
     height: 80px;
     bottom: 0px;
+    width: 100%;
 }
 
 img.logo.scilife {
@@ -84,6 +85,14 @@ input.ng-dirty.ng-invalid, select.ng-dirty.ng-invalid {
 
 .dataset-row {
     padding-bottom: 40px;
+}
+
+.infobox ul {
+    font-size: 90%;
+    list-style-type: none;
+    margin: 0;
+    margin-left: 10px;
+    padding:0;
 }
 
 // Dataset box CSS

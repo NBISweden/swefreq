@@ -201,3 +201,13 @@ def get_outstanding_requests(dataset):
 def get_dataset(dataset):
     dataset = Dataset.select().where( Dataset.short_name == dataset).get()
     return dataset
+
+
+def build_dict_from_row(row):
+    d = {}
+    for field in row._meta.sorted_fields:
+        column = field.db_column
+        if column.endswith("_pk"):
+            continue
+        d[column] = getattr(row, column)
+    return d
