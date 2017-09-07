@@ -34,6 +34,39 @@
         };
     });
 
+    App.directive('myDatasetHeader', function() {
+        return {
+            restrict: 'E',
+            templateUrl: 'static/js/ng-templates/dataset-header.html',
+            link: function(scope, element, attrs) {
+                scope.name = function() {
+                    return attrs.dataset;
+                };
+            },
+        };
+    });
+
+    App.directive('myNavbar', function() {
+        return {
+            restrict: 'E',
+            templateUrl: 'static/js/ng-templates/dataset-navbar.html',
+            link: function(scope, element, attrs) {
+                scope.createUrl = function(subpage) {
+                    return '/dataset/' + attrs.dataset + '/' + subpage;
+                };
+                scope.isActive = function(tab) {
+                    if ( tab == attrs.tab ) {
+                        return 'active';
+                    }
+                    else {
+                        return '';
+                    }
+                };
+            },
+        };
+    });
+
+
 
     App.controller('mainController', function($http, $scope) {
         var localThis = this;
