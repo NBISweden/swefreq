@@ -31,10 +31,10 @@
     });
 
     App.factory('Dataset', function($http, $q, $location, $sce) {
-        var state = null;
+        var state = {dataset: null};
         return function() {
             var defer = $q.defer();
-            if (state != null) {
+            if (state.dataset != null) {
                 defer.resolve(state);
             }
             else {
@@ -42,21 +42,23 @@
                 var dataset = path[2];
                 if ( path[1] != 'dataset' ) {
                     state = "Some strange error 2";
-                    reject("Some strange error 1");
+                    defer.reject("Some strange error 1");
                 }
                 else {
-                    $http.get('/api/datasets/' + dataset)
-                        .then(function(data){
+                    $q.all([
+                        $http.get('/api/datasets/' + dataset).then(function(data){
                             var d = data.data;
                             d.version.description = $sce.trustAsHtml( d.version.description );
                             d.version.terms       = $sce.trustAsHtml( d.version.terms );
-                            state = d;
-                            defer.resolve(state);
-                        },
-                        function(data){
-                            defer.reject(data)
-                        }
-                    );
+                            state['dataset'] = d;
+                        }),
+                        $http.get('/api/datasets/' + dataset + '/sample_set').then(function(data){
+                            state.sample_set = data.data.sample_set;
+                            state.study = data.data.study;
+                        })
+                    ]).then(function(data) {
+                        defer.resolve(state);
+                    });
                 }
             }
             return defer.promise;
@@ -118,9 +120,9 @@
                 };
                 scope.is_admin = false;
                 Dataset().then(function(data){
-                        scope.is_admin    = data.is_admin;
-                        scope.dataset     = data.short_name;
-                        scope.browser_uri = data.browser_uri;
+                        scope.is_admin    = data.dataset.is_admin;
+                        scope.dataset     = data.dataset.short_name;
+                        scope.browser_uri = data.dataset.browser_uri;
                     }
                 );
             },
@@ -249,10 +251,7 @@
         });
 
         Dataset().then(function(data){
-            localThis.dataset = data;
-        });
-
-        $http.get('/api/datasets/' + short_name + '/sample_set').success(function(data){
+            localThis.dataset = data.dataset;
             localThis.sample_set = data.sample_set;
             localThis.study = data.study;
         });
@@ -276,7 +275,7 @@
         });
 
         Dataset().then(function(data){
-            localThis.dataset = data;
+            localThis.dataset = data.dataset;
             updateAuthorizationLevel();
         });
 
@@ -347,7 +346,7 @@
         });
 
         Dataset().then(function(data){
-            localThis.dataset = data;
+            localThis.dataset = data.dataset;
         });
     }]);
 
@@ -363,7 +362,7 @@
         });
 
         Dataset().then(function(data){
-            localThis.dataset = data;
+            localThis.dataset = data.dataset;
         });
     }]);
 
