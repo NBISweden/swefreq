@@ -227,35 +227,48 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('datasetController', function($http, $scope, $routeParams, $sce, $location) {
+    App.controller('datasetController', ['$http', '$routeParams', 'User', 'Dataset',
+                                function($http, $routeParams, User, Dataset) {
         var localThis = this;
-        short_name = $routeParams["dataset"];
-        localThis.authorization_level = 'loggedout';
+        var short_name = $routeParams["dataset"];
 
-        $http.get('/api/countries').success(function(data) {
-            localThis.availableCountries = data['countries'];
-        });
-
-        $http.get('/api/users/me').success( function (data) {
+        User.success(function(data) {
             localThis.user = data;
-            updateAuthorizationLevel();
         });
 
-        $http.get('/api/datasets/' + short_name).success(function(data){
-            data.version.description = $sce.trustAsHtml( data.version.description );
-            data.version.terms       = $sce.trustAsHtml( data.version.terms );
+        Dataset.get().then(function(data){
             localThis.dataset = data;
-            updateAuthorizationLevel();
         });
 
         $http.get('/api/datasets/' + short_name + '/sample_set').success(function(data){
             localThis.sample_set = data.sample_set;
             localThis.study = data.study;
         });
+    }]);
+
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    App.controller('datasetDownloadController', ['$http', '$scope', '$routeParams', '$location', 'User', 'Dataset',
+                                function($http, $scope, $routeParams, $location, User, Dataset) {
+        var localThis = this;
+        var short_name = $routeParams["dataset"];
+        localThis.authorization_level = 'loggedout';
+
+        $http.get('/api/countries').success(function(data) {
+            localThis.availableCountries = data['countries'];
+        });
+
+        User.success(function(data) {
+            localThis.user = data;
+            updateAuthorizationLevel();
+        });
+
+        Dataset.get().then(function(data){
+            localThis.dataset = data;
+            updateAuthorizationLevel();
+        });
 
         $http.get('/api/datasets/' + short_name + '/files').success(function(data){
-            console.log("FILES!");
-            console.log(data);
             localThis.files = data.files;
         });
 
@@ -300,19 +313,47 @@
         localThis.consented = function(){
             console.log("CLICK");
             if (!has_already_logged){
-                console.log("WILL LOG");
                 has_already_logged = true;
-                $http.post('/api/datasets/' + short_name + '/log/consent').success(function(data){
-                    console.log('Consented');
-                });
+                $http.post('/api/datasets/' + short_name + '/log/consent').success(function(data){});
             }
         };
 
         localThis.downloadData = function(){
             $http.post('/api/datasets/' + short_name + '/log/download').success(function(data){ });
         };
-    });
+    }]);
 
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    App.controller('datasetAdminController', ['$http', '$routeParams', 'User', 'Dataset',
+                                function($http, $routeParams, User, Dataset) {
+        var localThis = this;
+        var short_name = $routeParams["dataset"];
+
+        User.success(function(data) {
+            localThis.user = data;
+        });
+
+        Dataset.get().then(function(data){
+            localThis.dataset = data;
+        });
+    }]);
+
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    App.controller('datasetBeaconController', ['$http', '$routeParams', 'User', 'Dataset',
+                                function($http, $routeParams, User, Dataset) {
+        var localThis = this;
+        var short_name = $routeParams["dataset"];
+
+        User.success(function(data) {
+            localThis.user = data;
+        });
+
+        Dataset.get().then(function(data){
+            localThis.dataset = data;
+        });
+    }]);
 
     ////////////////////////////////////////////////////////////////////////////
     // configure routes
