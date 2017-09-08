@@ -10,22 +10,31 @@
                  'admin':false}
 
 
-    App.factory('User', function($http) {
-        return {
-            get: function() { return $http({url: '/api/users/me'}) }
+    App.factory('User', function($http, $q) {
+        var state = null;
+        return function() {
+            if (state != null) {
+                return $q(function(resolve, reject) { resolve(state) });
+            }
+            else {
+                return $q(function(resolve, reject) {
+                    $http({url: '/api/users/me'}).then(function(data){
+                        state = data.data;
+                        resolve(state);
+                    }, function(data) {
+                        reject(data);
+                    });
+                });
+            }
         };
     });
 
     App.factory('Dataset', function($http, $q, $location, $sce) {
-        var state = {
-            state: null,
-            get: get,
-        };
-        return state;
-        function get() {
-            if (state.state != null) {
+        var state = null;
+        return function() {
+            if (state != null) {
                 return $q(function(resolve, reject) {
-                    resolve(state.state);
+                    resolve(state);
                 });
             }
             else {
@@ -34,7 +43,7 @@
                     var path = $location.path().split('/');
                     if ( path[1] != 'dataset' ) {
                         fail = true;
-                        state.state = "Some strange error 2";
+                        state = "Some strange error 2";
                         reject("Some strange error 1");
                     }
                     else {
@@ -43,8 +52,8 @@
                                 var d = data.data;
                                 d.version.description = $sce.trustAsHtml( d.version.description );
                                 d.version.terms       = $sce.trustAsHtml( d.version.terms );
-                                state.state = d;
-                                resolve(state.state);
+                                state = d;
+                                resolve(state);
                             },
                             function(data){reject(data)});
                     }
@@ -107,7 +116,7 @@
                     }
                 };
                 scope.is_admin = false;
-                Dataset.get().then(function(data){
+                Dataset().then(function(data){
                         scope.is_admin    = data.is_admin;
                         scope.dataset     = data.short_name;
                         scope.browser_uri = data.browser_uri;
@@ -234,11 +243,11 @@
         var localThis = this;
         var short_name = $routeParams["dataset"];
 
-        User.get().then(function(data) {
+        User().then(function(data) {
             localThis.user = data;
         });
 
-        Dataset.get().then(function(data){
+        Dataset().then(function(data){
             localThis.dataset = data;
         });
 
@@ -260,12 +269,12 @@
             localThis.availableCountries = data['countries'];
         });
 
-        User.get().then(function(data) {
+        User().then(function(data) {
             localThis.user = data;
             updateAuthorizationLevel();
         });
 
-        Dataset.get().then(function(data){
+        Dataset().then(function(data){
             localThis.dataset = data;
             updateAuthorizationLevel();
         });
@@ -332,11 +341,11 @@
         var localThis = this;
         var short_name = $routeParams["dataset"];
 
-        User.get().then(function(data) {
+        User().then(function(data) {
             localThis.user = data;
         });
 
-        Dataset.get().then(function(data){
+        Dataset().then(function(data){
             localThis.dataset = data;
         });
     }]);
@@ -348,11 +357,11 @@
         var localThis = this;
         var short_name = $routeParams["dataset"];
 
-        User.get().then(function(data) {
+        User().then(function(data) {
             localThis.user = data;
         });
 
-        Dataset.get().then(function(data){
+        Dataset().then(function(data){
             localThis.dataset = data;
         });
     }]);
