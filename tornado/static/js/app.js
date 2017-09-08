@@ -9,6 +9,48 @@
                  'trusted':false,
                  'admin':false}
 
+
+    App.factory('User', function($http) {
+        return $http({url: '/api/users/me'});
+    });
+
+    App.factory('Dataset', function($http, $q, $location, $sce) {
+        var state = {
+            state: null,
+            get: get,
+        };
+        return state;
+        function get() {
+            if (state.state != null) {
+                return $q(function(resolve, reject) {
+                    resolve(state.state);
+                });
+            }
+            else {
+                return $q(function(resolve, reject) {
+                    var fail = false;
+                    var path = $location.path().split('/');
+                    if ( path[1] != 'dataset' ) {
+                        fail = true;
+                        state.state = "Some strange error 2";
+                        reject("Some strange error 1");
+                    }
+                    else {
+                        $http.get('/api/datasets/' + path[2])
+                            .then(function(data){
+                                var d = data.data;
+                                d.version.description = $sce.trustAsHtml( d.version.description );
+                                d.version.terms       = $sce.trustAsHtml( d.version.terms );
+                                state.state = d;
+                                resolve(state.state);
+                            },
+                            function(data){reject(data)});
+                    }
+                });
+            }
+        }
+    });
+
     /////////////////////////////////////////////////////////////////////////////////////
     App.directive('consent', function ($cookies) {
         return {
