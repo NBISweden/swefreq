@@ -11,7 +11,9 @@
 
 
     App.factory('User', function($http) {
-        return $http({url: '/api/users/me'});
+        return {
+            get: function() { return $http({url: '/api/users/me'}) }
+        };
     });
 
     App.factory('Dataset', function($http, $q, $location, $sce) {
@@ -232,7 +234,7 @@
         var localThis = this;
         var short_name = $routeParams["dataset"];
 
-        User.success(function(data) {
+        User.get().then(function(data) {
             localThis.user = data;
         });
 
@@ -258,7 +260,7 @@
             localThis.availableCountries = data['countries'];
         });
 
-        User.success(function(data) {
+        User.get().then(function(data) {
             localThis.user = data;
             updateAuthorizationLevel();
         });
@@ -330,7 +332,7 @@
         var localThis = this;
         var short_name = $routeParams["dataset"];
 
-        User.success(function(data) {
+        User.get().then(function(data) {
             localThis.user = data;
         });
 
@@ -346,7 +348,7 @@
         var localThis = this;
         var short_name = $routeParams["dataset"];
 
-        User.success(function(data) {
+        User.get().then(function(data) {
             localThis.user = data;
         });
 
