@@ -84,6 +84,12 @@ class User(BaseModel):
                 DatasetAccess.has_access
             ).count()
 
+    def has_requested_access(self, dataset):
+        return DatasetAccess.select().where(
+                DatasetAccess.dataset == dataset,
+                DatasetAccess.user == self
+            ).count()
+
     class Meta:
         db_table = 'user'
 

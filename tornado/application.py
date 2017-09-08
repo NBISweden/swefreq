@@ -31,14 +31,11 @@ def build_dataset_structure(dataset_version, user=None, dataset=None):
     r['version']['available_from'] = r['version']['available_from'].strftime('%Y-%m-%d %H:%M')
 
     r['has_image']  = dataset.has_image()
-    r['is_admin']   = False
-    r['has_access'] = False
 
-    if user:
-        if user.has_access(dataset):
-            r['has_access'] = True
-        if user.is_admin(dataset):
-            r['is_admin'] = True
+    for access_level in ['has_requested_access', 'has_access', 'is_admin']:
+        r[access_level] = False
+        if user and getattr(user, access_level)(dataset):
+            r[access_level] = True
 
     return r
 
