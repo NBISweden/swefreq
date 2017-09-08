@@ -100,7 +100,7 @@ class GetUser(handlers.UnsafeHandler):
         if user:
             ret = { 'user': user.name, 'email': user.email }
 
-        self.finish(json.dumps(ret))
+        self.finish(ret)
 
 
 class CountryList(handlers.UnsafeHandler):
@@ -211,7 +211,7 @@ class RequestAccess(handlers.SafeHandler):
 
 
 class LogEvent(handlers.SafeHandler):
-    def get(self, dataset, sEvent):
+    def post(self, dataset, sEvent):
         user = self.current_user
 
         ok_events = ['download','consent']
