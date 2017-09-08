@@ -270,6 +270,10 @@
             data.version.description = $sce.trustAsHtml( data.version.description );
             data.version.terms       = $sce.trustAsHtml( data.version.terms );
             localThis.dataset = data;
+
+            // Forward the browser_uri to the dataset-navbar directive, this is
+            // kind of ugly.
+            $scope.browser_uri = data.browser_uri;
         });
 
         $http.get('/api/datasets/' + short_name + '/sample_set').success(function(data){
