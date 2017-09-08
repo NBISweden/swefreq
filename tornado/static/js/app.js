@@ -13,52 +13,53 @@
     App.factory('User', function($http, $q) {
         var state = null;
         return function() {
+            var defer = $q.defer()
             if (state != null) {
-                return $q(function(resolve, reject) { resolve(state) });
+                defer.resolve(state);
             }
             else {
-                return $q(function(resolve, reject) {
-                    $http({url: '/api/users/me'}).then(function(data){
+                $http({url: '/api/users/me'}).then(function(data){
                         state = data.data;
-                        resolve(state);
+                        defer.resolve(state);
                     }, function(data) {
-                        reject(data);
-                    });
-                });
+                        defer.reject(data);
+                    }
+                );
             }
+            return defer.promise;
         };
     });
 
     App.factory('Dataset', function($http, $q, $location, $sce) {
         var state = null;
         return function() {
+            var defer = $q.defer();
             if (state != null) {
-                return $q(function(resolve, reject) {
-                    resolve(state);
-                });
+                defer.resolve(state);
             }
             else {
-                return $q(function(resolve, reject) {
-                    var fail = false;
-                    var path = $location.path().split('/');
-                    if ( path[1] != 'dataset' ) {
-                        fail = true;
-                        state = "Some strange error 2";
-                        reject("Some strange error 1");
-                    }
-                    else {
-                        $http.get('/api/datasets/' + path[2])
-                            .then(function(data){
-                                var d = data.data;
-                                d.version.description = $sce.trustAsHtml( d.version.description );
-                                d.version.terms       = $sce.trustAsHtml( d.version.terms );
-                                state = d;
-                                resolve(state);
-                            },
-                            function(data){reject(data)});
-                    }
-                });
+                var path = $location.path().split('/');
+                var dataset = path[2];
+                if ( path[1] != 'dataset' ) {
+                    state = "Some strange error 2";
+                    reject("Some strange error 1");
+                }
+                else {
+                    $http.get('/api/datasets/' + dataset)
+                        .then(function(data){
+                            var d = data.data;
+                            d.version.description = $sce.trustAsHtml( d.version.description );
+                            d.version.terms       = $sce.trustAsHtml( d.version.terms );
+                            state = d;
+                            defer.resolve(state);
+                        },
+                        function(data){
+                            defer.reject(data)
+                        }
+                    );
+                }
             }
+            return defer.promise;
         }
     });
 
