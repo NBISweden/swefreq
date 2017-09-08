@@ -88,13 +88,13 @@
         };
     });
 
-    App.directive('myNavbar', function() {
+    App.directive('myNavbar', ['Dataset', function(Dataset) {
         return {
             restrict: 'E',
             templateUrl: 'static/js/ng-templates/dataset-navbar.html',
             link: function(scope, element, attrs) {
                 scope.createUrl = function(subpage) {
-                    return '/dataset/' + attrs.dataset + '/' + subpage;
+                    return '/dataset/' + scope.dataset + '/' + subpage;
                 };
                 scope.isActive = function(tab) {
                     if ( tab == attrs.tab ) {
@@ -104,9 +104,16 @@
                         return '';
                     }
                 };
+                scope.is_admin = false;
+                Dataset.get().then(function(data){
+                        scope.is_admin    = data.is_admin;
+                        scope.dataset     = data.short_name;
+                        scope.browser_uri = data.browser_uri;
+                    }
+                );
             },
         };
-    });
+    }]);
 
 
     App.controller('mainController', function($http, $scope) {
@@ -239,10 +246,6 @@
             data.version.terms       = $sce.trustAsHtml( data.version.terms );
             localThis.dataset = data;
             updateAuthorizationLevel();
-
-            // Forward the browser_uri to the dataset-navbar directive, this is
-            // kind of ugly.
-            $scope.browser_uri = data.browser_uri;
         });
 
         $http.get('/api/datasets/' + short_name + '/sample_set').success(function(data){
