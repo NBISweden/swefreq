@@ -158,10 +158,11 @@ class LogoutHandler(tornado.web.RequestHandler, tornado.auth.GoogleOAuth2Mixin):
 
         self.clear_cookie("access_token")
         self.clear_cookie("login_redirect")
-        self.set_secure_cookie('login_redirect', self.get_argument("next", '/'), 1)
         self.clear_cookie("user")
         self.clear_cookie("email")
-        self.redirect("/")
+
+        redirect = self.get_argument("next", '/')
+        self.redirect(redirect)
 
 class SafeStaticFileHandler(tornado.web.StaticFileHandler, SafeHandler):
     """ Serve static files for logged in users

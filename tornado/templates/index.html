@@ -48,11 +48,10 @@
                 <div class="collapse navbar-collapse" id="navbar-things">
                     <ul class="nav navbar-nav navbar-right">
                         <li><a ng-click="showAbout = !showAbout" style="cursor: pointer">About</a>
-                        <li ng-if="mainCtrl.is_admin"><a href="/admin/">Admin</a>
                     {% if user_name %}
-                        <li><a href="/logout" target="_self" title="Logout {{user_name}}">Logout</a>
+                        <li><a href="/logout?next={{! mainCtrl.url() }}" target="_self" title="Logout {{user_name}}">Logout</a>
                     {% else %}
-                        <li><a href="/login" target="_self">Login</a>
+                        <li><a href="/login?next={{! mainCtrl.url() }}" target="_self">Login</a>
                     {% end %}
                     </ul>
                 </div>
