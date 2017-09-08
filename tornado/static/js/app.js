@@ -55,6 +55,9 @@
                         $http.get('/api/datasets/' + dataset + '/sample_set').then(function(data){
                             state.sample_set = data.data.sample_set;
                             state.study = data.data.study;
+
+                            cn = state.study.contact_name;
+                            state.study.contact_name_uc = cn.charAt(0).toUpperCase() + cn.slice(1);
                         })
                     ]).then(function(data) {
                         defer.resolve(state);
