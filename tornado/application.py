@@ -53,6 +53,16 @@ class ListDatasets(handlers.UnsafeHandler):
         self.finish({'data':ret})
 
 
+class DatasetFiles(handlers.UnsafeHandler):
+    def get(self, dataset, *args, **kwargs):
+        dataset = db.get_dataset(dataset)
+        version = dataset.current_version.get()
+        ret = []
+        for f in version.files:
+            ret.append(db.build_dict_from_row(f))
+        self.finish({'files': ret})
+
+
 class SampleSet(handlers.UnsafeHandler):
     def get(self, dataset, *args, **kwargs):
         user = self.get_current_user()
