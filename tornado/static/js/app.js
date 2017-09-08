@@ -67,7 +67,6 @@
     });
 
 
-
     App.controller('mainController', function($http, $scope) {
         var localThis = this;
     });
@@ -179,14 +178,25 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('datasetController', function($http, $scope, $routeParams, $sce) {
+    App.controller('datasetController', function($http, $scope, $routeParams, $sce, $location) {
         var localThis = this;
         short_name = $routeParams["dataset"];
+        localThis.authorization_level = 'loggedout';
+
+        $http.get('/api/countries').success(function(data) {
+            localThis.availableCountries = data['countries'];
+        });
+
+        $http.get('/api/users/me').success( function (data) {
+            localThis.user = data;
+            updateAuthorizationLevel();
+        });
 
         $http.get('/api/datasets/' + short_name).success(function(data){
             data.version.description = $sce.trustAsHtml( data.version.description );
             data.version.terms       = $sce.trustAsHtml( data.version.terms );
             localThis.dataset = data;
+            updateAuthorizationLevel();
 
             // Forward the browser_uri to the dataset-navbar directive, this is
             // kind of ugly.
@@ -197,6 +207,65 @@
             localThis.sample_set = data.sample_set;
             localThis.study = data.study;
         });
+
+        $http.get('/api/datasets/' + short_name + '/files').success(function(data){
+            console.log("FILES!");
+            console.log(data);
+            localThis.files = data.files;
+        });
+
+        function updateAuthorizationLevel () {
+            if (!localThis.hasOwnProperty('user') || localThis.user.user == null) {
+                localThis.authorization_level = 'loggedout';
+            }
+            else if (localThis.hasOwnProperty('dataset')) {
+                if (! localThis.dataset.has_requested_access)  {
+                    localThis.authorization_level = 'need-access';
+                }
+                else if (! localThis.dataset.has_access) {
+                    localThis.authorization_level = 'waits-for-access';
+                }
+                else if (localThis.dataset.has_access) {
+                    localThis.authorization_level = 'has-access';
+                }
+            }
+        };
+
+        localThis.sendRequest = function(valid){
+            if (!valid) {
+                return;
+            }
+            $http.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded";
+            $http({url:'/api/datasets/' + short_name + '/users/' + localThis.user.email + '/request',
+                   method:'POST',
+                   data:$.param({'email':localThis.user.email,
+                                 'userName':localThis.user.userName,
+                                 'affiliation':localThis.user.affiliation,
+                                 'country': localThis.user.country['name'],
+                                 'newsletter': localThis.user.newsletter ? 1 : 0
+                        })
+                })
+                .success(function(data){
+                    console.log(data);
+                    $location.path("/addedRequest");
+                });
+        };
+
+        has_already_logged = false;
+        localThis.consented = function(){
+            console.log("CLICK");
+            if (!has_already_logged){
+                console.log("WILL LOG");
+                has_already_logged = true;
+                $http.post('/api/datasets/' + short_name + '/log/consent').success(function(data){
+                    console.log('Consented');
+                });
+            }
+        };
+
+        localThis.downloadData = function(){
+            $http.post('/api/datasets/' + short_name + '/log/download').success(function(data){ });
+        };
     });
 
 
@@ -217,4 +286,3 @@
         $locationProvider.html5Mode(true);
     });
 })();
-

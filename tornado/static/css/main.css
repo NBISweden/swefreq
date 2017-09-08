@@ -119,9 +119,14 @@ input.ng-dirty.ng-invalid, select.ng-dirty.ng-invalid {
     width: 100%;
     padding: 15px 15px 7px 15px;
     font-size: 14pt;
-    height: 100%;
     background-color: #f8f8f8;
 }
+
+.padding-tb {
+    padding-top: 5em;
+    padding-bottom: 3em;
+}
+
 
 .dataset-body img.dataset-logo {
     max-width: 150px;
