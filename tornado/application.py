@@ -292,7 +292,7 @@ class DatasetUsers(handlers.SafeHandler):
             return
 
         query = db.User.select(
-                db.User, db.DatasetAccess.wants_newsletter, db.DatasetAccess.has_access
+                db.User, db.DatasetAccess.wants_newsletter, db.DatasetAccess.has_access, db.UserLog.ts
             ).join(
                 db.DatasetAccess
             ).switch(
@@ -301,23 +301,27 @@ class DatasetUsers(handlers.SafeHandler):
                 db.UserLog,
                 peewee.JOIN.LEFT_OUTER,
                 on=(   (db.User.user        == db.UserLog.user)
-                     & (db.UserLog.action   == 'download')
+                     & (db.UserLog.action   == 'access_requested')
                      & (db.UserLog.dataset  == db.DatasetAccess.dataset)
                 )
             ).where(
                 db.DatasetAccess.dataset    == dataset,
-            ).annotate(db.UserLog)
+            )
 
         json_response = []
         for user in query:
+            applyDate = '-'
+            if user.user_log.ts:
+                applyDate = user.user_log.ts.strftime('%Y-%m-%d %H:%M')
+
             json_response.append({
-                    'user':          user.name,
-                    'email':         user.email,
-                    'affiliation':   user.affiliation,
-                    'country':       user.country,
-                    'downloadCount': user.count,
-                    'newsletter':    user.dataset_access.wants_newsletter,
-                    'has_access':    user.dataset_access.has_access
+                    'user':        user.name,
+                    'email':       user.email,
+                    'affiliation': user.affiliation,
+                    'country':     user.country,
+                    'newsletter':  user.dataset_access.wants_newsletter,
+                    'has_access':  user.dataset_access.has_access,
+                    'applyDate':   applyDate
                 })
 
         self.finish({ 'data': json_response })
