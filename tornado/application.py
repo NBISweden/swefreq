@@ -285,6 +285,12 @@ class RevokeUser(handlers.AdminHandler):
 class DatasetUsers(handlers.SafeHandler):
     def get(self, dataset, *args, **kwargs):
         dataset = db.get_dataset(dataset)
+
+        user = self.get_current_user()
+        if not user.is_admin(dataset):
+            self.send_error(status_code=403) # Forbidden
+            return
+
         query = db.User.select(
                 db.User, db.DatasetAccess.wants_newsletter, db.DatasetAccess.has_access
             ).join(
@@ -314,7 +320,7 @@ class DatasetUsers(handlers.SafeHandler):
                     'has_access':    user.dataset_access.has_access
                 })
 
-        self.finish(json.dumps(json_response))
+        self.finish({ 'data': json_response })
 
 class ServeLogo(handlers.UnsafeHandler):
     def get(self, dataset, *args, **kwargs):
