@@ -352,10 +352,17 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('datasetAdminController', ['$http', '$routeParams', 'User', 'Dataset',
-                                function($http, $routeParams, User, Dataset) {
+    App.controller('datasetAdminController', ['$http', '$routeParams', 'User', 'Dataset', 'DatasetUsers',
+                                function($http, $routeParams, User, Dataset, DatasetUsers) {
         var localThis = this;
         var short_name = $routeParams["dataset"];
+
+        getUsers();
+        function getUsers() {
+            DatasetUsers.getUsers( short_name ).then( function(data) {
+                localThis.users = data.data.data;
+            });
+        }
 
         User().then(function(data) {
             localThis.user = data;
