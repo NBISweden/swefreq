@@ -30,6 +30,18 @@
         };
     });
 
+
+    App.factory('DatasetUsers', function($http) {
+        var service = {};
+
+        service.getUsers = function(dataset) {
+            return $http.get( '/api/datasets/' + dataset + '/users' );
+        };
+
+        return service;
+    });
+
+
     App.factory('Dataset', function($http, $q, $location, $sce) {
         var state = {dataset: null};
         return function() {
