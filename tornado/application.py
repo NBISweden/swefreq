@@ -1,4 +1,4 @@
-import email.mime.multipart
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import json
 import logging
@@ -44,7 +44,7 @@ class ListDatasets(handlers.UnsafeHandler):
         # List all datasets available to the current user, latest is_current
         # earliear than now OR versions that are available in the future that
         # the user is admin of.
-        user = self.get_current_user()
+        user = self.current_user
 
         ret = []
         for version in db.DatasetVersionCurrent.select():
@@ -65,7 +65,7 @@ class DatasetFiles(handlers.UnsafeHandler):
 
 class SampleSet(handlers.UnsafeHandler):
     def get(self, dataset, *args, **kwargs):
-        user = self.get_current_user()
+        user = self.current_user
         dataset = db.get_dataset(dataset)
 
         sample_set = dataset.sample_set
@@ -82,7 +82,7 @@ class SampleSet(handlers.UnsafeHandler):
 
 class GetDataset(handlers.UnsafeHandler):
     def get(self, dataset, *args, **kwargs):
-        user = self.get_current_user()
+        user = self.current_user
 
         dataset = db.get_dataset(dataset)
         current_version = dataset.current_version.get()
@@ -211,25 +211,35 @@ class RequestAccess(handlers.SafeHandler):
 
 
 class LogEvent(handlers.SafeHandler):
-    def post(self, dataset, sEvent):
+    def post(self, dataset, event):
         user = self.current_user
 
         ok_events = ['download','consent']
-        if sEvent in ok_events:
+        if event in ok_events:
             db.UserLog.create(
                     user = user,
                     dataset = db.get_dataset(dataset),
-                    action = sEvent
+                    action = event
                 )
         else:
             raise tornado.web.HTTPError(400, reason="Can't log that")
 
-class ApproveUser(handlers.AdminHandler):
-    def get(self, dataset, sEmail):
+
+def ensure_admin(fn):
+    def new_function(self, dataset, *args, **kwargs):
+        if not self.current_user.is_admin(db.get_dataset(dataset)):
+            self.send_error(status_code=403) # Forbidden
+            return
+        fn(self, dataset, *args, **kwargs)
+    return new_function
+
+class ApproveUser(handlers.SafeHandler):
+    @ensure_admin
+    def post(self, dataset, email):
         with db.database.atomic():
             dataset = db.get_dataset(dataset)
 
-            user = db.User.select().where(db.User.email == sEmail).get()
+            user = db.User.select().where(db.User.email == email).get()
 
             da = db.DatasetAccess.select().where(
                         db.DatasetAccess.user == user,
@@ -244,33 +254,39 @@ class ApproveUser(handlers.AdminHandler):
                     action = 'access_granted'
                 )
 
-        msg = email.mime.multipart.MIMEMultipart()
-        msg['to'] = sEmail
+        msg = MIMEMultipart()
+        msg['to'] = email
         msg['from'] = settings.from_address
-        msg['subject'] = 'Swefreq account created'
+        msg['subject'] = 'Swefreq access granted to {}'.format(dataset.short_name)
         msg.add_header('reply-to', settings.reply_to_address)
-        body = "Your Swefreq account has been activated."
+        body = """You now have access to the {} dataset
+
+Please visit https://swefreq.nbis.se/dataset/{}/download to download files.
+        """.format(dataset.full_name, dataset.short_name,
+                dataset.sample_set.study.contact_name)
         msg.attach(MIMEText(body, 'plain'))
 
         server = smtplib.SMTP(settings.mail_server)
         server.sendmail(msg['from'], [msg['to']], msg.as_string())
 
 
-class RevokeUser(handlers.AdminHandler):
-    def get(self, dataset, sEmail):
-        if self.current_user.email == sEmail:
-            # Don't let the admin delete hens own account
+class RevokeUser(handlers.SafeHandler):
+    @ensure_admin
+    def post(self, dataset, email):
+        if self.current_user.email == email:
+            # Don't let the admin delete hirs own account
+            self.send_error(status_code=403) # Forbidden
             return
 
         with db.database.atomic():
             dataset = db.get_dataset(dataset)
-            user = db.User.select().where(db.User.email == sEmail).get()
+            user = db.User.select().where(db.User.email == email).get()
 
             da = db.DatasetAccess.select(
                     ).join(
                         db.User
                     ).where(
-                        db.User.email == sEmail,
+                        db.User.email == email,
                         db.DatasetAccess.dataset == dataset
                     ).get()
             da.delete_instance()
@@ -281,12 +297,12 @@ class RevokeUser(handlers.AdminHandler):
                     action = 'access_revoked'
                 )
 
-
 class DatasetUsers(handlers.SafeHandler):
+    @ensure_admin
     def get(self, dataset, *args, **kwargs):
         dataset = db.get_dataset(dataset)
         query = db.User.select(
-                db.User, db.DatasetAccess.wants_newsletter, db.DatasetAccess.has_access
+                db.User, db.DatasetAccess.wants_newsletter, db.DatasetAccess.has_access, db.UserLog.ts
             ).join(
                 db.DatasetAccess
             ).switch(
@@ -295,26 +311,34 @@ class DatasetUsers(handlers.SafeHandler):
                 db.UserLog,
                 peewee.JOIN.LEFT_OUTER,
                 on=(   (db.User.user        == db.UserLog.user)
-                     & (db.UserLog.action   == 'download')
+                     & (db.UserLog.action   == 'access_requested')
                      & (db.UserLog.dataset  == db.DatasetAccess.dataset)
                 )
             ).where(
                 db.DatasetAccess.dataset    == dataset,
-            ).annotate(db.UserLog)
+            )
 
-        json_response = []
+        json_response = { 'has_access': [], 'pending': [] }
         for user in query:
-            json_response.append({
-                    'user':          user.name,
-                    'email':         user.email,
-                    'affiliation':   user.affiliation,
-                    'country':       user.country,
-                    'downloadCount': user.count,
-                    'newsletter':    user.dataset_access.wants_newsletter,
-                    'has_access':    user.dataset_access.has_access
-                })
+            applyDate = '-'
+            if user.user_log.ts:
+                applyDate = user.user_log.ts.strftime('%Y-%m-%d %H:%M')
 
-        self.finish(json.dumps(json_response))
+            data = {
+                    'user':        user.name,
+                    'email':       user.email,
+                    'affiliation': user.affiliation,
+                    'country':     user.country,
+                    'newsletter':  user.dataset_access.wants_newsletter,
+                    'has_access':  user.dataset_access.has_access,
+                    'applyDate':   applyDate
+                }
+            if user.dataset_access.has_access:
+                json_response['has_access'].append(data)
+            else:
+                json_response['pending'].append(data)
+
+        self.finish(json_response)
 
 class ServeLogo(handlers.UnsafeHandler):
     def get(self, dataset, *args, **kwargs):

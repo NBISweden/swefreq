@@ -160,6 +160,31 @@ input.ng-dirty.ng-invalid, select.ng-dirty.ng-invalid {
     color: #000;
 }
 
+.nav-tabs > li.admin-tab > a,
+.nav-tabs > li.admin-tab > a:hover {
+    background-color: #337ab7;
+    color: black;
+}
+
+div.admin-bar > ul > li > a.active {
+    padding: 10px 15px;
+    border-left: solid 1px #ddd;
+    border-right: solid 1px #ddd;
+    border-top: none;
+    background: #fff;
+    top: -1px;
+}
+
+div.admin-bar > ul > li > a {
+    border-radius: 0 0 4px 4px;
+    padding: 10px 15px;
+    top: -1px;
+}
+
+div.admin-bar > ul.nav-tabs {
+    border-bottom: none;
+}
+
 .dataset-links li:hover {
     background-color: #F47D20;
 }

@@ -30,6 +30,18 @@
         };
     });
 
+
+    App.factory('DatasetUsers', function($http) {
+        var service = {};
+
+        service.getUsers = function(dataset) {
+            return $http.get( '/api/datasets/' + dataset + '/users' );
+        };
+
+        return service;
+    });
+
+
     App.factory('Dataset', function($http, $q, $location, $sce) {
         var state = {dataset: null};
         return function() {
@@ -340,10 +352,17 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('datasetAdminController', ['$http', '$routeParams', 'User', 'Dataset',
-                                function($http, $routeParams, User, Dataset) {
+    App.controller('datasetAdminController', ['$http', '$routeParams', 'User', 'Dataset', 'DatasetUsers',
+                                function($http, $routeParams, User, Dataset, DatasetUsers) {
         var localThis = this;
         var short_name = $routeParams["dataset"];
+
+        getUsers();
+        function getUsers() {
+            DatasetUsers.getUsers( short_name ).then( function(data) {
+                localThis.users = data.data;
+            });
+        }
 
         User().then(function(data) {
             localThis.user = data;
@@ -352,6 +371,18 @@
         Dataset().then(function(data){
             localThis.dataset = data.dataset;
         });
+
+        localThis.revokeUser = function(userData){
+            $http.post('/api/datasets/' + short_name + '/users/' + userData.email + '/revoke').success(function(data){
+                getUsers();
+            });
+        };
+
+        localThis.approveUser = function(userData){
+            $http.post('/api/datasets/' + short_name + '/users/' + userData.email + '/approve').success(function(data){
+                getUsers();
+            });
+        };
     }]);
 
     /////////////////////////////////////////////////////////////////////////////////////
