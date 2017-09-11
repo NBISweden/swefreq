@@ -302,7 +302,7 @@ class DatasetUsers(handlers.SafeHandler):
     def get(self, dataset, *args, **kwargs):
         dataset = db.get_dataset(dataset)
         query = db.User.select(
-                db.User, db.DatasetAccess.wants_newsletter, db.DatasetAccess.has_access, db.UserLog.ts
+                db.User, db.DatasetAccess.wants_newsletter, db.DatasetAccess.has_access
             ).join(
                 db.DatasetAccess
             ).switch(
@@ -316,13 +316,16 @@ class DatasetUsers(handlers.SafeHandler):
                 )
             ).where(
                 db.DatasetAccess.dataset    == dataset,
+            ).annotate(
+                db.UserLog,
+                peewee.fn.Max(db.UserLog.ts).alias('apply_date')
             )
 
         json_response = { 'has_access': [], 'pending': [] }
         for user in query:
             applyDate = '-'
-            if user.user_log.ts:
-                applyDate = user.user_log.ts.strftime('%Y-%m-%d %H:%M')
+            if user.apply_date:
+                applyDate = user.apply_date.strftime('%Y-%m-%d %H:%M')
 
             data = {
                     'user':        user.name,
