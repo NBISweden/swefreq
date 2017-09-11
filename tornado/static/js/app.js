@@ -11,22 +11,8 @@
 
 
     App.factory('User', function($http, $q) {
-        var state = null;
         return function() {
-            var defer = $q.defer()
-            if (state != null) {
-                defer.resolve(state);
-            }
-            else {
-                $http({url: '/api/users/me'}).then(function(data){
-                        state = data.data;
-                        defer.resolve(state);
-                    }, function(data) {
-                        defer.reject(data);
-                    }
-                );
-            }
-            return defer.promise;
+            return $http.get('/api/users/me');
         };
     });
 
@@ -46,35 +32,31 @@
         var state = {dataset: null};
         return function() {
             var defer = $q.defer();
-            if (state.dataset != null) {
-                defer.resolve(state);
+
+            var path = $location.path().split('/');
+            var dataset = path[2];
+            if ( path[1] != 'dataset' ) {
+                state = "Some strange error 2";
+                defer.reject("Some strange error 1");
             }
             else {
-                var path = $location.path().split('/');
-                var dataset = path[2];
-                if ( path[1] != 'dataset' ) {
-                    state = "Some strange error 2";
-                    defer.reject("Some strange error 1");
-                }
-                else {
-                    $q.all([
-                        $http.get('/api/datasets/' + dataset).then(function(data){
-                            var d = data.data;
-                            d.version.description = $sce.trustAsHtml( d.version.description );
-                            d.version.terms       = $sce.trustAsHtml( d.version.terms );
-                            state['dataset'] = d;
-                        }),
-                        $http.get('/api/datasets/' + dataset + '/sample_set').then(function(data){
-                            state.sample_set = data.data.sample_set;
-                            state.study = data.data.study;
+                $q.all([
+                    $http.get('/api/datasets/' + dataset).then(function(data){
+                        var d = data.data;
+                        d.version.description = $sce.trustAsHtml( d.version.description );
+                        d.version.terms       = $sce.trustAsHtml( d.version.terms );
+                        state['dataset'] = d;
+                    }),
+                    $http.get('/api/datasets/' + dataset + '/sample_set').then(function(data){
+                        state.sample_set = data.data.sample_set;
+                        state.study = data.data.study;
 
-                            cn = state.study.contact_name;
-                            state.study.contact_name_uc = cn.charAt(0).toUpperCase() + cn.slice(1);
-                        })
-                    ]).then(function(data) {
-                        defer.resolve(state);
-                    });
-                }
+                        cn = state.study.contact_name;
+                        state.study.contact_name_uc = cn.charAt(0).toUpperCase() + cn.slice(1);
+                    })
+                ]).then(function(data) {
+                    defer.resolve(state);
+                });
             }
             return defer.promise;
         }
@@ -263,7 +245,7 @@
         var short_name = $routeParams["dataset"];
 
         User().then(function(data) {
-            localThis.user = data;
+            localThis.user = data.data;
         });
 
         Dataset().then(function(data){
@@ -286,7 +268,7 @@
         });
 
         User().then(function(data) {
-            localThis.user = data;
+            localThis.user = data.data;
             updateAuthorizationLevel();
         });
 
@@ -365,7 +347,7 @@
         }
 
         User().then(function(data) {
-            localThis.user = data;
+            localThis.user = data.data;
         });
 
         Dataset().then(function(data){
@@ -393,7 +375,7 @@
         var short_name = $routeParams["dataset"];
 
         User().then(function(data) {
-            localThis.user = data;
+            localThis.user = data.data;
         });
 
         Dataset().then(function(data){
