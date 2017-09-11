@@ -87,6 +87,11 @@ class AuthorizedHandler(BaseHandler):
         if not self.is_authorized():
             self.redirect('/static/not_authorized.html')
 
+class NotAuthorized(BaseHandler):
+    def get(self, *args, **kwargs):
+        self.send_error(status_code=403)
+        self.finish()
+
 class UnsafeHandler(BaseHandler):
     pass
 
