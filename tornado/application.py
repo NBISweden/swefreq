@@ -257,7 +257,7 @@ class ApproveUser(handlers.AdminHandler):
 
 
 class RevokeUser(handlers.AdminHandler):
-    def get(self, dataset, email):
+    def post(self, dataset, email):
         if self.current_user.email == email:
             # Don't let the admin delete hens own account
             return
