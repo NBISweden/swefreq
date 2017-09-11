@@ -308,13 +308,13 @@ class DatasetUsers(handlers.SafeHandler):
                 db.DatasetAccess.dataset    == dataset,
             )
 
-        json_response = []
+        json_response = { 'has_access': [], 'pending': [] }
         for user in query:
             applyDate = '-'
             if user.user_log.ts:
                 applyDate = user.user_log.ts.strftime('%Y-%m-%d %H:%M')
 
-            json_response.append({
+            data = {
                     'user':        user.name,
                     'email':       user.email,
                     'affiliation': user.affiliation,
@@ -322,9 +322,13 @@ class DatasetUsers(handlers.SafeHandler):
                     'newsletter':  user.dataset_access.wants_newsletter,
                     'has_access':  user.dataset_access.has_access,
                     'applyDate':   applyDate
-                })
+                }
+            if user.dataset_access.has_access:
+                json_response['has_access'].append(data)
+            else:
+                json_response['pending'].append(data)
 
-        self.finish({ 'data': json_response })
+        self.finish(json_response)
 
 class ServeLogo(handlers.UnsafeHandler):
     def get(self, dataset, *args, **kwargs):

@@ -360,7 +360,7 @@
         getUsers();
         function getUsers() {
             DatasetUsers.getUsers( short_name ).then( function(data) {
-                localThis.users = data.data.data;
+                localThis.users = data.data;
             });
         }
 
