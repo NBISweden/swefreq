@@ -224,8 +224,13 @@ class LogEvent(handlers.SafeHandler):
         else:
             raise tornado.web.HTTPError(400, reason="Can't log that")
 
-class ApproveUser(handlers.AdminHandler):
+class ApproveUser(handlers.SafeHandler):
     def post(self, dataset, email):
+        user = self.current_user
+        if not user.is_admin(db.get_dataset(dataset)):
+            self.send_error(status_code=403) # Forbidden
+            return
+
         with db.database.atomic():
             dataset = db.get_dataset(dataset)
 
@@ -256,10 +261,15 @@ class ApproveUser(handlers.AdminHandler):
         server.sendmail(msg['from'], [msg['to']], msg.as_string())
 
 
-class RevokeUser(handlers.AdminHandler):
+class RevokeUser(handlers.SafeHandler):
     def post(self, dataset, email):
         if self.current_user.email == email:
             # Don't let the admin delete hens own account
+            self.send_error(status_code=403) # Forbidden
+            return
+
+        if not self.current_user.is_admin(dataset):
+            self.send_error(status_code=403) # Forbidden
             return
 
         with db.database.atomic():
@@ -286,8 +296,7 @@ class DatasetUsers(handlers.SafeHandler):
     def get(self, dataset, *args, **kwargs):
         dataset = db.get_dataset(dataset)
 
-        user = self.get_current_user()
-        if not user.is_admin(dataset):
+        if not self.current_user.is_admin(dataset):
             self.send_error(status_code=403) # Forbidden
             return
 
