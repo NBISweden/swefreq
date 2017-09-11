@@ -45,12 +45,6 @@ class BaseHandler(tornado.web.RequestHandler):
         else:
             return None
 
-    def get_current_user_name(self):
-        user = self.current_user
-        if user:
-            return user.name
-        return None
-
     def write_error(self, status_code, **kwargs):
         """ Overwrites write_error method to have custom error pages.
         http://tornado.readthedocs.org/en/latest/web.html#tornado.web.RequestHandler.write_error
