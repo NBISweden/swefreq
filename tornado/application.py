@@ -224,13 +224,18 @@ class LogEvent(handlers.SafeHandler):
         else:
             raise tornado.web.HTTPError(400, reason="Can't log that")
 
-class ApproveUser(handlers.SafeHandler):
-    def post(self, dataset, email):
-        user = self.current_user
-        if not user.is_admin(db.get_dataset(dataset)):
+
+def ensure_admin(fn):
+    def new_function(self, dataset, *args, **kwargs):
+        if not self.current_user.is_admin(db.get_dataset(dataset)):
             self.send_error(status_code=403) # Forbidden
             return
+        fn(self, dataset, *args, **kwargs)
+    return new_function
 
+class ApproveUser(handlers.SafeHandler):
+    @ensure_admin
+    def post(self, dataset, email):
         with db.database.atomic():
             dataset = db.get_dataset(dataset)
 
@@ -266,13 +271,10 @@ Please visit https://swefreq.nbis.se/dataset/{}/download to download files.
 
 
 class RevokeUser(handlers.SafeHandler):
+    @ensure_admin
     def post(self, dataset, email):
         if self.current_user.email == email:
-            # Don't let the admin delete hens own account
-            self.send_error(status_code=403) # Forbidden
-            return
-
-        if not self.current_user.is_admin(dataset):
+            # Don't let the admin delete hirs own account
             self.send_error(status_code=403) # Forbidden
             return
 
@@ -295,15 +297,10 @@ class RevokeUser(handlers.SafeHandler):
                     action = 'access_revoked'
                 )
 
-
 class DatasetUsers(handlers.SafeHandler):
+    @ensure_admin
     def get(self, dataset, *args, **kwargs):
         dataset = db.get_dataset(dataset)
-
-        if not self.current_user.is_admin(dataset):
-            self.send_error(status_code=403) # Forbidden
-            return
-
         query = db.User.select(
                 db.User, db.DatasetAccess.wants_newsletter, db.DatasetAccess.has_access, db.UserLog.ts
             ).join(
