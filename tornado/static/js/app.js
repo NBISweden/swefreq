@@ -161,7 +161,6 @@
 
         this.getUsers = function(){
             $http.get('/api/users/me').success(function(data){
-                console.log(data);
                 localThis.data.userName = data.user;
                 localThis.data.email = data.email;
                 localThis.data.trusted = data.trusted;
@@ -319,7 +318,6 @@
 
         has_already_logged = false;
         localThis.consented = function(){
-            console.log("CLICK");
             if (!has_already_logged){
                 has_already_logged = true;
                 $http.post('/api/datasets/' + short_name + '/log/consent').success(function(data){});
