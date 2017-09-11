@@ -1,4 +1,4 @@
-import email.mime.multipart
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import json
 import logging
@@ -244,7 +244,7 @@ class ApproveUser(handlers.AdminHandler):
                     action = 'access_granted'
                 )
 
-        msg = email.mime.multipart.MIMEMultipart()
+        msg = MIMEMultipart()
         msg['to'] = email
         msg['from'] = settings.from_address
         msg['subject'] = 'Swefreq account created'
