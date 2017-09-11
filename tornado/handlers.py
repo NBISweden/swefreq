@@ -63,29 +63,28 @@ class SafeHandler(BaseHandler):
         the Handlers that inherit from this one are going to require
         authentication in all their methods.
         """
-        super(SafeHandler, self).prepare()
         if not self.current_user:
-            self.redirect('/static/not_authorized.html')
+            self.redirect('/not_authorized')
+
+class AuthorizedHandler(SafeHandler):
+    def prepare(self):
+        super(AuthorizedHandler, self).prepare()
+
+        kwargs = self.path_kwargs
+        if not kwargs['dataset']:
+            self.redirect('/not_authorized')
+        if not self.current_user.has_access( db.get_dataset(kwargs['dataset']) ):
+            self.redirect('/not_authorized')
 
 class AdminHandler(SafeHandler):
     def prepare(self):
         super(AdminHandler, self).prepare()
-        user = self.current_user
-        dataset = self.dataset
-        da = db.DatasetAccess().select().where(
-                db.DatasetAccess.user == user,
-                db.DatasetAccess.dataset == dataset
-            ).get()
-        if not da.is_admin:
-            self.redirect('/static/not_authorized.html')
 
-class AuthorizedHandler(BaseHandler):
-    def prepare(self):
-        super(AuthorizedHandler, self).prepare()
-        if not self.current_user:
-            self.redirect('/static/not_authorized.html')
-        if not self.is_authorized():
-            self.redirect('/static/not_authorized.html')
+        kwargs = self.path_kwargs
+        if not kwargs['dataset']:
+            self.redirect('/not_authorized')
+        if not self.current_user.is_admin( db.get_dataset(kwargs['dataset']) ):
+            self.redirect('/not_authorized')
 
 class NotAuthorized(BaseHandler):
     def get(self, *args, **kwargs):
