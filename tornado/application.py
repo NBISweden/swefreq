@@ -44,7 +44,7 @@ class ListDatasets(handlers.UnsafeHandler):
         # List all datasets available to the current user, latest is_current
         # earliear than now OR versions that are available in the future that
         # the user is admin of.
-        user = self.get_current_user()
+        user = self.current_user
 
         ret = []
         for version in db.DatasetVersionCurrent.select():
@@ -65,7 +65,7 @@ class DatasetFiles(handlers.UnsafeHandler):
 
 class SampleSet(handlers.UnsafeHandler):
     def get(self, dataset, *args, **kwargs):
-        user = self.get_current_user()
+        user = self.current_user
         dataset = db.get_dataset(dataset)
 
         sample_set = dataset.sample_set
@@ -82,7 +82,7 @@ class SampleSet(handlers.UnsafeHandler):
 
 class GetDataset(handlers.UnsafeHandler):
     def get(self, dataset, *args, **kwargs):
-        user = self.get_current_user()
+        user = self.current_user
 
         dataset = db.get_dataset(dataset)
         current_version = dataset.current_version.get()
