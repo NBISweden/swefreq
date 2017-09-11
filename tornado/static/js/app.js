@@ -313,8 +313,7 @@
                         })
                 })
                 .success(function(data){
-                    console.log(data);
-                    $location.path("/addedRequest");
+                    localThis.authorization_level = 'thank-you';
                 });
         };
 
