@@ -10,32 +10,49 @@
                 <my-navbar tab="admin"></my-navbar>
 
                 <div class="tab-content">
-                    <div ng-if="adminCtrl.dataset.is_admin == false">
-                        <p>You need to be logged in as an admin to use this page.
+
+                    <div class="container">
+                        <div class="row">
+                            <div class="admin-bar">
+                                <ul class="nav nav-tabs pull-right">
+                                    <li><a class="active" href="">Pending requests</a></li>
+                                    <li><a href="">Approved users</a></li>
+                                    <li><a href="">Email list</a></li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
-                    <div ng-if="adminCtrl.dataset.is_admin == true">
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <tr>
-                                    <th></th>
-                                    <th>Name</th>
-                                    <th>E-mail</th>
-                                    <th>Affiliation</th>
-                                    <th>Country</th>
-                                    <th>Applied date</th>
-                                </tr>
-                                <tr ng-repeat="row in adminCtrl.users">
-                                    <td>
-                                        <div class="btn btn-primary btn-xs" data-toggle="tooltip" title="Give the user access" ng-click="adminCtrl.approvedUser(row)">Approve</div>
-                                        <div class="btn btn-danger btn-xs" data-toggle="tooltip" title="Deny access" ng-click="adminCtrl.revokeUser(row)">Deny</div>
-                                    </td>
-                                    <td>{{row.user}}</td>
-                                    <td>{{row.email}}</td>
-                                    <td>{{row.affiliation}}</td>
-                                    <td>{{row.country}}</td>
-                                    <td>{{row.applyDate}}</td>
-                                </tr>
-                            </table>
+
+                    <div class="tab-content">
+
+                        <div ng-if="adminCtrl.dataset.is_admin == false">
+                            <p>You need to be logged in as an admin to use this page.
+                        </div>
+                        <div ng-if="adminCtrl.dataset.is_admin == true">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <tr>
+                                        <th></th>
+                                        <th>Name</th>
+                                        <th>E-mail</th>
+                                        <th>Affiliation</th>
+                                        <th>Country</th>
+                                        <th>Applied date</th>
+                                    </tr>
+                                    <tr ng-repeat="row in adminCtrl.users">
+                                        <td>
+                                            <div class="btn btn-primary btn-xs" data-toggle="tooltip" title="Give the user access" ng-click="adminCtrl.approvedUser(row)">Approve</div>
+                                            <div class="btn btn-danger btn-xs" data-toggle="tooltip" title="Deny access" ng-click="adminCtrl.revokeUser(row)">Deny</div>
+                                        </td>
+                                        <td>{{row.user}}</td>
+                                        <td>{{row.email}}</td>
+                                        <td>{{row.affiliation}}</td>
+                                        <td>{{row.country}}</td>
+                                        <td>{{row.applyDate}}</td>
+                                        <td><b ng-if="row.has_access">{{row.has_access}}</b></td>
+                                    </tr>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
