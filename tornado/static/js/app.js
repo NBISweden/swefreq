@@ -133,8 +133,9 @@
     }]);
 
 
-    App.controller('mainController', function($http, $scope) {
+    App.controller('mainController', function($http, $scope, $location) {
         var localThis = this;
+        localThis.url = function () { return $location.path() };
     });
 
     /////////////////////////////////////////////////////////////////////////////////////
