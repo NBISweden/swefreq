@@ -9,6 +9,65 @@
                  'trusted':false,
                  'admin':false}
 
+
+    App.factory('User', function($http, $q) {
+        var state = null;
+        return function() {
+            var defer = $q.defer()
+            if (state != null) {
+                defer.resolve(state);
+            }
+            else {
+                $http({url: '/api/users/me'}).then(function(data){
+                        state = data.data;
+                        defer.resolve(state);
+                    }, function(data) {
+                        defer.reject(data);
+                    }
+                );
+            }
+            return defer.promise;
+        };
+    });
+
+    App.factory('Dataset', function($http, $q, $location, $sce) {
+        var state = {dataset: null};
+        return function() {
+            var defer = $q.defer();
+            if (state.dataset != null) {
+                defer.resolve(state);
+            }
+            else {
+                var path = $location.path().split('/');
+                var dataset = path[2];
+                if ( path[1] != 'dataset' ) {
+                    state = "Some strange error 2";
+                    defer.reject("Some strange error 1");
+                }
+                else {
+                    $q.all([
+                        $http.get('/api/datasets/' + dataset).then(function(data){
+                            var d = data.data;
+                            d.version.description = $sce.trustAsHtml( d.version.description );
+                            d.version.terms       = $sce.trustAsHtml( d.version.terms );
+                            state['dataset'] = d;
+                        }),
+                        $http.get('/api/datasets/' + dataset + '/sample_set').then(function(data){
+                            state.sample_set = data.data.sample_set;
+                            state.study = data.data.study;
+
+                            cn = state.study.contact_name;
+                            state.study.contact_name_uc = cn.charAt(0).toUpperCase() + cn.slice(1);
+                        })
+                    ]).then(function(data) {
+                        defer.resolve(state);
+                    });
+                }
+            }
+            return defer.promise;
+        }
+    });
+
     /////////////////////////////////////////////////////////////////////////////////////
     App.directive('consent', function ($cookies) {
         return {
@@ -46,13 +105,13 @@
         };
     });
 
-    App.directive('myNavbar', function() {
+    App.directive('myNavbar', ['Dataset', function(Dataset) {
         return {
             restrict: 'E',
             templateUrl: 'static/js/ng-templates/dataset-navbar.html',
             link: function(scope, element, attrs) {
                 scope.createUrl = function(subpage) {
-                    return '/dataset/' + attrs.dataset + '/' + subpage;
+                    return '/dataset/' + scope.dataset + '/' + subpage;
                 };
                 scope.isActive = function(tab) {
                     if ( tab == attrs.tab ) {
@@ -62,9 +121,16 @@
                         return '';
                     }
                 };
+                scope.is_admin = false;
+                Dataset().then(function(data){
+                        scope.is_admin    = data.dataset.is_admin;
+                        scope.dataset     = data.dataset.short_name;
+                        scope.browser_uri = data.dataset.browser_uri;
+                    }
+                );
             },
         };
-    });
+    }]);
 
 
     App.controller('mainController', function($http, $scope) {
@@ -178,39 +244,45 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('datasetController', function($http, $scope, $routeParams, $sce, $location) {
+    App.controller('datasetController', ['$http', '$routeParams', 'User', 'Dataset',
+                                function($http, $routeParams, User, Dataset) {
         var localThis = this;
-        short_name = $routeParams["dataset"];
+        var short_name = $routeParams["dataset"];
+
+        User().then(function(data) {
+            localThis.user = data;
+        });
+
+        Dataset().then(function(data){
+            localThis.dataset = data.dataset;
+            localThis.sample_set = data.sample_set;
+            localThis.study = data.study;
+        });
+    }]);
+
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    App.controller('datasetDownloadController', ['$http', '$scope', '$routeParams', '$location', 'User', 'Dataset',
+                                function($http, $scope, $routeParams, $location, User, Dataset) {
+        var localThis = this;
+        var short_name = $routeParams["dataset"];
         localThis.authorization_level = 'loggedout';
 
         $http.get('/api/countries').success(function(data) {
             localThis.availableCountries = data['countries'];
         });
 
-        $http.get('/api/users/me').success( function (data) {
+        User().then(function(data) {
             localThis.user = data;
             updateAuthorizationLevel();
         });
 
-        $http.get('/api/datasets/' + short_name).success(function(data){
-            data.version.description = $sce.trustAsHtml( data.version.description );
-            data.version.terms       = $sce.trustAsHtml( data.version.terms );
-            localThis.dataset = data;
+        Dataset().then(function(data){
+            localThis.dataset = data.dataset;
             updateAuthorizationLevel();
-
-            // Forward the browser_uri to the dataset-navbar directive, this is
-            // kind of ugly.
-            $scope.browser_uri = data.browser_uri;
-        });
-
-        $http.get('/api/datasets/' + short_name + '/sample_set').success(function(data){
-            localThis.sample_set = data.sample_set;
-            localThis.study = data.study;
         });
 
         $http.get('/api/datasets/' + short_name + '/files').success(function(data){
-            console.log("FILES!");
-            console.log(data);
             localThis.files = data.files;
         });
 
@@ -255,19 +327,47 @@
         localThis.consented = function(){
             console.log("CLICK");
             if (!has_already_logged){
-                console.log("WILL LOG");
                 has_already_logged = true;
-                $http.post('/api/datasets/' + short_name + '/log/consent').success(function(data){
-                    console.log('Consented');
-                });
+                $http.post('/api/datasets/' + short_name + '/log/consent').success(function(data){});
             }
         };
 
         localThis.downloadData = function(){
             $http.post('/api/datasets/' + short_name + '/log/download').success(function(data){ });
         };
-    });
+    }]);
 
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    App.controller('datasetAdminController', ['$http', '$routeParams', 'User', 'Dataset',
+                                function($http, $routeParams, User, Dataset) {
+        var localThis = this;
+        var short_name = $routeParams["dataset"];
+
+        User().then(function(data) {
+            localThis.user = data;
+        });
+
+        Dataset().then(function(data){
+            localThis.dataset = data.dataset;
+        });
+    }]);
+
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    App.controller('datasetBeaconController', ['$http', '$routeParams', 'User', 'Dataset',
+                                function($http, $routeParams, User, Dataset) {
+        var localThis = this;
+        var short_name = $routeParams["dataset"];
+
+        User().then(function(data) {
+            localThis.user = data;
+        });
+
+        Dataset().then(function(data){
+            localThis.dataset = data.dataset;
+        });
+    }]);
 
     ////////////////////////////////////////////////////////////////////////////
     // configure routes

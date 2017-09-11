@@ -4,5 +4,5 @@
     <li ng-class="isActive('download')"><a href="{{createUrl('download')}}">Download</a></li>
     <li ng-class="isActive('beacon')"><a href="{{createUrl('beacon')}}">Beacon</a></li>
     <li ng-class="isActive('browser')"><a href="{{browser_uri}}">Graphical Browser <span class="glyphicon glyphicon-new-window" aria-hidden="true"></span></a></li>
-    <li ng-class="isActive('admin')"><a href="{{createUrl('admin')}}">Admin</a></li>
+    <li ng-class="isActive('admin')" ng-if="is_admin"><a href="{{createUrl('admin')}}">Admin</a></li>
 </ul>
