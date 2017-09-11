@@ -186,7 +186,7 @@ class AuthorizedStaticNginxFileHanlder(AuthorizedHandler):
             path = "/" + path
         self.root = path
 
-    def get(self, file):
+    def get(self, dataset, file):
         abspath = os.path.abspath(os.path.join(self.root, file))
         self.set_header("X-Accel-Redirect", abspath)
         self.set_header("Content-Disposition", "attachment")
