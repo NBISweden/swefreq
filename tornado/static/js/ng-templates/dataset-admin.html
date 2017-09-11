@@ -43,7 +43,7 @@
                                         </tr>
                                         <tr ng-repeat="row in adminCtrl.users.pending">
                                             <td>
-                                                <div class="btn btn-primary btn-xs" data-toggle="tooltip" title="Give the user access" ng-click="adminCtrl.approvedUser(row)">Approve</div>
+                                                <div class="btn btn-primary btn-xs" data-toggle="tooltip" title="Give the user access" ng-click="adminCtrl.approveUser(row)">Approve</div>
                                                 <div class="btn btn-danger btn-xs" data-toggle="tooltip" title="Deny access" ng-click="adminCtrl.revokeUser(row)">Deny</div>
                                             </td>
                                             <td>{{row.user}}</td>
@@ -70,8 +70,7 @@
                                         </tr>
                                         <tr ng-repeat="row in adminCtrl.users.has_access">
                                             <td>
-                                                <div class="btn btn-primary btn-xs" data-toggle="tooltip" title="Give the user access" ng-click="adminCtrl.approvedUser(row)">Approve</div>
-                                                <div class="btn btn-danger btn-xs" data-toggle="tooltip" title="Deny access" ng-click="adminCtrl.revokeUser(row)">Deny</div>
+                                                <div class="btn btn-danger btn-xs" data-toggle="tooltip" title="Deny access" ng-click="adminCtrl.revokeUser(row)">Revoke</div>
                                             </td>
                                             <td>{{row.user}}</td>
                                             <td>{{row.email}}</td>

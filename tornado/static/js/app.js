@@ -371,6 +371,18 @@
         Dataset().then(function(data){
             localThis.dataset = data.dataset;
         });
+
+        localThis.revokeUser = function(userData){
+            $http.post('/api/datasets/' + short_name + '/users/' + userData.email + '/revoke').success(function(data){
+                getUsers();
+            });
+        };
+
+        localThis.approveUser = function(userData){
+            $http.post('/api/datasets/' + short_name + '/users/' + userData.email + '/approve').success(function(data){
+                getUsers();
+            });
+        };
     }]);
 
     /////////////////////////////////////////////////////////////////////////////////////
