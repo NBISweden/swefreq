@@ -57,8 +57,6 @@ class Application(tornado.web.Application):
             # # # # # Legacy beacon URIs # # # # #
             ("/query",                                    beacon.Query),
             ("/info",                                     tornado.web.RedirectHandler, {"url": "/api/info"}),
-            ## not_authorized
-            ("/not_authorized",                           handlers.NotAuthorized),
             ## Catch all
             (r'.*',                                       application.Home),
         ]

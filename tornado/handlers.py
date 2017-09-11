@@ -65,32 +65,33 @@ class SafeHandler(BaseHandler):
         authentication in all their methods.
         """
         if not self.current_user:
-            self.redirect('/not_authorized')
+            self.send_error(status_code=403)
 
 class AuthorizedHandler(SafeHandler):
     def prepare(self):
         super(AuthorizedHandler, self).prepare()
 
+        if self._finished:
+            return
+
         kwargs = self.path_kwargs
         if not kwargs['dataset']:
-            self.redirect('/not_authorized')
+            self.send_error(status_code=403)
         if not self.current_user.has_access( db.get_dataset(kwargs['dataset']) ):
-            self.redirect('/not_authorized')
+            self.send_error(status_code=403)
 
 class AdminHandler(SafeHandler):
     def prepare(self):
         super(AdminHandler, self).prepare()
 
+        if self._finished:
+            return
+
         kwargs = self.path_kwargs
         if not kwargs['dataset']:
-            self.redirect('/not_authorized')
+            self.send_error(status_code=403)
         if not self.current_user.is_admin( db.get_dataset(kwargs['dataset']) ):
-            self.redirect('/not_authorized')
-
-class NotAuthorized(BaseHandler):
-    def get(self, *args, **kwargs):
-        self.send_error(status_code=403)
-        self.finish()
+            self.send_error(status_code=403)
 
 class UnsafeHandler(BaseHandler):
     pass
