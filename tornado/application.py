@@ -252,9 +252,13 @@ class ApproveUser(handlers.SafeHandler):
         msg = MIMEMultipart()
         msg['to'] = email
         msg['from'] = settings.from_address
-        msg['subject'] = 'Swefreq account created'
+        msg['subject'] = 'Swefreq access granted to {}'.format(dataset.short_name)
         msg.add_header('reply-to', settings.reply_to_address)
-        body = "Your Swefreq account has been activated."
+        body = """You now have access to the {} dataset
+
+Please visit https://swefreq.nbis.se/dataset/{}/download to download files.
+        """.format(dataset.full_name, dataset.short_name,
+                dataset.sample_set.study.contact_name)
         msg.attach(MIMEText(body, 'plain'))
 
         server = smtplib.SMTP(settings.mail_server)
