@@ -211,25 +211,25 @@ class RequestAccess(handlers.SafeHandler):
 
 
 class LogEvent(handlers.SafeHandler):
-    def post(self, dataset, sEvent):
+    def post(self, dataset, event):
         user = self.current_user
 
         ok_events = ['download','consent']
-        if sEvent in ok_events:
+        if event in ok_events:
             db.UserLog.create(
                     user = user,
                     dataset = db.get_dataset(dataset),
-                    action = sEvent
+                    action = event
                 )
         else:
             raise tornado.web.HTTPError(400, reason="Can't log that")
 
 class ApproveUser(handlers.AdminHandler):
-    def get(self, dataset, sEmail):
+    def post(self, dataset, email):
         with db.database.atomic():
             dataset = db.get_dataset(dataset)
 
-            user = db.User.select().where(db.User.email == sEmail).get()
+            user = db.User.select().where(db.User.email == email).get()
 
             da = db.DatasetAccess.select().where(
                         db.DatasetAccess.user == user,
@@ -245,7 +245,7 @@ class ApproveUser(handlers.AdminHandler):
                 )
 
         msg = email.mime.multipart.MIMEMultipart()
-        msg['to'] = sEmail
+        msg['to'] = email
         msg['from'] = settings.from_address
         msg['subject'] = 'Swefreq account created'
         msg.add_header('reply-to', settings.reply_to_address)
@@ -257,20 +257,20 @@ class ApproveUser(handlers.AdminHandler):
 
 
 class RevokeUser(handlers.AdminHandler):
-    def get(self, dataset, sEmail):
-        if self.current_user.email == sEmail:
+    def get(self, dataset, email):
+        if self.current_user.email == email:
             # Don't let the admin delete hens own account
             return
 
         with db.database.atomic():
             dataset = db.get_dataset(dataset)
-            user = db.User.select().where(db.User.email == sEmail).get()
+            user = db.User.select().where(db.User.email == email).get()
 
             da = db.DatasetAccess.select(
                     ).join(
                         db.User
                     ).where(
-                        db.User.email == sEmail,
+                        db.User.email == email,
                         db.DatasetAccess.dataset == dataset
                     ).get()
             da.delete_instance()
