@@ -25,7 +25,8 @@ class BaseHandler(tornado.web.RequestHandler):
         db.database.connect()
 
     def on_finish(self):
-        db.database.close()
+        if not db.database.is_closed():
+            db.database.close()
 
     def get_current_user(self):
         email = self.get_secure_cookie('email')
