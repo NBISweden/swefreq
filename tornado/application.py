@@ -31,14 +31,11 @@ def build_dataset_structure(dataset_version, user=None, dataset=None):
     r['version']['available_from'] = r['version']['available_from'].strftime('%Y-%m-%d %H:%M')
 
     r['has_image']  = dataset.has_image()
-    r['is_admin']   = False
-    r['has_access'] = False
 
-    if user:
-        if user.has_access(dataset):
-            r['has_access'] = True
-        if user.is_admin(dataset):
-            r['is_admin'] = True
+    for access_level in ['has_requested_access', 'has_access', 'is_admin']:
+        r[access_level] = False
+        if user and getattr(user, access_level)(dataset):
+            r[access_level] = True
 
     return r
 
@@ -54,6 +51,16 @@ class ListDatasets(handlers.UnsafeHandler):
             ret.append( build_dataset_structure(version, user) )
 
         self.finish({'data':ret})
+
+
+class DatasetFiles(handlers.UnsafeHandler):
+    def get(self, dataset, *args, **kwargs):
+        dataset = db.get_dataset(dataset)
+        version = dataset.current_version.get()
+        ret = []
+        for f in version.files:
+            ret.append(db.build_dict_from_row(f))
+        self.finish({'files': ret})
 
 
 class SampleSet(handlers.UnsafeHandler):
@@ -93,7 +100,7 @@ class GetUser(handlers.UnsafeHandler):
         if user:
             ret = { 'user': user.name, 'email': user.email }
 
-        self.finish(json.dumps(ret))
+        self.finish(ret)
 
 
 class CountryList(handlers.UnsafeHandler):
@@ -204,7 +211,7 @@ class RequestAccess(handlers.SafeHandler):
 
 
 class LogEvent(handlers.SafeHandler):
-    def get(self, dataset, sEvent):
+    def post(self, dataset, sEvent):
         user = self.current_user
 
         ok_events = ['download','consent']

@@ -67,22 +67,8 @@
     });
 
 
-
     App.controller('mainController', function($http, $scope) {
         var localThis = this;
-        localThis.data = gData;
-
-        this.getUsers = function(){
-            $http.get('/api/users/me').success(function(data){
-                console.log(data);
-                localThis.data.userName = data.user;
-                localThis.data.email = data.email;
-                localThis.data.trusted = data.trusted;
-                localThis.data.has_requested_access = data.has_requested_access;
-                localThis.data.admin = data.admin;
-            });
-        };
-        this.getUsers();
     });
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -190,86 +176,27 @@
         }
     });
 
-     /////////////////////////////////////////////////////////////////////////////////////
-
-    App.controller('downloadDataController', function($http, $scope, $sce) {
-        this.lChecked = true;
-        var localThis = this;
-        localThis.data = gData;
-        this.isChecked = function(){
-            if(localThis.lChecked){
-                $http.get('/api/log/consent').success(function(data){
-                    console.log('Consented');
-                });
-            }
-            localThis.lChecked = false;
-            localThis.checked = true;
-        };
-
-        this.downloadData = function(){
-            $http.get('/api/log/download').success(function(data){
-                console.log("Downloading")
-            });
-        };
-
-        localThis.getDataset = function(){
-            $http.get('/api/datasets/swegen').success(function(data){
-                localThis.short_name  = data.short_name;
-                localThis.full_name   = data.full_name;
-                localThis.description = data.description;
-                localThis.terms       = data.terms;
-                localThis.version     = data.version;
-                localThis.has_image   = data.has_image;
-                localThis.files = data.files;
-            });
-        };
-        localThis.getDataset();
-        localThis.getTerms = function(){
-            return $sce.trustAsHtml(localThis.terms);
-        };
-    });
-
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('requestController', function($http, $scope, $location) {
-        var localThis = this;
-        localThis.data = gData;
-        localThis.data.newsletter = true;
-        $http.get('/api/countries').success(function(data) {
-            localThis.data['availableCountries'] = data['countries'];
-        });
-
-        this.sendRequest = function(valid){
-            if (!valid) {
-                return;
-            }
-            $http.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded";
-            $http({url:'/api/datasets/swegen/users/' + localThis.data.email + '/request',
-                   method:'POST',
-                   data:$.param({'email':localThis.data.email,
-                                 'userName':localThis.data.userName,
-                                 'affiliation':localThis.data.affiliation,
-                                 'country': localThis.data.country['name'],
-                                 'newsletter': localThis.data.newsletter ? 1 : 0
-                        })
-                })
-                .success(function(data){
-                    console.log(data);
-                    $location.path("/addedRequest");
-                });
-        };
-    });
-
-    ////////////////////////////////////////////////////////////////////////////
-
-    App.controller('datasetController', function($http, $scope, $routeParams, $sce) {
+    App.controller('datasetController', function($http, $scope, $routeParams, $sce, $location) {
         var localThis = this;
         short_name = $routeParams["dataset"];
+        localThis.authorization_level = 'loggedout';
+
+        $http.get('/api/countries').success(function(data) {
+            localThis.availableCountries = data['countries'];
+        });
+
+        $http.get('/api/users/me').success( function (data) {
+            localThis.user = data;
+            updateAuthorizationLevel();
+        });
 
         $http.get('/api/datasets/' + short_name).success(function(data){
             data.version.description = $sce.trustAsHtml( data.version.description );
             data.version.terms       = $sce.trustAsHtml( data.version.terms );
             localThis.dataset = data;
+            updateAuthorizationLevel();
 
             // Forward the browser_uri to the dataset-navbar directive, this is
             // kind of ugly.
@@ -280,13 +207,67 @@
             localThis.sample_set = data.sample_set;
             localThis.study = data.study;
         });
+
+        $http.get('/api/datasets/' + short_name + '/files').success(function(data){
+            console.log("FILES!");
+            console.log(data);
+            localThis.files = data.files;
+        });
+
+        function updateAuthorizationLevel () {
+            if (!localThis.hasOwnProperty('user') || localThis.user.user == null) {
+                localThis.authorization_level = 'loggedout';
+            }
+            else if (localThis.hasOwnProperty('dataset')) {
+                if (! localThis.dataset.has_requested_access)  {
+                    localThis.authorization_level = 'need-access';
+                }
+                else if (! localThis.dataset.has_access) {
+                    localThis.authorization_level = 'waits-for-access';
+                }
+                else if (localThis.dataset.has_access) {
+                    localThis.authorization_level = 'has-access';
+                }
+            }
+        };
+
+        localThis.sendRequest = function(valid){
+            if (!valid) {
+                return;
+            }
+            $http.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded";
+            $http({url:'/api/datasets/' + short_name + '/users/' + localThis.user.email + '/request',
+                   method:'POST',
+                   data:$.param({'email':localThis.user.email,
+                                 'userName':localThis.user.userName,
+                                 'affiliation':localThis.user.affiliation,
+                                 'country': localThis.user.country['name'],
+                                 'newsletter': localThis.user.newsletter ? 1 : 0
+                        })
+                })
+                .success(function(data){
+                    console.log(data);
+                    $location.path("/addedRequest");
+                });
+        };
+
+        has_already_logged = false;
+        localThis.consented = function(){
+            console.log("CLICK");
+            if (!has_already_logged){
+                console.log("WILL LOG");
+                has_already_logged = true;
+                $http.post('/api/datasets/' + short_name + '/log/consent').success(function(data){
+                    console.log('Consented');
+                });
+            }
+        };
+
+        localThis.downloadData = function(){
+            $http.post('/api/datasets/' + short_name + '/log/download').success(function(data){ });
+        };
     });
 
-    /////////////////////////////////////////////////////////////////////////////////////
-
-    App.controller('addedRequestController', function($http, $scope) {
-        var localThis = this;
-    });
 
     ////////////////////////////////////////////////////////////////////////////
     // configure routes
@@ -294,12 +275,6 @@
         $routeProvider
             .when('/',                          { templateUrl: 'static/js/ng-templates/home.html'             })
             .when('/dataBeacon/',               { templateUrl: 'static/js/ng-templates/dataBeacon.html'       })
-            .when('/downloadData/',             { templateUrl: 'static/js/ng-templates/downloadData.html'     })
-            .when('/requestAccess/',            { templateUrl: 'static/js/ng-templates/requestAccess.html'    })
-            .when('/addedRequest/',             { templateUrl: 'static/js/ng-templates/addedRequest.html'     })
-            .when('/privacyPolicy/',            { templateUrl: 'static/js/ng-templates/privacyPolicy.html'    })
-            .when('/admin/',                    { templateUrl: 'static/js/ng-templates/admin.html'            })
-            .when('/terms/',                    { templateUrl: 'static/js/ng-templates/terms.html'            })
             .when('/dataset/:dataset',          { templateUrl: 'static/js/ng-templates/dataset.html'          })
             .when('/dataset/:dataset/terms',    { templateUrl: 'static/js/ng-templates/dataset-terms.html'    })
             .when('/dataset/:dataset/download', { templateUrl: 'static/js/ng-templates/dataset-download.html' })
@@ -311,4 +286,3 @@
         $locationProvider.html5Mode(true);
     });
 })();
-

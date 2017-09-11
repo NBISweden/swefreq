@@ -10,7 +10,11 @@
                 <my-navbar tab="terms" dataset="{{datasetCtrl.dataset.short_name}}"></my-navbar>
 
                 <div class="tab-content">
-                     <div class="container" ng-bind-html="datasetCtrl.dataset.version.terms" />
+                    <div class="row">
+                        <div class="col-sm-12">
+                             <div class="dataset-body" ng-bind-html="datasetCtrl.dataset.version.terms" />
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
