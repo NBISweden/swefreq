@@ -33,7 +33,7 @@ class Application(tornado.web.Application):
             ## Static handlers
             (r"/static/(.*)",                             tornado.web.StaticFileHandler,              {"path": "static/"}),
             (r'/(favicon.ico)',                           tornado.web.StaticFileHandler,              {"path": "static/img/"}),
-            (r"/release/(.*)",                            handlers.AuthorizedStaticNginxFileHanlder,  {"path": "/release-files/"}),
+            (r"/release/(?P<dataset>[^\/]+)/(?P<file>.*)",        handlers.AuthorizedStaticNginxFileHanlder,  {"path": "/release-files/"}),
             ## Authentication
             ("/login",                                    handlers.LoginHandler),
             ("/logout",                                   handlers.LogoutHandler),
@@ -57,8 +57,6 @@ class Application(tornado.web.Application):
             # # # # # Legacy beacon URIs # # # # #
             ("/query",                                    beacon.Query),
             ("/info",                                     tornado.web.RedirectHandler, {"url": "/api/info"}),
-            ## not_authorized
-            ("/not_authorized",                           handlers.NotAuthorized),
             ## Catch all
             (r'.*',                                       application.Home),
         ]
