@@ -10,7 +10,7 @@
                  'admin':false}
 
 
-    App.factory('User', function($http, $q) {
+    App.factory('User', function($http) {
         return function() {
             return $http.get('/api/users/me');
         };
@@ -30,7 +30,7 @@
                     '/api/datasets/' + dataset + '/users/' + email + '/approve',
                     $.param({'_xsrf': $cookies.get('_xsrf')})
                 )
-        }
+        };
 
         service.revokeUser = function(dataset, email) {
             return $http.post(
@@ -161,14 +161,14 @@
     }]);
 
 
-    App.controller('mainController', function($http, $scope, $location) {
+    App.controller('mainController', function($location) {
         var localThis = this;
         localThis.url = function () { return $location.path() };
     });
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('homeController', function($http, $scope, $sce) {
+    App.controller('homeController', function($http, $sce) {
         var localThis = this;
         localThis.datasets = [];
         localThis.getDatasets = function(){
@@ -187,7 +187,7 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('dataBeaconController', function($http, $window) {
+    App.controller('dataBeaconController', function($http) {
         var beacon = this;
         beacon.pattern = { 'chromosome': "\\d+" };
         beacon.beacon_info = {};
@@ -238,8 +238,8 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('datasetDownloadController', ['$http', '$scope', '$routeParams', '$location', '$cookies', 'User', 'Dataset', 'Log',
-                                function($http, $scope, $routeParams, $location, $cookies, User, Dataset, Log) {
+    App.controller('datasetDownloadController', ['$http', '$routeParams', '$cookies', 'User', 'Dataset', 'Log',
+                                function($http, $routeParams, $cookies, User, Dataset, Log) {
         var localThis = this;
         var short_name = $routeParams["dataset"];
         localThis.authorization_level = 'loggedout';
@@ -314,8 +314,8 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('datasetAdminController', ['$http', '$routeParams', '$cookies', 'User', 'Dataset', 'DatasetUsers',
-                                function($http, $routeParams, $cookies, User, Dataset, DatasetUsers) {
+    App.controller('datasetAdminController', ['$http', '$routeParams', 'User', 'Dataset', 'DatasetUsers',
+                                function($http, $routeParams, User, Dataset, DatasetUsers) {
         var localThis = this;
         var short_name = $routeParams["dataset"];
 
