@@ -17,12 +17,27 @@
     });
 
 
-    App.factory('DatasetUsers', function($http) {
+    App.factory('DatasetUsers', function($http, $cookies) {
         var service = {};
+        $http.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded";
 
         service.getUsers = function(dataset) {
             return $http.get( '/api/datasets/' + dataset + '/users' );
         };
+
+        service.approveUser = function(dataset, email) {
+            return $http.post(
+                    '/api/datasets/' + dataset + '/users/' + email + '/approve',
+                    $.param({'_xsrf': $cookies.get('_xsrf')})
+                )
+        }
+
+        service.revokeUser = function(dataset, email) {
+            return $http.post(
+                    '/api/datasets/' + dataset + '/users/' + email + '/approve',
+                    $.param({'_xsrf': $cookies.get('_xsrf')})
+                )
+        }
 
         return service;
     });
@@ -256,8 +271,8 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('datasetDownloadController', ['$http', '$scope', '$routeParams', '$location', 'User', 'Dataset',
-                                function($http, $scope, $routeParams, $location, User, Dataset) {
+    App.controller('datasetDownloadController', ['$http', '$scope', '$routeParams', '$location', '$cookies', 'User', 'Dataset',
+                                function($http, $scope, $routeParams, $location, $cookies, User, Dataset) {
         var localThis = this;
         var short_name = $routeParams["dataset"];
         localThis.authorization_level = 'loggedout';
@@ -308,6 +323,7 @@
                                  'userName':localThis.user.userName,
                                  'affiliation':localThis.user.affiliation,
                                  'country': localThis.user.country['name'],
+                                 '_xsrf': $cookies.get('_xsrf'),
                                  'newsletter': localThis.user.newsletter ? 1 : 0
                         })
                 })
@@ -320,19 +336,26 @@
         localThis.consented = function(){
             if (!has_already_logged){
                 has_already_logged = true;
-                $http.post('/api/datasets/' + short_name + '/log/consent').success(function(data){});
+                $http.post('/api/datasets/' + short_name + '/log/consent',
+                        {'_xsrf': $cookies.get('_xsrf')}
+                    ).success(function(data){
+                    });
             }
         };
 
         localThis.downloadData = function(){
-            $http.post('/api/datasets/' + short_name + '/log/download').success(function(data){ });
+            $http.post(
+                    '/api/datasets/' + short_name + '/log/download',
+                    {'_xsrf': $cookies.get('_xsrf')}
+                ).success(function(data){
+                });
         };
     }]);
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('datasetAdminController', ['$http', '$routeParams', 'User', 'Dataset', 'DatasetUsers',
-                                function($http, $routeParams, User, Dataset, DatasetUsers) {
+    App.controller('datasetAdminController', ['$http', '$routeParams', '$cookies', 'User', 'Dataset', 'DatasetUsers',
+                                function($http, $routeParams, $cookies, User, Dataset, DatasetUsers) {
         var localThis = this;
         var short_name = $routeParams["dataset"];
 
@@ -351,16 +374,20 @@
             localThis.dataset = data.dataset;
         });
 
-        localThis.revokeUser = function(userData){
-            $http.post('/api/datasets/' + short_name + '/users/' + userData.email + '/revoke').success(function(data){
-                getUsers();
-            });
+        localThis.revokeUser = function(userData) {
+            DatasetUsers.revokeUser(
+                    short_name, userData.email
+                ).success(function(data){
+                    getUsers();
+                });
         };
 
         localThis.approveUser = function(userData){
-            $http.post('/api/datasets/' + short_name + '/users/' + userData.email + '/approve').success(function(data){
-                getUsers();
-            });
+            DatasetUsers.approveUser(
+                    short_name, userData.email
+                ).success(function(data) {
+                    getUsers();
+                });
         };
     }]);
 

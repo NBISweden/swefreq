@@ -22,6 +22,8 @@ class BaseHandler(tornado.web.RequestHandler):
         raise tornado.web.HTTPError(404, reason='Page not found')
 
     def prepare(self):
+        ## Make sure we have the xsrf_token
+        self.xsrf_token
         db.database.connect()
 
     def on_finish(self):
