@@ -187,58 +187,6 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('adminController', function($http, $scope) {
-        var localThis = this;
-        this.userName = '';
-        this.email = '';
-        localThis.data = gData;
-
-        this.getUsers = function(){
-            $http.get('/api/users/me').success(function(data){
-                localThis.data.userName = data.user;
-                localThis.data.email = data.email;
-                localThis.data.trusted = data.trusted;
-                localThis.data.has_requested_access = data.has_requested_access;
-                localThis.data.admin = data.admin;
-                if(data.admin == true){
-                    // TODO: Change this to one call that is then filtered into
-                    // the two different datasets? Or just filter in the view.
-                    // This is currently broken.
-                    $http.get('/api/datasets/swegen/users').success(function(data){
-                        localThis.data.requests = data;
-                    });
-                    $http.get('/api/datasets/swegen/users').success(function(data){
-                        localThis.data.approvedUsers = data;
-                        localThis.data.emails = []
-                        for (var idx in data) {
-                            var user = data[idx];
-                            if (user.newsletter == 1) {
-                                localThis.data.emails.push(user['email']);
-                            }
-                        }
-                    });
-                };
-            });
-        };
-        this.getUsers();
-
-        this.revokeUser = function(userData){
-            $http.get('/api/datasets/swegen/users/' + userData.email + '/revoke').success(function(data){
-                localThis.getUsers();
-            });
-        };
-
-        this.approvedUser = function(userData){
-            $http.get('/api/datasets/swegen/users/' + userData.email + '/approve').success(function(data){
-                $http.get('/api/datasets/swegen/users/').success(function(data){
-                    localThis.getUsers();
-                });
-            });
-        };
-    });
-
-     /////////////////////////////////////////////////////////////////////////////////////
-
     App.controller('dataBeaconController', function($http, $window) {
         var beacon = this;
         beacon.pattern = { 'chromosome': "\\d+" };
