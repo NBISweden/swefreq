@@ -39,6 +39,20 @@
                 )
         };
 
+        service.requestAccess = function(dataset, user) {
+            return $http({url:'/api/datasets/' + dataset + '/users/' + user.email + '/request',
+                   method:'POST',
+                   data:$.param({
+                           'email':       user.email,
+                           'userName':    user.userName,
+                           'affiliation': user.affiliation,
+                           'country':     user.country['name'],
+                           '_xsrf':       $cookies.get('_xsrf'),
+                           'newsletter':  user.newsletter ? 1 : 0
+                        })
+                });
+        };
+
         return service;
     });
 
@@ -238,8 +252,8 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('datasetDownloadController', ['$http', '$routeParams', '$cookies', 'User', 'Dataset', 'Log',
-                                function($http, $routeParams, $cookies, User, Dataset, Log) {
+    App.controller('datasetDownloadController', ['$http', '$routeParams', 'User', 'Dataset', 'DatasetUsers', 'Log',
+                                function($http, $routeParams, User, Dataset, DatasetUsers, Log) {
         var localThis = this;
         var short_name = $routeParams["dataset"];
         localThis.authorization_level = 'loggedout';
@@ -283,18 +297,9 @@
             if (!valid) {
                 return;
             }
-            $http.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded";
-            $http({url:'/api/datasets/' + short_name + '/users/' + localThis.user.email + '/request',
-                   method:'POST',
-                   data:$.param({'email':localThis.user.email,
-                                 'userName':localThis.user.userName,
-                                 'affiliation':localThis.user.affiliation,
-                                 'country': localThis.user.country['name'],
-                                 '_xsrf': $cookies.get('_xsrf'),
-                                 'newsletter': localThis.user.newsletter ? 1 : 0
-                        })
-                })
-                .success(function(data){
+            DatasetUsers.requestAccess(
+                    short_name, localThis.user
+                ).success(function(data){
                     localThis.authorization_level = 'thank-you';
                 });
         };
