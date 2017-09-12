@@ -37,7 +37,26 @@
                     '/api/datasets/' + dataset + '/users/' + email + '/approve',
                     $.param({'_xsrf': $cookies.get('_xsrf')})
                 )
-        }
+        };
+
+        return service;
+    });
+
+    App.factory('Log', function($http, $cookies) {
+        var service = {};
+        $http.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded";
+
+        service.consent = function(dataset) {
+            return $http.post('/api/datasets/' + dataset + '/log/consent',
+                    $.param({'_xsrf': $cookies.get('_xsrf')})
+                );
+        };
+        service.download = function(dataset) {
+            return $http.post(
+                    '/api/datasets/' + dataset + '/log/download',
+                    $.param({'_xsrf': $cookies.get('_xsrf')})
+                );
+        };
 
         return service;
     });
@@ -271,8 +290,8 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('datasetDownloadController', ['$http', '$scope', '$routeParams', '$location', '$cookies', 'User', 'Dataset',
-                                function($http, $scope, $routeParams, $location, $cookies, User, Dataset) {
+    App.controller('datasetDownloadController', ['$http', '$scope', '$routeParams', '$location', '$cookies', 'User', 'Dataset', 'Log',
+                                function($http, $scope, $routeParams, $location, $cookies, User, Dataset, Log) {
         var localThis = this;
         var short_name = $routeParams["dataset"];
         localThis.authorization_level = 'loggedout';
@@ -336,19 +355,12 @@
         localThis.consented = function(){
             if (!has_already_logged){
                 has_already_logged = true;
-                $http.post('/api/datasets/' + short_name + '/log/consent',
-                        {'_xsrf': $cookies.get('_xsrf')}
-                    ).success(function(data){
-                    });
+                Log.consent(short_name);
             }
         };
 
         localThis.downloadData = function(){
-            $http.post(
-                    '/api/datasets/' + short_name + '/log/download',
-                    {'_xsrf': $cookies.get('_xsrf')}
-                ).success(function(data){
-                });
+            Log.download(short_name);
         };
     }]);
 
