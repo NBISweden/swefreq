@@ -237,7 +237,7 @@
     App.controller('datasetController', ['$http', '$routeParams', 'User', 'Dataset',
                                 function($http, $routeParams, User, Dataset) {
         var localThis = this;
-        var short_name = $routeParams["dataset"];
+        var dataset = $routeParams["dataset"];
 
         User().then(function(data) {
             localThis.user = data.data;
@@ -255,7 +255,7 @@
     App.controller('datasetDownloadController', ['$http', '$routeParams', 'User', 'Dataset', 'DatasetUsers', 'Log',
                                 function($http, $routeParams, User, Dataset, DatasetUsers, Log) {
         var localThis = this;
-        var short_name = $routeParams["dataset"];
+        var dataset = $routeParams["dataset"];
         localThis.authorization_level = 'loggedout';
 
         $http.get('/api/countries').success(function(data) {
@@ -272,7 +272,7 @@
             updateAuthorizationLevel();
         });
 
-        $http.get('/api/datasets/' + short_name + '/files').success(function(data){
+        $http.get('/api/datasets/' + dataset + '/files').success(function(data){
             localThis.files = data.files;
         });
 
@@ -298,7 +298,7 @@
                 return;
             }
             DatasetUsers.requestAccess(
-                    short_name, localThis.user
+                    dataset, localThis.user
                 ).success(function(data){
                     localThis.authorization_level = 'thank-you';
                 });
@@ -308,12 +308,12 @@
         localThis.consented = function(){
             if (!has_already_logged){
                 has_already_logged = true;
-                Log.consent(short_name);
+                Log.consent(dataset);
             }
         };
 
         localThis.downloadData = function(){
-            Log.download(short_name);
+            Log.download(dataset);
         };
     }]);
 
@@ -322,11 +322,11 @@
     App.controller('datasetAdminController', ['$http', '$routeParams', 'User', 'Dataset', 'DatasetUsers',
                                 function($http, $routeParams, User, Dataset, DatasetUsers) {
         var localThis = this;
-        var short_name = $routeParams["dataset"];
+        var dataset = $routeParams["dataset"];
 
         getUsers();
         function getUsers() {
-            DatasetUsers.getUsers( short_name ).then( function(data) {
+            DatasetUsers.getUsers( dataset ).then( function(data) {
                 localThis.users = data.data;
             });
         }
@@ -341,7 +341,7 @@
 
         localThis.revokeUser = function(userData) {
             DatasetUsers.revokeUser(
-                    short_name, userData.email
+                    dataset, userData.email
                 ).success(function(data){
                     getUsers();
                 });
@@ -349,7 +349,7 @@
 
         localThis.approveUser = function(userData){
             DatasetUsers.approveUser(
-                    short_name, userData.email
+                    dataset, userData.email
                 ).success(function(data) {
                     getUsers();
                 });
@@ -361,7 +361,7 @@
     App.controller('datasetBeaconController', ['$http', '$routeParams', 'User', 'Dataset',
                                 function($http, $routeParams, User, Dataset) {
         var localThis = this;
-        var short_name = $routeParams["dataset"];
+        var dataset = $routeParams["dataset"];
 
         User().then(function(data) {
             localThis.user = data.data;
