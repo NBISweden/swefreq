@@ -53,11 +53,11 @@ class Application(tornado.web.Application):
             ("/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/approve", application.ApproveUser),
             ("/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/revoke",  application.RevokeUser),
             ### Beacon API
-            ("/api/query",                                beacon.Query),
-            ("/api/info",                                 beacon.Info),
+            ("/api/beacon/query",                                beacon.Query),
+            ("/api/beacon/info",                                 beacon.Info),
             # # # # # Legacy beacon URIs # # # # #
             ("/query",                                    beacon.Query),
-            ("/info",                                     tornado.web.RedirectHandler, {"url": "/api/info"}),
+            ("/info",                                     tornado.web.RedirectHandler, {"url": "/api/beacon/info"}),
             ## Catch all
             (r'.*',                                       application.Home),
         ]

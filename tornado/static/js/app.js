@@ -110,6 +110,51 @@
         }
     });
 
+    App.factory('Beacon', function($http, $q) {
+        var service = {};
+
+        function _getBeaconReferences(name) {
+            var references = [];
+            for (var i = 0; i<service.data['datasets'].length; i++) {
+                dataset = service.data['datasets'][i];
+                if ( dataset['id'] == name ) {
+                    references.push(dataset['reference']);
+                }
+            }
+            return references;
+        }
+
+        service.getBeaconReferences = function(name) {
+            var defer = $q.defer();
+            if ( service.hasOwnProperty('id') ) {
+                defer.resolve( _getBeaconReferences(name) );
+            }
+            else {
+                $http.get('/api/beacon/info').success(function(data) {
+                    service.data = data;
+                    defer.resolve(_getBeaconReferences(name));
+                });
+            }
+            return defer.promise
+        };
+
+        service.queryBeacon = function(query) {
+            return $http.get('/api/query', {
+                    'params': {
+                        'chrom':           query.chromosome,
+                        'pos':             query.position - 1,
+                        'allele':          query.allele,
+                        'referenceAllele': query.referenceAllele,
+                        'dataset':         query.dataset,
+                        'ref':             query.reference
+                    }
+                });
+        };
+
+        return service;
+    });
+
+
     /////////////////////////////////////////////////////////////////////////////////////
     App.directive('consent', function ($cookies) {
         return {
@@ -350,10 +395,16 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('datasetBeaconController', ['$http', '$routeParams', 'User', 'Dataset',
-                                function($http, $routeParams, User, Dataset) {
+    App.controller('datasetBeaconController', ['$http', '$routeParams', 'Beacon', 'Dataset', 'User',
+                                function($http, $routeParams, Beacon, Dataset, User) {
         var localThis = this;
         var dataset = $routeParams["dataset"];
+
+        Beacon.getBeaconReferences(dataset).then(
+                function(data) {
+                    localThis.references = data;
+                }
+            );
 
         User().then(function(data) {
             localThis.user = data.data;
