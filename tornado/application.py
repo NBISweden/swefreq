@@ -19,7 +19,8 @@ class Home(handlers.UnsafeHandler):
             name = self.current_user.name
             email = self.current_user.email
 
-        self.render('index.html', user_name=name, email=email)
+        develop = self.settings.get('develop', False)
+        self.render('index.html', user_name=name, email=email, develop=develop)
 
 
 def build_dataset_structure(dataset_version, user=None, dataset=None):
