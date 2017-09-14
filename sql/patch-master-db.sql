@@ -111,3 +111,31 @@ CREATE OR REPLACE VIEW dataset_version_current AS
         SELECT dataset_pk, MAX(dataset_version_pk) FROM dataset_version
         WHERE available_from < now()
         GROUP BY dataset_pk );
+
+-- add the dataset_access_current view
+
+ALTER TABLE dataset_access
+    DROP COLUMN has_consented,
+    DROP COLUMN has_access;
+
+CREATE OR REPLACE VIEW dataset_access_current AS
+    SELECT DISTINCT
+        access.*,
+        TRUE as has_access,
+        (consent.action IS NOT NULL) AS has_consented
+    FROM dataset_access AS access
+    LEFT JOIN user_log AS consent
+        ON access.user_pk = consent.user_pk AND
+           consent.action = 'consent'
+    WHERE access.user_pk IN (
+    -- gets user_pk for all user with current access
+    -- from https://stackoverflow.com/a/39190423/4941495
+    SELECT DISTINCT granted.user_pk FROM user_log granted
+        LEFT JOIN user_log revoked
+                ON granted.user_pk = revoked.user_pk AND
+                   revoked.action  = 'access_revoked'
+        WHERE granted.action = 'access_granted' AND
+                (revoked.user_pk IS NULL OR granted.ts > revoked.ts)
+        GROUP BY granted.user_pk, granted.action
+    );
+
