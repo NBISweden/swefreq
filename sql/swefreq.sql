@@ -47,8 +47,6 @@ CREATE TABLE IF NOT EXISTS dataset_access (
     user_pk             INTEGER         NOT NULL,
     wants_newsletter    BOOLEAN         DEFAULT false,
     is_admin            BOOLEAN         DEFAULT false,
-    has_consented       BOOLEAN         DEFAULT false,
-    has_access          BOOLEAN         DEFAULT false,
     CONSTRAINT UNIQUE (dataset_pk, user_pk),
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk),
     CONSTRAINT FOREIGN KEY (user_pk)    REFERENCES user(user_pk)
