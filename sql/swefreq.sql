@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS dataset_access (
     CONSTRAINT FOREIGN KEY (user_pk)    REFERENCES user(user_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE OR REPLACE VIEW dataset_access_v AS
+CREATE OR REPLACE VIEW dataset_access_current AS
     SELECT DISTINCT
         access.*,
         TRUE as has_access,
