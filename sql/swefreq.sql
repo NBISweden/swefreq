@@ -52,6 +52,27 @@ CREATE TABLE IF NOT EXISTS dataset_access (
     CONSTRAINT FOREIGN KEY (user_pk)    REFERENCES user(user_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE OR REPLACE VIEW dataset_access_v AS
+    SELECT DISTINCT
+        access.*,
+        TRUE as has_access,
+        (consent.action IS NOT NULL) AS has_consented
+    FROM dataset_access AS access
+    LEFT JOIN user_log AS consent
+        ON access.user_pk = consent.user_pk AND
+           consent.action = 'consent'
+    WHERE access.user_pk IN (
+    -- gets user_pk for all user with current access
+    -- from https://stackoverflow.com/a/39190423/4941495
+    SELECT DISTINCT granted.user_pk FROM user_log granted
+        LEFT JOIN user_log revoked
+                ON granted.user_pk = revoked.user_pk AND
+                   revoked.action  = 'access_revoked'
+        WHERE granted.action = 'access_granted' AND
+                (revoked.user_pk IS NULL OR granted.ts > revoked.ts)
+        GROUP BY granted.user_pk, granted.action
+    );
+
 CREATE TABLE IF NOT EXISTS dataset_version (
     dataset_version_pk  INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
     dataset_pk          INTEGER         NOT NULL,
