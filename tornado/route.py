@@ -24,7 +24,8 @@ settings = {"debug": False,
             },
             "contact_person": 'mats.dahlberg@scilifelab.se',
             "redirect_uri": redirect_uri,
-            "template_path": "templates/"
+            "template_path": "templates/",
+            "xsrf_cookies": True,
         }
 
 class Application(tornado.web.Application):
