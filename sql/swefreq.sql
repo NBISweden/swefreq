@@ -73,6 +73,36 @@ CREATE OR REPLACE VIEW dataset_access_current AS
         GROUP BY granted.user_pk, granted.action
     );
 
+CREATE OR REPLACE VIEW dataset_access_waiting AS
+    SELECT DISTINCT
+        access.*,
+        FALSE AS has_access,
+        (consent.action IS NOT NULL) AS has_consented
+    FROM dataset_access AS access
+    LEFT JOIN user_log AS consent
+        ON access.user_pk = consent.user_pk AND
+           consent.action = 'consent'
+    WHERE access.user_pk NOT IN (
+    -- gets user_pk for all users with current access
+    -- from https://stackoverflow.com/a/39190423/4941495
+    SELECT DISTINCT granted.user_pk FROM user_log granted
+        LEFT JOIN user_log revoked
+                ON granted.user_pk = revoked.user_pk AND
+                   revoked.action  = 'access_revoked'
+        WHERE granted.action = 'access_granted' AND
+                (revoked.user_pk IS NULL OR granted.ts > revoked.ts)
+        GROUP BY granted.user_pk, granted.action
+    ) AND access.user_pk IN (
+    -- get user_pk for all users that have pending access requests
+    SELECT DISTINCT requested.user_pk FROM user_log requested
+        LEFT JOIN user_log granted
+                ON requested.user_pk = granted.user_pk AND
+                   granted.action  = 'access_granted'
+        WHERE requested.action = 'access_requested' AND
+                (granted.user_pk IS NULL OR requested.ts > granted.ts)
+        GROUP BY requested.user_pk, requested.action
+    );
+
 CREATE TABLE IF NOT EXISTS dataset_version (
     dataset_version_pk  INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
     dataset_pk          INTEGER         NOT NULL,
