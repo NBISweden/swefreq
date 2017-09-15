@@ -150,17 +150,7 @@ CREATE OR REPLACE VIEW dataset_access_waiting AS
     LEFT JOIN user_log AS consent
         ON access.user_pk = consent.user_pk AND
            consent.action = 'consent'
-    WHERE access.user_pk NOT IN (
-    -- gets user_pk for all users with current access
-    -- from https://stackoverflow.com/a/39190423/4941495
-    SELECT DISTINCT granted.user_pk FROM user_log granted
-        LEFT JOIN user_log revoked
-                ON granted.user_pk = revoked.user_pk AND
-                   revoked.action  = 'access_revoked'
-        WHERE granted.action = 'access_granted' AND
-                (revoked.user_pk IS NULL OR granted.ts > revoked.ts)
-        GROUP BY granted.user_pk, granted.action
-    ) AND access.user_pk IN (
+    WHERE access.user_pk IN (
     -- get user_pk for all users that have pending access requests
     SELECT DISTINCT requested.user_pk FROM user_log requested
         LEFT JOIN user_log granted
