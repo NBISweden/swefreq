@@ -4,6 +4,6 @@ python:
 install:
     - pip install -r tornado/requirements.txt
 script:
-    - git cat-file HEAD
+    - git cat-file -p HEAD
     - cd tornado && python route.py &
     - sleep 5
