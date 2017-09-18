@@ -279,50 +279,56 @@ class RevokeUser(handlers.AdminHandler):
                     action = 'access_revoked'
                 )
 
-class DatasetUsers(handlers.AdminHandler):
-    def get(self, dataset, *args, **kwargs):
-        dataset = db.get_dataset(dataset)
-        query = db.User.select(
-                db.User, db.DatasetAccess.wants_newsletter, db.DatasetAccess.has_access
-            ).join(
-                db.DatasetAccess
-            ).switch(
-                db.User
-            ).join(
-                db.UserLog,
-                peewee.JOIN.LEFT_OUTER,
-                on=(   (db.User.user        == db.UserLog.user)
-                     & (db.UserLog.action   == 'access_requested')
-                     & (db.UserLog.dataset  == db.DatasetAccess.dataset)
-                )
-            ).where(
-                db.DatasetAccess.dataset    == dataset,
-            ).annotate(
-                db.UserLog,
-                peewee.fn.Max(db.UserLog.ts).alias('apply_date')
-            )
-
-        json_response = { 'has_access': [], 'pending': [] }
+class DatasetUsers():
+    def _build_json_response(self, query, access_for):
+        json_response = []
         for user in query:
             applyDate = '-'
-            if user.apply_date:
-                applyDate = user.apply_date.strftime('%Y-%m-%d %H:%M')
+            logging.info("build json response for a user")
+            access = access_for(user)
+            if access.access_requested:
+                applyDate = access.access_requested.strftime('%Y-%m-%d %H:%M')
 
             data = {
                     'user':        user.name,
                     'email':       user.email,
                     'affiliation': user.affiliation,
                     'country':     user.country,
-                    'newsletter':  user.dataset_access.wants_newsletter,
-                    'has_access':  user.dataset_access.has_access,
+                    'newsletter':  access.wants_newsletter,
+                    'has_access':  access.has_access,
                     'applyDate':   applyDate
                 }
-            if user.dataset_access.has_access:
-                json_response['has_access'].append(data)
-            else:
-                json_response['pending'].append(data)
+            json_response.append(data)
+        return json_response
 
-        self.finish(json_response)
+
+class DatasetUsersPending(handlers.AdminHandler, DatasetUsers):
+    def get(self, dataset, *args, **kwargs):
+        dataset = db.get_dataset(dataset)
+        query = db.User.select(
+                db.User, db.DatasetAccessPending
+            ).join(
+                db.DatasetAccessPending
+            ).where(
+                db.DatasetAccessPending.dataset == dataset,
+            )
+
+        self.finish({'data': self._build_json_response(query, lambda u: u.access_pending.get())})
+
+
+class DatasetUsersCurrent(handlers.AdminHandler, DatasetUsers):
+    def get(self, dataset, *args, **kwargs):
+        dataset = db.get_dataset(dataset)
+        query = db.User.select(
+                db.User, db.DatasetAccessCurrent
+            ).join(
+                db.DatasetAccessCurrent
+            ).where(
+                db.DatasetAccessCurrent.dataset == dataset,
+            )
+
+        self.finish({'data': self._build_json_response(query, lambda u: u.access_current.get())})
+
 
 class ServeLogo(handlers.UnsafeHandler):
     def get(self, dataset, *args, **kwargs):
