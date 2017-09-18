@@ -56,8 +56,12 @@ CREATE OR REPLACE VIEW dataset_access_current AS
     SELECT DISTINCT
         access.*,
         TRUE AS has_access,
-        (consent.action IS NOT NULL) AS has_consented
+        (consent.action IS NOT NULL) AS has_consented,
+        request.ts AS access_requested
     FROM dataset_access AS access
+    JOIN ( SELECT user_pk, MAX(ts) AS ts
+           FROM user_log WHERE action = "access_requested"
+           GROUP BY user_pk ) AS request ON access.user_pk = request.user_pk
     LEFT JOIN user_log AS consent
         ON access.user_pk = consent.user_pk AND
            consent.action = 'consent'
@@ -77,8 +81,12 @@ CREATE OR REPLACE VIEW dataset_access_waiting AS
     SELECT DISTINCT
         access.*,
         FALSE AS has_access,
-        (consent.action IS NOT NULL) AS has_consented
+        (consent.action IS NOT NULL) AS has_consented,
+        request.ts AS access_requested
     FROM dataset_access AS access
+    JOIN ( SELECT user_pk, MAX(ts) AS ts
+           FROM user_log WHERE action = "access_requested"
+           GROUP BY user_pk ) AS request ON access.user_pk = request.user_pk
     LEFT JOIN user_log AS consent
         ON access.user_pk = consent.user_pk AND
            consent.action = 'consent'
