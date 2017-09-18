@@ -4,7 +4,7 @@
 # doesn't crash immediately.
 
 if timeout 5 python route.py; then
-    exit 0
-else
     exit 1
+else
+    exit 0
 fi
