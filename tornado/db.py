@@ -75,16 +75,15 @@ class User(BaseModel):
             ).count()
 
     def has_access(self, dataset):
-        return DatasetAccess.select().where(
-                DatasetAccess.dataset == dataset,
-                DatasetAccess.user == self,
-                DatasetAccess.has_access
+        return DatasetAccessCurrent.select().where(
+                DatasetAccessCurrent.dataset == dataset,
+                DatasetAccessCurrent.user    == self,
             ).count()
 
     def has_requested_access(self, dataset):
-        return DatasetAccess.select().where(
-                DatasetAccess.dataset == dataset,
-                DatasetAccess.user == self
+        return DatasetAccessPending.select().where(
+                DatasetAccessPending.dataset == dataset,
+                DatasetAccessPending.user    == self
             ).count()
 
     class Meta:
@@ -96,14 +95,32 @@ class DatasetAccess(BaseModel):
     user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='access')
     wants_newsletter = IntegerField(null=True)
     is_admin         = IntegerField(null=True)
-    has_consented    = IntegerField(null=True)
-    has_access       = IntegerField(null=True)
 
     class Meta:
         db_table = 'dataset_access'
         indexes = (
             (('dataset_pk', 'user_pk'), True),
         )
+
+class DatasetAccessCurrent(DatasetAccess):
+    dataset          = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='access_current')
+    user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='access_current')
+    has_consented    = IntegerField()
+    has_access       = IntegerField()
+    access_requested = DateTimeField()
+
+    class Meta:
+        db_table = 'dataset_access_current'
+
+class DatasetAccessPending(DatasetAccess):
+    dataset          = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='access_wating')
+    user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='access_pending')
+    has_consented    = IntegerField()
+    has_access       = IntegerField()
+    access_requested = DateTimeField()
+
+    class Meta:
+        db_table = 'dataset_access_waiting'
 
 class DatasetVersion(BaseModel):
     dataset_version = PrimaryKeyField(db_column='dataset_version_pk')
