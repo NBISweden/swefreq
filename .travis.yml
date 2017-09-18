@@ -1,0 +1,9 @@
+language: python
+python:
+    - "3.5"
+install:
+    - pip install -r tornado/requirements.txt
+script:
+    - cp settings_sample.json settings.json
+    - cd tornado
+    - bash ../test/01_daemon_starts.sh
