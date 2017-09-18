@@ -7,4 +7,4 @@ pre-script:
     - cp settings_sample.json settings.json
 script:
     - cd tornado
-    - python route.py
+    - bash ../test/01_daemon_starts.sh
