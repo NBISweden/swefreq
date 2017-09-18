@@ -3,7 +3,10 @@ python:
     - "3.5"
 install:
     - pip install -r tornado/requirements.txt
+pre-script:
+    - cp settings_sample.json settings.json
 script:
     - git cat-file -p HEAD
-    - cd tornado && python route.py
+    - cd tornado
+    - python route.py
     - pwd
