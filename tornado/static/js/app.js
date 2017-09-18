@@ -17,12 +17,24 @@
     });
 
 
-    App.factory('DatasetUsers', function($http, $cookies) {
+    App.factory('DatasetUsers', function($http, $cookies, $q) {
         var service = {};
         $http.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded";
 
         service.getUsers = function(dataset) {
-            return $http.get( '/api/datasets/' + dataset + '/users' );
+            var defer = $q.defer();
+            var data = {'pending': [], 'current': []};
+            $q.all([
+                $http.get( '/api/datasets/' + dataset + '/users_pending' ).then(function(d) {
+                    data['pending'] = d.data.data;
+                }),
+                $http.get( '/api/datasets/' + dataset + '/users_current' ).then(function(d) {
+                    data['current'] = d.data.data;
+                })
+            ]).then(function(d) {
+                defer.resolve(data);
+            });
+            return defer.promise;
         };
 
         service.approveUser = function(dataset, email) {
@@ -319,7 +331,7 @@
         getUsers();
         function getUsers() {
             DatasetUsers.getUsers( dataset ).then( function(data) {
-                localThis.users = data.data;
+                localThis.users = data;
             });
         }
 
