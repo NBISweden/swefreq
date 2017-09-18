@@ -2,12 +2,9 @@ language: python
 python:
     - "3.5"
 install:
-    - cat tornado/requirements.txt
     - pip install -r tornado/requirements.txt
 pre-script:
     - cp settings_sample.json settings.json
 script:
-    - git cat-file -p HEAD
     - cd tornado
     - python route.py
-    - pwd
