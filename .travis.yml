@@ -1,6 +1,8 @@
 language: python
 python:
     - "3.5"
+install:
+    - pip install -r tornado/requirements.txt
 script:
     - cd tornado && python route.py &
     - sleep 5
