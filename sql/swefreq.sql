@@ -74,8 +74,8 @@ CREATE OR REPLACE VIEW dataset_access_current AS
     WHERE access.user_pk IN (
     -- gets user_pk for all users with current access
     -- from https://stackoverflow.com/a/39190423/4941495
-    SELECT granted.user_pk FROM user_log granted
-        LEFT JOIN user_log revoked
+    SELECT granted.user_pk FROM user_log_summary AS granted
+        LEFT JOIN user_log_summary AS revoked
                 ON granted.user_pk = revoked.user_pk AND
                    revoked.action  = 'access_revoked'
         WHERE granted.action = 'access_granted' AND
@@ -98,8 +98,8 @@ CREATE OR REPLACE VIEW dataset_access_waiting AS
            consent.action = 'consent'
     WHERE access.user_pk IN (
     -- get user_pk for all users that have pending access requests
-    SELECT requested.user_pk FROM user_log requested
-        LEFT JOIN user_log granted
+    SELECT requested.user_pk FROM user_log_summary AS requested
+        LEFT JOIN user_log_summary AS granted
                 ON requested.user_pk = granted.user_pk AND
                    granted.action  = 'access_granted'
         WHERE requested.action = 'access_requested' AND
