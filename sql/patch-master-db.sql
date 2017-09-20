@@ -172,8 +172,11 @@ CREATE OR REPLACE VIEW dataset_access_waiting AS
         LEFT JOIN _user_log_summary AS granted
                 ON requested.user_pk = granted.user_pk AND
                    granted.action  = 'access_granted'
+        LEFT JOIN _user_log_summary AS revoked
+                ON requested.user_pk = revoked.user_pk AND
+                   revoked.action  = 'access_revoked'
         WHERE requested.action = 'access_requested' AND
-                (granted.user_pk IS NULL OR requested.ts > granted.ts)
+                (granted.user_pk IS NULL OR requested.ts > granted.ts) AND
+                (revoked.user_pk IS NULL OR requested.ts > revoked.ts)
         GROUP BY requested.user_pk, requested.action
     );
-
