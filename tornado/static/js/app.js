@@ -34,7 +34,7 @@
 
         service.revokeUser = function(dataset, email) {
             return $http.post(
-                    '/api/datasets/' + dataset + '/users/' + email + '/approve',
+                    '/api/datasets/' + dataset + '/users/' + email + '/revoke',
                     $.param({'_xsrf': $cookies.get('_xsrf')})
                 )
         };
