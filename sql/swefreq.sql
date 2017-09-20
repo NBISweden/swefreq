@@ -74,16 +74,18 @@ CREATE OR REPLACE VIEW dataset_access_current AS
         ON access.user_pk = consent.user_pk AND
            access.dataset_pk = consent.dataset_pk AND
            consent.action = 'consent'
-    WHERE access.user_pk IN (
+    WHERE (access.user_pk, access.dataset_pk) IN (
         -- gets user_pk for all users with current access
         -- from https://stackoverflow.com/a/39190423/4941495
-        SELECT granted.user_pk FROM _user_log_summary AS granted
+        SELECT granted.user_pk, granted.dataset_pk
+        FROM _user_log_summary AS granted
         LEFT JOIN _user_log_summary AS revoked
                 ON granted.user_pk = revoked.user_pk AND
+                   granted.dataset_pk = revoked.dataset_pk AND
                    revoked.action  = 'access_revoked'
         WHERE granted.action = 'access_granted' AND
-                (revoked.user_pk IS NULL OR granted.ts > revoked.ts)
-        GROUP BY granted.user_pk, granted.action
+            (revoked.user_pk IS NULL OR granted.ts > revoked.ts)
+        GROUP BY granted.user_pk, granted.dataset_pk, granted.action
     );
 
 CREATE OR REPLACE VIEW dataset_access_waiting AS
@@ -102,19 +104,22 @@ CREATE OR REPLACE VIEW dataset_access_waiting AS
         ON access.user_pk = consent.user_pk AND
            access.dataset_pk = consent.dataset_pk AND
            consent.action = 'consent'
-    WHERE access.user_pk IN (
+    WHERE (access.user_pk, access.dataset_pk) IN (
         -- get user_pk for all users that have pending access requests
-        SELECT requested.user_pk FROM _user_log_summary AS requested
+        SELECT requested.user_pk, requested.dataset_pk
+        FROM _user_log_summary AS requested
         LEFT JOIN _user_log_summary AS granted
                 ON requested.user_pk = granted.user_pk AND
+                   requested.dataset_pk = granted.dataset_pk AND
                    granted.action  = 'access_granted'
         LEFT JOIN _user_log_summary AS revoked
                 ON requested.user_pk = revoked.user_pk AND
+                   requested.dataset_pk = revoked.dataset_pk AND
                    revoked.action  = 'access_revoked'
         WHERE requested.action = 'access_requested' AND
                 (granted.user_pk IS NULL OR requested.ts > granted.ts) AND
                 (revoked.user_pk IS NULL OR requested.ts > revoked.ts)
-        GROUP BY requested.user_pk, requested.action
+        GROUP BY requested.user_pk, requested.dataset_pk, requested.action
     );
 
 CREATE TABLE IF NOT EXISTS dataset_version (
