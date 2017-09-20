@@ -45,7 +45,7 @@ INSERT INTO user(user_pk, name, email, affiliation, country) VALUES
     (-109, 'Combo2 w1 c2',         'email9',  'w1 c2', ''),
     (-110, 'Combo3 c1 w2',         'email10', 'c1 w2', ''),
     (-111, 'Combo4 c1 c2',         'email11', 'c1 c2', ''),
-    (-112, 'Combo5 w1 i2',         'email12', 'w1 i2', '');
+    (-112, 'Combo5 c1 i2',         'email12', 'c1 i2', '');
 
 INSERT INTO dataset_access(user_pk, dataset_pk) VALUES
     (-100, -1), (-101, -1), (-102, -1), (-103, -1), (-104, -1), (-105, -1),
