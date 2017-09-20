@@ -281,15 +281,7 @@
                 localThis.authorization_level = 'loggedout';
             }
             else if (localThis.hasOwnProperty('dataset')) {
-                if (! localThis.dataset.has_requested_access)  {
-                    localThis.authorization_level = 'need-access';
-                }
-                else if (! localThis.dataset.has_access) {
-                    localThis.authorization_level = 'waits-for-access';
-                }
-                else if (localThis.dataset.has_access) {
-                    localThis.authorization_level = 'has-access';
-                }
+                localThis.authorization_level = localThis.dataset.authorization_level;
             }
         };
 

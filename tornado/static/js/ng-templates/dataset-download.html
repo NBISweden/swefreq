@@ -18,7 +18,7 @@
                             </div>
                         </div>
                     </div>
-                    <div ng-switch-when="need-access">
+                    <div ng-switch-when="no_access">
                         <h3>Request access to the dataset</h3>
                         <div class="row clearfix">
                             <div class="col-md-12 column">
@@ -76,18 +76,18 @@
                     <div ng-switch-when="thank-you">
                         <div class="row">
                             <div class="col-sm-12">
-                                <div class="dataset-body padding-tb">Thank you for your application. We will process it as soon as possible, thank you for your patience.</div>
+                                <div class="dataset-body padding-tb">Thank you for your application. We will review it as soon as possible, thank you for your patience.</div>
                             </div>
                         </div>
                     </div>
-                    <div ng-switch-when='waits-for-access'>
+                    <div ng-switch-when='has_requested_access'>
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="dataset-body padding-tb">Your access request is currently under review, thank you for your patience.</div>
                             </div>
                         </div>
                     </div>
-                    <div ng-switch-when="has-access">
+                    <div ng-switch-when="has_access">
                         <h2>Terms of use for the {{ datasetCtrl.dataset.short_name }} dataset (release {{ datasetCtrl.dataset.version.version }})</h3>
                         <div ng-bind-html="datasetCtrl.dataset.version.terms"></div>
 
