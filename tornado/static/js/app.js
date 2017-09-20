@@ -34,7 +34,7 @@
 
         service.revokeUser = function(dataset, email) {
             return $http.post(
-                    '/api/datasets/' + dataset + '/users/' + email + '/approve',
+                    '/api/datasets/' + dataset + '/users/' + email + '/revoke',
                     $.param({'_xsrf': $cookies.get('_xsrf')})
                 )
         };
@@ -281,15 +281,7 @@
                 localThis.authorization_level = 'loggedout';
             }
             else if (localThis.hasOwnProperty('dataset')) {
-                if (! localThis.dataset.has_requested_access)  {
-                    localThis.authorization_level = 'need-access';
-                }
-                else if (! localThis.dataset.has_access) {
-                    localThis.authorization_level = 'waits-for-access';
-                }
-                else if (localThis.dataset.has_access) {
-                    localThis.authorization_level = 'has-access';
-                }
+                localThis.authorization_level = localThis.dataset.authorization_level;
             }
         };
 

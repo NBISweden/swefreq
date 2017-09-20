@@ -33,10 +33,14 @@ def build_dataset_structure(dataset_version, user=None, dataset=None):
 
     r['has_image']  = dataset.has_image()
 
-    for access_level in ['has_requested_access', 'has_access', 'is_admin']:
-        r[access_level] = False
-        if user and getattr(user, access_level)(dataset):
-            r[access_level] = True
+    if user:
+        r['is_admin'] = user.is_admin(dataset)
+        if user.has_access(dataset):
+            r['authorization_level'] = 'has_access'
+        elif user.has_requested_access(dataset):
+            r['authorization_level'] = 'has_requested_access'
+        else:
+            r['authorization_level'] = 'no_access'
 
     return r
 
@@ -197,11 +201,12 @@ class RequestAccess(handlers.SafeHandler):
         try:
             with db.database.atomic():
                 user.save() # Save to database
-                db.DatasetAccess.create(
-                        user             = user,
-                        dataset          = dataset,
-                        wants_newsletter = newsletter
+                (da,_) = db.DatasetAccess.get_or_create(
+                        user    = user,
+                        dataset = dataset
                     )
+                da.wants_newsletter = newsletter
+                da.save()
                 db.UserLog.create(
                         user = user,
                         dataset = dataset,
@@ -264,23 +269,9 @@ Please visit https://swefreq.nbis.se/dataset/{}/download to download files.
 
 class RevokeUser(handlers.AdminHandler):
     def post(self, dataset, email):
-        if self.current_user.email == email:
-            # Don't let the admin delete hirs own account
-            self.send_error(status_code=403) # Forbidden
-            return
-
         with db.database.atomic():
             dataset = db.get_dataset(dataset)
             user = db.User.select().where(db.User.email == email).get()
-
-            da = db.DatasetAccess.select(
-                    ).join(
-                        db.User
-                    ).where(
-                        db.User.email == email,
-                        db.DatasetAccess.dataset == dataset
-                    ).get()
-            da.delete_instance()
 
             db.UserLog.create(
                     user = user,
