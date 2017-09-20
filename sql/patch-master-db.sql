@@ -115,7 +115,7 @@ ALTER TABLE dataset_version DROP COLUMN ts;
 
 CREATE OR REPLACE VIEW dataset_version_current AS
     SELECT * FROM dataset_version
-    WHERE (dataset_pk,dataset_version_pk) IN (
+    WHERE (dataset_pk, dataset_version_pk) IN (
         SELECT dataset_pk, MAX(dataset_version_pk) FROM dataset_version
         WHERE available_from < now()
         GROUP BY dataset_pk );
