@@ -65,11 +65,14 @@ CREATE OR REPLACE VIEW dataset_access_current AS
         (consent.action IS NOT NULL) AS has_consented,
         request.ts AS access_requested
     FROM dataset_access AS access
-    JOIN ( SELECT user_pk, MAX(ts) AS ts
+    JOIN ( SELECT user_pk, dataset_pk, MAX(ts) AS ts
            FROM user_log WHERE action = "access_requested"
-           GROUP BY user_pk ) AS request ON access.user_pk = request.user_pk
+           GROUP BY user_pk, dataset_pk ) AS request
+        ON access.user_pk = request.user_pk AND
+           access.dataset_pk = request.dataset_pk
     LEFT JOIN user_log AS consent
         ON access.user_pk = consent.user_pk AND
+           access.dataset_pk = consent.dataset_pk AND
            consent.action = 'consent'
     WHERE access.user_pk IN (
         -- gets user_pk for all users with current access
@@ -90,11 +93,14 @@ CREATE OR REPLACE VIEW dataset_access_waiting AS
         (consent.action IS NOT NULL) AS has_consented,
         request.ts AS access_requested
     FROM dataset_access AS access
-    JOIN ( SELECT user_pk, MAX(ts) AS ts
+    JOIN ( SELECT user_pk, dataset_pk, MAX(ts) AS ts
            FROM user_log WHERE action = "access_requested"
-           GROUP BY user_pk ) AS request ON access.user_pk = request.user_pk
+           GROUP BY user_pk, dataset_pk ) AS request
+        ON access.user_pk = request.user_pk AND
+           access.dataset_pk = request.dataset_pk
     LEFT JOIN user_log AS consent
         ON access.user_pk = consent.user_pk AND
+           access.dataset_pk = consent.dataset_pk AND
            consent.action = 'consent'
     WHERE access.user_pk IN (
         -- get user_pk for all users that have pending access requests
