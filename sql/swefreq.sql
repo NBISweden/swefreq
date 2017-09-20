@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS user_log (
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE OR REPLACE VIEW user_log_summary AS
+CREATE OR REPLACE VIEW _user_log_summary AS
     SELECT MAX(user_log_pk) AS user_log_pk, user_pk, dataset_pk, action,
            MAX(ts) AS ts
     FROM user_log
@@ -74,8 +74,8 @@ CREATE OR REPLACE VIEW dataset_access_current AS
     WHERE access.user_pk IN (
         -- gets user_pk for all users with current access
         -- from https://stackoverflow.com/a/39190423/4941495
-        SELECT granted.user_pk FROM user_log_summary AS granted
-        LEFT JOIN user_log_summary AS revoked
+        SELECT granted.user_pk FROM _user_log_summary AS granted
+        LEFT JOIN _user_log_summary AS revoked
                 ON granted.user_pk = revoked.user_pk AND
                    revoked.action  = 'access_revoked'
         WHERE granted.action = 'access_granted' AND
@@ -98,8 +98,8 @@ CREATE OR REPLACE VIEW dataset_access_waiting AS
            consent.action = 'consent'
     WHERE access.user_pk IN (
         -- get user_pk for all users that have pending access requests
-        SELECT requested.user_pk FROM user_log_summary AS requested
-        LEFT JOIN user_log_summary AS granted
+        SELECT requested.user_pk FROM _user_log_summary AS requested
+        LEFT JOIN _user_log_summary AS granted
                 ON requested.user_pk = granted.user_pk AND
                    granted.action  = 'access_granted'
         WHERE requested.action = 'access_requested' AND
