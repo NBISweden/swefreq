@@ -49,9 +49,6 @@ class Dataset(BaseModel):
     seq_center    = CharField(null=True)
     dataset_size  = IntegerField()
 
-    def current_version(self):
-        return DatasetVersion.get(DatasetVersion.is_current==1, DatasetVersion.dataset==self)
-
     def has_image(self):
         try:
             DatasetLogo.get(DatasetLogo.dataset == self)
