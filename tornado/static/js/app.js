@@ -246,39 +246,6 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('dataBeaconController', function($http) {
-        var beacon = this;
-        beacon.pattern = { 'chromosome': "\\d+" };
-        beacon.beacon_info = {};
-        $http.get('/api/info').success(function(data) {
-            beacon.beacon_info = data;
-            beacon.datasets = data['datasets'];
-            beacon.dataset = data['datasets'][0]['id'];
-            beacon.reference = data['datasets'][0]['reference'];
-        });
-        beacon.search = function() {
-            beacon.color = 'black';
-            beacon.response = "Searching...";
-            $http.get('/api/query', { 'params': { 'chrom': beacon.chromosome, 'pos': beacon.position - 1, 'allele': beacon.allele, 'referenceAllele': beacon.referenceAllele, 'dataset': beacon.dataset, 'ref': beacon.reference}})
-                .then(function (response){
-                    if (response.data['response']['exists']) {
-                        beacon.response = "Present";
-                        beacon.color = 'green';
-                    }
-                    else {
-                        beacon.response = "Absent";
-                        beacon.color = "red";
-                    }
-                },
-                function (response){
-                    beacon.response="Error";
-                    beacon.color = 'black';
-                });
-        }
-    });
-
-    /////////////////////////////////////////////////////////////////////////////////////
-
     App.controller('datasetController', ['$http', '$routeParams', 'User', 'Dataset',
                                 function($http, $routeParams, User, Dataset) {
         var localThis = this;
