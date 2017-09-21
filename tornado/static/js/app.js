@@ -122,6 +122,51 @@
         }
     });
 
+    App.factory('Beacon', function($http, $q) {
+        var service = {};
+
+        function _getBeaconReferences(name) {
+            var references = [];
+            for (var i = 0; i<service.data['datasets'].length; i++) {
+                dataset = service.data['datasets'][i];
+                if ( dataset['id'] == name ) {
+                    references.push(dataset['reference']);
+                }
+            }
+            return references;
+        }
+
+        service.getBeaconReferences = function(name) {
+            var defer = $q.defer();
+            if ( service.hasOwnProperty('id') ) {
+                defer.resolve( _getBeaconReferences(name) );
+            }
+            else {
+                $http.get('/api/beacon/info').success(function(data) {
+                    service.data = data;
+                    defer.resolve(_getBeaconReferences(name));
+                });
+            }
+            return defer.promise
+        };
+
+        service.queryBeacon = function(query) {
+            return $http.get('/api/beacon/query', {
+                    'params': {
+                        'chrom':           query.chromosome,
+                        'pos':             query.position - 1, // Beacon is 0-based
+                        'allele':          query.allele,
+                        'referenceAllele': query.referenceAllele,
+                        'dataset':         query.dataset.short_name,
+                        'ref':             query.reference
+                    }
+                });
+        };
+
+        return service;
+    });
+
+
     /////////////////////////////////////////////////////////////////////////////////////
     App.directive('consent', function ($cookies) {
         return {
@@ -209,39 +254,6 @@
             });
         };
         localThis.getDatasets();
-    });
-
-    /////////////////////////////////////////////////////////////////////////////////////
-
-    App.controller('dataBeaconController', function($http) {
-        var beacon = this;
-        beacon.pattern = { 'chromosome': "\\d+" };
-        beacon.beacon_info = {};
-        $http.get('/api/info').success(function(data) {
-            beacon.beacon_info = data;
-            beacon.datasets = data['datasets'];
-            beacon.dataset = data['datasets'][0]['id'];
-            beacon.reference = data['datasets'][0]['reference'];
-        });
-        beacon.search = function() {
-            beacon.color = 'black';
-            beacon.response = "Searching...";
-            $http.get('/api/query', { 'params': { 'chrom': beacon.chromosome, 'pos': beacon.position - 1, 'allele': beacon.allele, 'referenceAllele': beacon.referenceAllele, 'dataset': beacon.dataset, 'ref': beacon.reference}})
-                .then(function (response){
-                    if (response.data['response']['exists']) {
-                        beacon.response = "Present";
-                        beacon.color = 'green';
-                    }
-                    else {
-                        beacon.response = "Absent";
-                        beacon.color = "red";
-                    }
-                },
-                function (response){
-                    beacon.response="Error";
-                    beacon.color = 'black';
-                });
-        }
     });
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -362,10 +374,17 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('datasetBeaconController', ['$http', '$routeParams', 'User', 'Dataset',
-                                function($http, $routeParams, User, Dataset) {
+    App.controller('datasetBeaconController', ['$http', '$routeParams', 'Beacon', 'Dataset', 'User',
+                                function($http, $routeParams, Beacon, Dataset, User) {
         var localThis = this;
         var dataset = $routeParams["dataset"];
+        localThis.queryResponses = [];
+
+        Beacon.getBeaconReferences(dataset).then(
+                function(data) {
+                    localThis.references = data;
+                }
+            );
 
         User().then(function(data) {
             localThis.user = data.data;
@@ -374,6 +393,27 @@
         Dataset().then(function(data){
             localThis.dataset = data.dataset;
         });
+
+        localThis.search = function() {
+            Beacon.queryBeacon(localThis).then(function (response) {
+                    d = response.data;
+                    d.query.position += 1; // Beacon is 0-based
+                    d.response.state = d.response.exists ? 'Present' : 'Absent';
+                    localThis.queryResponses.push(d);
+                },
+                function (response){
+                    localThis.queryResponses.push({
+                        'response': { 'state': 'Error' },
+                        'query': {
+                            'chromosome':      localThis.chromosome,
+                            'position':        localThis.position,
+                            'allele':          localThis.allele,
+                            'referenceAllele': localThis.referenceAllele,
+                            'reference':       localThis.reference
+                        }
+                    });
+                });
+        };
     }]);
 
     ////////////////////////////////////////////////////////////////////////////
