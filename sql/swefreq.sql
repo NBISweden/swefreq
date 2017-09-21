@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS study (
 
 CREATE TABLE IF NOT EXISTS dataset (
     dataset_pk          INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    sample_set_pk       INTEGER         NOT NULL,
+    study_pk            INTEGER         NOT NULL,
     short_name          VARCHAR(50)     NOT NULL,
     full_name           VARCHAR(100)    NOT NULL,
     browser_uri         VARCHAR(200)    DEFAULT NULL,
@@ -37,8 +37,7 @@ CREATE TABLE IF NOT EXISTS dataset (
     seq_center          VARCHAR(100)    DEFAULT NULL,
     dataset_size        INTEGER         UNSIGNED NOT NULL,
     CONSTRAINT UNIQUE (short_name),
-    CONSTRAINT FOREIGN KEY (sample_set_pk)
-        REFERENCES sample_set(sample_set_pk)
+    CONSTRAINT FOREIGN KEY (study_pk) REFERENCES study(study_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS collection (
