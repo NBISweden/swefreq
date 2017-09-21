@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS sample_set (
     dataset_pk          INTEGER         NOT NULL,
     collection_pk       INTEGER         NOT NULL,
     sample_size         INTEGER         NOT NULL,
+    phenotype           VARCHAR(50)     NOT NULL,
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk),
     CONSTRAINT FOREIGN KEY (collection_pk) REFERENCES collection(collection_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
