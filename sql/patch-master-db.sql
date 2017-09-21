@@ -160,9 +160,9 @@ CREATE OR REPLACE VIEW dataset_access_current AS
         GROUP BY granted.user_pk, granted.dataset_pk, granted.action
     );
 
--- add the dataset_access_waiting view
+-- add the dataset_access_pending view
 
-CREATE OR REPLACE VIEW dataset_access_waiting AS
+CREATE OR REPLACE VIEW dataset_access_pending AS
     SELECT DISTINCT
         access.*,
         FALSE AS has_access,
