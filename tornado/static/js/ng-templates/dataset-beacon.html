@@ -62,6 +62,27 @@
                         </div>
                     </div>
                 </div>
+                <h2>Results</h2>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <tr>
+                            <th></th>
+                            <th>Chromosome</th>
+                            <th>Position</th>
+                            <th>Reference Allele</th>
+                            <th>Alternate Allele</th>
+                            <th>Reference</th>
+                        </tr>
+                        <tr ng-repeat="row in beaconCtrl.queryResponses">
+                            <td>{{row.response.state}}</td>
+                            <td>{{row.query.chromosome}}</td>
+                            <td>{{row.query.position}}</td>
+                            <td>{{row.query.referenceAllele}}</td>
+                            <td>{{row.query.allele}}</td>
+                            <td>{{row.query.reference}}</td>
+                        </tr>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
