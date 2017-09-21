@@ -49,11 +49,11 @@ CREATE TABLE IF NOT EXISTS collection (
 
 CREATE TABLE IF NOT EXISTS sample_set (
     sample_set_pk       INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    study_pk            INTEGER         NOT NULL,
-    ethnicity           VARCHAR(50)     DEFAULT NULL,
-    collection          VARCHAR(100)    DEFAULT NULL,
+    dataset_pk          INTEGER         NOT NULL,
+    collection_pk       INTEGER         NOT NULL,
     sample_size         INTEGER         NOT NULL,
-    CONSTRAINT FOREIGN KEY (study_pk) REFERENCES study(study_pk)
+    CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk),
+    CONSTRAINT FOREIGN KEY (collection_pk) REFERENCES collection(collection_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS user_log (
