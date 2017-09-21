@@ -46,9 +46,8 @@ def build_dataset_structure(dataset_version, user=None, dataset=None):
 
 class ListDatasets(handlers.UnsafeHandler):
     def get(self):
-        # List all datasets available to the current user, latest is_current
-        # earliear than now OR versions that are available in the future that
-        # the user is admin of.
+        # List all datasets available to the current user, earliear than now OR
+        # versions that are available in the future that the user is admin of.
         user = self.current_user
 
         ret = []
