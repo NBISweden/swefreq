@@ -120,6 +120,10 @@ CREATE OR REPLACE VIEW dataset_version_current AS
         WHERE available_from < now()
         GROUP BY dataset_pk );
 
+-- the above makes dataset_version.is_current superfluous
+
+ALTER TABLE dataset_version DROP COLUMN is_current;
+
 -- add the dataset_access_current view
 
 ALTER TABLE dataset_access
