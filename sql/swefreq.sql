@@ -41,6 +41,12 @@ CREATE TABLE IF NOT EXISTS dataset (
         REFERENCES sample_set(sample_set_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE IF NOT EXISTS collection (
+    collection_pk       INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    name                VARCHAR(100)    NOT NULL,
+    ethnicity           VARCHAR(50)     DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 CREATE TABLE IF NOT EXISTS sample_set (
     sample_set_pk       INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
     study_pk            INTEGER         NOT NULL,
