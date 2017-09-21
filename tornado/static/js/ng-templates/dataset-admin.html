@@ -67,7 +67,7 @@
                                             <th>Country</th>
                                             <th>Applied date</th>
                                         </tr>
-                                        <tr ng-repeat="row in adminCtrl.users.has_access">
+                                        <tr ng-repeat="row in adminCtrl.users.current">
                                             <td>
                                                 <div class="btn btn-danger btn-xs" data-toggle="tooltip" title="Deny access" ng-click="adminCtrl.revokeUser(row)">Revoke</div>
                                             </td>
@@ -82,7 +82,7 @@
                             </div>
 
                             <div class="tab-pane" id="emaillist">
-                                <span ng-repeat="user in adminCtrl.users.has_access">
+                                <span ng-repeat="user in adminCtrl.users.current">
                                     <span ng-if="user.newsletter">
                                         {{user.email}}{{$last ? '' : ', '}}
                                     </span>

@@ -48,7 +48,8 @@ class Application(tornado.web.Application):
             ("/api/datasets/(?P<dataset>[^\/]+)/logo",                            application.ServeLogo),
             ("/api/datasets/(?P<dataset>[^\/]+)/files",                           application.DatasetFiles),
             ("/api/datasets/(?P<dataset>[^\/]+)/sample_set",                      application.SampleSet),
-            ("/api/datasets/(?P<dataset>[^\/]+)/users",                           application.DatasetUsers),
+            ("/api/datasets/(?P<dataset>[^\/]+)/users_current",                   application.DatasetUsersCurrent),
+            ("/api/datasets/(?P<dataset>[^\/]+)/users_pending",                   application.DatasetUsersPending),
             ("/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/request", application.RequestAccess),
             ("/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/approve", application.ApproveUser),
             ("/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/revoke",  application.RevokeUser),
@@ -59,6 +60,7 @@ class Application(tornado.web.Application):
             ("/query",                                    beacon.Query),
             ("/info",                                     tornado.web.RedirectHandler, {"url": "/api/info"}),
             ## Catch all
+            ("/api/.*", tornado.web.ErrorHandler, {"status_code": 404} ),
             (r'.*',                                       application.Home),
         ]
 
