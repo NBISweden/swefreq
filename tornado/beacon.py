@@ -39,7 +39,7 @@ class Query(handlers.UnsafeHandler):
         dataset   = self.get_argument('dataset', '')
         referenceAllele = self.get_argument('referenceAllele', '').upper()
         allele = self.get_argument('allele', '').upper()
-        reference = self.get_argument('ref', '').upper()
+        reference = self.get_argument('ref', '')
 
         exists = lookupAllele(sChr, int(iPos), referenceAllele, allele, reference, dataset)
 
@@ -55,7 +55,7 @@ class Query(handlers.UnsafeHandler):
                     },
                 'query': {
                     'chromosome': sChr,
-                    'position': iPos,
+                    'position': int(iPos),
                     'referenceAllele': referenceAllele,
                     'allele': allele,
                     'dataset': dataset,
