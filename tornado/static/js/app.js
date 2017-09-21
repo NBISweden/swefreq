@@ -139,13 +139,13 @@
         };
 
         service.queryBeacon = function(query) {
-            return $http.get('/api/query', {
+            return $http.get('/api/beacon/query', {
                     'params': {
                         'chrom':           query.chromosome,
-                        'pos':             query.position - 1,
+                        'pos':             query.position - 1, // Beacon is 0-based
                         'allele':          query.allele,
                         'referenceAllele': query.referenceAllele,
-                        'dataset':         query.dataset,
+                        'dataset':         query.dataset.short_name,
                         'ref':             query.reference
                     }
                 });
