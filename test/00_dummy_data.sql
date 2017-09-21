@@ -1,12 +1,3 @@
-DELETE FROM user_log WHERE user_pk < 0 OR dataset_pk < 0;
-DELETE FROM dataset_access WHERE user_pk < 0 OR dataset_pk < 0;
-DELETE FROM user WHERE user_pk < 0;
-DELETE FROM dataset_file WHERE dataset_file_pk < 0;
-DELETE FROM dataset_version WHERE dataset_pk < 0;
-DELETE FROM dataset WHERE dataset_pk < 0;
-DELETE FROM sample_set WHERE sample_set_pk < 0;
-DELETE FROM study WHERE study_pk < 0;
-
 INSERT INTO study (study_pk, pi_name, pi_email, contact_name, contact_email, title, description, publication_date, ref_doi)
     VALUES (-1, 'PI_STUDY1', 'pi1@example.com', 'Contact Study 1', 'contact1@example.com', 'Study 1', 'Study 1 description', '2017-01-01', 'study1DOI'),
            (-2, 'PI_STUDY2', 'pi2@example.com', 'Contact Study 2', 'contact2@example.com', 'Study 2', 'Study 2 description', '2017-02-01', 'study2DOI');
