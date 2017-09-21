@@ -12,6 +12,18 @@ CREATE TABLE IF NOT EXISTS user (
     CONSTRAINT UNIQUE (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE IF NOT EXISTS study (
+    study_pk            INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    pi_name             VARCHAR(100)    NOT NULL,
+    pi_email            VARCHAR(100)    NOT NULL,
+    contact_name        VARCHAR(100)    NOT NULL,
+    contact_email       VARCHAR(100)    NOT NULL,
+    title               VARCHAR(100)    NOT NULL,
+    description         TEXT            DEFAULT NULL,
+    publication_date    DATE            NOT NULL,
+    ref_doi             VARCHAR(100)    DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 CREATE TABLE IF NOT EXISTS dataset (
     dataset_pk          INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
     sample_set_pk       INTEGER         NOT NULL,
@@ -27,6 +39,15 @@ CREATE TABLE IF NOT EXISTS dataset (
     CONSTRAINT UNIQUE (short_name),
     CONSTRAINT FOREIGN KEY (sample_set_pk)
         REFERENCES sample_set(sample_set_pk)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS sample_set (
+    sample_set_pk       INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    study_pk            INTEGER         NOT NULL,
+    ethnicity           VARCHAR(50)     DEFAULT NULL,
+    collection          VARCHAR(100)    DEFAULT NULL,
+    sample_size         INTEGER         NOT NULL,
+    CONSTRAINT FOREIGN KEY (study_pk) REFERENCES study(study_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS user_log (
@@ -161,29 +182,6 @@ CREATE TABLE IF NOT EXISTS linkhash (
     CONSTRAINT FOREIGN KEY (dataset_version_pk)
         REFERENCES dataset_version(dataset_version_pk),
     CONSTRAINT FOREIGN KEY (user_pk) REFERENCES user(user_pk)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- Extra tables for dataset meta-data:
-
-CREATE TABLE IF NOT EXISTS study (
-    study_pk            INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    pi_name             VARCHAR(100)    NOT NULL,
-    pi_email            VARCHAR(100)    NOT NULL,
-    contact_name        VARCHAR(100)    NOT NULL,
-    contact_email       VARCHAR(100)    NOT NULL,
-    title               VARCHAR(100)    NOT NULL,
-    description         TEXT            DEFAULT NULL,
-    publication_date    DATE            NOT NULL,
-    ref_doi             VARCHAR(100)    DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-CREATE TABLE IF NOT EXISTS sample_set (
-    sample_set_pk       INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    study_pk            INTEGER         NOT NULL,
-    ethnicity           VARCHAR(50)     DEFAULT NULL,
-    collection          VARCHAR(100)    DEFAULT NULL,
-    sample_size         INTEGER         NOT NULL,
-    CONSTRAINT FOREIGN KEY (study_pk) REFERENCES study(study_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- dataset_version_current, a view that only contains the (most) current
