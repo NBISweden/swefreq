@@ -47,6 +47,8 @@ INSERT INTO sample_set
         (sample_set_pk, dataset_pk, collection_pk, sample_size, phenotype)
 VALUES  (1, 1, 1, 1000, "None");
 
+UPDATE dataset SET browser_uri="https://swegen-exac.nbis.se/" WHERE dataset_pk=1;
+
 -- Add the new columns to the dataset table. We don't care about
 -- ordering the columns in the same order as in the schema file.
 
@@ -122,6 +124,10 @@ ALTER TABLE dataset_version ADD COLUMN (
 
 ALTER TABLE dataset_version DROP COLUMN ts;
 
+-- the above makes dataset_version.is_current superfluous
+
+ALTER TABLE dataset_version DROP COLUMN is_current;
+
 -- add the dataset_version_current view
 
 CREATE OR REPLACE VIEW dataset_version_current AS
@@ -131,9 +137,6 @@ CREATE OR REPLACE VIEW dataset_version_current AS
         WHERE available_from < now()
         GROUP BY dataset_pk );
 
--- the above makes dataset_version.is_current superfluous
-
-ALTER TABLE dataset_version DROP COLUMN is_current;
 
 -- add the dataset_access_current view
 
