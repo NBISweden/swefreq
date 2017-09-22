@@ -129,7 +129,7 @@ class DatasetAccessCurrent(DatasetAccess):
 
 
 class DatasetAccessPending(DatasetAccess):
-    dataset          = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='access_wating')
+    dataset          = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='access_pending')
     user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='access_pending')
     has_consented    = IntegerField()
     has_access       = IntegerField()
