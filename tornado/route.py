@@ -47,7 +47,7 @@ class Application(tornado.web.Application):
             ("/api/datasets/(?P<dataset>[^\/]+)/log/(?P<event>[^\/]+)",           application.LogEvent),
             ("/api/datasets/(?P<dataset>[^\/]+)/logo",                            application.ServeLogo),
             ("/api/datasets/(?P<dataset>[^\/]+)/files",                           application.DatasetFiles),
-            ("/api/datasets/(?P<dataset>[^\/]+)/sample_set",                      application.SampleSet),
+            ("/api/datasets/(?P<dataset>[^\/]+)/collection",                      application.Collection),
             ("/api/datasets/(?P<dataset>[^\/]+)/users_current",                   application.DatasetUsersCurrent),
             ("/api/datasets/(?P<dataset>[^\/]+)/users_pending",                   application.DatasetUsersPending),
             ("/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/request", application.RequestAccess),
