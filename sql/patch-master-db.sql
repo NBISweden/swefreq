@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS sample_set (
     CONSTRAINT FOREIGN KEY (collection_pk) REFERENCES collection(collection_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- Insert study and sample set.
+-- Insert data into study, sample_set and collection:
 
 INSERT INTO study
         (study_pk, pi_name, pi_email, contact_name, contact_email, title,
@@ -40,10 +40,12 @@ VALUES  (1, "Ulf Gyllensten", "Ulf.Gyllensten@igp.uu.se",
         "the SweGen project", "swegen@scilifelab.se",
         "SweGen", '2016-12-23', "10.1038/ejhg.2017.130");
 
--- FIXME: This is outdated
 INSERT INTO sample_set
-        (study_pk, sample_size, ethnicity, collection)
-VALUES  (1, 1000, "Swedish", "Swedish Twin Registry");
+        (sample_set_pk, dataset_pk, collection_pk, sample_size, phenotype)
+VALUES  (1, 1, 1, 1000, "None");
+
+INSERT INTO collection (collection_pk, name, ethnicity)
+        (1, "Swedish Twin Registry", "Swedish")
 
 -- Add the new columns to the dataset table. We don't care about
 -- ordering the columns in the same order as in the schema file.
