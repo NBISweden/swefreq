@@ -1,7 +1,7 @@
 -- Patches a database that is using the master checkout of the
 -- swefreq.sql schema definition to the develop version.
 
--- Add the two new meta data tables.
+-- Add the three new meta data tables.
 
 CREATE TABLE IF NOT EXISTS study (
     study_pk            INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -15,16 +15,23 @@ CREATE TABLE IF NOT EXISTS study (
     ref_doi             VARCHAR(100)    DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS sample_set (
-    sample_set_pk       INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    study_pk            INTEGER         NOT NULL,
-    ethnicity           VARCHAR(50)     DEFAULT NULL,
-    collection          VARCHAR(100)    DEFAULT NULL,
-    sample_size         INTEGER         NOT NULL,
-    CONSTRAINT FOREIGN KEY (study_pk) REFERENCES study(study_pk)
+CREATE TABLE IF NOT EXISTS collection (
+    collection_pk       INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    name                VARCHAR(100)    NOT NULL,
+    ethnicity           VARCHAR(50)     DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- Insert study and sample set.
+CREATE TABLE IF NOT EXISTS sample_set (
+    sample_set_pk       INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    dataset_pk          INTEGER         NOT NULL,
+    collection_pk       INTEGER         NOT NULL,
+    sample_size         INTEGER         NOT NULL,
+    phenotype           VARCHAR(50)     NOT NULL,
+    CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk),
+    CONSTRAINT FOREIGN KEY (collection_pk) REFERENCES collection(collection_pk)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- Insert data into study, sample_set and collection:
 
 INSERT INTO study
         (study_pk, pi_name, pi_email, contact_name, contact_email, title,
@@ -33,15 +40,18 @@ VALUES  (1, "Ulf Gyllensten", "Ulf.Gyllensten@igp.uu.se",
         "the SweGen project", "swegen@scilifelab.se",
         "SweGen", '2016-12-23', "10.1038/ejhg.2017.130");
 
+INSERT INTO collection (collection_pk, name, ethnicity)
+VALUES  (1, "Swedish Twin Registry", "Swedish");
+
 INSERT INTO sample_set
-        (study_pk, sample_size, ethnicity, collection)
-VALUES  (1, 1000, "Swedish", "Swedish Twin Registry");
+        (sample_set_pk, dataset_pk, collection_pk, sample_size, phenotype)
+VALUES  (1, 1, 1, 1000, "None");
 
 -- Add the new columns to the dataset table. We don't care about
 -- ordering the columns in the same order as in the schema file.
 
 ALTER TABLE dataset ADD COLUMN (
-        sample_set_pk   INTEGER         NOT NULL,
+        study_pk        INTEGER         NOT NULL,
         avg_seq_depth   FLOAT           DEFAULT NULL,
         seq_type        VARCHAR(50)     DEFAULT NULL,
         seq_tech        VARCHAR(50)     DEFAULT NULL,
@@ -60,12 +70,13 @@ ALTER TABLE dataset MODIFY COLUMN dataset_size INTEGER UNSIGNED NOT NULL;
 
 -- Insert reference to the sample set.
 
-UPDATE dataset SET sample_set_pk = 1;
+-- FIXME: (is this correct?)
+UPDATE dataset SET study_pk = 1;
 
 -- New foreign key in the dataset table.
 
 ALTER TABLE dataset ADD CONSTRAINT
-        FOREIGN KEY (sample_set_pk) REFERENCES sample_set(sample_set_pk);
+        FOREIGN KEY (study_pk) REFERENCES study(study_pk);
 
 -- Add new column to dataset_version.
 
