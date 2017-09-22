@@ -181,7 +181,7 @@ CREATE TABLE IF NOT EXISTS dataset_logo (
 
 CREATE TABLE IF NOT EXISTS linkhash (
     linkhash_pk         INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    dataset_verison_pk  INTEGER         NOT NULL,
+    dataset_version_pk  INTEGER         NOT NULL,
     user_pk             INTEGER         NOT NULL,
     hash                VARCHAR(64)     NOT NULL,
     expires_on          TIMESTAMP       NOT NULL,
