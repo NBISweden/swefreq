@@ -40,12 +40,12 @@ VALUES  (1, "Ulf Gyllensten", "Ulf.Gyllensten@igp.uu.se",
         "the SweGen project", "swegen@scilifelab.se",
         "SweGen", '2016-12-23', "10.1038/ejhg.2017.130");
 
+INSERT INTO collection (collection_pk, name, ethnicity)
+VALUES  (1, "Swedish Twin Registry", "Swedish")
+
 INSERT INTO sample_set
         (sample_set_pk, dataset_pk, collection_pk, sample_size, phenotype)
 VALUES  (1, 1, 1, 1000, "None");
-
-INSERT INTO collection (collection_pk, name, ethnicity)
-        (1, "Swedish Twin Registry", "Swedish")
 
 -- Add the new columns to the dataset table. We don't care about
 -- ordering the columns in the same order as in the schema file.
