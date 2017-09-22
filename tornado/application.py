@@ -67,17 +67,26 @@ class DatasetFiles(handlers.UnsafeHandler):
         self.finish({'files': ret})
 
 
-class SampleSet(handlers.UnsafeHandler):
+class Collection(handlers.UnsafeHandler):
     def get(self, dataset, *args, **kwargs):
         user = self.current_user
         dataset = db.get_dataset(dataset)
 
-        sample_set = dataset.sample_set
-        study      = sample_set.study
+        collections = {}
+
+        for sample_set in dataset.sample_sets:
+            collection = sample_set.collection
+            if not collection.name in collections:
+                collections[collection.name] = {
+                        'sample_sets': [],
+                        'ethnicity': collection.ethnicity,
+                    }
+            collections[collection.name]['sample_sets'].append( db.build_dict_from_row(sample_set) )
+
 
         ret = {
-            'sample_set': db.build_dict_from_row(sample_set),
-            'study':      db.build_dict_from_row(study)
+            'collections': collections,
+            'study':       db.build_dict_from_row(dataset.study)
         }
         ret['study']['publication_date'] = ret['study']['publication_date'].strftime('%Y-%m-%d')
 

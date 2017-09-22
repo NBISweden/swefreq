@@ -95,6 +95,20 @@ input.ng-dirty.ng-invalid, select.ng-dirty.ng-invalid {
     padding:0;
 }
 
+.ethnicity {
+    font-style: italic;
+    font-size: 80%;
+}
+
+ul.samples {
+    margin-left: 20px;
+}
+
+ul.samples li:first-child {
+    list-style-type: disc;
+}
+
+
 // Dataset box CSS
 .dataset-panel {
     display: flex;

@@ -107,9 +107,11 @@
                         d.version.terms       = $sce.trustAsHtml( d.version.terms );
                         state['dataset'] = d;
                     }),
-                    $http.get('/api/datasets/' + dataset + '/sample_set').then(function(data){
-                        state.sample_set = data.data.sample_set;
+                    $http.get('/api/datasets/' + dataset + '/collection').then(function(data){
+                        state.collections = data.data.collections;
                         state.study = data.data.study;
+
+                        console.log(state.collections);
 
                         cn = state.study.contact_name;
                         state.study.contact_name_uc = cn.charAt(0).toUpperCase() + cn.slice(1);
@@ -269,7 +271,7 @@
 
         Dataset().then(function(data){
             localThis.dataset = data.dataset;
-            localThis.sample_set = data.sample_set;
+            localThis.collections = data.collections;
             localThis.study = data.study;
         });
     }]);
