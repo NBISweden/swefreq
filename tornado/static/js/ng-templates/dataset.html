@@ -21,46 +21,46 @@
                     <div class="row dataset-row">
                         <div class="col-md-4">
                             <div class="dataset-panel infobox">
-                                 <div class="dataset-heading">Dataset</div>
-                                 <div class="dataset-body">
-                                     Overview
-                                     <ul>
-                                        <li>Sequencing type: {{ datasetCtrl.dataset.seq_type }}
-                                        <li>Sequencing tech: {{ datasetCtrl.dataset.seq_tech }}
-                                        <li>Average Sequencing Depth: {{datasetCtrl.dataset.avg_seq_depth }}
-                                        <li>Sequencing Center: {{ datasetCtrl.dataset.seq_center }}
-                                        <li>Dataset Size: {{ datasetCtrl.dataset.dataset_size }}
-                                        <li>Variant Calling reference: {{ datasetCtrl.dataset.version.var_call_ref }}
-                                        <li>Dataset DOI: {{ datasetCtrl.dataset.version.ref_doi }}
-                                     </ul>
-                                 </div>
+                                <div class="dataset-heading">Dataset</div>
+                                <div class="dataset-body">
+                                    Overview
+                                    <ul>
+                                       <li>Sequencing type: {{ datasetCtrl.dataset.seq_type }}
+                                       <li>Sequencing tech: {{ datasetCtrl.dataset.seq_tech }}
+                                       <li>Average Sequencing Depth: {{datasetCtrl.dataset.avg_seq_depth }}
+                                       <li>Sequencing Center: {{ datasetCtrl.dataset.seq_center }}
+                                       <li>Dataset Size: {{ datasetCtrl.dataset.dataset_size }}
+                                       <li>Variant Calling reference: {{ datasetCtrl.dataset.version.var_call_ref }}
+                                       <li>Dataset DOI: {{ datasetCtrl.dataset.version.ref_doi }}
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="dataset-panel infobox">
                                 <div class="dataset-heading">Study</div>
-                                 <div class="dataset-body">
+                                <div class="dataset-body">
 {{datasetCtrl.study.title}}
-                                     <ul>
-                                        <li>Principal Investigator: {{ datasetCtrl.study.pi_name }}
-                                        <li>DOI: {{ datasetCtrl.study.ref_doi }}
-                                        <li>Publication date: {{datasetCtrl.study.publication_date }}
-                                        <li>Contact: <a href="mailto:{{datasetCtrl.study.contact_email}}">{{ datasetCtrl.study.contact_name_uc }}</a>
-                                        <li>Description: {{ datasetCtrl.study.description }}
-                                     </ul>
-                                 </div>
+                                    <ul>
+                                       <li>Principal Investigator: {{ datasetCtrl.study.pi_name }}
+                                       <li>DOI: {{ datasetCtrl.study.ref_doi }}
+                                       <li>Publication date: {{datasetCtrl.study.publication_date }}
+                                       <li>Contact: <a href="mailto:{{datasetCtrl.study.contact_email}}">{{ datasetCtrl.study.contact_name_uc }}</a>
+                                       <li>Description: {{ datasetCtrl.study.description }}
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="dataset-panel infobox">
                                 <div class="dataset-heading">Sample Set</div>
-                                 <div class="dataset-body">
+                                <div class="dataset-body">
 {{ datasetCtrl.sample_set.collection }}
-                                     <ul>
-                                        <li>Ethnicity: {{ datasetCtrl.sample_set.ethnicity }}
-                                        <li>Sample size: {{datasetCtrl.sample_set.sample_size }}
-                                     </ul>
-                                 </div>
+                                    <ul>
+                                       <li>Ethnicity: {{ datasetCtrl.sample_set.ethnicity }}
+                                       <li>Sample size: {{datasetCtrl.sample_set.sample_size }}
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
