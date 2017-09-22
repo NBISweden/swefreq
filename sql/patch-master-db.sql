@@ -47,6 +47,8 @@ INSERT INTO sample_set
         (sample_set_pk, dataset_pk, collection_pk, sample_size, phenotype)
 VALUES  (1, 1, 1, 1000, "None");
 
+UPDATE dataset SET browser_uri="https://swegen-exac.nbis.se/" WHERE dataset_pk=1;
+
 -- Add the new columns to the dataset table. We don't care about
 -- ordering the columns in the same order as in the schema file.
 
