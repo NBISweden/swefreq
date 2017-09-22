@@ -41,7 +41,7 @@ VALUES  (1, "Ulf Gyllensten", "Ulf.Gyllensten@igp.uu.se",
         "SweGen", '2016-12-23', "10.1038/ejhg.2017.130");
 
 INSERT INTO collection (collection_pk, name, ethnicity)
-VALUES  (1, "Swedish Twin Registry", "Swedish")
+VALUES  (1, "Swedish Twin Registry", "Swedish");
 
 INSERT INTO sample_set
         (sample_set_pk, dataset_pk, collection_pk, sample_size, phenotype)
