@@ -1,0 +1,22 @@
+<div ng-controller="datasetController as datasetCtrl">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <h1>{{ datasetCtrl.dataset.full_name }}</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div id="tab-bar">
+                <my-navbar tab="terms"></my-navbar>
+
+                <div class="tab-content">
+                    <div class="row">
+                        <div class="col-sm-12">
+                             <div class="dataset-body" ng-bind-html="datasetCtrl.dataset.version.terms" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

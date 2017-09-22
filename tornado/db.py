@@ -8,9 +8,11 @@ database = MySQLDatabase(
         password=settings.mysql_passwd
     )
 
+
 class BaseModel(Model):
     class Meta:
         database = database
+
 
 class Study(BaseModel):
     study            = PrimaryKeyField(db_column='study_pk')
@@ -26,19 +28,19 @@ class Study(BaseModel):
     class Meta:
         db_table = 'study'
 
-class SampleSet(BaseModel):
-    sample_set  = PrimaryKeyField(db_column='sample_set_pk')
-    study       = ForeignKeyField(db_column='study_pk', rel_model=Study, to_field='study', related_name='sample_set')
-    ethnicity   = CharField(null=True)
-    collection  = CharField(null=True)
-    sample_size = IntegerField()
+
+class Collection(BaseModel):
+    collection = PrimaryKeyField(db_column = 'collection_pk')
+    name       = CharField(null = True)
+    ethnicity  = CharField(null = True)
 
     class Meta:
-        db_table = 'sample_set'
+        db_table = 'collection'
+
 
 class Dataset(BaseModel):
     dataset       = PrimaryKeyField(db_column='dataset_pk')
-    sample_set    = ForeignKeyField(db_column='sample_set_pk', rel_model=SampleSet, to_field='sample_set', related_name='datasets')
+    study         = ForeignKeyField(db_column='study_pk', rel_model=Study, to_field='study', related_name='datasets')
     short_name    = CharField()
     full_name     = CharField()
     browser_uri   = CharField(null=True)
@@ -48,9 +50,6 @@ class Dataset(BaseModel):
     seq_tech      = CharField(null=True)
     seq_center    = CharField(null=True)
     dataset_size  = IntegerField()
-
-    def current_version(self):
-        return DatasetVersion.get(DatasetVersion.is_current==1, DatasetVersion.dataset==self)
 
     def has_image(self):
         try:
@@ -62,6 +61,18 @@ class Dataset(BaseModel):
     class Meta:
         db_table = 'dataset'
 
+
+class SampleSet(BaseModel):
+    sample_set  = PrimaryKeyField(db_column='sample_set_pk')
+    dataset     = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='sample_sets')
+    collection  = ForeignKeyField(db_column='collection_pk', rel_model=Collection, to_field='collection', related_name='sample_sets')
+    sample_size = IntegerField()
+    phenotype   = CharField(null=True)
+
+    class Meta:
+        db_table = 'sample_set'
+
+
 class User(BaseModel):
     user        = PrimaryKeyField(db_column='user_pk')
     name        = CharField(null=True)
@@ -69,8 +80,28 @@ class User(BaseModel):
     affiliation = CharField(null=True)
     country     = CharField(null=True)
 
+    def is_admin(self, dataset):
+        return DatasetAccess.select().where(
+                DatasetAccess.dataset == dataset,
+                DatasetAccess.user == self,
+                DatasetAccess.is_admin
+            ).count()
+
+    def has_access(self, dataset):
+        return DatasetAccessCurrent.select().where(
+                DatasetAccessCurrent.dataset == dataset,
+                DatasetAccessCurrent.user    == self,
+            ).count()
+
+    def has_requested_access(self, dataset):
+        return DatasetAccessPending.select().where(
+                DatasetAccessPending.dataset == dataset,
+                DatasetAccessPending.user    == self
+            ).count()
+
     class Meta:
         db_table = 'user'
+
 
 class DatasetAccess(BaseModel):
     dataset_access   = PrimaryKeyField(db_column='dataset_access_pk')
@@ -78,8 +109,6 @@ class DatasetAccess(BaseModel):
     user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='access')
     wants_newsletter = IntegerField(null=True)
     is_admin         = IntegerField(null=True)
-    has_consented    = IntegerField(null=True)
-    has_access       = IntegerField(null=True)
 
     class Meta:
         db_table = 'dataset_access'
@@ -87,11 +116,33 @@ class DatasetAccess(BaseModel):
             (('dataset_pk', 'user_pk'), True),
         )
 
+
+class DatasetAccessCurrent(DatasetAccess):
+    dataset          = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='access_current')
+    user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='access_current')
+    has_consented    = IntegerField()
+    has_access       = IntegerField()
+    access_requested = DateTimeField()
+
+    class Meta:
+        db_table = 'dataset_access_current'
+
+
+class DatasetAccessPending(DatasetAccess):
+    dataset          = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='access_pending')
+    user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='access_pending')
+    has_consented    = IntegerField()
+    has_access       = IntegerField()
+    access_requested = DateTimeField()
+
+    class Meta:
+        db_table = 'dataset_access_pending'
+
+
 class DatasetVersion(BaseModel):
     dataset_version = PrimaryKeyField(db_column='dataset_version_pk')
     dataset         = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='versions')
     version         = CharField()
-    is_current      = IntegerField(null=True)
     description     = TextField()
     terms           = TextField()
     var_call_ref    = CharField(null=True)
@@ -118,6 +169,7 @@ class DatasetFile(BaseModel):
     class Meta:
         db_table = 'dataset_file'
 
+
 class DatasetLogo(BaseModel):
     dataset_logo = PrimaryKeyField(db_column='dataset_logo_pk')
     dataset      = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='logo')
@@ -126,6 +178,7 @@ class DatasetLogo(BaseModel):
 
     class Meta:
         db_table = 'dataset_logo'
+
 
 class Linkhash(BaseModel):
     linkhash        = PrimaryKeyField(db_column='linkhash_pk')
@@ -136,6 +189,7 @@ class Linkhash(BaseModel):
 
     class Meta:
         db_table = 'linkhash'
+
 
 class EnumField(Field):
     db_field = 'string' # The same as for CharField
@@ -154,6 +208,7 @@ class EnumField(Field):
             raise ValueError("Illegal value for '{}'".format(self.db_column))
         return value
 
+
 class UserLog(BaseModel):
     user_log = PrimaryKeyField(db_column='user_log_pk')
     user     = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='logs')
@@ -164,21 +219,17 @@ class UserLog(BaseModel):
     class Meta:
         db_table = 'user_log'
 
-def get_outstanding_requests(dataset):
-    return User.select(User).join(
-            DatasetAccess
-        ).switch(
-            User
-        ).join(
-            UserLog,
-            on=(   (UserLog.user    == User.user)
-                 & (UserLog.dataset == DatasetAccess.dataset)
-            )
-        ).where(
-            DatasetAccess.dataset    == dataset,
-            DatasetAccess.has_access == 0,
-            UserLog.action           == 'access_requested'
-        ).annotate(
-            UserLog,
-            fn.Max(UserLog.ts).alias('apply_date')
-        )
+
+def get_dataset(dataset):
+    dataset = Dataset.select().where( Dataset.short_name == dataset).get()
+    return dataset
+
+
+def build_dict_from_row(row):
+    d = {}
+    for field in row._meta.sorted_fields:
+        column = field.db_column
+        if column.endswith("_pk"):
+            continue
+        d[column] = getattr(row, column)
+    return d

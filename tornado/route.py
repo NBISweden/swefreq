@@ -7,6 +7,7 @@ from tornado.options import define, options
 import application
 import handlers
 import settings
+import beacon
 
 define("port", default=4000, help="run on the given port", type=int)
 define("develop", default=False, help="Run in develop environment", type=bool)
@@ -22,42 +23,45 @@ settings = {"debug": False,
                 "secret": settings.google_secret
             },
             "contact_person": 'mats.dahlberg@scilifelab.se',
-            "redirect_uri": redirect_uri
+            "redirect_uri": redirect_uri,
+            "template_path": "templates/",
+            "xsrf_cookies": True,
         }
 
 class Application(tornado.web.Application):
     def __init__(self, settings):
         self.declared_handlers = [
-            (r"/",                               application.Home),
             ## Static handlers
-            (r"/static/(home.html)",             tornado.web.StaticFileHandler,              {"path": "static/"}),
-            (r"/static/(dataBeacon.html)",       tornado.web.StaticFileHandler,              {"path": "static/"}),
-            (r"/static/(privacyPolicy.html)",    tornado.web.StaticFileHandler,              {"path": "static/"}),
-            (r"/static/(not_authorized.html)",   tornado.web.StaticFileHandler,              {"path": "static/"}),
-            (r"/static/(about.html)",            tornado.web.StaticFileHandler,              {"path": "static/"}),
-            (r"/static/(terms.html)",            tornado.web.StaticFileHandler,              {"path": "static/"}),
-            (r"/static/(.*)",                    handlers.SafeStaticFileHandler,             {"path": "static/"}),
-            (r'/(favicon.ico)',                  tornado.web.StaticFileHandler,              {"path": "static/"}),
-            (r"/javascript/(.*)",                tornado.web.StaticFileHandler,              {"path": "javascript/"}),
-            (r"/release/(.*)",                   handlers.AuthorizedStaticNginxFileHanlder,  {"path": "/release-files/"}),
+            (r"/static/(.*)",                             tornado.web.StaticFileHandler,              {"path": "static/"}),
+            (r'/(favicon.ico)',                           tornado.web.StaticFileHandler,              {"path": "static/img/"}),
+            (r"/release/(?P<dataset>[^\/]+)/(?P<file>.*)",        handlers.AuthorizedStaticNginxFileHanlder,  {"path": "/release-files/"}),
             ## Authentication
-            ("/login",                           handlers.LoginHandler),
-            ("/logout",                          handlers.LogoutHandler),
+            ("/login",                                    handlers.LoginHandler),
+            ("/logout",                                   handlers.LogoutHandler),
             ## API Methods
-            ("/logEvent/(?P<sEvent>[^\/]+)",     application.LogEvent),
-            ("/getUser",                         application.GetUser),
-            ("/getDataset",                      application.GetDataset),
-            ("/getApprovedUsers",                application.GetApprovedUsers),
-            ("/approveUser/(?P<sEmail>[^\/]+)",  application.ApproveUser),
-            ("/query",                           application.Query),
-            ("/info",                            application.Info),
-            ("/revokeUser/(?P<sEmail>[^\/]+)",   application.RevokeUser),
-            ("/getOutstandingRequests",          application.GetOutstandingRequests),
-            ("/requestAccess",                   application.RequestAccess),
-            ("/country_list",                    application.CountryList),
-            ("/dataset_logo/(?P<dataset>[^\/]+)", application.ServeLogo),
+            ("/api/countries",                                  application.CountryList),
+            ("/api/users/me",                                   application.GetUser),
+            ### Dataset Api
+            ("/api/datasets",                                                     application.ListDatasets),
+            ("/api/datasets/(?P<dataset>[^\/]+)",                                 application.GetDataset),
+            ("/api/datasets/(?P<dataset>[^\/]+)/log/(?P<event>[^\/]+)",           application.LogEvent),
+            ("/api/datasets/(?P<dataset>[^\/]+)/logo",                            application.ServeLogo),
+            ("/api/datasets/(?P<dataset>[^\/]+)/files",                           application.DatasetFiles),
+            ("/api/datasets/(?P<dataset>[^\/]+)/collection",                      application.Collection),
+            ("/api/datasets/(?P<dataset>[^\/]+)/users_current",                   application.DatasetUsersCurrent),
+            ("/api/datasets/(?P<dataset>[^\/]+)/users_pending",                   application.DatasetUsersPending),
+            ("/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/request", application.RequestAccess),
+            ("/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/approve", application.ApproveUser),
+            ("/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/revoke",  application.RevokeUser),
+            ### Beacon API
+            ("/api/beacon/query",                                beacon.Query),
+            ("/api/beacon/info",                                 beacon.Info),
+            # # # # # Legacy beacon URIs # # # # #
+            ("/query",                                    beacon.Query),
+            ("/info",                                     tornado.web.RedirectHandler, {"url": "/api/beacon/info"}),
             ## Catch all
-            (r'.*',                              handlers.BaseHandler),
+            ("/api/.*", tornado.web.ErrorHandler, {"status_code": 404} ),
+            (r'.*',                                       application.Home),
         ]
 
         # google oauth key

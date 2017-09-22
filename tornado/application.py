@@ -1,12 +1,9 @@
-import applicationTemplate
-import email.mime.multipart
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import json
 import logging
 import peewee
-import pymongo
 import smtplib
-import tornado.template as template
 import tornado.web
 
 import db
@@ -14,202 +11,110 @@ import handlers
 import settings
 
 
-class Query(handlers.UnsafeHandler):
-    def make_error_response(self):
-        ret_str = ""
-
-        checks = {
-                'dataset': lambda x: "" if x == 'SweGen' else "dataset has to be SweGen\n",
-                'ref': lambda x: "" if x == 'hg19' else "ref has to be hg19\n",
-                'pos': lambda x: "" if x.isdigit() else "pos has to be digit\n",
-        }
-
-        for arg in ['chrom', 'pos', 'dataset', 'referenceAllele', 'allele', 'ref']:
-            try:
-                val = self.get_argument(arg)
-                if arg in checks:
-                    ret_str += checks[arg](val)
-            except:
-                ret_str += arg + " is missing\n"
-                if arg in checks:
-                    ret_str += checks[arg]("")
-
-        dataset = self.get_argument('dataset', 'MISSING')
-
-        return ret_str
-
-    def get(self, *args, **kwargs):
-        the_errors = self.make_error_response()
-        if len(the_errors) > 0:
-            self.set_status(400);
-            self.set_header('Content-Type', 'text/plain');
-            self.write(the_errors);
-            return
-
-        sChr      = self.get_argument('chrom', '').upper()
-        iPos      = self.get_argument('pos', '')
-        dataset   = self.get_argument('dataset', '')
-        referenceAllele = self.get_argument('referenceAllele', '').upper()
-        allele = self.get_argument('allele', '').upper()
-        reference = self.get_argument('ref', '').upper()
-
-        exists = lookupAllele(sChr, int(iPos), referenceAllele, allele, reference, dataset)
-
-        if self.get_argument('format', '') == 'text':
-            self.set_header('Content-Type', 'text/plain')
-            self.write(str(exists))
-        else:
-            self.write({
-                'response': {
-                    'exists': exists,
-                    'observed': 0,
-                    'externalUrl': "%s://%s" % ('https', self.request.host),
-                    },
-                'query': {
-                    'chromosome': sChr,
-                    'position': iPos,
-                    'referenceAllele': referenceAllele,
-                    'allele': allele,
-                    'dataset': dataset,
-                    'reference': reference
-                    },
-                'beacon': 'swefreq-beacon'
-                })
-
-class Info(handlers.UnsafeHandler):
-    def get(self, *args, **kwargs):
-        query_uri = "%s://%s/query?" % ('https', self.request.host)
-        self.write({
-            'id': 'swefreq-beacon',
-            'name': 'Swefreq Beacon',
-            'organization': 'SciLifeLab',
-            'api': '0.3',
-            #'description': u'Swefreq beacon from NBIS',
-            'datasets': [
-                {
-                    'id': 'SweGen',
-                    # 'description': 'Description',
-                    # 'size': { 'variants': 1234, 'samples': 12 },
-                    # 'data_uses': [] # Data use limitations
-                    'reference': 'hg19'
-                },
-            ],
-            'homepage':  "%s://%s" % ('https', self.request.host),
-            #'email': u'swefreq-beacon@nbis.se',
-            #'auth': 'None', # u'oauth2'
-            'queries': [
-                query_uri + 'dataset=SweGen&ref=hg19&chrom=1&pos=55500975&referenceAllele=C&allele=T',
-                query_uri + 'dataset=SweGen&ref=hg19&chrom=1&pos=55505551&referenceAllele=A&allele=ACTG&format=text',
-                query_uri + 'dataset=SweGen&ref=hg19&chrom=2&pos=41936&referenceAllele=AG&allele=A'
-                ] #
-            })
-
-def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset):
-    """CHeck if an allele is present in the database
-    Args:
-        chrom: The chromosome, format matches [1-22XY]
-        pos: Coordinate within a chromosome. Position is a number and is 0-based
-        allele: Any string of nucleotides A,C,T,G
-        alternate: Any string of nucleotides A,C,T,G
-        reference: The human reference build that was used (currently unused)
-        dataset: Dataset to look in (currently used to select Mongo database)
-    Returns:
-        The string 'true' if the allele was found, otherwise the string 'false'
-    """
-    client = pymongo.MongoClient(host=settings.mongo_host, port=settings.mongo_port)
-
-    # The name of the dataset in the database is exac as required by the
-    # exac browser we are using.
-    if dataset == 'SweGen':
-        dataset = 'exac'
-
-    mdb = client[dataset]
-    mdb.authenticate(settings.mongo_user, settings.mongo_password)
-
-    # Beacon is 0-based, our database is 1-based in coords.
-    pos += 1
-    res = mdb.variants.find({'chrom': chrom, 'pos': pos})
-    for r in res:
-        if r['alt'] == allele and r['ref'] == referenceAllele:
-            return True
-
-    return False
-
 class Home(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
-        t = template.Template(applicationTemplate.index)
-
-        has_access = self.is_authorized()
-        is_admin   = self.is_admin()
-
         name = None
         email = None
         if self.current_user:
             name = self.current_user.name
             email = self.current_user.email
 
-        self.write(t.generate(user_name  = name,
-                              has_access = has_access,
-                              email      = email,
-                              is_admin   = is_admin,
-                              ExAC       = settings.exac_server))
+        develop = self.settings.get('develop', False)
+        self.render('index.html', user_name=name, email=email, develop=develop)
+
+
+def build_dataset_structure(dataset_version, user=None, dataset=None):
+    if dataset is None:
+        dataset = dataset_version.dataset
+    r = db.build_dict_from_row(dataset)
+
+    r['version'] = db.build_dict_from_row(dataset_version)
+    r['version']['available_from'] = r['version']['available_from'].strftime('%Y-%m-%d %H:%M')
+
+    r['has_image']  = dataset.has_image()
+
+    if user:
+        r['is_admin'] = user.is_admin(dataset)
+        if user.has_access(dataset):
+            r['authorization_level'] = 'has_access'
+        elif user.has_requested_access(dataset):
+            r['authorization_level'] = 'has_requested_access'
+        else:
+            r['authorization_level'] = 'no_access'
+
+    return r
+
+class ListDatasets(handlers.UnsafeHandler):
+    def get(self):
+        # List all datasets available to the current user, earliear than now OR
+        # versions that are available in the future that the user is admin of.
+        user = self.current_user
+
+        ret = []
+        for version in db.DatasetVersionCurrent.select():
+            ret.append( build_dataset_structure(version, user) )
+
+        self.finish({'data':ret})
+
+
+class DatasetFiles(handlers.UnsafeHandler):
+    def get(self, dataset, *args, **kwargs):
+        dataset = db.get_dataset(dataset)
+        version = dataset.current_version.get()
+        ret = []
+        for f in version.files:
+            ret.append(db.build_dict_from_row(f))
+        self.finish({'files': ret})
+
+
+class Collection(handlers.UnsafeHandler):
+    def get(self, dataset, *args, **kwargs):
+        user = self.current_user
+        dataset = db.get_dataset(dataset)
+
+        collections = {}
+
+        for sample_set in dataset.sample_sets:
+            collection = sample_set.collection
+            if not collection.name in collections:
+                collections[collection.name] = {
+                        'sample_sets': [],
+                        'ethnicity': collection.ethnicity,
+                    }
+            collections[collection.name]['sample_sets'].append( db.build_dict_from_row(sample_set) )
+
+
+        ret = {
+            'collections': collections,
+            'study':       db.build_dict_from_row(dataset.study)
+        }
+        ret['study']['publication_date'] = ret['study']['publication_date'].strftime('%Y-%m-%d')
+
+        self.finish(ret)
 
 
 class GetDataset(handlers.UnsafeHandler):
-    def get(self, *args, **kwargs):
-        current_version = self.dataset.current_version()
-        files = [{'name': f.name, 'uri': f.uri} for f in current_version.datasetfile_set]
+    def get(self, dataset, *args, **kwargs):
+        user = self.current_user
 
-        ret = {
-            'short_name': self.dataset.short_name,
-            'full_name': self.dataset.full_name,
-            'description': current_version.description,
-            'terms': current_version.terms,
-            'version': current_version.version,
-            'has_image': self.dataset.has_image(),
-            'files': files
-        }
+        dataset = db.get_dataset(dataset)
+        current_version = dataset.current_version.get()
 
-        self.finish(json.dumps(ret))
+        ret = build_dataset_structure(current_version, user, dataset)
+
+        self.finish(ret)
 
 
 class GetUser(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
         user = self.current_user
 
-        ret = {
-                'user': None,
-                'email': None,
-                'trusted': False,
-                'admin': False,
-                'has_requested_access': False
-        }
+        ret = { 'user': None, 'email': None }
         if user:
-            ### TODO there should probably be another way to figure out whether
-            ## someone already has access or not. REST-endpoint or something
-            ## similar, not really sure yet how this should be handled. I'm adding
-            ## it here now so we can get the information to the browser.
+            ret = { 'user': user.name, 'email': user.email }
 
-            has_requested_access = False
-            try:
-                db.DatasetAccess.select().where(
-                        db.DatasetAccess.user == user,
-                        db.DatasetAccess.dataset == self.dataset).get()
-                has_requested_access = True
-            except:
-                has_requested_access = False
+        self.finish(ret)
 
-
-            ret = {
-                    'user':         user.name,
-                    'email':        user.email,
-                    'trusted':      self.is_authorized(),
-                    'admin':        self.is_admin(),
-                    'has_requested_access': has_requested_access
-            }
-
-        logging.info("getUser: " + str(ret['user']) + ' ' + str(ret['email']))
-        self.finish(json.dumps(ret))
 
 class CountryList(handlers.UnsafeHandler):
     def get(self, *args, **kwargs):
@@ -273,7 +178,7 @@ class CountryList(handlers.UnsafeHandler):
 
 
 class RequestAccess(handlers.SafeHandler):
-    def get(self, *args, **kwargs):
+    def get(self, dataset, *args, **kwargs):
         user = self.current_user
         name = user.name
         email = user.email
@@ -281,7 +186,9 @@ class RequestAccess(handlers.SafeHandler):
         logging.info("Request: " + name + ' ' + email)
         self.finish(json.dumps({'user':name, 'email':email}))
 
-    def post(self, *args, **kwargs):
+    def post(self, dataset, *args, **kwargs):
+        dataset = db.get_dataset(dataset)
+
         userName    = self.get_argument("userName", default='',strip=False)
         email       = self.get_argument("email", default='', strip=False)
         affiliation = self.get_argument("affiliation", strip=False)
@@ -302,14 +209,15 @@ class RequestAccess(handlers.SafeHandler):
         try:
             with db.database.atomic():
                 user.save() # Save to database
-                db.DatasetAccess.create(
-                        user             = user,
-                        dataset          = self.dataset,
-                        wants_newsletter = newsletter
+                (da,_) = db.DatasetAccess.get_or_create(
+                        user    = user,
+                        dataset = dataset
                     )
+                da.wants_newsletter = newsletter
+                da.save()
                 db.UserLog.create(
                         user = user,
-                        dataset = self.dataset,
+                        dataset = dataset,
                         action = 'access_requested'
                     )
         except Exception as e:
@@ -317,43 +225,50 @@ class RequestAccess(handlers.SafeHandler):
 
 
 class LogEvent(handlers.SafeHandler):
-    def get(self, sEvent):
+    def post(self, dataset, event):
         user = self.current_user
 
         ok_events = ['download','consent']
-        if sEvent in ok_events:
+        if event in ok_events:
             db.UserLog.create(
                     user = user,
-                    dataset = self.dataset,
-                    action = sEvent
+                    dataset = db.get_dataset(dataset),
+                    action = event
                 )
         else:
             raise tornado.web.HTTPError(400, reason="Can't log that")
 
+
 class ApproveUser(handlers.AdminHandler):
-    def get(self, sEmail):
+    def post(self, dataset, email):
         with db.database.atomic():
-            user = db.User.select().where(db.User.email == sEmail).get()
+            dataset = db.get_dataset(dataset)
+
+            user = db.User.select().where(db.User.email == email).get()
 
             da = db.DatasetAccess.select().where(
                         db.DatasetAccess.user == user,
-                        db.DatasetAccess.dataset == self.dataset
+                        db.DatasetAccess.dataset == dataset
                 ).get()
             da.has_access = True
             da.save()
 
             db.UserLog.create(
                     user = user,
-                    dataset = self.dataset,
+                    dataset = dataset,
                     action = 'access_granted'
                 )
 
-        msg = email.mime.multipart.MIMEMultipart()
-        msg['to'] = sEmail
+        msg = MIMEMultipart()
+        msg['to'] = email
         msg['from'] = settings.from_address
-        msg['subject'] = 'Swefreq account created'
+        msg['subject'] = 'Swefreq access granted to {}'.format(dataset.short_name)
         msg.add_header('reply-to', settings.reply_to_address)
-        body = "Your Swefreq account has been activated."
+        body = """You now have access to the {} dataset
+
+Please visit https://swefreq.nbis.se/dataset/{}/download to download files.
+        """.format(dataset.full_name, dataset.short_name,
+                dataset.sample_set.study.contact_name)
         msg.attach(MIMEText(body, 'plain'))
 
         server = smtplib.SMTP(settings.mail_server)
@@ -361,80 +276,67 @@ class ApproveUser(handlers.AdminHandler):
 
 
 class RevokeUser(handlers.AdminHandler):
-    def get(self, sEmail):
-        if self.current_user.email == sEmail:
-            # Don't let the admin delete hens own account
-            return
-
+    def post(self, dataset, email):
         with db.database.atomic():
-            user = db.User.select().where(db.User.email == sEmail).get()
-
-            da = db.DatasetAccess.select(
-                    ).join(
-                        db.User
-                    ).where(
-                        db.User.email == sEmail,
-                        db.DatasetAccess.dataset == self.dataset
-                    ).get()
-            da.delete_instance()
+            dataset = db.get_dataset(dataset)
+            user = db.User.select().where(db.User.email == email).get()
 
             db.UserLog.create(
                     user = user,
-                    dataset = self.dataset,
+                    dataset = dataset,
                     action = 'access_revoked'
                 )
 
-class GetOutstandingRequests(handlers.SafeHandler):
-    def get(self, *args, **kwargs):
-        requests = db.get_outstanding_requests(self.dataset)
-
-        json_response = []
-        for request in requests:
-            apply_date = request.apply_date.strftime('%Y-%m-%d')
-            json_response.append({
-                'user':        request.name,
-                'email':       request.email,
-                'affiliation': request.affiliation,
-                'country':     request.country,
-                'applyDate':   apply_date
-            })
-
-        self.finish(json.dumps(json_response))
-
-class GetApprovedUsers(handlers.SafeHandler):
-    def get(self, *args, **kwargs):
-        ## All users that have access to the dataset and how many times they have
-        ## downloaded it
-        query = db.User.select(
-                db.User, db.DatasetAccess.wants_newsletter
-            ).join(
-                db.DatasetAccess
-            ).switch(
-                db.User
-            ).join(
-                db.UserLog,
-                peewee.JOIN.LEFT_OUTER,
-                on=(   (db.User.user        == db.UserLog.user)
-                     & (db.UserLog.action   == 'download')
-                     & (db.UserLog.dataset  == db.DatasetAccess.dataset)
-                )
-            ).where(
-                db.DatasetAccess.dataset    == self.dataset,
-                db.DatasetAccess.has_access == 1
-            ).annotate(db.UserLog)
-
+class DatasetUsers():
+    def _build_json_response(self, query, access_for):
         json_response = []
         for user in query:
-            json_response.append({
-                    'user':          user.name,
-                    'email':         user.email,
-                    'affiliation':   user.affiliation,
-                    'country':       user.country,
-                    'downloadCount': user.count,
-                    'newsletter':    user.dataset_access.wants_newsletter
-                })
+            applyDate = '-'
+            logging.info("build json response for a user")
+            access = access_for(user)
+            if access.access_requested:
+                applyDate = access.access_requested.strftime('%Y-%m-%d %H:%M')
 
-        self.finish(json.dumps(json_response))
+            data = {
+                    'user':        user.name,
+                    'email':       user.email,
+                    'affiliation': user.affiliation,
+                    'country':     user.country,
+                    'newsletter':  access.wants_newsletter,
+                    'has_access':  access.has_access,
+                    'applyDate':   applyDate
+                }
+            json_response.append(data)
+        return json_response
+
+
+class DatasetUsersPending(handlers.AdminHandler, DatasetUsers):
+    def get(self, dataset, *args, **kwargs):
+        dataset = db.get_dataset(dataset)
+        query = db.User.select(
+                db.User, db.DatasetAccessPending
+            ).join(
+                db.DatasetAccessPending
+            ).where(
+                db.DatasetAccessPending.dataset == dataset,
+            )
+
+        self.finish({'data': self._build_json_response(query, lambda u: u.access_pending.get())})
+
+
+class DatasetUsersCurrent(handlers.AdminHandler, DatasetUsers):
+    def get(self, dataset, *args, **kwargs):
+        dataset = db.get_dataset(dataset)
+        query = db.User.select(
+                db.User, db.DatasetAccessCurrent
+            ).join(
+                db.DatasetAccessCurrent
+            ).where(
+                db.DatasetAccessCurrent.dataset == dataset,
+            )
+
+        self.finish({'data': self._build_json_response(query, lambda u: u.access_current.get())})
+
 
 class ServeLogo(handlers.UnsafeHandler):
     def get(self, dataset, *args, **kwargs):

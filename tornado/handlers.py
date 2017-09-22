@@ -2,6 +2,7 @@ import logging
 import peewee
 import tornado.auth
 import tornado.web
+import tornado.template as template
 import os.path
 
 import db
@@ -21,15 +22,13 @@ class BaseHandler(tornado.web.RequestHandler):
         raise tornado.web.HTTPError(404, reason='Page not found')
 
     def prepare(self):
+        ## Make sure we have the xsrf_token
+        self.xsrf_token
         db.database.connect()
-        try:
-            self.dataset = db.Dataset.select().where( db.Dataset.short_name == 'SweGen').get()
-        except peewee.DoesNotExist:
-            ## TODO Can't find dataset, should return a 404 page.
-            pass
 
     def on_finish(self):
-        db.database.close()
+        if not db.database.is_closed():
+            db.database.close()
 
     def get_current_user(self):
         email = self.get_secure_cookie('email')
@@ -49,42 +48,6 @@ class BaseHandler(tornado.web.RequestHandler):
         else:
             return None
 
-    def get_current_user_name(self):
-        user = self.current_user
-        if user:
-            return user.name
-        return None
-
-    def is_admin(self):
-        user = self.current_user
-        if not user:
-            return False
-
-        try:
-            db.DatasetAccess.select().where(
-                    db.DatasetAccess.user == user,
-                    db.DatasetAccess.dataset == self.dataset,
-                    db.DatasetAccess.is_admin
-                ).get()
-            return True
-        except peewee.DoesNotExist:
-            return False
-
-    def is_authorized(self):
-        user = self.current_user
-        if not user:
-            return False
-
-        try:
-            db.DatasetAccess.select().where(
-                    db.DatasetAccess.user == user,
-                    db.DatasetAccess.dataset == self.dataset,
-                    db.DatasetAccess.has_access
-                ).get()
-            return True
-        except peewee.DoesNotExist:
-            return False
-
     def write_error(self, status_code, **kwargs):
         """ Overwrites write_error method to have custom error pages.
         http://tornado.readthedocs.org/en/latest/web.html#tornado.web.RequestHandler.write_error
@@ -103,29 +66,34 @@ class SafeHandler(BaseHandler):
         the Handlers that inherit from this one are going to require
         authentication in all their methods.
         """
-        super(SafeHandler, self).prepare()
         if not self.current_user:
-            self.redirect('/static/not_authorized.html')
+            self.send_error(status_code=403)
+
+class AuthorizedHandler(SafeHandler):
+    def prepare(self):
+        super(AuthorizedHandler, self).prepare()
+
+        if self._finished:
+            return
+
+        kwargs = self.path_kwargs
+        if not kwargs['dataset']:
+            self.send_error(status_code=403)
+        if not self.current_user.has_access( db.get_dataset(kwargs['dataset']) ):
+            self.send_error(status_code=403)
 
 class AdminHandler(SafeHandler):
     def prepare(self):
         super(AdminHandler, self).prepare()
-        user = self.current_user
-        dataset = self.dataset
-        da = db.DatasetAccess().select().where(
-                db.DatasetAccess.user == user,
-                db.DatasetAccess.dataset == dataset
-            ).get()
-        if not da.is_admin:
-            self.redirect('/static/not_authorized.html')
 
-class AuthorizedHandler(BaseHandler):
-    def prepare(self):
-        super(AuthorizedHandler, self).prepare()
-        if not self.current_user:
-            self.redirect('/static/not_authorized.html')
-        if not self.is_authorized():
-            self.redirect('/static/not_authorized.html')
+        if self._finished:
+            return
+
+        kwargs = self.path_kwargs
+        if not kwargs['dataset']:
+            self.send_error(status_code=403)
+        if not self.current_user.is_admin( db.get_dataset(kwargs['dataset']) ):
+            self.send_error(status_code=403)
 
 class UnsafeHandler(BaseHandler):
     pass
@@ -192,10 +160,11 @@ class LogoutHandler(tornado.web.RequestHandler, tornado.auth.GoogleOAuth2Mixin):
 
         self.clear_cookie("access_token")
         self.clear_cookie("login_redirect")
-        self.set_secure_cookie('login_redirect', self.get_argument("next", '/'), 1)
         self.clear_cookie("user")
         self.clear_cookie("email")
-        self.redirect("/")
+
+        redirect = self.get_argument("next", '/')
+        self.redirect(redirect)
 
 class SafeStaticFileHandler(tornado.web.StaticFileHandler, SafeHandler):
     """ Serve static files for logged in users
@@ -219,7 +188,7 @@ class AuthorizedStaticNginxFileHanlder(AuthorizedHandler):
             path = "/" + path
         self.root = path
 
-    def get(self, file):
+    def get(self, dataset, file):
         abspath = os.path.abspath(os.path.join(self.root, file))
         self.set_header("X-Accel-Redirect", abspath)
         self.set_header("Content-Disposition", "attachment")
