@@ -2,9 +2,11 @@ language: python
 python:
     - "3.5"
 services:
-    - mysql
+    - docker
 before_install:
-    - mysql -e 'CREATE DATABASE swefreq;'
+    - docker pull mysql:5.7
+    - docker run --name mysql -e MYSQL_ALLOW_EMPTY_PASSWORD=1 -d -p 3306:3306  mysql:5.7
+    - mysql -u root -h 127.0.0.1 -e 'CREATE DATABASE swefreq;'
 install:
     - pip install -r tornado/requirements.txt
 script:
@@ -12,4 +14,4 @@ script:
     - cd tornado
     - bash ../test/01_daemon_starts.sh
     - cd ..
-    - mysql -u travis swefreq < sql/swefreq.sql
+    - mysql -u root -h 127.0.0.1 swefreq < sql/swefreq.sql
