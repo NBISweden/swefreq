@@ -268,7 +268,7 @@ class ApproveUser(handlers.AdminHandler):
 
 Please visit https://swefreq.nbis.se/dataset/{}/download to download files.
         """.format(dataset.full_name, dataset.short_name,
-                dataset.sample_set.study.contact_name)
+                dataset.study.contact_name)
         msg.attach(MIMEText(body, 'plain'))
 
         server = smtplib.SMTP(settings.mail_server)
