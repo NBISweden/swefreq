@@ -1,9 +1,15 @@
 language: python
 python:
     - "3.5"
+services:
+    - mysql
+before_install:
+    - mysql -e 'CREATE DATABASE swefreq;'
 install:
     - pip install -r tornado/requirements.txt
 script:
     - cp settings_sample.json settings.json
     - cd tornado
     - bash ../test/01_daemon_starts.sh
+    - cd ..
+    - mysql -u travis swefreq < sql/swefreq.sql
