@@ -53,13 +53,15 @@
                         </div>
                         <div class="col-md-4">
                             <div class="dataset-panel infobox">
-                                <div class="dataset-heading">Sample Set</div>
+                                <div class="dataset-heading">Collection</div>
                                 <div class="dataset-body">
-{{ datasetCtrl.sample_set.collection }}
-                                    <ul>
-                                       <li>Ethnicity: {{ datasetCtrl.sample_set.ethnicity }}
-                                       <li>Sample size: {{datasetCtrl.sample_set.sample_size }}
-                                    </ul>
+                                    <div ng-repeat="(name, coll) in datasetCtrl.collections">
+                                        {{ name }} <span class='ethnicity'>{{coll.ethnicity}}</span>
+                                        <ul ng-repeat="sample in coll.sample_sets" class='samples'>
+                                            <li>Sample size: {{ sample.sample_size }}</li>
+                                            <li>Phenotype: {{ sample.phenotype }}</li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
