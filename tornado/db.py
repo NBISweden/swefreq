@@ -136,7 +136,7 @@ class DatasetAccessPending(DatasetAccess):
     access_requested = DateTimeField()
 
     class Meta:
-        db_table = 'dataset_access_waiting'
+        db_table = 'dataset_access_pending'
 
 
 class DatasetVersion(BaseModel):
