@@ -122,6 +122,10 @@ ALTER TABLE dataset_version ADD COLUMN (
 
 ALTER TABLE dataset_version DROP COLUMN ts;
 
+-- the above makes dataset_version.is_current superfluous
+
+ALTER TABLE dataset_version DROP COLUMN is_current;
+
 -- add the dataset_version_current view
 
 CREATE OR REPLACE VIEW dataset_version_current AS
@@ -131,9 +135,6 @@ CREATE OR REPLACE VIEW dataset_version_current AS
         WHERE available_from < now()
         GROUP BY dataset_pk );
 
--- the above makes dataset_version.is_current superfluous
-
-ALTER TABLE dataset_version DROP COLUMN is_current;
 
 -- add the dataset_access_current view
 
