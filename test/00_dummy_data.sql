@@ -90,9 +90,9 @@ INSERT INTO user_log(user_pk, dataset_pk, action, ts) VALUES
     (1000112, 1000002, 'access_revoked',   '2017-02-08');
 
 SELECT "Waiting", user.name, user.affiliation as visibility, user.user_pk,
-       dataset_access_waiting.dataset_pk,
-       dataset_access_waiting.dataset_access_pk
-FROM dataset_access_waiting JOIN user ON (dataset_access_waiting.user_pk = user.user_pk)
+       dataset_access_pending.dataset_pk,
+       dataset_access_pending.dataset_access_pk
+FROM dataset_access_pending JOIN user ON (dataset_access_pending.user_pk = user.user_pk)
 WHERE dataset_pk > 1000000;
 
 SELECT "Current", user.name, user.affiliation as visibility, user.user_pk, dataset_access_current.dataset_pk,
