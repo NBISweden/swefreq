@@ -292,10 +292,12 @@ class DatasetUsers():
         json_response = []
         for user in query:
             applyDate = '-'
-            logging.info("build json response for a user")
             access = access_for(user)
+            if not access:
+                continue
+            access = access[0]
             if access.access_requested:
-                applyDate = access.access_requested.strftime('%Y-%m-%d %H:%M')
+                applyDate = access.access_requested.strftime('%Y-%m-%d')
 
             data = {
                     'user':        user.name,
@@ -313,29 +315,30 @@ class DatasetUsers():
 class DatasetUsersPending(handlers.AdminHandler, DatasetUsers):
     def get(self, dataset, *args, **kwargs):
         dataset = db.get_dataset(dataset)
-        query = db.User.select(
-                db.User, db.DatasetAccessPending
-            ).join(
-                db.DatasetAccessPending
-            ).where(
-                db.DatasetAccessPending.dataset == dataset,
-            )
+        users = db.User.select()
+        access = (db.DatasetAccessPending
+                   .select()
+                   .where(
+                       db.DatasetAccessPending.dataset == dataset,
+                   ))
+        query = peewee.prefetch(users, access)
 
-        self.finish({'data': self._build_json_response(query, lambda u: u.access_pending.get())})
+        self.finish({'data': self._build_json_response(
+            query, lambda u: u.access_pending_prefetch)})
 
 
 class DatasetUsersCurrent(handlers.AdminHandler, DatasetUsers):
     def get(self, dataset, *args, **kwargs):
         dataset = db.get_dataset(dataset)
-        query = db.User.select(
-                db.User, db.DatasetAccessCurrent
-            ).join(
-                db.DatasetAccessCurrent
-            ).where(
-                db.DatasetAccessCurrent.dataset == dataset,
-            )
-
-        self.finish({'data': self._build_json_response(query, lambda u: u.access_current.get())})
+        users = db.User.select()
+        access = (db.DatasetAccessCurrent
+                   .select()
+                   .where(
+                       db.DatasetAccessCurrent.dataset == dataset,
+                   ))
+        query = peewee.prefetch(users, access)
+        self.finish({'data': self._build_json_response(
+            query, lambda u: u.access_current_prefetch)})
 
 
 class ServeLogo(handlers.UnsafeHandler):
