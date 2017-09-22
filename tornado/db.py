@@ -26,19 +26,19 @@ class Study(BaseModel):
     class Meta:
         db_table = 'study'
 
-class SampleSet(BaseModel):
-    sample_set  = PrimaryKeyField(db_column='sample_set_pk')
-    study       = ForeignKeyField(db_column='study_pk', rel_model=Study, to_field='study', related_name='sample_set')
-    ethnicity   = CharField(null=True)
-    collection  = CharField(null=True)
-    sample_size = IntegerField()
+
+class Collection(BaseModel):
+    collection = PrimaryKeyField(db_column = 'collection_pk')
+    name       = CharField(null = True)
+    ethnicity  = CharField(null = True)
 
     class Meta:
-        db_table = 'sample_set'
+        db_table = 'collection'
+
 
 class Dataset(BaseModel):
     dataset       = PrimaryKeyField(db_column='dataset_pk')
-    sample_set    = ForeignKeyField(db_column='sample_set_pk', rel_model=SampleSet, to_field='sample_set', related_name='datasets')
+    study         = ForeignKeyField(db_column='study_pk', rel_model=Study, to_field='study', related_name='datasets')
     short_name    = CharField()
     full_name     = CharField()
     browser_uri   = CharField(null=True)
@@ -58,6 +58,17 @@ class Dataset(BaseModel):
 
     class Meta:
         db_table = 'dataset'
+
+
+class SampleSet(BaseModel):
+    sample_set  = PrimaryKeyField(db_column='sample_set_pk')
+    dataset     = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='sample_sets')
+    collection  = ForeignKeyField(db_column='collection_pk', rel_model=Collection, to_field='collection', related_name='sample_sets')
+    sample_size = IntegerField()
+    phenotype   = CharField(null=True)
+
+    class Meta:
+        db_table = 'sample_set'
 
 
 class User(BaseModel):
