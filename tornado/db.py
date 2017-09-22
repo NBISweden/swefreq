@@ -8,9 +8,11 @@ database = MySQLDatabase(
         password=settings.mysql_passwd
     )
 
+
 class BaseModel(Model):
     class Meta:
         database = database
+
 
 class Study(BaseModel):
     study            = PrimaryKeyField(db_column='study_pk')
@@ -100,6 +102,7 @@ class User(BaseModel):
     class Meta:
         db_table = 'user'
 
+
 class DatasetAccess(BaseModel):
     dataset_access   = PrimaryKeyField(db_column='dataset_access_pk')
     dataset          = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='access')
@@ -113,6 +116,7 @@ class DatasetAccess(BaseModel):
             (('dataset_pk', 'user_pk'), True),
         )
 
+
 class DatasetAccessCurrent(DatasetAccess):
     dataset          = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='access_current')
     user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='access_current')
@@ -123,6 +127,7 @@ class DatasetAccessCurrent(DatasetAccess):
     class Meta:
         db_table = 'dataset_access_current'
 
+
 class DatasetAccessPending(DatasetAccess):
     dataset          = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='access_wating')
     user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='access_pending')
@@ -132,6 +137,7 @@ class DatasetAccessPending(DatasetAccess):
 
     class Meta:
         db_table = 'dataset_access_waiting'
+
 
 class DatasetVersion(BaseModel):
     dataset_version = PrimaryKeyField(db_column='dataset_version_pk')
@@ -163,6 +169,7 @@ class DatasetFile(BaseModel):
     class Meta:
         db_table = 'dataset_file'
 
+
 class DatasetLogo(BaseModel):
     dataset_logo = PrimaryKeyField(db_column='dataset_logo_pk')
     dataset      = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='logo')
@@ -171,6 +178,7 @@ class DatasetLogo(BaseModel):
 
     class Meta:
         db_table = 'dataset_logo'
+
 
 class Linkhash(BaseModel):
     linkhash        = PrimaryKeyField(db_column='linkhash_pk')
@@ -181,6 +189,7 @@ class Linkhash(BaseModel):
 
     class Meta:
         db_table = 'linkhash'
+
 
 class EnumField(Field):
     db_field = 'string' # The same as for CharField
@@ -198,6 +207,7 @@ class EnumField(Field):
         if value not in self.values:
             raise ValueError("Illegal value for '{}'".format(self.db_column))
         return value
+
 
 class UserLog(BaseModel):
     user_log = PrimaryKeyField(db_column='user_log_pk')
