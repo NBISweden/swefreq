@@ -128,6 +128,10 @@ ALTER TABLE dataset_version DROP COLUMN ts;
 
 ALTER TABLE dataset_version DROP COLUMN is_current;
 
+-- Add the ref_doi for the swegen dataset
+
+UPDATE dataset_version SET ref_doi='10.17044/NBIS/G000003' WHERE dataset_version_pk=2;
+
 -- add the dataset_version_current view
 
 CREATE OR REPLACE VIEW dataset_version_current AS
