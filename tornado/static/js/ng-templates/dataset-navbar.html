@@ -1,0 +1,8 @@
+<ul class="nav nav-tabs">
+    <li ng-class="isActive('information')"><a href="{{createUrl('')}}">Information</a></li>
+    <li ng-class="isActive('terms')"><a href="{{createUrl('terms')}}">Terms</a></li>
+    <li ng-class="isActive('download')"><a href="{{createUrl('download')}}">Download</a></li>
+    <li ng-class="isActive('beacon')"><a href="{{createUrl('beacon')}}">Beacon</a></li>
+    <li ng-class="isActive('browser')"><a href="{{browser_uri}}" target="_blank">Graphical Browser <span class="glyphicon glyphicon-new-window" aria-hidden="true"></span></a></li>
+    <li class="pull-right admin-tab" ng-class="isActive('admin')" ng-if="is_admin"><a href="{{createUrl('admin')}}">Admin</a></li>
+</ul>
