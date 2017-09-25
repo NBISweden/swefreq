@@ -162,6 +162,10 @@ ul.samples li:first-child {
     background-color: #e8e8e8;
 }
 
+.dataset-links .glyphicon {
+    font-size: 75%;
+}
+
 .dataset-links li:first-child {
     border-radius: 0 0 0 5px;
 }
