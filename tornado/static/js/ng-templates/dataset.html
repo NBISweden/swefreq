@@ -31,7 +31,7 @@
                                        <li ng-if="datasetCtrl.dataset.seq_center">Sequencing Center: {{ datasetCtrl.dataset.seq_center }}
                                        <li ng-if="datasetCtrl.dataset.dataset_size">Dataset Size: {{ datasetCtrl.dataset.dataset_size }}
                                        <li ng-if="datasetCtrl.dataset.version.var_call_ref">Variant Calling reference: {{ datasetCtrl.dataset.version.var_call_ref }}
-                                       <li ng-if="datasetCtrl.dataset.version.ref_doi">Dataset DOI: {{ datasetCtrl.dataset.version.ref_doi }}
+                                       <li ng-if="datasetCtrl.dataset.version.ref_doi">Dataset DOI: <a href="https://dx.doi.org/{{ datasetCtrl.dataset.version.ref_doi }}">{{ datasetCtrl.dataset.version.ref_doi }}</a>
                                     </ul>
                                 </div>
                             </div>
@@ -43,7 +43,7 @@
 {{datasetCtrl.study.title}}
                                     <ul>
                                        <li ng-if="datasetCtrl.study.pi_name">Principal Investigator: {{ datasetCtrl.study.pi_name }}
-                                       <li ng-if="datasetCtrl.study.ref_doi">DOI: {{ datasetCtrl.study.ref_doi }}
+                                       <li ng-if="datasetCtrl.study.ref_doi">DOI: <a href="https://dx.doi.org/{{ datasetCtrl.study.ref_doi }}">{{ datasetCtrl.study.ref_doi }}</a>
                                        <li ng-if="datasetCtrl.study.publication_date">Publication date: {{datasetCtrl.study.publication_date }}
                                        <li ng-if="datasetCtrl.study.contact_email">Contact: <a href="mailto:{{datasetCtrl.study.contact_email}}">{{ datasetCtrl.study.contact_name_uc }}</a>
                                        <li ng-if="datasetCtrl.study.description">Description: {{ datasetCtrl.study.description }}
