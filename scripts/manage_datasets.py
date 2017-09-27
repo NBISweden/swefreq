@@ -14,7 +14,7 @@ def update(dataset):
         newterms = "".join(f.readlines())
 
     newdesc = ""
-    with open('/tmp/new-description.txt') as f
+    with open('/tmp/new-description.txt') as f:
         newdesc = "".join(f.readlines())
 
     dv.terms = newterms
