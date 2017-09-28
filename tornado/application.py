@@ -57,6 +57,18 @@ class ListDatasets(handlers.UnsafeHandler):
         self.finish({'data':ret})
 
 
+class GetDataset(handlers.UnsafeHandler):
+    def get(self, dataset, *args, **kwargs):
+        user = self.current_user
+
+        dataset = db.get_dataset(dataset)
+        current_version = dataset.current_version.get()
+
+        ret = build_dataset_structure(current_version, user, dataset)
+
+        self.finish(ret)
+
+
 class DatasetFiles(handlers.UnsafeHandler):
     def get(self, dataset, *args, **kwargs):
         dataset = db.get_dataset(dataset)
@@ -89,18 +101,6 @@ class Collection(handlers.UnsafeHandler):
             'study':       db.build_dict_from_row(dataset.study)
         }
         ret['study']['publication_date'] = ret['study']['publication_date'].strftime('%Y-%m-%d')
-
-        self.finish(ret)
-
-
-class GetDataset(handlers.UnsafeHandler):
-    def get(self, dataset, *args, **kwargs):
-        user = self.current_user
-
-        dataset = db.get_dataset(dataset)
-        current_version = dataset.current_version.get()
-
-        ret = build_dataset_structure(current_version, user, dataset)
 
         self.finish(ret)
 
