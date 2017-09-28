@@ -2,6 +2,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import json
 import logging
+import datetime
 import peewee
 import smtplib
 import tornado.web
@@ -57,6 +58,64 @@ class ListDatasets(handlers.UnsafeHandler):
         self.finish({'data':ret})
 
 
+class GetDataset(handlers.UnsafeHandler):
+    def get(self, dataset, *args, **kwargs):
+        user = self.current_user
+
+        dataset = db.get_dataset(dataset)
+        current_version = dataset.current_version.get()
+
+        ret = build_dataset_structure(current_version, user, dataset)
+
+        self.finish(ret)
+
+
+class ListDatasetVersions(handlers.UnsafeHandler):
+    def get(self, dataset, *args, **kwargs):
+        user = self.current_user
+        dataset = db.get_dataset(dataset)
+
+        versions = db.DatasetVersion.select(
+                db.DatasetVersion.version, db.DatasetVersion.available_from
+            ).where(
+                db.DatasetVersion.dataset == dataset
+            )
+        logging.info("ListDatasetVersions")
+
+        data = []
+        for v in versions:
+            # Skip future versions unless admin
+            if (v.available_from > datetime.datetime.now() and
+                    not user.is_admin(dataset)):
+                continue
+            data.append({
+                'name': v.version,
+                'available_from': v.available_from.strftime('%Y-%m-%d')
+            })
+
+        self.finish({'data': data})
+
+
+class GetDatasetVersion(handlers.UnsafeHandler):
+    def get(self, dataset, version, *args, **kwargs):
+        user = self.current_user
+
+        dataset = db.get_dataset(dataset)
+        version = db.DatasetVersion.select().where(
+                db.DatasetVersion.version == version,
+                db.DatasetVersion.dataset == dataset
+            ).get()
+
+        # If it's not available yet, only return if user is admin.
+        if (version.available_from > datetime.datetime.now() and
+                not user.is_admin(dataset)):
+            self.send_error(status_code=403)
+            return
+
+        ret = build_dataset_structure(version, user, dataset)
+        self.finish(ret)
+
+
 class DatasetFiles(handlers.UnsafeHandler):
     def get(self, dataset, *args, **kwargs):
         dataset = db.get_dataset(dataset)
@@ -89,18 +148,6 @@ class Collection(handlers.UnsafeHandler):
             'study':       db.build_dict_from_row(dataset.study)
         }
         ret['study']['publication_date'] = ret['study']['publication_date'].strftime('%Y-%m-%d')
-
-        self.finish(ret)
-
-
-class GetDataset(handlers.UnsafeHandler):
-    def get(self, dataset, *args, **kwargs):
-        user = self.current_user
-
-        dataset = db.get_dataset(dataset)
-        current_version = dataset.current_version.get()
-
-        ret = build_dataset_structure(current_version, user, dataset)
 
         self.finish(ret)
 
