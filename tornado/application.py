@@ -70,6 +70,32 @@ class GetDataset(handlers.UnsafeHandler):
         self.finish(ret)
 
 
+class ListDatasetVersions(handlers.UnsafeHandler):
+    def get(self, dataset, *args, **kwargs):
+        user = self.current_user
+        dataset = db.get_dataset(dataset)
+
+        versions = db.DatasetVersion.select(
+                db.DatasetVersion.version, db.DatasetVersion.available_from
+            ).where(
+                db.DatasetVersion.dataset == dataset
+            )
+        logging.info("ListDatasetVersions")
+
+        data = []
+        for v in versions:
+            # Skip future versions unless admin
+            if (v.available_from > datetime.datetime.now() and
+                    not user.is_admin(dataset)):
+                continue
+            data.append({
+                'name': v.version,
+                'available_from': v.available_from.strftime('%Y-%m-%d')
+            })
+
+        self.finish({'data': data})
+
+
 class GetDatasetVersion(handlers.UnsafeHandler):
     def get(self, dataset, version, *args, **kwargs):
         user = self.current_user
