@@ -276,7 +276,7 @@
             localThis.user = data.data;
         });
 
-        Dataset().then(function(data){
+        Dataset(dataset, $routeParams["version"]).then(function(data){
             localThis.dataset = data.dataset;
             localThis.collections = data.collections;
             localThis.study = data.study;
@@ -432,6 +432,7 @@
             .when('/',                                  { templateUrl: 'static/js/ng-templates/home.html'             })
             .when('/dataBeacon/',                       { templateUrl: 'static/js/ng-templates/dataBeacon.html'       })
             .when('/dataset/:dataset',                  { templateUrl: 'static/js/ng-templates/dataset.html'          })
+            .when('/dataset/:dataset/version/:version', { templateUrl: 'static/js/ng-templates/dataset.html'          })
             .when('/dataset/:dataset/terms',            { templateUrl: 'static/js/ng-templates/dataset-terms.html'    })
             .when('/dataset/:dataset/download',         { templateUrl: 'static/js/ng-templates/dataset-download.html' })
             .when('/dataset/:dataset/beacon',           { templateUrl: 'static/js/ng-templates/dataset-beacon.html'   })
