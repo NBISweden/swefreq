@@ -90,36 +90,43 @@
 
     App.factory('Dataset', function($http, $q, $location, $sce) {
         var state = {dataset: null};
-        return function() {
+        return function(dataset, version) {
             var defer = $q.defer();
 
-            var path = $location.path().split('/');
-            var dataset = path[2];
-            if ( path[1] != 'dataset' ) {
-                state = "Some strange error 2";
-                defer.reject("Some strange error 1");
+            if (dataset === undefined) {
+                var path = $location.path().split('/');
+                dataset = path[2];
+                if ( path[1] != 'dataset' ) {
+                    return defer.reject("No dataset provided");
+                }
             }
-            else {
-                $q.all([
-                    $http.get('/api/datasets/' + dataset).then(function(data){
-                        var d = data.data;
-                        d.version.description = $sce.trustAsHtml( d.version.description );
-                        d.version.terms       = $sce.trustAsHtml( d.version.terms );
-                        state['dataset'] = d;
-                    }),
-                    $http.get('/api/datasets/' + dataset + '/collection').then(function(data){
-                        state.collections = data.data.collections;
-                        state.study = data.data.study;
-
-                        console.log(state.collections);
-
-                        cn = state.study.contact_name;
-                        state.study.contact_name_uc = cn.charAt(0).toUpperCase() + cn.slice(1);
-                    })
-                ]).then(function(data) {
-                    defer.resolve(state);
-                });
+            var dataset_uri = 'api/datasets/' + dataset;
+            if (version) {
+                dataset_uri += '/versions/' + version;
             }
+
+            console.log("Dataset uri is: " + dataset_uri)
+
+            $q.all([
+                $http.get(dataset_uri).then(function(data){
+                    var d = data.data;
+                    d.version.description = $sce.trustAsHtml( d.version.description );
+                    d.version.terms       = $sce.trustAsHtml( d.version.terms );
+                    state['dataset'] = d;
+                }),
+                $http.get('/api/datasets/' + dataset + '/collection').then(function(data){
+                    state.collections = data.data.collections;
+                    state.study = data.data.study;
+
+                    console.log(state.collections);
+
+                    cn = state.study.contact_name;
+                    state.study.contact_name_uc = cn.charAt(0).toUpperCase() + cn.slice(1);
+                })
+            ]).then(function(data) {
+                defer.resolve(state);
+            });
+
             return defer.promise;
         }
     });
