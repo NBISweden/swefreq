@@ -90,36 +90,43 @@
 
     App.factory('Dataset', function($http, $q, $location, $sce) {
         var state = {dataset: null};
-        return function() {
+        return function(dataset, version) {
             var defer = $q.defer();
 
-            var path = $location.path().split('/');
-            var dataset = path[2];
-            if ( path[1] != 'dataset' ) {
-                state = "Some strange error 2";
-                defer.reject("Some strange error 1");
+            if (dataset === undefined) {
+                var path = $location.path().split('/');
+                dataset = path[2];
+                if ( path[1] != 'dataset' ) {
+                    return defer.reject("No dataset provided");
+                }
             }
-            else {
-                $q.all([
-                    $http.get('/api/datasets/' + dataset).then(function(data){
-                        var d = data.data;
-                        d.version.description = $sce.trustAsHtml( d.version.description );
-                        d.version.terms       = $sce.trustAsHtml( d.version.terms );
-                        state['dataset'] = d;
-                    }),
-                    $http.get('/api/datasets/' + dataset + '/collection').then(function(data){
-                        state.collections = data.data.collections;
-                        state.study = data.data.study;
-
-                        console.log(state.collections);
-
-                        cn = state.study.contact_name;
-                        state.study.contact_name_uc = cn.charAt(0).toUpperCase() + cn.slice(1);
-                    })
-                ]).then(function(data) {
-                    defer.resolve(state);
-                });
+            var dataset_uri = 'api/datasets/' + dataset;
+            if (version) {
+                dataset_uri += '/versions/' + version;
             }
+
+            console.log("Dataset uri is: " + dataset_uri)
+
+            $q.all([
+                $http.get(dataset_uri).then(function(data){
+                    var d = data.data;
+                    d.version.description = $sce.trustAsHtml( d.version.description );
+                    d.version.terms       = $sce.trustAsHtml( d.version.terms );
+                    state['dataset'] = d;
+                }),
+                $http.get('/api/datasets/' + dataset + '/collection').then(function(data){
+                    state.collections = data.data.collections;
+                    state.study = data.data.study;
+
+                    console.log(state.collections);
+
+                    cn = state.study.contact_name;
+                    state.study.contact_name_uc = cn.charAt(0).toUpperCase() + cn.slice(1);
+                })
+            ]).then(function(data) {
+                defer.resolve(state);
+            });
+
             return defer.promise;
         }
     });
@@ -269,7 +276,7 @@
             localThis.user = data.data;
         });
 
-        Dataset().then(function(data){
+        Dataset(dataset, $routeParams["version"]).then(function(data){
             localThis.dataset = data.dataset;
             localThis.collections = data.collections;
             localThis.study = data.study;
@@ -422,14 +429,15 @@
     // configure routes
     App.config(function($routeProvider, $locationProvider) {
         $routeProvider
-            .when('/',                          { templateUrl: 'static/js/ng-templates/home.html'             })
-            .when('/dataBeacon/',               { templateUrl: 'static/js/ng-templates/dataBeacon.html'       })
-            .when('/dataset/:dataset',          { templateUrl: 'static/js/ng-templates/dataset.html'          })
-            .when('/dataset/:dataset/terms',    { templateUrl: 'static/js/ng-templates/dataset-terms.html'    })
-            .when('/dataset/:dataset/download', { templateUrl: 'static/js/ng-templates/dataset-download.html' })
-            .when('/dataset/:dataset/beacon',   { templateUrl: 'static/js/ng-templates/dataset-beacon.html'   })
-            .when('/dataset/:dataset/admin',    { templateUrl: 'static/js/ng-templates/dataset-admin.html'    })
-            .otherwise(                         { templateUrl: 'static/js/ng-templates/404.html'              });
+            .when('/',                                  { templateUrl: 'static/js/ng-templates/home.html'             })
+            .when('/dataBeacon/',                       { templateUrl: 'static/js/ng-templates/dataBeacon.html'       })
+            .when('/dataset/:dataset',                  { templateUrl: 'static/js/ng-templates/dataset.html'          })
+            .when('/dataset/:dataset/version/:version', { templateUrl: 'static/js/ng-templates/dataset.html'          })
+            .when('/dataset/:dataset/terms',            { templateUrl: 'static/js/ng-templates/dataset-terms.html'    })
+            .when('/dataset/:dataset/download',         { templateUrl: 'static/js/ng-templates/dataset-download.html' })
+            .when('/dataset/:dataset/beacon',           { templateUrl: 'static/js/ng-templates/dataset-beacon.html'   })
+            .when('/dataset/:dataset/admin',            { templateUrl: 'static/js/ng-templates/dataset-admin.html'    })
+            .otherwise(                                 { templateUrl: 'static/js/ng-templates/404.html'              });
 
         // Use the HTML5 History API
         $locationProvider.html5Mode(true);
