@@ -9,7 +9,14 @@ jinja2.Environment.template_class = Jinja2Template
 
 class Jinja2TemplateLoader(tornado.template.BaseLoader):
     def __init__(self, root_dir=None, *args, **kwargs):
-        self._jinja2_env = jinja2.Environment()
+        self._jinja2_env = jinja2.Environment(
+                block_start_string    = '[%',
+                block_end_string      = '%]',
+                variable_start_string = '[[',
+                variable_end_string   = ']]',
+                comment_start_string  = '[#',
+                comment_end_string    = '#]'
+            )
         if root_dir:
             self._jinja2_env.loader = jinja2.FileSystemLoader(root_dir)
         else:

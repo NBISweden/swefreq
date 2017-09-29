@@ -6,7 +6,7 @@
         <!-- SCROLLS -->
         <meta charset="utf-8" />
         <base href="/">
-{% if develop %}
+[% if develop %]
         <!-- Bootstrap -->
         <link rel="stylesheet" href="/static/css/vendor/bootstrap.min.css" />
         <link rel="stylesheet" href="/static/css/vendor/font-awesome.css" />
@@ -16,7 +16,7 @@
         <script src="/static/js/vendor/angular.min.js"></script>
         <script src="/static/js/vendor/angular-route.min.js"></script>
         <script src="/static/js/vendor/angular-cookies.min.js"></script>
-{% else %}
+[% else %]
          <!-- Bootstrap -->
          <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" />
          <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.css" />
@@ -26,14 +26,14 @@
          <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular.min.js"></script>
          <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular-route.min.js"></script>
          <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular-cookies.min.js"></script>
-{% endif %}
+[% endif %]
         <!-- CSS -->
         <link rel="stylesheet" href="/static/css/main.css" type="text/css" />
         <!-- The application -->
         <script src="/static/js/app.js"></script>
 
-{% if develop %}
-{% else %}
+[% if develop %]
+[% else %]
         <!-- Google Analytics -->
         <script>
             (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -43,7 +43,7 @@
             ga('create', 'UA-85976442-1', 'auto');
             ga('send', 'pageview');
         </script>
-{% endif %}
+[% endif %]
         <!-- End Google Analytics -->
     </head>
     <!-- define angular controller -->
@@ -63,11 +63,11 @@
                 <div class="collapse navbar-collapse" id="navbar-things">
                     <ul class="nav navbar-nav navbar-right">
                         <li><a ng-click="showAbout = !showAbout" style="cursor: pointer">About</a>
-                    {% if user_name %}
-                    <li><a href="/logout?next={{ '{{' }} mainCtrl.url() }}" target="_self" title="Logout {{user_name}}">Logout</a>
-                    {% else %}
-                    <li><a href="/login?next={{ '{{' }}mainCtrl.url() }}" target="_self">Login</a>
-                    {% endif %}
+                    [% if user_name %]
+                    <li><a href="/logout?next={{ mainCtrl.url() }}" target="_self" title="Logout {{user_name}}">Logout</a>
+                    [% else %]
+                    <li><a href="/login?next={{ mainCtrl.url() }}" target="_self">Login</a>
+                    [% endif %]
                     </ul>
                 </div>
             </div>
