@@ -2,7 +2,6 @@ import logging
 import peewee
 import tornado.auth
 import tornado.web
-import tornado.template as template
 import os.path
 
 import db
@@ -193,3 +192,11 @@ class AuthorizedStaticNginxFileHanlder(AuthorizedHandler):
         self.set_header("X-Accel-Redirect", abspath)
         self.set_header("Content-Disposition", "attachment")
         self.finish()
+
+
+class AngularTemplate(UnsafeHandler):
+    def initialize(self, path):
+        self.root = path
+
+    def get(self, path, *args, **kwargs):
+        self.render(self.root + path)

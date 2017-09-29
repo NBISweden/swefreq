@@ -33,6 +33,8 @@ settings = {"debug": False,
 class Application(tornado.web.Application):
     def __init__(self, settings):
         self.declared_handlers = [
+            ## Angular templates
+            (r"/static/js/ng-templates/(?P<path>.*)",              handlers.AngularTemplate, {"path": "ng-templates/"}),
             ## Static handlers
             (r"/static/(.*)",                             tornado.web.StaticFileHandler,              {"path": "static/"}),
             (r'/(favicon.ico)',                           tornado.web.StaticFileHandler,              {"path": "static/img/"}),
