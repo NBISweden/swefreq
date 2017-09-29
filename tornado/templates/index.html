@@ -26,7 +26,7 @@
          <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular.min.js"></script>
          <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular-route.min.js"></script>
          <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular-cookies.min.js"></script>
-{% end %}
+{% endif %}
         <!-- CSS -->
         <link rel="stylesheet" href="/static/css/main.css" type="text/css" />
         <!-- The application -->
@@ -43,7 +43,7 @@
             ga('create', 'UA-85976442-1', 'auto');
             ga('send', 'pageview');
         </script>
-{% end %}
+{% endif %}
         <!-- End Google Analytics -->
     </head>
     <!-- define angular controller -->
@@ -64,10 +64,10 @@
                     <ul class="nav navbar-nav navbar-right">
                         <li><a ng-click="showAbout = !showAbout" style="cursor: pointer">About</a>
                     {% if user_name %}
-                        <li><a href="/logout?next={{! mainCtrl.url() }}" target="_self" title="Logout {{user_name}}">Logout</a>
+                    <li><a href="/logout?next={{ '{{' }} mainCtrl.url() }}" target="_self" title="Logout {{user_name}}">Logout</a>
                     {% else %}
-                        <li><a href="/login?next={{! mainCtrl.url() }}" target="_self">Login</a>
-                    {% end %}
+                    <li><a href="/login?next={{ '{{' }}mainCtrl.url() }}" target="_self">Login</a>
+                    {% endif %}
                     </ul>
                 </div>
             </div>

@@ -8,6 +8,8 @@ import application
 import handlers
 import settings
 import beacon
+import template
+
 
 define("port", default=4000, help="run on the given port", type=int)
 define("develop", default=False, help="Run in develop environment", type=bool)
@@ -26,6 +28,7 @@ settings = {"debug": False,
             "redirect_uri": redirect_uri,
             "template_path": "templates/",
             "xsrf_cookies": True,
+            "template_loader": template.Jinja2TemplateLoader(),
         }
 
 class Application(tornado.web.Application):
