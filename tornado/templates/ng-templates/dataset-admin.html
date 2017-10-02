@@ -2,12 +2,10 @@
 [% extends "ng-templates/dataset-base.html" %]
 [% block controller %]datasetAdminController[% endblock %]
 [% block contents %]
-                <div ng-if="ctrl.dataset.is_admin == false">
-                    <p>You need to be logged in as an admin to use this page.
-                </div>
-                <div ng-if="ctrl.dataset.is_admin == true">
-
-                    <div class="tab-content">
+                    <div ng-if="ctrl.dataset.is_admin == false">
+                        <p>You need to be logged in as an admin to use this page.
+                    </div>
+                    <div ng-if="ctrl.dataset.is_admin == true">
 
                         <div class="container">
                             <div class="row">
@@ -83,5 +81,4 @@
                             </div>
                         </div>
                     </div>
-                </div>
 [% endblock contents %]
