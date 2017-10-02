@@ -8,6 +8,8 @@ import application
 import handlers
 import settings
 import beacon
+import template
+
 
 define("port", default=4000, help="run on the given port", type=int)
 define("develop", default=False, help="Run in develop environment", type=bool)
@@ -24,13 +26,15 @@ settings = {"debug": False,
             },
             "contact_person": 'mats.dahlberg@scilifelab.se',
             "redirect_uri": redirect_uri,
-            "template_path": "templates/",
             "xsrf_cookies": True,
+            "template_loader": template.Jinja2TemplateLoader('templates/'),
         }
 
 class Application(tornado.web.Application):
     def __init__(self, settings):
         self.declared_handlers = [
+            ## Angular templates
+            (r"/static/js/ng-templates/(?P<path>.*)",              handlers.AngularTemplate, {"path": "ng-templates/"}),
             ## Static handlers
             (r"/static/(.*)",                             tornado.web.StaticFileHandler,              {"path": "static/"}),
             (r'/(favicon.ico)',                           tornado.web.StaticFileHandler,              {"path": "static/img/"}),

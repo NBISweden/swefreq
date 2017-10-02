@@ -1,0 +1,27 @@
+<div ng-controller="[% block controller %][% endblock %] as ctrl">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <h1>{{ ctrl.dataset.full_name }}</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div id="tab-bar">
+                <div ng-controller="navbarController as navbarCtrl">
+                    <ul class="nav nav-tabs">
+                        <li class="[[ 'active' if active=='main'     ]]"><a href="{{navbarCtrl.createUrl('')}}">Information</a></li>
+                        <li class="[[ 'active' if active=='terms'    ]]"><a href="{{navbarCtrl.createUrl('terms')}}">Terms</a></li>
+                        <li class="[[ 'active' if active=='download' ]]"><a href="{{navbarCtrl.createUrl('download')}}">Download</a></li>
+                        <li class="[[ 'active' if active=='beacon'   ]]"><a href="{{navbarCtrl.createUrl('beacon')}}">Beacon</a></li>
+                        <li class="[[ 'active' if active=='browser'  ]]"><a href="{{navbarCtrl.browser_uri}}" target="_blank">Graphical Browser <span class="glyphicon glyphicon-new-window" aria-hidden="true"></span></a></li>
+                        <li class="[[ 'active' if active=='admin'    ]] pull-right admin-tab" ng-if="navbarCtrl.is_admin"><a href="{{navbarCtrl.createUrl('admin')}}">Admin</a></li>
+                    </ul>
+                </div>
+
+                <div class="tab-content">
+                    [% block contents %][% endblock contents %]
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
