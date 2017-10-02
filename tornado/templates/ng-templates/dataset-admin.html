@@ -2,83 +2,83 @@
 [% extends "ng-templates/dataset-base.html" %]
 [% block controller %]datasetAdminController[% endblock %]
 [% block contents %]
-                    <div ng-if="ctrl.dataset.is_admin == false">
-                        <p>You need to be logged in as an admin to use this page.
-                    </div>
-                    <div ng-if="ctrl.dataset.is_admin == true">
+<div ng-if="ctrl.dataset.is_admin == false">
+    <p>You need to be logged in as an admin to use this page.
+</div>
+<div ng-if="ctrl.dataset.is_admin == true">
 
-                        <div class="container">
-                            <div class="row">
-                                <div class="admin-bar">
-                                    <ul class="nav nav-tabs pull-right">
-                                        <li class="active"><a data-target="#pending" data-toggle="tab">Pending requests</a></li>
-                                        <li><a data-target="#approved" data-toggle="tab">Approved users</a></li>
-                                        <li><a data-target="#emaillist" data-toggle="tab">Email list</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
+    <div class="container">
+        <div class="row">
+            <div class="admin-bar">
+                <ul class="nav nav-tabs pull-right">
+                    <li class="active"><a data-target="#pending" data-toggle="tab">Pending requests</a></li>
+                    <li><a data-target="#approved" data-toggle="tab">Approved users</a></li>
+                    <li><a data-target="#emaillist" data-toggle="tab">Email list</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
 
-                        <div class="tab-content">
+    <div class="tab-content">
 
-                            <div class="tab-pane active" id="pending">
-                                <div class="table-responsive">
-                                    <table class="table table-striped">
-                                        <tr>
-                                            <th></th>
-                                            <th>Name</th>
-                                            <th>E-mail</th>
-                                            <th>Affiliation</th>
-                                            <th>Country</th>
-                                            <th>Applied date</th>
-                                        </tr>
-                                        <tr ng-repeat="row in ctrl.users.pending">
-                                            <td>
-                                                <div class="btn btn-primary btn-xs" data-toggle="tooltip" title="Give the user access" ng-click="ctrl.approveUser(row)">Approve</div>
-                                                <div class="btn btn-danger btn-xs" data-toggle="tooltip" title="Deny access" ng-click="ctrl.revokeUser(row)">Deny</div>
-                                            </td>
-                                            <td>{{row.user}}</td>
-                                            <td>{{row.email}}</td>
-                                            <td>{{row.affiliation}}</td>
-                                            <td>{{row.country}}</td>
-                                            <td>{{row.applyDate}}</td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            </div>
+        <div class="tab-pane active" id="pending">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <tr>
+                        <th></th>
+                        <th>Name</th>
+                        <th>E-mail</th>
+                        <th>Affiliation</th>
+                        <th>Country</th>
+                        <th>Applied date</th>
+                    </tr>
+                    <tr ng-repeat="row in ctrl.users.pending">
+                        <td>
+                            <div class="btn btn-primary btn-xs" data-toggle="tooltip" title="Give the user access" ng-click="ctrl.approveUser(row)">Approve</div>
+                            <div class="btn btn-danger btn-xs" data-toggle="tooltip" title="Deny access" ng-click="ctrl.revokeUser(row)">Deny</div>
+                        </td>
+                        <td>{{row.user}}</td>
+                        <td>{{row.email}}</td>
+                        <td>{{row.affiliation}}</td>
+                        <td>{{row.country}}</td>
+                        <td>{{row.applyDate}}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
 
-                            <div class="tab-pane" id="approved">
-                                <div class="table-responsive">
-                                    <table class="table table-striped">
-                                        <tr>
-                                            <th></th>
-                                            <th>Name</th>
-                                            <th>E-mail</th>
-                                            <th>Affiliation</th>
-                                            <th>Country</th>
-                                            <th>Applied date</th>
-                                        </tr>
-                                        <tr ng-repeat="row in ctrl.users.current">
-                                            <td>
-                                                <div class="btn btn-danger btn-xs" data-toggle="tooltip" title="Deny access" ng-click="ctrl.revokeUser(row)">Revoke</div>
-                                            </td>
-                                            <td>{{row.user}}</td>
-                                            <td>{{row.email}}</td>
-                                            <td>{{row.affiliation}}</td>
-                                            <td>{{row.country}}</td>
-                                            <td>{{row.applyDate}}</td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            </div>
+        <div class="tab-pane" id="approved">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <tr>
+                        <th></th>
+                        <th>Name</th>
+                        <th>E-mail</th>
+                        <th>Affiliation</th>
+                        <th>Country</th>
+                        <th>Applied date</th>
+                    </tr>
+                    <tr ng-repeat="row in ctrl.users.current">
+                        <td>
+                            <div class="btn btn-danger btn-xs" data-toggle="tooltip" title="Deny access" ng-click="ctrl.revokeUser(row)">Revoke</div>
+                        </td>
+                        <td>{{row.user}}</td>
+                        <td>{{row.email}}</td>
+                        <td>{{row.affiliation}}</td>
+                        <td>{{row.country}}</td>
+                        <td>{{row.applyDate}}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
 
-                            <div class="tab-pane" id="emaillist">
-                                <span ng-repeat="user in ctrl.users.current">
-                                    <span ng-if="user.newsletter">
-                                        {{user.email}}{{$last ? '' : ', '}}
-                                    </span>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+        <div class="tab-pane" id="emaillist">
+            <span ng-repeat="user in ctrl.users.current">
+                <span ng-if="user.newsletter">
+                    {{user.email}}{{$last ? '' : ', '}}
+                </span>
+            </span>
+        </div>
+    </div>
+</div>
 [% endblock contents %]
