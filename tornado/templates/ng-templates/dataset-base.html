@@ -1,0 +1,17 @@
+<div ng-controller="[% block controller %][% endblock %] as ctrl">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <h1>{{ ctrl.dataset.full_name }}</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div id="tab-bar">
+
+                <div class="tab-content">
+                    [% block contents %][% endblock contents %]
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

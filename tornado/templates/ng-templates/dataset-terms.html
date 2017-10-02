@@ -1,23 +1,10 @@
-<div ng-controller="datasetController as datasetCtrl">
-    <div class="container">
-        <div class="row">
-            <div class="col-sm-12">
-                <h1>{{ datasetCtrl.dataset.full_name }}</h1>
-            </div>
-        </div>
-        <div class="row">
-            <div id="tab-bar">
-                [% set active='terms' %]
-                [% include 'ng-templates/dataset-navbar.html' %]
-
-                <div class="tab-content">
+[% set active='terms' %]
+[% extends "ng-templates/dataset-base.html" %]
+[% block controller %]datasetController[% endblock %]
+[% block contents %]
                     <div class="row">
                         <div class="col-sm-12">
-                             <div class="dataset-body" ng-bind-html="datasetCtrl.dataset.version.terms" />
+                             <div class="dataset-body" ng-bind-html="ctrl.dataset.version.terms" />
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+[% endblock %]

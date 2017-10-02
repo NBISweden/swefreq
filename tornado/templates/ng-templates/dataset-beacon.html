@@ -1,46 +1,40 @@
-<div ng-controller="datasetBeaconController as beaconCtrl">
-    <div class="container">
-        <my-dataset-header dataset="{{beaconCtrl.dataset.full_name}}"></my-dataset-header>
-        <div class="row">
-            <div id="tab-bar">
-                [% set active='beacon' %]
-                [% include 'ng-templates/dataset-navbar.html' %]
-
-                <div class="tab-content">
-
+[% set active='beacon' %]
+[% extends "ng-templates/dataset-base.html" %]
+[% block controller %]datasetBeaconController[% endblock %]
+[% block contents %]
                     <h2>Search</h2>
                     <form role="form" name="beacon_form" class="form-horizontal">
                         <div class="form-group">
                             <label for="chromosome" class="col-sm-3 control-label">Chromosome</label>
                             <div class="col-sm-3">
-                                <input type="text" required ng-pattern='/^([1-9]|1[0-9]|2[0-2]|X|Y|x|y)$/' class="form-control" id="chromosome" name="chromosome" ng-model="beaconCtrl.chromosome" ng-disabled="false" placeholder="Chromosome">
+                                <input type="text" required ng-pattern='/^([1-9]|1[0-9]|2[0-2]|X|Y|x|y)$/' class="form-control" id="chromosome" name="chromosome" ng-model="ctrl.chromosome" ng-disabled="false" placeholder="Chromosome">
                             </div>
 
                             <label for="position" class="col-sm-3 control-label">Position</label>
                             <div class="col-sm-3">
-                                <input type="number" required class="form-control" id="position" ng-model="beaconCtrl.position" ng-disabled="false" placeholder="Position">
+                                <input type="number" required class="form-control" id="position" ng-model="ctrl.position" ng-disabled="false" placeholder="Position">
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="referenceAllele" class="col-sm-3 control-label">Reference Allele</label>
                             <div class="col-sm-3">
-                                <input type="text" required ng-pattern='/^([ATCGatcg]+)$/' class="form-control" id="referenceAllele" ng-model="beaconCtrl.referenceAllele" name='referenceAllele' ng-disabled="false" placeholder="Reference Allele">
+                                <input type="text" required ng-pattern='/^([ATCGatcg]+)$/' class="form-control" id="referenceAllele" ng-model="ctrl.referenceAllele" name='referenceAllele' ng-disabled="false" placeholder="Reference Allele">
                             </div>
 
                             <label for="allele" class="col-sm-3 control-label">Alternate Allele</label>
                             <div class="col-sm-3">
-                                <input type="text" required ng-pattern='/^([ATCGatcg]+)$/' class="form-control" id="allele" ng-model="beaconCtrl.allele" name='allele' ng-disabled="false" placeholder="Alternate Allele">
+                                <input type="text" required ng-pattern='/^([ATCGatcg]+)$/' class="form-control" id="allele" ng-model="ctrl.allele" name='allele' ng-disabled="false" placeholder="Alternate Allele">
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="reference" class="col-sm-3 control-label">Reference</label>
                             <div class="col-sm-3">
-                                <select class='form-control' ng-model='beaconCtrl.reference' ng-options='r as r for r in beaconCtrl.references'></select>
+                                <select class='form-control' ng-model='ctrl.reference' ng-options='r as r for r in ctrl.references'></select>
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="col-sm-offset-3 col-sm-7">
-                                <button ng-click="beaconCtrl.search()" class="btn btn-primary">Search</button>
+                                <button ng-click="ctrl.search()" class="btn btn-primary">Search</button>
                             </div>
                             <div class="col-sm-2">
                                 <a style='cursor: pointer' ng-click="showDetails = ! showDetails" class="pull-right">
@@ -74,7 +68,7 @@
                             <th>Alternate Allele</th>
                             <th>Reference</th>
                         </tr>
-                        <tr ng-repeat="row in beaconCtrl.queryResponses">
+                        <tr ng-repeat="row in ctrl.queryResponses">
                             <td>{{row.response.state}}</td>
                             <td>{{row.query.chromosome}}</td>
                             <td>{{row.query.position}}</td>
@@ -84,7 +78,4 @@
                         </tr>
                     </table>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
+[% endblock contents %]
