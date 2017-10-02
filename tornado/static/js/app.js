@@ -201,18 +201,7 @@
         };
     });
 
-    App.directive('myDatasetHeader', function() {
-        return {
-            restrict: 'E',
-            templateUrl: 'static/js/ng-templates/dataset-header.html',
-            link: function(scope, element, attrs) {
-                scope.name = function() {
-                    return attrs.dataset;
-                };
-            },
-        };
-    });
-
+    /////////////////////////////////////////////////////////////////////////////////////
 
     App.controller('mainController', function($location) {
         var localThis = this;
