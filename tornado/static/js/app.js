@@ -3,12 +3,6 @@
     /////////////////////////////////////////////////////////////////////////////////////
     // create the module and name it App
     var App = angular.module('App', ['ngRoute', 'ngCookies'])
-    var gData = {'userName':'',
-                 'email':'',
-                 'affiliation':'',
-                 'trusted':false,
-                 'admin':false}
-
 
     App.factory('User', function($http) {
         return function() {
