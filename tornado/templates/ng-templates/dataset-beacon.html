@@ -3,7 +3,8 @@
         <my-dataset-header dataset="{{beaconCtrl.dataset.full_name}}"></my-dataset-header>
         <div class="row">
             <div id="tab-bar">
-                <my-navbar tab="beacon"></my-navbar>
+                [% set active='beacon' %]
+                [% include 'ng-templates/dataset-navbar.html' %]
 
                 <div class="tab-content">
 

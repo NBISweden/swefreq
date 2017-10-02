@@ -7,7 +7,8 @@
         </div>
         <div class="row">
             <div id="tab-bar">
-                <my-navbar tab="terms"></my-navbar>
+                [% set active='terms' %]
+                [% include 'ng-templates/dataset-navbar.html' %]
 
                 <div class="tab-content">
                     <div class="row">

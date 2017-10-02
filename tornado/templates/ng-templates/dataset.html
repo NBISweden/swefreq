@@ -3,7 +3,8 @@
         <my-dataset-header dataset="{{datasetCtrl.dataset.full_name}}"></my-dataset-header>
         <div class="row">
             <div id="tab-bar">
-                <my-navbar tab="information" dataset="{{datasetCtrl.dataset.short_name}}"></my-navbar>
+                [% set active='main' %]
+                [% include 'ng-templates/dataset-navbar.html' %]
 
                 <div class="tab-content">
                     <div class="row dataset-row">

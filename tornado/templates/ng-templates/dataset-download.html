@@ -7,7 +7,8 @@
         </div>
         <div class="row">
             <div id="tab-bar">
-                <my-navbar tab="download"></my-navbar>
+                [% set active='download' %]
+                [% include 'ng-templates/dataset-navbar.html' %]
 
                 <div class="tab-content">
                     <div ng-switch on='datasetCtrl.authorization_level'>

@@ -213,33 +213,6 @@
         };
     });
 
-    App.directive('myNavbar', ['Dataset', function(Dataset) {
-        return {
-            restrict: 'E',
-            templateUrl: 'static/js/ng-templates/dataset-navbar.html',
-            link: function(scope, element, attrs) {
-                scope.createUrl = function(subpage) {
-                    return '/dataset/' + scope.dataset + '/' + subpage;
-                };
-                scope.isActive = function(tab) {
-                    if ( tab == attrs.tab ) {
-                        return 'active';
-                    }
-                    else {
-                        return '';
-                    }
-                };
-                scope.is_admin = false;
-                Dataset().then(function(data){
-                        scope.is_admin    = data.dataset.is_admin;
-                        scope.dataset     = data.dataset.short_name;
-                        scope.browser_uri = data.dataset.browser_uri;
-                    }
-                );
-            },
-        };
-    }]);
-
 
     App.controller('mainController', function($location) {
         var localThis = this;
@@ -264,6 +237,24 @@
         };
         localThis.getDatasets();
     });
+
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    App.controller('navbarController', ['Dataset', function(Dataset) {
+        var localThis = this;
+        localThis.is_admin = false;
+
+        Dataset().then(function(data){
+                localThis.is_admin    = data.dataset.is_admin;
+                localThis.dataset     = data.dataset.short_name;
+                localThis.browser_uri = data.dataset.browser_uri;
+            }
+        );
+
+        localThis.createUrl = function(subpage) {
+            return '/dataset/' + localThis.dataset + '/' + subpage;
+        };
+    }]);
 
     /////////////////////////////////////////////////////////////////////////////////////
 

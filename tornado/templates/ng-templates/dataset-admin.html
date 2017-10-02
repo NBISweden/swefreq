@@ -7,7 +7,8 @@
         </div>
         <div class="row">
             <div id="tab-bar">
-                <my-navbar tab="admin"></my-navbar>
+                [% set active='admin' %]
+                [% include 'ng-templates/dataset-navbar.html' %]
 
                 <div ng-if="adminCtrl.dataset.is_admin == false">
                     <p>You need to be logged in as an admin to use this page.
