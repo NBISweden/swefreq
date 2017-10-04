@@ -223,19 +223,23 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('navbarController', ['Dataset', function(Dataset) {
+    App.controller('navbarController', ['$routeParams', 'Dataset', function($routeParams, Dataset) {
         var localThis = this;
         localThis.is_admin = false;
 
-        Dataset().then(function(data){
+        Dataset($routeParams['dataset'], $routeParams['version']).then(function(data){
                 localThis.is_admin    = data.dataset.is_admin;
                 localThis.dataset     = data.dataset.short_name;
                 localThis.browser_uri = data.dataset.browser_uri;
+                localThis.urlBase = '/dataset/' + localThis.dataset;
+                if ($routeParams['version']) {
+                    localThis.urlBase += '/version/' + $routeParams['version'];
+                }
             }
         );
 
         localThis.createUrl = function(subpage) {
-            return '/dataset/' + localThis.dataset + '/' + subpage;
+            return localThis.urlBase + '/' + subpage;
         };
     }]);
 
@@ -250,7 +254,7 @@
             localThis.user = data.data;
         });
 
-        Dataset(dataset, $routeParams["version"]).then(function(data){
+        Dataset($routeParams['dataset'], $routeParams['version']).then(function(data){
             localThis.dataset = data.dataset;
             localThis.collections = data.collections;
             localThis.study = data.study;
@@ -274,7 +278,7 @@
             updateAuthorizationLevel();
         });
 
-        Dataset().then(function(data){
+        Dataset($routeParams['dataset'], $routeParams['version']).then(function(data){
             localThis.dataset = data.dataset;
             updateAuthorizationLevel();
         });
@@ -334,7 +338,7 @@
             localThis.user = data.data;
         });
 
-        Dataset().then(function(data){
+        Dataset($routeParams['dataset'], $routeParams['version']).then(function(data){
             localThis.dataset = data.dataset;
         });
 
@@ -373,7 +377,7 @@
             localThis.user = data.data;
         });
 
-        Dataset().then(function(data){
+        Dataset($routeParams['dataset'], $routeParams['version']).then(function(data){
             localThis.dataset = data.dataset;
         });
 
@@ -403,14 +407,17 @@
     // configure routes
     App.config(function($routeProvider, $locationProvider) {
         $routeProvider
-            .when('/',                                  { templateUrl: 'static/js/ng-templates/home.html'             })
-            .when('/dataBeacon/',                       { templateUrl: 'static/js/ng-templates/dataBeacon.html'       })
-            .when('/dataset/:dataset',                  { templateUrl: 'static/js/ng-templates/dataset.html'          })
-            .when('/dataset/:dataset/version/:version', { templateUrl: 'static/js/ng-templates/dataset.html'          })
-            .when('/dataset/:dataset/terms',            { templateUrl: 'static/js/ng-templates/dataset-terms.html'    })
-            .when('/dataset/:dataset/download',         { templateUrl: 'static/js/ng-templates/dataset-download.html' })
-            .when('/dataset/:dataset/beacon',           { templateUrl: 'static/js/ng-templates/dataset-beacon.html'   })
-            .when('/dataset/:dataset/admin',            { templateUrl: 'static/js/ng-templates/dataset-admin.html'    })
+            .when('/',                                           { templateUrl: 'static/js/ng-templates/home.html'             })
+            .when('/dataBeacon/',                                { templateUrl: 'static/js/ng-templates/dataBeacon.html'       })
+            .when('/dataset/:dataset',                           { templateUrl: 'static/js/ng-templates/dataset.html'          })
+            .when('/dataset/:dataset/terms',                     { templateUrl: 'static/js/ng-templates/dataset-terms.html'    })
+            .when('/dataset/:dataset/download',                  { templateUrl: 'static/js/ng-templates/dataset-download.html' })
+            .when('/dataset/:dataset/beacon',                    { templateUrl: 'static/js/ng-templates/dataset-beacon.html'   })
+            .when('/dataset/:dataset/admin',                     { templateUrl: 'static/js/ng-templates/dataset-admin.html'    })
+            .when('/dataset/:dataset/version/:version',          { templateUrl: 'static/js/ng-templates/dataset.html'          })
+            .when('/dataset/:dataset/version/:version/terms',    { templateUrl: 'static/js/ng-templates/dataset-terms.html'    })
+            .when('/dataset/:dataset/version/:version/download', { templateUrl: 'static/js/ng-templates/dataset-download.html' })
+            .when('/dataset/:dataset/version/:version/beacon',   { templateUrl: 'static/js/ng-templates/dataset-beacon.html'   })
             .otherwise(                                 { templateUrl: 'static/js/ng-templates/404.html'              });
 
         // Use the HTML5 History API
