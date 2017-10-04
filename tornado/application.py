@@ -45,6 +45,7 @@ def build_dataset_structure(dataset_version, user=None, dataset=None):
 
     return r
 
+
 class ListDatasets(handlers.UnsafeHandler):
     def get(self):
         # List all datasets available to the current user, earliear than now OR
@@ -59,13 +60,25 @@ class ListDatasets(handlers.UnsafeHandler):
 
 
 class GetDataset(handlers.UnsafeHandler):
-    def get(self, dataset, *args, **kwargs):
+    def get(self, dataset, version=None, *args, **kwargs):
         user = self.current_user
 
         dataset = db.get_dataset(dataset)
-        current_version = dataset.current_version.get()
+        if version:
+            version = db.DatasetVersion.select().where(
+                    db.DatasetVersion.version == version,
+                    db.DatasetVersion.dataset == dataset
+                ).get()
+        else:
+            version = dataset.current_version.get()
 
-        ret = build_dataset_structure(current_version, user, dataset)
+        # If it's not available yet, only return if user is admin.
+        if (version.available_from > datetime.datetime.now() and
+                not user.is_admin(dataset)):
+            self.send_error(status_code=403)
+            return
+
+        ret = build_dataset_structure(version, user, dataset)
 
         self.finish(ret)
 
@@ -94,26 +107,6 @@ class ListDatasetVersions(handlers.UnsafeHandler):
             })
 
         self.finish({'data': data})
-
-
-class GetDatasetVersion(handlers.UnsafeHandler):
-    def get(self, dataset, version, *args, **kwargs):
-        user = self.current_user
-
-        dataset = db.get_dataset(dataset)
-        version = db.DatasetVersion.select().where(
-                db.DatasetVersion.version == version,
-                db.DatasetVersion.dataset == dataset
-            ).get()
-
-        # If it's not available yet, only return if user is admin.
-        if (version.available_from > datetime.datetime.now() and
-                not user.is_admin(dataset)):
-            self.send_error(status_code=403)
-            return
-
-        ret = build_dataset_structure(version, user, dataset)
-        self.finish(ret)
 
 
 class DatasetFiles(handlers.UnsafeHandler):

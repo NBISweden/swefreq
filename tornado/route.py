@@ -58,7 +58,7 @@ class Application(tornado.web.Application):
             ("/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/approve", application.ApproveUser),
             ("/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/revoke",  application.RevokeUser),
             ("/api/datasets/(?P<dataset>[^\/]+)/versions",                        application.ListDatasetVersions),
-            ("/api/datasets/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)",    application.GetDatasetVersion),
+            ("/api/datasets/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)",    application.GetDataset),
             ("/api/datasets/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)/files", application.DatasetFiles),
             ### Beacon API
             ("/api/beacon/query",                                beacon.Query),
