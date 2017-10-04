@@ -117,11 +117,14 @@ class GetDatasetVersion(handlers.UnsafeHandler):
 
 
 class DatasetFiles(handlers.UnsafeHandler):
-    def get(self, dataset, *args, **kwargs):
+    def get(self, dataset, version=None, *args, **kwargs):
         dataset = db.get_dataset(dataset)
-        version = dataset.current_version.get()
+        if version:
+            dataset_version = dataset.versions.where(db.DatasetVersion.version==version).get()
+        else:
+            dataset_version = dataset.current_version.get()
         ret = []
-        for f in version.files:
+        for f in dataset_version.files:
             ret.append(db.build_dict_from_row(f))
         self.finish({'files': ret})
 

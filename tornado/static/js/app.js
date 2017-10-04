@@ -283,7 +283,12 @@
             updateAuthorizationLevel();
         });
 
-        $http.get('/api/datasets/' + dataset + '/files').success(function(data){
+        var file_uri = '/api/datasets/' + dataset + '/files';
+        if ( $routeParams['version'] ) {
+            file_uri = '/api/datasets/' + dataset + '/versions/' + $routeParams['version'] + '/files';
+        }
+        $http.get(file_uri).success(function(data){
+            console.log(data);
             localThis.files = data.files;
         });
 
