@@ -238,7 +238,10 @@
             }
         );
 
-        localThis.createUrl = function(subpage) {
+        localThis.createUrl = function(subpage, no_version) {
+            if (no_version) {
+                return '/dataset/' + localThis.dataset + '/' + subpage;
+            }
             return localThis.urlBase + '/' + subpage;
         };
     }]);
