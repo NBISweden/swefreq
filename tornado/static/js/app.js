@@ -82,17 +82,13 @@
     });
 
 
-    App.factory('Dataset', function($http, $q, $location, $sce) {
+    App.factory('Dataset', function($http, $q, $sce) {
         var state = {dataset: null};
         return function(dataset, version) {
             var defer = $q.defer();
 
             if (dataset === undefined) {
-                var path = $location.path().split('/');
-                dataset = path[2];
-                if ( path[1] != 'dataset' ) {
-                    return defer.reject("No dataset provided");
-                }
+                return defer.reject("No dataset provided");
             }
             var dataset_uri = 'api/datasets/' + dataset;
             if (version) {
