@@ -1,5 +1,12 @@
 <div ng-controller="[% block controller %][% endblock %] as ctrl">
-    <div class="container">
+    <div class="container" ng-if="ctrl.error">
+        <div class="row">
+            <div class="col-sm-12">
+                <h1>{{ ctrl.error }}</h1>
+            </div>
+        </div>
+    </div>
+    <div class="container" ng-if="!ctrl.error">
         <div class="row">
             <div class="col-sm-12">
                 <h1>{{ ctrl.dataset.full_name }}</h1>
