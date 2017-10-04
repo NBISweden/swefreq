@@ -99,8 +99,6 @@
                 dataset_uri += '/versions/' + version;
             }
 
-            console.log("Dataset uri is: " + dataset_uri)
-
             $q.all([
                 $http.get(dataset_uri).then(function(data){
                     var d = data.data;
@@ -111,8 +109,6 @@
                 $http.get('/api/datasets/' + dataset + '/collection').then(function(data){
                     state.collections = data.data.collections;
                     state.study = data.data.study;
-
-                    console.log(state.collections);
 
                     cn = state.study.contact_name;
                     state.study.contact_name_uc = cn.charAt(0).toUpperCase() + cn.slice(1);
@@ -291,7 +287,6 @@
             file_uri = '/api/datasets/' + dataset + '/versions/' + $routeParams['version'] + '/files';
         }
         $http.get(file_uri).success(function(data){
-            console.log(data);
             localThis.files = data.files;
         });
 
