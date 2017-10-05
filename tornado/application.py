@@ -74,7 +74,7 @@ class GetDataset(handlers.UnsafeHandler):
 
         # If it's not available yet, only return if user is admin.
         if (version.available_from > datetime.datetime.now() and
-                not user.is_admin(dataset)):
+                not (user and user.is_admin(dataset))):
             self.send_error(status_code=403)
             return
 
@@ -99,7 +99,7 @@ class ListDatasetVersions(handlers.UnsafeHandler):
         for v in versions:
             # Skip future versions unless admin
             if (v.available_from > datetime.datetime.now() and
-                    not user.is_admin(dataset)):
+                    not (user and user.is_admin(dataset))):
                 continue
             data.append({
                 'name': v.version,
