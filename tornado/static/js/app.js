@@ -82,24 +82,18 @@
     });
 
 
-    App.factory('Dataset', function($http, $q, $location, $sce) {
+    App.factory('Dataset', function($http, $q, $sce) {
         var state = {dataset: null};
         return function(dataset, version) {
             var defer = $q.defer();
 
             if (dataset === undefined) {
-                var path = $location.path().split('/');
-                dataset = path[2];
-                if ( path[1] != 'dataset' ) {
-                    return defer.reject("No dataset provided");
-                }
+                return defer.reject("No dataset provided");
             }
             var dataset_uri = 'api/datasets/' + dataset;
             if (version) {
                 dataset_uri += '/versions/' + version;
             }
-
-            console.log("Dataset uri is: " + dataset_uri)
 
             $q.all([
                 $http.get(dataset_uri).then(function(data){
@@ -112,14 +106,19 @@
                     state.collections = data.data.collections;
                     state.study = data.data.study;
 
-                    console.log(state.collections);
-
                     cn = state.study.contact_name;
                     state.study.contact_name_uc = cn.charAt(0).toUpperCase() + cn.slice(1);
                 })
             ]).then(function(data) {
-                defer.resolve(state);
-            });
+                    defer.resolve(state);
+                },
+                function(error) {
+                    var error_message = "Can't find dataset " + dataset;
+                    if (version) {
+                        error_message += " version " + version;
+                    }
+                    defer.reject(error_message);
+                });
 
             return defer.promise;
         }
@@ -258,10 +257,13 @@
         });
 
         Dataset($routeParams['dataset'], $routeParams['version']).then(function(data){
-            localThis.dataset = data.dataset;
-            localThis.collections = data.collections;
-            localThis.study = data.study;
-        });
+                localThis.dataset = data.dataset;
+                localThis.collections = data.collections;
+                localThis.study = data.study;
+            },
+            function(error) {
+                localThis.error = error;
+            });
     }]);
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -282,16 +284,18 @@
         });
 
         Dataset($routeParams['dataset'], $routeParams['version']).then(function(data){
-            localThis.dataset = data.dataset;
-            updateAuthorizationLevel();
-        });
+                localThis.dataset = data.dataset;
+                updateAuthorizationLevel();
+            },
+            function(error) {
+                localThis.error = error;
+            });
 
         var file_uri = '/api/datasets/' + dataset + '/files';
         if ( $routeParams['version'] ) {
             file_uri = '/api/datasets/' + dataset + '/versions/' + $routeParams['version'] + '/files';
         }
         $http.get(file_uri).success(function(data){
-            console.log(data);
             localThis.files = data.files;
         });
 
@@ -347,8 +351,11 @@
         });
 
         Dataset($routeParams['dataset'], $routeParams['version']).then(function(data){
-            localThis.dataset = data.dataset;
-        });
+                localThis.dataset = data.dataset;
+            },
+            function(error) {
+                localThis.error = error;
+            });
 
         localThis.revokeUser = function(userData) {
             DatasetUsers.revokeUser(
@@ -386,8 +393,11 @@
         });
 
         Dataset($routeParams['dataset'], $routeParams['version']).then(function(data){
-            localThis.dataset = data.dataset;
-        });
+                localThis.dataset = data.dataset;
+            },
+            function(error) {
+                localThis.error = error;
+            });
 
         localThis.search = function() {
             Beacon.queryBeacon(localThis).then(function (response) {
