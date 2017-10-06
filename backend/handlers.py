@@ -59,10 +59,12 @@ class SafeHandler(BaseHandler):
         authentication in all their methods.
         """
         if not self.current_user:
+            logging.debug("No current user: Send error 403")
             self.send_error(status_code=403)
 
 class AuthorizedHandler(SafeHandler):
     def prepare(self):
+        logging.debug("Checking if user is authorized")
         super().prepare()
 
         if self._finished:
@@ -70,9 +72,12 @@ class AuthorizedHandler(SafeHandler):
 
         kwargs = self.path_kwargs
         if not kwargs['dataset']:
+            logging.debug("No dataset: Send error 403")
             self.send_error(status_code=403)
         if not self.current_user.has_access( db.get_dataset(kwargs['dataset']) ):
+            logging.debug("No user access: Send error 403")
             self.send_error(status_code=403)
+        logging.debug("User is authorized")
 
 class AdminHandler(SafeHandler):
     def prepare(self):
@@ -83,8 +88,10 @@ class AdminHandler(SafeHandler):
 
         kwargs = self.path_kwargs
         if not kwargs['dataset']:
+            logging.debug("No dataset: Send error 403")
             self.send_error(status_code=403)
         if not self.current_user.is_admin( db.get_dataset(kwargs['dataset']) ):
+            logging.debug("No user admin: Send error 403")
             self.send_error(status_code=403)
 
 class UnsafeHandler(BaseHandler):
@@ -182,6 +189,8 @@ class BaseStaticNginxFileHandler(UnsafeHandler):
         self.root = path
 
     def get(self, dataset, file, user=None):
+        logging.debug("Want to download dataset {} ({})".format(dataset, file))
+
         if not user:
             user = self.current_user
 
@@ -197,6 +206,8 @@ class BaseStaticNginxFileHandler(UnsafeHandler):
         abspath = os.path.abspath(os.path.join(self.root, file))
         self.set_header("X-Accel-Redirect", abspath)
         self.set_header("Content-Disposition", "attachment")
+
+        logging.debug("Setting X-Accel-Redirect to {}".format(abspath))
         self.finish()
 
 
@@ -225,6 +236,7 @@ class EphemeralStaticNginxFileHandler(BaseStaticNginxFileHandler):
                ).get()
 
     def get(self, dataset, hash, file):
+        logging.debug("Want to download hash {} ({})".format(hash, file))
         linkhash = (db.Linkhash
                         .select()
                         .join(db.DatasetVersion)
@@ -233,9 +245,11 @@ class EphemeralStaticNginxFileHandler(BaseStaticNginxFileHandler):
                                db.Linkhash.expires_on >  datetime.datetime.now(),
                                db.DatasetFile.name    == file))
         if linkhash.count() > 0:
+            logging.debug("Linkhash valid")
             user = self.get_user_from_hash(hash)
             super().get(dataset, file, user)
         else:
+            logging.debug("Linkhash invalid")
             self.send_error(status_code=403)
 
 
