@@ -8,3 +8,8 @@
 -- 4. Update dependent views and tables
 -- 5. Drop old dataset_pk foreign constraint in user_log
 -- 6. Drop column user_log.dataset_pk
+
+-- TODO: Rename user_log to user_access_log
+-- TODO: Create user_consent_log
+-- TODO: Create user_download_log
+-- TODO: Add unique constraint on linkhash.hash
