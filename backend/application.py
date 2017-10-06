@@ -69,32 +69,19 @@ class GetDataset(handlers.UnsafeHandler):
     def get(self, dataset, version=None):
         user = self.current_user
 
-        current_version = False
-        future_version  = False
-        dataset = db.get_dataset(dataset)
-        if version:
-            version = db.DatasetVersion.select().where(
-                    db.DatasetVersion.version == version,
-                    db.DatasetVersion.dataset == dataset
-                ).get()
-        else:
-            version = dataset.current_version.get()
-            current_version = True
+        future_version = False
+
+        version = db.get_dataset_version(dataset, version)
 
         if version.available_from > datetime.now():
             # If it's not available yet, only return if user is admin.
-            if not (user and user.is_admin(dataset)):
+            if not (user and user.is_admin(version.dataset)):
                 self.send_error(status_code=403)
                 return
             future_version = True
-        elif not current_version:
-            # Make another check on whether this is the current version
-            cv = dataset.current_version.get()
-            current_version = cv.version == version.version
 
-        ret = build_dataset_structure(version, user, dataset)
-        ret['current'] = current_version
-        ret['future']  = future_version
+        ret = build_dataset_structure(version, user)
+        ret['future'] = future_version
 
         self.finish(ret)
 
@@ -140,11 +127,7 @@ class ListDatasetVersions(handlers.UnsafeHandler):
 
 class DatasetFiles(handlers.AuthorizedHandler):
     def get(self, dataset, version=None, *args, **kwargs):
-        dataset = db.get_dataset(dataset)
-        if version:
-            dataset_version = dataset.versions.where(db.DatasetVersion.version==version).get()
-        else:
-            dataset_version = dataset.current_version.get()
+        dataset_version = db.get_dataset_version(dataset, version)
         ret = []
         for f in dataset_version.files:
             ret.append(db.build_dict_from_row(f))

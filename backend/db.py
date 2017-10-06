@@ -241,6 +241,21 @@ def get_dataset(dataset):
     return dataset
 
 
+def get_dataset_version(dataset, version=None):
+    if version:
+        dataset_version = (DatasetVersion
+                            .select(DatasetVersion, Dataset)
+                            .join(Dataset)
+                            .where(DatasetVersion.version == version,
+                                   Dataset.short_name == dataset)).get()
+    else:
+        dataset_version = (DatasetVersionCurrent
+                            .select(DatasetVersionCurrent, Dataset)
+                            .join(Dataset)
+                            .where(Dataset.short_name == dataset)).get()
+    return dataset_version
+
+
 def build_dict_from_row(row):
     d = {}
     for field in row._meta.sorted_fields:
