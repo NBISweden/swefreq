@@ -68,8 +68,8 @@ CREATE TABLE IF NOT EXISTS sample_set (
     CONSTRAINT FOREIGN KEY (collection_pk) REFERENCES collection(collection_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS user_log (
-    user_log_pk         INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS user_access_log (
+    user_access_log_pk  INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
     user_pk             INTEGER         NOT NULL,
     dataset_version_pk  INTEGER         NOT NULL,
     action  ENUM ('consent','download',
@@ -81,10 +81,10 @@ CREATE TABLE IF NOT EXISTS user_log (
         REFERENCES dataset(dataset_version_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE OR REPLACE VIEW _user_log_summary AS
-    SELECT MAX(user_log_pk) AS user_log_pk, user_pk, dataset_version_pk,
-        action, MAX(ts) AS ts
-    FROM user_log
+CREATE OR REPLACE VIEW _user_access_log_summary AS
+    SELECT MAX(user_access_log_pk) AS user_access_log_pk, user_pk,
+        dataset_version_pk, action, MAX(ts) AS ts
+    FROM user_access_log
     GROUP BY user_pk, dataset_version_pk, action;
 
 CREATE TABLE IF NOT EXISTS dataset_access (
@@ -106,11 +106,11 @@ CREATE OR REPLACE VIEW dataset_access_current AS
         request.ts AS access_requested
     FROM dataset_access AS access
     JOIN ( SELECT user_pk, dataset_version_pk, MAX(ts) AS ts
-           FROM user_log WHERE action = "access_requested"
+           FROM user_access_log WHERE action = "access_requested"
            GROUP BY user_pk, dataset_version_pk ) AS request
         ON access.user_pk = request.user_pk AND
            access.dataset_version_pk = request.dataset_version_pk
-    LEFT JOIN user_log AS consent
+    LEFT JOIN user_access_log AS consent
         ON access.user_pk = consent.user_pk AND
            access.dataset_version_pk = consent.dataset_version_pk AND
            consent.action = 'consent'
@@ -118,8 +118,8 @@ CREATE OR REPLACE VIEW dataset_access_current AS
         -- gets user_pk for all users with current access
         -- from https://stackoverflow.com/a/39190423/4941495
         SELECT granted.user_pk, granted.dataset_version_pk
-        FROM _user_log_summary AS granted
-        LEFT JOIN _user_log_summary AS revoked
+        FROM _user_access_log_summary AS granted
+        LEFT JOIN _user_access_log_summary AS revoked
                 ON granted.user_pk = revoked.user_pk AND
                    granted.dataset_version_pk = revoked.dataset_version_pk AND
                    revoked.action  = 'access_revoked'
@@ -136,23 +136,23 @@ CREATE OR REPLACE VIEW dataset_access_pending AS
         request.ts AS access_requested
     FROM dataset_access AS access
     JOIN ( SELECT user_pk, dataset_version_pk, MAX(ts) AS ts
-           FROM user_log WHERE action = "access_requested"
+           FROM user_access_log WHERE action = "access_requested"
            GROUP BY user_pk, dataset_version_pk ) AS request
         ON access.user_pk = request.user_pk AND
            access.dataset_version_pk = request.dataset_version_pk
-    LEFT JOIN user_log AS consent
+    LEFT JOIN user_access_log AS consent
         ON access.user_pk = consent.user_pk AND
            access.dataset_version_pk = consent.dataset_version_pk AND
            consent.action = 'consent'
     WHERE (access.user_pk, access.dataset_version_pk) IN (
         -- get user_pk for all users that have pending access requests
         SELECT requested.user_pk, requested.dataset_version_pk
-        FROM _user_log_summary AS requested
-        LEFT JOIN _user_log_summary AS granted
+        FROM _user_access_log_summary AS requested
+        LEFT JOIN _user_access_log_summary AS granted
                 ON requested.user_pk = granted.user_pk AND
                    requested.dataset_version_pk = granted.dataset_version_pk AND
                    granted.action  = 'access_granted'
-        LEFT JOIN _user_log_summary AS revoked
+        LEFT JOIN _user_access_log_summary AS revoked
                 ON requested.user_pk = revoked.user_pk AND
                    requested.dataset_version_pk = revoked.dataset_version_pk AND
                    revoked.action  = 'access_revoked'
