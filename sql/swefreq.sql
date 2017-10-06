@@ -80,6 +80,16 @@ CREATE TABLE IF NOT EXISTS user_access_log (
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE IF NOT EXISTS user_consent_log (
+    user_consent_log_pk INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    user_pk             INTEGER         NOT NULL,
+    dataset_version_pk  INTEGER         NOT NULL,
+    ts                  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT FOREIGN KEY (user_pk)    REFERENCES user(user_pk),
+    CONSTRAINT FOREIGN KEY (dataset_version_pk)
+        REFERENCES dataset_version(dataset_version_pk)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 CREATE OR REPLACE VIEW _user_access_log_summary AS
     SELECT MAX(user_access_log_pk) AS user_access_log_pk, user_pk,
         dataset_pk, action, MAX(ts) AS ts
