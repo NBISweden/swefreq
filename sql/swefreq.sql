@@ -195,6 +195,7 @@ CREATE TABLE IF NOT EXISTS linkhash (
     user_pk             INTEGER         NOT NULL,
     hash                VARCHAR(64)     NOT NULL,
     expires_on          TIMESTAMP       NOT NULL,
+    CONSTRAINT UNIQUE (hash),
     CONSTRAINT FOREIGN KEY (dataset_version_pk)
         REFERENCES dataset_version(dataset_version_pk),
     CONSTRAINT FOREIGN KEY (user_pk) REFERENCES user(user_pk)
