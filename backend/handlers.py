@@ -3,6 +3,7 @@ import peewee
 import tornado.auth
 import tornado.web
 import os.path
+import datetime
 
 import db
 
@@ -210,6 +211,21 @@ class AuthorizedStaticNginxFileHandler(AuthorizedHandler, BaseStaticNginxFileHan
         }
     """
     pass
+
+
+class EphemeralStaticNginxFileHandler(BaseStaticNginxFileHandler):
+    def get(self, dataset, hash, file):
+        linkhash = (db.Linkhash
+                        .select()
+                        .join(db.DatasetVersion)
+                        .join(db.DatasetFile)
+                        .where(db.Linkhash.hash       == hash,
+                               db.Linkhash.expires_on >  datetime.datetime.now(),
+                               db.DatasetFile.name    == file))
+        if linkhash.count() > 0:
+            super().get(dataset,file)
+        else:
+            self.send_error(status_code=403)
 
 
 class AngularTemplate(UnsafeHandler):
