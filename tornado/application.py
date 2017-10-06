@@ -2,7 +2,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import json
 import logging
-import datetime
+from datetime import datetime
 import peewee
 import smtplib
 import tornado.web
@@ -73,7 +73,7 @@ class GetDataset(handlers.UnsafeHandler):
             version = dataset.current_version.get()
 
         # If it's not available yet, only return if user is admin.
-        if (version.available_from > datetime.datetime.now() and
+        if (version.available_from > datetime.now() and
                 not (user and user.is_admin(dataset))):
             self.send_error(status_code=403)
             return
@@ -98,7 +98,7 @@ class ListDatasetVersions(handlers.UnsafeHandler):
         data = []
         for v in versions:
             # Skip future versions unless admin
-            if (v.available_from > datetime.datetime.now() and
+            if (v.available_from > datetime.now() and
                     not (user and user.is_admin(dataset))):
                 continue
             data.append({
