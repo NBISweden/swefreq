@@ -68,6 +68,15 @@ CREATE TABLE IF NOT EXISTS sample_set (
     CONSTRAINT FOREIGN KEY (collection_pk) REFERENCES collection(collection_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE IF NOT EXISTS dataset_file (
+    dataset_file_pk     INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    dataset_version_pk  INTEGER         NOT NULL,
+    name                VARCHAR(100)    NOT NULL,
+    uri                 VARCHAR(200)    NOT NULL,
+    CONSTRAINT FOREIGN KEY (dataset_version_pk)
+        REFERENCES dataset_version(dataset_version_pk)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 CREATE TABLE IF NOT EXISTS user_access_log (
     user_access_log_pk  INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
     user_pk             INTEGER         NOT NULL,
@@ -170,15 +179,6 @@ CREATE OR REPLACE VIEW dataset_access_pending AS
                 (revoked.user_pk IS NULL OR requested.ts > revoked.ts)
         GROUP BY requested.user_pk, requested.dataset_pk, requested.action
     );
-
-CREATE TABLE IF NOT EXISTS dataset_file (
-    dataset_file_pk     INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    dataset_version_pk  INTEGER         NOT NULL,
-    name                VARCHAR(100)    NOT NULL,
-    uri                 VARCHAR(200)    NOT NULL,
-    CONSTRAINT FOREIGN KEY (dataset_version_pk)
-        REFERENCES dataset_version(dataset_version_pk)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS dataset_logo (
     dataset_logo_pk     INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
