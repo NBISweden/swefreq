@@ -162,8 +162,9 @@ class SafeStaticFileHandler(tornado.web.StaticFileHandler, SafeHandler):
     """
     pass
 
-class AuthorizedStaticNginxFileHandler(AuthorizedHandler):
-    """ Serve static files for authenticated users from the nginx frontend
+
+class BaseStaticNginxFileHandler(UnsafeHandler):
+    """Serve static files for users from the nginx frontend
 
     Requires a ``path`` argument in constructor which should be the root of
     the nginx frontend where the files can be found. Then configure the nginx
@@ -194,6 +195,21 @@ class AuthorizedStaticNginxFileHandler(AuthorizedHandler):
         self.set_header("X-Accel-Redirect", abspath)
         self.set_header("Content-Disposition", "attachment")
         self.finish()
+
+
+class AuthorizedStaticNginxFileHandler(AuthorizedHandler, BaseStaticNginxFileHandler):
+    """Serve static files for authenticated users from the nginx frontend
+
+    Requires a ``path`` argument in constructor which should be the root of
+    the nginx frontend where the files can be found. Then configure the nginx
+    frontend something like this
+
+        location <path> {
+            internal;
+            alias <location of files>;
+        }
+    """
+    pass
 
 
 class AngularTemplate(UnsafeHandler):
