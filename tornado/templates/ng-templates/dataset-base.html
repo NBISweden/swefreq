@@ -9,6 +9,7 @@
     <div class="container" ng-if="!ctrl.error">
         <div class="row">
             <div class="col-sm-12">
+                <div ng-if="ctrl.dataset.future" class="alert alert-danger alert-future">This version will become public at {{ctrl.dataset.version.available_from}}</div>
                 <h1>{{ ctrl.dataset.full_name }}</h1>
             </div>
         </div>
@@ -24,7 +25,7 @@
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Versions <span class="caret"></span></a>
                             <ul class="dropdown-menu">
-                                <li ng-repeat="v in navbarCtrl.versions" class="{{ v.current ? 'active' : ''}}"><a href="/dataset/SweGen/version/{{v.name}}">{{ v.name }}{{ $last ? " (latest)" : ""}}</a></li>
+                                <li ng-repeat="v in navbarCtrl.versions" class="{{ v.active ? 'active' : ''}} {{v.future ? 'future' : ''}}"><a href="/dataset/SweGen/version/{{v.name}}">{{ v.name }}{{ v.current ? " (current)" : ""}}</a></li>
                             </ul>
                         <li class="[[ 'active' if active=='admin'    ]] pull-right admin-tab" ng-if="navbarCtrl.is_admin"><a href="{{navbarCtrl.createUrl('admin', 1)}}">Admin</a></li>
                     </ul>

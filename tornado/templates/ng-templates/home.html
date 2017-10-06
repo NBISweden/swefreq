@@ -4,16 +4,17 @@
         <div class="col-md-1"></div>
         <div class="col-md-10">
             <div class="dataset-panel">
-                 <div class="dataset-heading">{{ dataset.full_name }}</div>
+                <div class="dataset-heading {{ dataset.future ? 'dataset-future' : ''}}">{{ dataset.full_name }}</div>
                  <div class="dataset-body">
                      <div ng-if="dataset.has_image">
                          <img ng-src="/api/datasets/{{dataset.short_name}}/logo" class="dataset-logo" alt='{{ dataset.short_name }} logo' />
                      </div>
+                     <div ng-if="dataset.future" class='future'>This version will become public at {{ dataset.version.available_from }}.</div>
                      <div ng-bind-html="dataset.version.description" />
                  </div>
                  <div class="dataset-links">
-                     <li><a href="{{ '/dataset/' + dataset.short_name }}">More information</a></li>
-                     <li><a href="{{ '/dataset/' + dataset.short_name + '/beacon' }}">Beacon</a></li>
+                     <li><a href="{{ dataset.urlbase }}">More information</a></li>
+                     <li><a href="{{ dataset.urlbase + '/beacon' }}">Beacon</a></li>
                      <li><a target="_blank" href="{{dataset.browser_uri}}">Graphical Browser <span class="glyphicon glyphicon-new-window" aria-hidden="true"></a></li>
                  </div>
             </div>

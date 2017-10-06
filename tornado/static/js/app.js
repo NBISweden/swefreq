@@ -265,7 +265,7 @@
                 DatasetVersions(localThis.dataset).then(function(data) {
                     for (var ii = 0; ii < data.length; ii++) {
                         if ( data[ii].name == localThis.thisVersion ) {
-                            data[ii].current = true;
+                            data[ii].active = true;
                             break;
                         }
                     }
