@@ -109,7 +109,7 @@ class ListDatasetVersions(handlers.UnsafeHandler):
         self.finish({'data': data})
 
 
-class DatasetFiles(handlers.UnsafeHandler):
+class DatasetFiles(handlers.AuthorizedHandler):
     def get(self, dataset, version=None, *args, **kwargs):
         dataset = db.get_dataset(dataset)
         if version:
