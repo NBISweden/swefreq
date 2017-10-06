@@ -53,8 +53,26 @@ class ListDatasets(handlers.UnsafeHandler):
         user = self.current_user
 
         ret = []
+        if user:
+            futures = db.DatasetVersion.select(
+                    ).join(
+                        db.Dataset
+                    ).join(
+                        db.DatasetAccess
+                    ).where(
+                        db.DatasetVersion.available_from > datetime.now(),
+                        db.DatasetAccess.user == user,
+                        db.DatasetAccess.is_admin
+                    )
+            for f in futures:
+                dataset = build_dataset_structure(f, user)
+                dataset['future'] = True
+                ret.append( dataset )
+
         for version in db.DatasetVersionCurrent.select():
-            ret.append( build_dataset_structure(version, user) )
+            dataset = build_dataset_structure(version, user)
+            dataset['current'] = True
+            ret.append( dataset )
 
         self.finish({'data':ret})
 
@@ -63,6 +81,8 @@ class GetDataset(handlers.UnsafeHandler):
     def get(self, dataset, version=None, *args, **kwargs):
         user = self.current_user
 
+        current_version = False
+        future_version  = False
         dataset = db.get_dataset(dataset)
         if version:
             version = db.DatasetVersion.select().where(
@@ -71,14 +91,22 @@ class GetDataset(handlers.UnsafeHandler):
                 ).get()
         else:
             version = dataset.current_version.get()
+            current_version = True
 
-        # If it's not available yet, only return if user is admin.
-        if (version.available_from > datetime.now() and
-                not (user and user.is_admin(dataset))):
-            self.send_error(status_code=403)
-            return
+        if version.available_from > datetime.now():
+            # If it's not available yet, only return if user is admin.
+            if not (user and user.is_admin(dataset)):
+                self.send_error(status_code=403)
+                return
+            future_version = True
+        elif not current_version:
+            # Make another check on whether this is the current version
+            cv = dataset.current_version.get()
+            current_version = cv.version == version.version
 
         ret = build_dataset_structure(version, user, dataset)
+        ret['current'] = current_version
+        ret['future']  = future_version
 
         self.finish(ret)
 
@@ -96,14 +124,27 @@ class ListDatasetVersions(handlers.UnsafeHandler):
         logging.info("ListDatasetVersions")
 
         data = []
-        for v in versions:
+        found_current = False
+        for v in reversed(versions):
+            current = False
+            future  = False
+
             # Skip future versions unless admin
-            if (v.available_from > datetime.now() and
-                    not (user and user.is_admin(dataset))):
-                continue
-            data.append({
-                'name': v.version,
-                'available_from': v.available_from.strftime('%Y-%m-%d')
+            if v.available_from > datetime.now():
+                if not (user and user.is_admin(dataset)):
+                    continue
+                future = True
+
+            # Figure out if this is the current version
+            if not found_current and v.available_from < datetime.now():
+                found_current = True
+                current       = True
+
+            data.insert(0, {
+                'name':           v.version,
+                'available_from': v.available_from.strftime('%Y-%m-%d'),
+                'current':        current,
+                'future':         future,
             })
 
         self.finish({'data': data})
