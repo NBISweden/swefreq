@@ -30,7 +30,7 @@ def build_dataset_structure(dataset_version, user=None, dataset=None):
     r = db.build_dict_from_row(dataset)
 
     r['version'] = db.build_dict_from_row(dataset_version)
-    r['version']['available_from'] = r['version']['available_from'].strftime('%Y-%m-%d %H:%M')
+    r['version']['available_from'] = r['version']['available_from'].strftime('%Y-%m-%d')
 
     r['has_image']  = dataset.has_image()
 
