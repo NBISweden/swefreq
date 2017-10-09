@@ -274,9 +274,15 @@
             }
         );
 
-        localThis.createUrl = function(subpage, no_version) {
-            if (no_version) {
+        localThis.createUrl = function(subpage, version) {
+            if (subpage == 'admin') {
                 return '/dataset/' + localThis.dataset + '/' + subpage;
+            }
+            if (subpage == 'main') {
+                subpage = '';
+            }
+            if (version) {
+                return '/dataset/' + localThis.dataset + '/version/' + version + '/' + subpage;
             }
             return localThis.urlBase + '/' + subpage;
         };
