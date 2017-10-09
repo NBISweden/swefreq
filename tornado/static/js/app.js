@@ -93,10 +93,34 @@
         return service;
     });
 
+    App.factory('DatasetList', function($http, $q, $sce) {
+        return function() {
+            return $q(function(resolve,reject) {
+                $http.get('/api/datasets').success(function(res){
+                    var len = res.data.length;
+                    var datasets = []
+                    for (var i = 0; i < len; i++) {
+                        d = res.data[i];
+                        d.version.description = $sce.trustAsHtml(d.version.description);
+                        if (d.future) {
+                            d.urlbase = '/dataset/' + d.short_name + '/version/' + d.version.version;
+                        }
+                        else {
+                            d.urlbase = '/dataset/' + d.short_name;
+                        }
+
+                        datasets.push(d);
+                    }
+                    resolve(datasets);
+                });
+            });
+        };
+    });
+
 
     App.factory('Dataset', function($http, $q, $sce) {
-        var state = {dataset: null};
         return function(dataset, version) {
+            var state = {dataset: null};
             var defer = $q.defer();
 
             if (dataset === undefined) {
@@ -215,22 +239,13 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('homeController', function($http, $sce) {
+    App.controller('homeController', ['$http', '$sce', 'DatasetList', function($http, $sce, DatasetList) {
         var localThis = this;
         localThis.datasets = [];
-        localThis.getDatasets = function(){
-            $http.get('/api/datasets').success(function(res){
-                var len = res.data.length;
-                for (var i = 0; i < len; i++) {
-                    d = res.data[i];
-                    d.version.description = $sce.trustAsHtml(d.version.description)
-
-                    localThis.datasets.push(d);
-                }
-            });
-        };
-        localThis.getDatasets();
-    });
+        DatasetList().then(function(datasets) {
+            localThis.datasets = datasets;
+        });
+    }]);
 
     /////////////////////////////////////////////////////////////////////////////////////
 
@@ -250,7 +265,7 @@
                 DatasetVersions(localThis.dataset).then(function(data) {
                     for (var ii = 0; ii < data.length; ii++) {
                         if ( data[ii].name == localThis.thisVersion ) {
-                            data[ii].current = true;
+                            data[ii].active = true;
                             break;
                         }
                     }
