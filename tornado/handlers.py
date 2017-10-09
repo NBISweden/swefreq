@@ -70,7 +70,7 @@ class SafeHandler(BaseHandler):
 
 class AuthorizedHandler(SafeHandler):
     def prepare(self):
-        super(AuthorizedHandler, self).prepare()
+        super().prepare()
 
         if self._finished:
             return
@@ -83,7 +83,7 @@ class AuthorizedHandler(SafeHandler):
 
 class AdminHandler(SafeHandler):
     def prepare(self):
-        super(AdminHandler, self).prepare()
+        super().prepare()
 
         if self._finished:
             return

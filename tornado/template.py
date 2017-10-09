@@ -21,7 +21,7 @@ class Jinja2TemplateLoader(tornado.template.BaseLoader):
             self._jinja2_env.loader = jinja2.FileSystemLoader(root_dir)
         else:
             self._jinja2_env.loader = jinja2.FileSystemLoader()
-        super(Jinja2TemplateLoader, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def resolve_path(self, name, parent_path=None):
         return name

@@ -196,7 +196,7 @@ class EnumField(Field):
 
     def __init__(self, values=[], *args, **kwargs):
         self.values = values
-        super(EnumField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def db_value(self, value):
         if value not in self.values:
