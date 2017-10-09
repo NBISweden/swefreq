@@ -8,6 +8,8 @@ import application
 import handlers
 import settings
 import beacon
+import template
+
 
 define("port", default=4000, help="run on the given port", type=int)
 define("develop", default=False, help="Run in develop environment", type=bool)
@@ -24,44 +26,55 @@ settings = {"debug": False,
             },
             "contact_person": 'mats.dahlberg@scilifelab.se',
             "redirect_uri": redirect_uri,
-            "template_path": "templates/",
             "xsrf_cookies": True,
+            "template_loader": template.Jinja2TemplateLoader('templates/'),
         }
 
 class Application(tornado.web.Application):
     def __init__(self, settings):
         self.declared_handlers = [
+            ## Angular templates
+            (r"/static/js/ng-templates/(?P<path>.*)",                                handlers.AngularTemplate,
+                                                                                         {"path": "ng-templates/"}),
             ## Static handlers
-            (r"/static/(.*)",                             tornado.web.StaticFileHandler,              {"path": "static/"}),
-            (r'/(favicon.ico)',                           tornado.web.StaticFileHandler,              {"path": "static/img/"}),
-            (r"/release/(?P<dataset>[^\/]+)/(?P<file>.*)",        handlers.AuthorizedStaticNginxFileHanlder,  {"path": "/release-files/"}),
+            (r"/static/(.*)",                                                        tornado.web.StaticFileHandler,
+                                                                                         {"path": "static/"}),
+            (r'/(favicon.ico)',                                                      tornado.web.StaticFileHandler,
+                                                                                         {"path": "static/img/"}),
+            (r"/release/(?P<dataset>[^\/]+)/(?P<file>.*)",                           handlers.AuthorizedStaticNginxFileHanlder,
+                                                                                         {"path": "/release-files/"}),
             ## Authentication
-            ("/login",                                    handlers.LoginHandler),
-            ("/logout",                                   handlers.LogoutHandler),
+            ("/login",                                                               handlers.LoginHandler),
+            ("/logout",                                                              handlers.LogoutHandler),
             ## API Methods
-            ("/api/countries",                                  application.CountryList),
-            ("/api/users/me",                                   application.GetUser),
+            ("/api/countries",                                                       application.CountryList),
+            ("/api/users/me",                                                        application.GetUser),
             ### Dataset Api
-            ("/api/datasets",                                                     application.ListDatasets),
-            ("/api/datasets/(?P<dataset>[^\/]+)",                                 application.GetDataset),
-            ("/api/datasets/(?P<dataset>[^\/]+)/log/(?P<event>[^\/]+)",           application.LogEvent),
-            ("/api/datasets/(?P<dataset>[^\/]+)/logo",                            application.ServeLogo),
-            ("/api/datasets/(?P<dataset>[^\/]+)/files",                           application.DatasetFiles),
-            ("/api/datasets/(?P<dataset>[^\/]+)/collection",                      application.Collection),
-            ("/api/datasets/(?P<dataset>[^\/]+)/users_current",                   application.DatasetUsersCurrent),
-            ("/api/datasets/(?P<dataset>[^\/]+)/users_pending",                   application.DatasetUsersPending),
-            ("/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/request", application.RequestAccess),
-            ("/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/approve", application.ApproveUser),
-            ("/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/revoke",  application.RevokeUser),
+            ("/api/datasets",                                                        application.ListDatasets),
+            ("/api/datasets/(?P<dataset>[^\/]+)",                                    application.GetDataset),
+            ("/api/datasets/(?P<dataset>[^\/]+)/log/(?P<event>[^\/]+)",              application.LogEvent),
+            ("/api/datasets/(?P<dataset>[^\/]+)/logo",                               application.ServeLogo),
+            ("/api/datasets/(?P<dataset>[^\/]+)/files",                              application.DatasetFiles),
+            ("/api/datasets/(?P<dataset>[^\/]+)/collection",                         application.Collection),
+            ("/api/datasets/(?P<dataset>[^\/]+)/users_current",                      application.DatasetUsersCurrent),
+            ("/api/datasets/(?P<dataset>[^\/]+)/users_pending",                      application.DatasetUsersPending),
+            ("/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/request",    application.RequestAccess),
+            ("/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/approve",    application.ApproveUser),
+            ("/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/revoke",     application.RevokeUser),
+            ("/api/datasets/(?P<dataset>[^\/]+)/versions",                           application.ListDatasetVersions),
+            ("/api/datasets/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)",       application.GetDataset),
+            ("/api/datasets/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)/files", application.DatasetFiles),
             ### Beacon API
-            ("/api/beacon/query",                                beacon.Query),
-            ("/api/beacon/info",                                 beacon.Info),
+            ("/api/beacon/query",                                                    beacon.Query),
+            ("/api/beacon/info",                                                     beacon.Info),
             # # # # # Legacy beacon URIs # # # # #
-            ("/query",                                    beacon.Query),
-            ("/info",                                     tornado.web.RedirectHandler, {"url": "/api/beacon/info"}),
+            ("/query",                                                               beacon.Query),
+            ("/info",                                                                tornado.web.RedirectHandler,
+                                                                                         {"url": "/api/beacon/info"}),
             ## Catch all
-            ("/api/.*", tornado.web.ErrorHandler, {"status_code": 404} ),
-            (r'.*',                                       application.Home),
+            ("/api/.*",                                                              tornado.web.ErrorHandler,
+                                                                                         {"status_code": 404} ),
+            (r'.*',                                                                  application.Home),
         ]
 
         # google oauth key

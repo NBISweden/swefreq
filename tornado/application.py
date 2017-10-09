@@ -2,6 +2,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import json
 import logging
+from datetime import datetime
 import peewee
 import smtplib
 import tornado.web
@@ -29,7 +30,7 @@ def build_dataset_structure(dataset_version, user=None, dataset=None):
     r = db.build_dict_from_row(dataset)
 
     r['version'] = db.build_dict_from_row(dataset_version)
-    r['version']['available_from'] = r['version']['available_from'].strftime('%Y-%m-%d %H:%M')
+    r['version']['available_from'] = r['version']['available_from'].strftime('%Y-%m-%d')
 
     r['has_image']  = dataset.has_image()
 
@@ -44,6 +45,7 @@ def build_dataset_structure(dataset_version, user=None, dataset=None):
 
     return r
 
+
 class ListDatasets(handlers.UnsafeHandler):
     def get(self):
         # List all datasets available to the current user, earliear than now OR
@@ -51,18 +53,112 @@ class ListDatasets(handlers.UnsafeHandler):
         user = self.current_user
 
         ret = []
+        if user:
+            futures = db.DatasetVersion.select(
+                    ).join(
+                        db.Dataset
+                    ).join(
+                        db.DatasetAccess
+                    ).where(
+                        db.DatasetVersion.available_from > datetime.now(),
+                        db.DatasetAccess.user == user,
+                        db.DatasetAccess.is_admin
+                    )
+            for f in futures:
+                dataset = build_dataset_structure(f, user)
+                dataset['future'] = True
+                ret.append( dataset )
+
         for version in db.DatasetVersionCurrent.select():
-            ret.append( build_dataset_structure(version, user) )
+            dataset = build_dataset_structure(version, user)
+            dataset['current'] = True
+            ret.append( dataset )
 
         self.finish({'data':ret})
 
 
-class DatasetFiles(handlers.UnsafeHandler):
-    def get(self, dataset, *args, **kwargs):
+class GetDataset(handlers.UnsafeHandler):
+    def get(self, dataset, version=None, *args, **kwargs):
+        user = self.current_user
+
+        current_version = False
+        future_version  = False
         dataset = db.get_dataset(dataset)
-        version = dataset.current_version.get()
+        if version:
+            version = db.DatasetVersion.select().where(
+                    db.DatasetVersion.version == version,
+                    db.DatasetVersion.dataset == dataset
+                ).get()
+        else:
+            version = dataset.current_version.get()
+            current_version = True
+
+        if version.available_from > datetime.now():
+            # If it's not available yet, only return if user is admin.
+            if not (user and user.is_admin(dataset)):
+                self.send_error(status_code=403)
+                return
+            future_version = True
+        elif not current_version:
+            # Make another check on whether this is the current version
+            cv = dataset.current_version.get()
+            current_version = cv.version == version.version
+
+        ret = build_dataset_structure(version, user, dataset)
+        ret['current'] = current_version
+        ret['future']  = future_version
+
+        self.finish(ret)
+
+
+class ListDatasetVersions(handlers.UnsafeHandler):
+    def get(self, dataset, *args, **kwargs):
+        user = self.current_user
+        dataset = db.get_dataset(dataset)
+
+        versions = db.DatasetVersion.select(
+                db.DatasetVersion.version, db.DatasetVersion.available_from
+            ).where(
+                db.DatasetVersion.dataset == dataset
+            )
+        logging.info("ListDatasetVersions")
+
+        data = []
+        found_current = False
+        for v in reversed(versions):
+            current = False
+            future  = False
+
+            # Skip future versions unless admin
+            if v.available_from > datetime.now():
+                if not (user and user.is_admin(dataset)):
+                    continue
+                future = True
+
+            # Figure out if this is the current version
+            if not found_current and v.available_from < datetime.now():
+                found_current = True
+                current       = True
+
+            data.insert(0, {
+                'name':           v.version,
+                'available_from': v.available_from.strftime('%Y-%m-%d'),
+                'current':        current,
+                'future':         future,
+            })
+
+        self.finish({'data': data})
+
+
+class DatasetFiles(handlers.AuthorizedHandler):
+    def get(self, dataset, version=None, *args, **kwargs):
+        dataset = db.get_dataset(dataset)
+        if version:
+            dataset_version = dataset.versions.where(db.DatasetVersion.version==version).get()
+        else:
+            dataset_version = dataset.current_version.get()
         ret = []
-        for f in version.files:
+        for f in dataset_version.files:
             ret.append(db.build_dict_from_row(f))
         self.finish({'files': ret})
 
@@ -89,18 +185,6 @@ class Collection(handlers.UnsafeHandler):
             'study':       db.build_dict_from_row(dataset.study)
         }
         ret['study']['publication_date'] = ret['study']['publication_date'].strftime('%Y-%m-%d')
-
-        self.finish(ret)
-
-
-class GetDataset(handlers.UnsafeHandler):
-    def get(self, dataset, *args, **kwargs):
-        user = self.current_user
-
-        dataset = db.get_dataset(dataset)
-        current_version = dataset.current_version.get()
-
-        ret = build_dataset_structure(current_version, user, dataset)
 
         self.finish(ret)
 

@@ -127,6 +127,25 @@ ul.samples li:first-child {
     padding: 2px 0 2px 7px;
 }
 
+.dataset-future {
+    background-color: #BE8542;
+}
+
+.dataset-panel .future {
+    font-style: italic;
+    font-size: 90%;
+    color: #900;
+}
+
+li.future {
+    font-style: italic;
+    background-color: #f2dede;
+}
+
+.alert-future {
+    font-size: 200%;
+}
+
 .dataset-body {
     overflow: hidden;
     height: 100%;
