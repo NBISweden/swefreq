@@ -14,3 +14,4 @@
 -- TODO: Create user_download_log
 -- TODO: Add unique constraint on linkhash.hash
 -- TODO: Remove "consent" and "download" enums from dataset_access_log
+-- TODO: Remove has_concented from views
