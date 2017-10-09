@@ -130,7 +130,6 @@ CREATE OR REPLACE VIEW dataset_access_current AS
     SELECT DISTINCT
         access.*,
         TRUE AS has_access,
-        (consent.action IS NOT NULL) AS has_consented,
         request.ts AS access_requested
     FROM dataset_access AS access
     JOIN ( SELECT user_pk, dataset_pk, MAX(ts) AS ts
@@ -138,10 +137,6 @@ CREATE OR REPLACE VIEW dataset_access_current AS
            GROUP BY user_pk, dataset_pk ) AS request
         ON access.user_pk = request.user_pk AND
            access.dataset_pk = request.dataset_pk
-    LEFT JOIN user_access_log AS consent
-        ON access.user_pk = consent.user_pk AND
-           access.dataset_pk = consent.dataset_pk AND
-           consent.action = 'consent'
     WHERE (access.user_pk, access.dataset_pk) IN (
         -- gets user_pk for all users with current access
         -- from https://stackoverflow.com/a/39190423/4941495
@@ -160,7 +155,6 @@ CREATE OR REPLACE VIEW dataset_access_pending AS
     SELECT DISTINCT
         access.*,
         FALSE AS has_access,
-        (consent.action IS NOT NULL) AS has_consented,
         request.ts AS access_requested
     FROM dataset_access AS access
     JOIN ( SELECT user_pk, dataset_pk, MAX(ts) AS ts
@@ -168,10 +162,6 @@ CREATE OR REPLACE VIEW dataset_access_pending AS
            GROUP BY user_pk, dataset_pk ) AS request
         ON access.user_pk = request.user_pk AND
            access.dataset_pk = request.dataset_pk
-    LEFT JOIN user_access_log AS consent
-        ON access.user_pk = consent.user_pk AND
-           access.dataset_pk = consent.dataset_pk AND
-           consent.action = 'consent'
     WHERE (access.user_pk, access.dataset_pk) IN (
         -- get user_pk for all users that have pending access requests
         SELECT requested.user_pk, requested.dataset_pk
