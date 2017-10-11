@@ -121,7 +121,16 @@ INSERT INTO user_download_log (user_pk, dataset_file_pk, ts)
 -- Add unique constraint on linkhash.hash
 
 ALTER TABLE linkhash
-        ADD CONSTRAINT UNIQUE (hash);
+    ADD CONSTRAINT UNIQUE (hash);
 
--- TODO: Remove "consent" and "download" enums from dataset_access_log
+-- Remove "consent" and "download" enums from user_access_log
+
+DELETE FROM user_access_log
+    WHERE action IN ('concent', 'download');
+
+ALTER TABLE user_access_log
+    CHANGE action
+        action  ENUM ('access_requested','access_granted','access_revoked',
+                      'private_link');
+
 -- TODO: Remove has_concented from views
