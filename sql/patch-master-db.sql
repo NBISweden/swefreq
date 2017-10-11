@@ -69,8 +69,31 @@ CREATE OR REPLACE VIEW dataset_access_pending AS
         GROUP BY requested.user_pk, requested.dataset_pk, requested.action
     );
 
--- TODO: Create user_consent_log
--- TODO: Create user_download_log
+-- Create user_consent_log
+
+CREATE TABLE IF NOT EXISTS user_consent_log (
+    user_consent_log_pk INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    user_pk             INTEGER         NOT NULL,
+    dataset_version_pk  INTEGER         NOT NULL,
+    ts                  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT FOREIGN KEY (user_pk)    REFERENCES user(user_pk),
+    CONSTRAINT FOREIGN KEY (dataset_version_pk)
+        REFERENCES dataset_version(dataset_version_pk)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- Create user_download_log
+
+CREATE TABLE IF NOT EXISTS user_download_log (
+    user_download_log_pk
+                        INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    user_pk             INTEGER         NOT NULL,
+    dataset_file_pk     INTEGER         NOT NULL,
+    ts                  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT FOREIGN KEY (user_pk)    REFERENCES user(user_pk),
+    CONSTRAINT FOREIGN KEY (dataset_file_pk)
+        REFERENCES dataset_file(dataset_file_pk)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 -- TODO: Add unique constraint on linkhash.hash
 -- TODO: Remove "consent" and "download" enums from dataset_access_log
 -- TODO: Remove has_concented from views
