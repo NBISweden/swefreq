@@ -90,7 +90,7 @@ INSERT INTO user_consent_log (user_pk, dataset_version_pk, ts)
     FROM user_access_log AS ul
     JOIN dataset_version_current AS dvc
         ON (dvc.dataset_pk = ul.dataset_pk)
-    WHERE ul.action = 'consented';
+    WHERE ul.action = 'consent';
 
 -- Create user_download_log
 
