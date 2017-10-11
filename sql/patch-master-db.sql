@@ -94,6 +94,10 @@ CREATE TABLE IF NOT EXISTS user_download_log (
         REFERENCES dataset_file(dataset_file_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- TODO: Add unique constraint on linkhash.hash
+-- Add unique constraint on linkhash.hash
+
+ALTER TABLE linkhash
+        ADD CONSTRAINT UNIQUE (hash);
+
 -- TODO: Remove "consent" and "download" enums from dataset_access_log
 -- TODO: Remove has_concented from views
