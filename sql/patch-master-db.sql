@@ -81,6 +81,17 @@ CREATE TABLE IF NOT EXISTS user_consent_log (
         REFERENCES dataset_version(dataset_version_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+-- Insert data into user_consent_log.  This is assuming that the dataset
+-- that the user has consented to is the most current version of the
+-- dataset.
+
+INSERT INTO user_consent_log (user_pk, dataset_version_pk, ts)
+    SELECT ul.user_pk, dvc.dataset_version_pk, ul.ts
+    FROM user_access_log AS ul
+    JOIN dataset_version_current AS dvc
+        ON (dvc.dataset_pk = ul.dataset_pk)
+    WHERE ul.action = 'consented';
+
 -- Create user_download_log
 
 CREATE TABLE IF NOT EXISTS user_download_log (
