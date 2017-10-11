@@ -105,6 +105,19 @@ CREATE TABLE IF NOT EXISTS user_download_log (
         REFERENCES dataset_file(dataset_file_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+-- Insert data into user_download_log.  This is assuming that the
+-- dataset that the user has downloaded is the most current version of
+-- the dataset.
+
+INSERT INTO user_download_log (user_pk, dataset_file_pk, ts)
+    SELECT ul.user_pk, df.dataset_file_pk, ul.ts
+    FROM user_access_log AS ul
+    JOIN dataset_version_current AS dvc
+        ON (dvc.dataset_pk = ul.dataset_pk)
+    JOIN dataset_file AS df
+        ON (df.dataset_version_pk = dvc.dataset_version_pk)
+    WHERE ul.action = 'download';
+
 -- Add unique constraint on linkhash.hash
 
 ALTER TABLE linkhash
