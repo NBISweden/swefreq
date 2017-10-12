@@ -132,5 +132,3 @@ ALTER TABLE user_access_log
     CHANGE action
         action  ENUM ('access_requested','access_granted','access_revoked',
                       'private_link');
-
--- TODO: Remove has_concented from views
