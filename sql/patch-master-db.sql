@@ -126,7 +126,7 @@ ALTER TABLE linkhash
 -- Remove "consent" and "download" enums from user_access_log
 
 DELETE FROM user_access_log
-    WHERE action IN ('concent', 'download');
+    WHERE action IN ('consent', 'download');
 
 ALTER TABLE user_access_log
     CHANGE action
