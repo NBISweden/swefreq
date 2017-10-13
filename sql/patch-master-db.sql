@@ -6,7 +6,7 @@
 RENAME TABLE user_log TO user_access_log;
 ALTER TABLE user_access_log
     CHANGE user_log_pk
-    user_access_log_pk  INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT;
+    user_access_log_pk  INTEGER;
 
 DROP VIEW _user_log_summary;
 CREATE OR REPLACE VIEW _user_access_log_summary AS
