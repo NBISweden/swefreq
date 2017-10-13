@@ -83,12 +83,6 @@
                     $.param({'_xsrf': $cookies.get('_xsrf')})
                 );
         };
-        service.download = function(dataset) {
-            return $http.post(
-                    '/api/datasets/' + dataset + '/log/download',
-                    $.param({'_xsrf': $cookies.get('_xsrf')})
-                );
-        };
 
         return service;
     });
@@ -368,10 +362,6 @@
                 has_already_logged = true;
                 Log.consent(dataset, localThis.dataset.version.version);
             }
-        };
-
-        localThis.downloadData = function(){
-            Log.download(dataset);
         };
     }]);
 
