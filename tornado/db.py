@@ -14,63 +14,22 @@ class BaseModel(Model):
         database = database
 
 
-class Study(BaseModel):
-    study            = PrimaryKeyField(db_column='study_pk')
-    pi_name          = CharField()
-    pi_email         = CharField()
-    contact_name     = CharField()
-    contact_email    = CharField()
-    title            = CharField()
-    description      = TextField(null=True)
-    publication_date = DateTimeField()
-    ref_doi          = CharField(null=True)
+class EnumField(Field):
+    db_field = 'string' # The same as for CharField
 
-    class Meta:
-        db_table = 'study'
+    def __init__(self, values=[], *args, **kwargs):
+        self.values = values
+        super().__init__(*args, **kwargs)
 
+    def db_value(self, value):
+        if value not in self.values:
+            raise ValueError("Illegal value for '{}'".format(self.db_column))
+        return value
 
-class Collection(BaseModel):
-    collection = PrimaryKeyField(db_column = 'collection_pk')
-    name       = CharField(null = True)
-    ethnicity  = CharField(null = True)
-
-    class Meta:
-        db_table = 'collection'
-
-
-class Dataset(BaseModel):
-    dataset       = PrimaryKeyField(db_column='dataset_pk')
-    study         = ForeignKeyField(db_column='study_pk', rel_model=Study, to_field='study', related_name='datasets')
-    short_name    = CharField()
-    full_name     = CharField()
-    browser_uri   = CharField(null=True)
-    beacon_uri    = CharField(null=True)
-    avg_seq_depth = FloatField(null=True)
-    seq_type      = CharField(null=True)
-    seq_tech      = CharField(null=True)
-    seq_center    = CharField(null=True)
-    dataset_size  = IntegerField()
-
-    def has_image(self):
-        try:
-            DatasetLogo.get(DatasetLogo.dataset == self)
-            return True
-        except:
-            return False
-
-    class Meta:
-        db_table = 'dataset'
-
-
-class SampleSet(BaseModel):
-    sample_set  = PrimaryKeyField(db_column='sample_set_pk')
-    dataset     = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='sample_sets')
-    collection  = ForeignKeyField(db_column='collection_pk', rel_model=Collection, to_field='collection', related_name='sample_sets')
-    sample_size = IntegerField()
-    phenotype   = CharField(null=True)
-
-    class Meta:
-        db_table = 'sample_set'
+    def python_value(self, value):
+        if value not in self.values:
+            raise ValueError("Illegal value for '{}'".format(self.db_column))
+        return value
 
 
 class User(BaseModel):
@@ -101,6 +60,100 @@ class User(BaseModel):
 
     class Meta:
         db_table = 'user'
+
+
+class Study(BaseModel):
+    study            = PrimaryKeyField(db_column='study_pk')
+    pi_name          = CharField()
+    pi_email         = CharField()
+    contact_name     = CharField()
+    contact_email    = CharField()
+    title            = CharField()
+    description      = TextField(null=True)
+    publication_date = DateTimeField()
+    ref_doi          = CharField(null=True)
+
+    class Meta:
+        db_table = 'study'
+
+
+class Dataset(BaseModel):
+    dataset       = PrimaryKeyField(db_column='dataset_pk')
+    study         = ForeignKeyField(db_column='study_pk', rel_model=Study, to_field='study', related_name='datasets')
+    short_name    = CharField()
+    full_name     = CharField()
+    browser_uri   = CharField(null=True)
+    beacon_uri    = CharField(null=True)
+    avg_seq_depth = FloatField(null=True)
+    seq_type      = CharField(null=True)
+    seq_tech      = CharField(null=True)
+    seq_center    = CharField(null=True)
+    dataset_size  = IntegerField()
+
+    def has_image(self):
+        try:
+            DatasetLogo.get(DatasetLogo.dataset == self)
+            return True
+        except:
+            return False
+
+    class Meta:
+        db_table = 'dataset'
+
+
+class DatasetVersion(BaseModel):
+    dataset_version = PrimaryKeyField(db_column='dataset_version_pk')
+    dataset         = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='versions')
+    version         = CharField()
+    description     = TextField()
+    terms           = TextField()
+    var_call_ref    = CharField(null=True)
+    available_from  = DateTimeField()
+    ref_doi         = CharField(null=True)
+
+    class Meta:
+        db_table = 'dataset_version'
+
+
+class Collection(BaseModel):
+    collection = PrimaryKeyField(db_column = 'collection_pk')
+    name       = CharField(null = True)
+    ethnicity  = CharField(null = True)
+
+    class Meta:
+        db_table = 'collection'
+
+
+class SampleSet(BaseModel):
+    sample_set  = PrimaryKeyField(db_column='sample_set_pk')
+    dataset     = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='sample_sets')
+    collection  = ForeignKeyField(db_column='collection_pk', rel_model=Collection, to_field='collection', related_name='sample_sets')
+    sample_size = IntegerField()
+    phenotype   = CharField(null=True)
+
+    class Meta:
+        db_table = 'sample_set'
+
+
+class DatasetFile(BaseModel):
+    dataset_file    = PrimaryKeyField(db_column='dataset_file_pk')
+    dataset_version = ForeignKeyField(db_column='dataset_version_pk', rel_model=DatasetVersion, to_field='dataset_version', related_name='files')
+    name            = CharField()
+    uri             = CharField()
+
+    class Meta:
+        db_table = 'dataset_file'
+
+
+class UserLog(BaseModel):
+    user_log = PrimaryKeyField(db_column='user_log_pk')
+    user     = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='logs')
+    dataset  = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='logs')
+    action   = EnumField(null=True, values=['consent','download','access_requested','access_granted','access_revoked','private_link'])
+    ts       = DateTimeField()
+
+    class Meta:
+        db_table = 'user_log'
 
 
 class DatasetAccess(BaseModel):
@@ -139,37 +192,6 @@ class DatasetAccessPending(DatasetAccess):
         db_table = 'dataset_access_pending'
 
 
-class DatasetVersion(BaseModel):
-    dataset_version = PrimaryKeyField(db_column='dataset_version_pk')
-    dataset         = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='versions')
-    version         = CharField()
-    description     = TextField()
-    terms           = TextField()
-    var_call_ref    = CharField(null=True)
-    available_from  = DateTimeField()
-    ref_doi         = CharField(null=True)
-
-    class Meta:
-        db_table = 'dataset_version'
-
-
-class DatasetVersionCurrent(DatasetVersion):
-    dataset = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='current_version')
-
-    class Meta:
-        db_table = 'dataset_version_current'
-
-
-class DatasetFile(BaseModel):
-    dataset_file    = PrimaryKeyField(db_column='dataset_file_pk')
-    dataset_version = ForeignKeyField(db_column='dataset_version_pk', rel_model=DatasetVersion, to_field='dataset_version', related_name='files')
-    name            = CharField()
-    uri             = CharField()
-
-    class Meta:
-        db_table = 'dataset_file'
-
-
 class DatasetLogo(BaseModel):
     dataset_logo = PrimaryKeyField(db_column='dataset_logo_pk')
     dataset      = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='logo')
@@ -191,33 +213,11 @@ class Linkhash(BaseModel):
         db_table = 'linkhash'
 
 
-class EnumField(Field):
-    db_field = 'string' # The same as for CharField
-
-    def __init__(self, values=[], *args, **kwargs):
-        self.values = values
-        super().__init__(*args, **kwargs)
-
-    def db_value(self, value):
-        if value not in self.values:
-            raise ValueError("Illegal value for '{}'".format(self.db_column))
-        return value
-
-    def python_value(self, value):
-        if value not in self.values:
-            raise ValueError("Illegal value for '{}'".format(self.db_column))
-        return value
-
-
-class UserLog(BaseModel):
-    user_log = PrimaryKeyField(db_column='user_log_pk')
-    user     = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='logs')
-    dataset  = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='logs')
-    action   = EnumField(null=True, values=['consent','download','access_requested','access_granted','access_revoked','private_link'])
-    ts       = DateTimeField()
+class DatasetVersionCurrent(DatasetVersion):
+    dataset = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='current_version')
 
     class Meta:
-        db_table = 'user_log'
+        db_table = 'dataset_version_current'
 
 
 def get_dataset(dataset):
