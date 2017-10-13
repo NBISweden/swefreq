@@ -185,9 +185,6 @@ class DatasetAccess(BaseModel):
 
     class Meta:
         db_table = 'dataset_access'
-        indexes = (
-            (('dataset_pk', 'user_pk'), True),
-        )
 
 
 class DatasetAccessCurrent(DatasetAccess):
