@@ -170,7 +170,7 @@ class SafeStaticFileHandler(tornado.web.StaticFileHandler, SafeHandler):
     """
     pass
 
-class AuthorizedStaticNginxFileHanlder(AuthorizedHandler):
+class AuthorizedStaticNginxFileHandler(AuthorizedHandler):
     """ Serve static files for authenticated users from the nginx frontend
 
     Requires a ``path`` argument in constructor which should be the root of

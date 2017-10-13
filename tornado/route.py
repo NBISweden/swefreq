@@ -41,7 +41,7 @@ class Application(tornado.web.Application):
                                                                                          {"path": "static/"}),
             (r'/(favicon.ico)',                                                      tornado.web.StaticFileHandler,
                                                                                          {"path": "static/img/"}),
-            (r"/release/(?P<dataset>[^\/]+)/(?P<file>.*)",                           handlers.AuthorizedStaticNginxFileHanlder,
+            (r"/release/(?P<dataset>[^\/]+)/(?P<file>.*)",                           handlers.AuthorizedStaticNginxFileHandler,
                                                                                          {"path": "/release-files/"}),
             ## Authentication
             ("/login",                                                               handlers.LoginHandler),
