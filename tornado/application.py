@@ -299,7 +299,7 @@ class RequestAccess(handlers.SafeHandler):
                     )
                 da.wants_newsletter = newsletter
                 da.save()
-                db.UserLog.create(
+                db.UserAccessLog.create(
                         user = user,
                         dataset = dataset,
                         action = 'access_requested'
@@ -337,7 +337,7 @@ class ApproveUser(handlers.AdminHandler):
             da.has_access = True
             da.save()
 
-            db.UserLog.create(
+            db.UserAccessLog.create(
                     user = user,
                     dataset = dataset,
                     action = 'access_granted'
@@ -365,7 +365,7 @@ class RevokeUser(handlers.AdminHandler):
             dataset = db.get_dataset(dataset)
             user = db.User.select().where(db.User.email == email).get()
 
-            db.UserLog.create(
+            db.UserAccessLog.create(
                     user = user,
                     dataset = dataset,
                     action = 'access_revoked'
