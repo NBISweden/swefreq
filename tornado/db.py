@@ -159,7 +159,7 @@ class UserAccessLog(BaseModel):
 class UserConsentLog(BaseModel):
     user_consent_log = PrimaryKeyField(db_column='user_access_log_pk')
     user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='consent_logs')
-    dataset_version  = ForeignKeyField(db_column='dataset_pk', rel_model=DatasetVersion, to_field='dataset_version', related_name='consent_logs')
+    dataset_version  = ForeignKeyField(db_column='dataset_version_pk', rel_model=DatasetVersion, to_field='dataset_version', related_name='consent_logs')
     ts               = DateTimeField()
 
     class Meta:
@@ -169,11 +169,11 @@ class UserConsentLog(BaseModel):
 class UserDownloadLog(BaseModel):
     user_download_log = PrimaryKeyField(db_column='user_download_log_pk')
     user              = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='download_logs')
-    dataset_file      = ForeignKeyField(db_column='dataset_pk', rel_model=DatasetVersion, to_field='dataset_version', related_name='download_logs')
+    dataset_file      = ForeignKeyField(db_column='dataset_file_pk', rel_model=DatasetFile, to_field='dataset_file', related_name='download_logs')
     ts                = DateTimeField()
 
     class Meta:
-        db_table = 'user_consent_log'
+        db_table = 'user_download_log'
 
 
 class DatasetAccess(BaseModel):
