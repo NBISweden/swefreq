@@ -40,6 +40,18 @@ CREATE TABLE IF NOT EXISTS dataset (
     CONSTRAINT FOREIGN KEY (study_pk) REFERENCES study(study_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE IF NOT EXISTS dataset_version (
+    dataset_version_pk  INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    dataset_pk          INTEGER         NOT NULL,
+    version             VARCHAR(20)     NOT NULL,
+    description         TEXT            NOT NULL,
+    terms               TEXT            NOT NULL,
+    var_call_ref        VARCHAR(50)     DEFAULT NULL,
+    available_from      TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
+    ref_doi             VARCHAR(100)    DEFAULT NULL,
+    CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 CREATE TABLE IF NOT EXISTS collection (
     collection_pk       INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
     name                VARCHAR(100)    NOT NULL,
@@ -56,22 +68,51 @@ CREATE TABLE IF NOT EXISTS sample_set (
     CONSTRAINT FOREIGN KEY (collection_pk) REFERENCES collection(collection_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS user_log (
-    user_log_pk         INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS dataset_file (
+    dataset_file_pk     INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    dataset_version_pk  INTEGER         NOT NULL,
+    name                VARCHAR(100)    NOT NULL,
+    uri                 VARCHAR(200)    NOT NULL,
+    CONSTRAINT FOREIGN KEY (dataset_version_pk)
+        REFERENCES dataset_version(dataset_version_pk)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS user_access_log (
+    user_access_log_pk  INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
     user_pk             INTEGER         NOT NULL,
     dataset_pk          INTEGER         NOT NULL,
-    action  ENUM ('consent','download',
-                  'access_requested','access_granted','access_revoked',
+    action  ENUM ('access_requested','access_granted','access_revoked',
                   'private_link')       DEFAULT NULL,
     ts                  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT FOREIGN KEY (user_pk)    REFERENCES user(user_pk),
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE OR REPLACE VIEW _user_log_summary AS
-    SELECT MAX(user_log_pk) AS user_log_pk, user_pk, dataset_pk, action,
-           MAX(ts) AS ts
-    FROM user_log
+CREATE TABLE IF NOT EXISTS user_consent_log (
+    user_consent_log_pk INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    user_pk             INTEGER         NOT NULL,
+    dataset_version_pk  INTEGER         NOT NULL,
+    ts                  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT FOREIGN KEY (user_pk)    REFERENCES user(user_pk),
+    CONSTRAINT FOREIGN KEY (dataset_version_pk)
+        REFERENCES dataset_version(dataset_version_pk)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS user_download_log (
+    user_download_log_pk
+                        INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    user_pk             INTEGER         NOT NULL,
+    dataset_file_pk     INTEGER         NOT NULL,
+    ts                  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT FOREIGN KEY (user_pk)    REFERENCES user(user_pk),
+    CONSTRAINT FOREIGN KEY (dataset_file_pk)
+        REFERENCES dataset_file(dataset_file_pk)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE OR REPLACE VIEW _user_access_log_summary AS
+    SELECT MAX(user_access_log_pk) AS user_access_log_pk, user_pk,
+        dataset_pk, action, MAX(ts) AS ts
+    FROM user_access_log
     GROUP BY user_pk, dataset_pk, action;
 
 CREATE TABLE IF NOT EXISTS dataset_access (
@@ -89,24 +130,19 @@ CREATE OR REPLACE VIEW dataset_access_current AS
     SELECT DISTINCT
         access.*,
         TRUE AS has_access,
-        (consent.action IS NOT NULL) AS has_consented,
         request.ts AS access_requested
     FROM dataset_access AS access
     JOIN ( SELECT user_pk, dataset_pk, MAX(ts) AS ts
-           FROM user_log WHERE action = "access_requested"
+           FROM user_access_log WHERE action = "access_requested"
            GROUP BY user_pk, dataset_pk ) AS request
         ON access.user_pk = request.user_pk AND
            access.dataset_pk = request.dataset_pk
-    LEFT JOIN user_log AS consent
-        ON access.user_pk = consent.user_pk AND
-           access.dataset_pk = consent.dataset_pk AND
-           consent.action = 'consent'
     WHERE (access.user_pk, access.dataset_pk) IN (
         -- gets user_pk for all users with current access
         -- from https://stackoverflow.com/a/39190423/4941495
         SELECT granted.user_pk, granted.dataset_pk
-        FROM _user_log_summary AS granted
-        LEFT JOIN _user_log_summary AS revoked
+        FROM _user_access_log_summary AS granted
+        LEFT JOIN _user_access_log_summary AS revoked
                 ON granted.user_pk = revoked.user_pk AND
                    granted.dataset_pk = revoked.dataset_pk AND
                    revoked.action  = 'access_revoked'
@@ -119,27 +155,22 @@ CREATE OR REPLACE VIEW dataset_access_pending AS
     SELECT DISTINCT
         access.*,
         FALSE AS has_access,
-        (consent.action IS NOT NULL) AS has_consented,
         request.ts AS access_requested
     FROM dataset_access AS access
     JOIN ( SELECT user_pk, dataset_pk, MAX(ts) AS ts
-           FROM user_log WHERE action = "access_requested"
+           FROM user_access_log WHERE action = "access_requested"
            GROUP BY user_pk, dataset_pk ) AS request
         ON access.user_pk = request.user_pk AND
            access.dataset_pk = request.dataset_pk
-    LEFT JOIN user_log AS consent
-        ON access.user_pk = consent.user_pk AND
-           access.dataset_pk = consent.dataset_pk AND
-           consent.action = 'consent'
     WHERE (access.user_pk, access.dataset_pk) IN (
         -- get user_pk for all users that have pending access requests
         SELECT requested.user_pk, requested.dataset_pk
-        FROM _user_log_summary AS requested
-        LEFT JOIN _user_log_summary AS granted
+        FROM _user_access_log_summary AS requested
+        LEFT JOIN _user_access_log_summary AS granted
                 ON requested.user_pk = granted.user_pk AND
                    requested.dataset_pk = granted.dataset_pk AND
                    granted.action  = 'access_granted'
-        LEFT JOIN _user_log_summary AS revoked
+        LEFT JOIN _user_access_log_summary AS revoked
                 ON requested.user_pk = revoked.user_pk AND
                    requested.dataset_pk = revoked.dataset_pk AND
                    revoked.action  = 'access_revoked'
@@ -148,27 +179,6 @@ CREATE OR REPLACE VIEW dataset_access_pending AS
                 (revoked.user_pk IS NULL OR requested.ts > revoked.ts)
         GROUP BY requested.user_pk, requested.dataset_pk, requested.action
     );
-
-CREATE TABLE IF NOT EXISTS dataset_version (
-    dataset_version_pk  INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    dataset_pk          INTEGER         NOT NULL,
-    version             VARCHAR(20)     NOT NULL,
-    description         TEXT            NOT NULL,
-    terms               TEXT            NOT NULL,
-    var_call_ref        VARCHAR(50)     DEFAULT NULL,
-    available_from      TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
-    ref_doi             VARCHAR(100)    DEFAULT NULL,
-    CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-CREATE TABLE IF NOT EXISTS dataset_file (
-    dataset_file_pk     INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    dataset_version_pk  INTEGER         NOT NULL,
-    name                VARCHAR(100)    NOT NULL,
-    uri                 VARCHAR(200)    NOT NULL,
-    CONSTRAINT FOREIGN KEY (dataset_version_pk)
-        REFERENCES dataset_version(dataset_version_pk)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS dataset_logo (
     dataset_logo_pk     INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -185,6 +195,7 @@ CREATE TABLE IF NOT EXISTS linkhash (
     user_pk             INTEGER         NOT NULL,
     hash                VARCHAR(64)     NOT NULL,
     expires_on          TIMESTAMP       NOT NULL,
+    CONSTRAINT UNIQUE (hash),
     CONSTRAINT FOREIGN KEY (dataset_version_pk)
         REFERENCES dataset_version(dataset_version_pk),
     CONSTRAINT FOREIGN KEY (user_pk) REFERENCES user(user_pk)
