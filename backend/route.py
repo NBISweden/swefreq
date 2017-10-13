@@ -8,7 +8,7 @@ import application
 import handlers
 import settings
 import beacon
-import template
+#import template
 
 
 define("port", default=4000, help="run on the given port", type=int)
@@ -27,16 +27,19 @@ settings = {"debug": False,
             "contact_person": 'mats.dahlberg@scilifelab.se',
             "redirect_uri": redirect_uri,
             "xsrf_cookies": True,
-            "template_loader": template.Jinja2TemplateLoader('templates/'),
+            "template_path": "templates/",
+            #"template_loader": template.Jinja2TemplateLoader('templates/'),
         }
 
 class Application(tornado.web.Application):
     def __init__(self, settings):
         self.declared_handlers = [
             ## Angular templates
-            (r"/static/js/ng-templates/(?P<path>.*)",                                handlers.AngularTemplate,
-                                                                                         {"path": "ng-templates/"}),
+            #(r"/static/js/ng-templates/(?P<path>.*)",                                handlers.AngularTemplate,
+            #                                                                             {"path": "ng-templates/"}),
             ## Static handlers
+            (r"/static/js/ng-templates/(?P<path>.*)",                                tornado.web.StaticFileHandler,
+                                                                                         {"path": "templates/ng-templates/"}),
             (r"/static/(.*)",                                                        tornado.web.StaticFileHandler,
                                                                                          {"path": "static/"}),
             (r'/(favicon.ico)',                                                      tornado.web.StaticFileHandler,
@@ -74,6 +77,8 @@ class Application(tornado.web.Application):
             ## Catch all
             ("/api/.*",                                                              tornado.web.ErrorHandler,
                                                                                          {"status_code": 404} ),
+            (r'().*',                                                                  tornado.web.StaticFileHandler,
+                                                                                         {"path": "templates/",  "default_filename": "index.html"}),
             (r'.*',                                                                  application.Home),
         ]
 
