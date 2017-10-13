@@ -145,15 +145,35 @@ class DatasetFile(BaseModel):
         db_table = 'dataset_file'
 
 
-class UserLog(BaseModel):
-    user_log = PrimaryKeyField(db_column='user_log_pk')
-    user     = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='logs')
-    dataset  = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='logs')
-    action   = EnumField(null=True, values=['consent','download','access_requested','access_granted','access_revoked','private_link'])
-    ts       = DateTimeField()
+class UserAccessLog(BaseModel):
+    user_access_log = PrimaryKeyField(db_column='user_access_log_pk')
+    user            = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='access_logs')
+    dataset         = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='access_logs')
+    action          = EnumField(null=True, values=['access_requested','access_granted','access_revoked','private_link'])
+    ts              = DateTimeField()
 
     class Meta:
-        db_table = 'user_log'
+        db_table = 'user_access_log'
+
+
+class UserConsentLog(BaseModel):
+    user_consent_log = PrimaryKeyField(db_column='user_access_log_pk')
+    user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='consent_logs')
+    dataset_version  = ForeignKeyField(db_column='dataset_pk', rel_model=DatasetVersion, to_field='dataset_version', related_name='consent_logs')
+    ts               = DateTimeField()
+
+    class Meta:
+        db_table = 'user_consent_log'
+
+
+class UserDownloadLog(BaseModel):
+    user_download_log = PrimaryKeyField(db_column='user_download_log_pk')
+    user              = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='download_logs')
+    dataset_file      = ForeignKeyField(db_column='dataset_pk', rel_model=DatasetVersion, to_field='dataset_version', related_name='download_logs')
+    ts                = DateTimeField()
+
+    class Meta:
+        db_table = 'user_consent_log'
 
 
 class DatasetAccess(BaseModel):
@@ -173,7 +193,6 @@ class DatasetAccess(BaseModel):
 class DatasetAccessCurrent(DatasetAccess):
     dataset          = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='access_current')
     user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='access_current')
-    has_consented    = IntegerField()
     has_access       = IntegerField()
     access_requested = DateTimeField()
 
@@ -184,7 +203,6 @@ class DatasetAccessCurrent(DatasetAccess):
 class DatasetAccessPending(DatasetAccess):
     dataset          = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='access_pending')
     user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='access_pending')
-    has_consented    = IntegerField()
     has_access       = IntegerField()
     access_requested = DateTimeField()
 
