@@ -299,7 +299,7 @@ class RequestAccess(handlers.SafeHandler):
                     )
                 da.wants_newsletter = newsletter
                 da.save()
-                db.UserLog.create(
+                db.UserAccessLog.create(
                         user = user,
                         dataset = dataset,
                         action = 'access_requested'
@@ -309,15 +309,17 @@ class RequestAccess(handlers.SafeHandler):
 
 
 class LogEvent(handlers.SafeHandler):
-    def post(self, dataset, event):
+    def post(self, dataset, event, target):
         user = self.current_user
 
-        ok_events = ['download','consent']
-        if event in ok_events:
-            db.UserLog.create(
+        if event == 'consent':
+            dv = (db.DatasetVersion
+                    .select()
+                    .where(db.DatasetVersion.version==target)
+                    .get())
+            db.UserConsentLog.create(
                     user = user,
-                    dataset = db.get_dataset(dataset),
-                    action = event
+                    dataset_version = dv,
                 )
         else:
             raise tornado.web.HTTPError(400, reason="Can't log that")
@@ -337,7 +339,7 @@ class ApproveUser(handlers.AdminHandler):
             da.has_access = True
             da.save()
 
-            db.UserLog.create(
+            db.UserAccessLog.create(
                     user = user,
                     dataset = dataset,
                     action = 'access_granted'
@@ -365,7 +367,7 @@ class RevokeUser(handlers.AdminHandler):
             dataset = db.get_dataset(dataset)
             user = db.User.select().where(db.User.email == email).get()
 
-            db.UserLog.create(
+            db.UserAccessLog.create(
                     user = user,
                     dataset = dataset,
                     action = 'access_revoked'

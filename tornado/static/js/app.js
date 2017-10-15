@@ -78,14 +78,8 @@
         var service = {};
         $http.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded";
 
-        service.consent = function(dataset) {
-            return $http.post('/api/datasets/' + dataset + '/log/consent',
-                    $.param({'_xsrf': $cookies.get('_xsrf')})
-                );
-        };
-        service.download = function(dataset) {
-            return $http.post(
-                    '/api/datasets/' + dataset + '/log/download',
+        service.consent = function(dataset, version) {
+            return $http.post('/api/datasets/' + dataset + '/log/consent/' + version,
                     $.param({'_xsrf': $cookies.get('_xsrf')})
                 );
         };
@@ -366,12 +360,8 @@
         localThis.consented = function(){
             if (!has_already_logged){
                 has_already_logged = true;
-                Log.consent(dataset);
+                Log.consent(dataset, localThis.dataset.version.version);
             }
-        };
-
-        localThis.downloadData = function(){
-            Log.download(dataset);
         };
     }]);
 

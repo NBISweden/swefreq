@@ -170,7 +170,7 @@ class SafeStaticFileHandler(tornado.web.StaticFileHandler, SafeHandler):
     """
     pass
 
-class AuthorizedStaticNginxFileHanlder(AuthorizedHandler):
+class AuthorizedStaticNginxFileHandler(AuthorizedHandler):
     """ Serve static files for authenticated users from the nginx frontend
 
     Requires a ``path`` argument in constructor which should be the root of
@@ -188,6 +188,16 @@ class AuthorizedStaticNginxFileHanlder(AuthorizedHandler):
         self.root = path
 
     def get(self, dataset, file):
+        user = self.current_user
+        dbfile = (db.DatasetFile
+                  .select()
+                  .where(db.DatasetFile.name == file)
+                  .get())
+        db.UserDownloadLog.create(
+                user = user,
+                dataset_file = dbfile
+            )
+
         abspath = os.path.abspath(os.path.join(self.root, file))
         self.set_header("X-Accel-Redirect", abspath)
         self.set_header("Content-Disposition", "attachment")
