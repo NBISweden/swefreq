@@ -41,7 +41,7 @@ class Application(tornado.web.Application):
                                                                                          {"path": "static/"}),
             (r'/(favicon.ico)',                                                      tornado.web.StaticFileHandler,
                                                                                          {"path": "static/img/"}),
-            (r"/release/(?P<dataset>[^\/]+)/(?P<file>.*)",                           handlers.AuthorizedStaticNginxFileHanlder,
+            (r"/release/(?P<dataset>[^\/]+)/(?P<file>.*)",                           handlers.AuthorizedStaticNginxFileHandler,
                                                                                          {"path": "/release-files/"}),
             ## Authentication
             ("/login",                                                               handlers.LoginHandler),
@@ -52,7 +52,7 @@ class Application(tornado.web.Application):
             ### Dataset Api
             ("/api/datasets",                                                        application.ListDatasets),
             ("/api/datasets/(?P<dataset>[^\/]+)",                                    application.GetDataset),
-            ("/api/datasets/(?P<dataset>[^\/]+)/log/(?P<event>[^\/]+)",              application.LogEvent),
+            ("/api/datasets/(?P<dataset>[^\/]+)/log/(?P<event>[^\/]+)/(?P<target>[^\/]+)", application.LogEvent),
             ("/api/datasets/(?P<dataset>[^\/]+)/logo",                               application.ServeLogo),
             ("/api/datasets/(?P<dataset>[^\/]+)/files",                              application.DatasetFiles),
             ("/api/datasets/(?P<dataset>[^\/]+)/collection",                         application.Collection),
