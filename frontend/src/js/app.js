@@ -226,10 +226,17 @@
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    App.controller('mainController', function($location) {
+    App.controller('mainController', [ '$location', 'User', function($location, User) {
         var localThis = this;
         localThis.url = function () { return $location.path() };
-    });
+        localThis.logged_in = false;
+        User().then(function(data) {
+            localThis.user = data.data;
+            if ( localThis.user.user !== null ) {
+                localThis.logged_in = true;
+            }
+        });
+    }]);
 
     /////////////////////////////////////////////////////////////////////////////////////
 
@@ -458,18 +465,18 @@
     // configure routes
     App.config(function($routeProvider, $locationProvider) {
         $routeProvider
-            .when('/',                                           { templateUrl: 'static/js/ng-templates/home.html'             })
-            .when('/dataBeacon/',                                { templateUrl: 'static/js/ng-templates/dataBeacon.html'       })
-            .when('/dataset/:dataset',                           { templateUrl: 'static/js/ng-templates/dataset.html'          })
-            .when('/dataset/:dataset/terms',                     { templateUrl: 'static/js/ng-templates/dataset-terms.html'    })
-            .when('/dataset/:dataset/download',                  { templateUrl: 'static/js/ng-templates/dataset-download.html' })
-            .when('/dataset/:dataset/beacon',                    { templateUrl: 'static/js/ng-templates/dataset-beacon.html'   })
-            .when('/dataset/:dataset/admin',                     { templateUrl: 'static/js/ng-templates/dataset-admin.html'    })
-            .when('/dataset/:dataset/version/:version',          { templateUrl: 'static/js/ng-templates/dataset.html'          })
-            .when('/dataset/:dataset/version/:version/terms',    { templateUrl: 'static/js/ng-templates/dataset-terms.html'    })
-            .when('/dataset/:dataset/version/:version/download', { templateUrl: 'static/js/ng-templates/dataset-download.html' })
-            .when('/dataset/:dataset/version/:version/beacon',   { templateUrl: 'static/js/ng-templates/dataset-beacon.html'   })
-            .otherwise(                                 { templateUrl: 'static/js/ng-templates/404.html'              });
+            .when('/',                                           { templateUrl: 'static/templates/ng-templates/home.html'             })
+            .when('/dataBeacon/',                                { templateUrl: 'static/templates/ng-templates/dataBeacon.html'       })
+            .when('/dataset/:dataset',                           { templateUrl: 'static/templates/ng-templates/dataset.html'          })
+            .when('/dataset/:dataset/terms',                     { templateUrl: 'static/templates/ng-templates/dataset-terms.html'    })
+            .when('/dataset/:dataset/download',                  { templateUrl: 'static/templates/ng-templates/dataset-download.html' })
+            .when('/dataset/:dataset/beacon',                    { templateUrl: 'static/templates/ng-templates/dataset-beacon.html'   })
+            .when('/dataset/:dataset/admin',                     { templateUrl: 'static/templates/ng-templates/dataset-admin.html'    })
+            .when('/dataset/:dataset/version/:version',          { templateUrl: 'static/templates/ng-templates/dataset.html'          })
+            .when('/dataset/:dataset/version/:version/terms',    { templateUrl: 'static/templates/ng-templates/dataset-terms.html'    })
+            .when('/dataset/:dataset/version/:version/download', { templateUrl: 'static/templates/ng-templates/dataset-download.html' })
+            .when('/dataset/:dataset/version/:version/beacon',   { templateUrl: 'static/templates/ng-templates/dataset-beacon.html'   })
+            .otherwise(                                 { templateUrl: 'static/templates/ng-templates/404.html'              });
 
         // Use the HTML5 History API
         $locationProvider.html5Mode(true);

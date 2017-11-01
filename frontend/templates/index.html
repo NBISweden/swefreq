@@ -43,8 +43,8 @@
             ga('create', 'UA-85976442-1', 'auto');
             ga('send', 'pageview');
         </script>
-[% endif %]
         <!-- End Google Analytics -->
+[% endif %]
     </head>
     <!-- define angular controller -->
     <body ng-controller="mainController as mainCtrl">
@@ -63,11 +63,8 @@
                 <div class="collapse navbar-collapse" id="navbar-things">
                     <ul class="nav navbar-nav navbar-right">
                         <li><a ng-click="showAbout = !showAbout" style="cursor: pointer">About</a>
-                    [% if user_name %]
-                    <li><a href="/logout?next={{ mainCtrl.url() }}" target="_self" title="Logout {{user_name}}">Logout</a>
-                    [% else %]
-                    <li><a href="/login?next={{ mainCtrl.url() }}" target="_self">Login</a>
-                    [% endif %]
+                        <li ng-if="mainCtrl.logged_in == true"><a href="/logout?next={{ mainCtrl.url() }}" target="_self" title="Logout {{user_name}}">Logout</a></li>
+                        <li ng_if="mainCtrl.logged_in == false"><a href="/login?next={{ mainCtrl.url() }}" target="_self">Login</a></li>
                     </ul>
                 </div>
             </div>

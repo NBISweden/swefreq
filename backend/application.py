@@ -12,18 +12,6 @@ import handlers
 import settings
 
 
-class Home(handlers.UnsafeHandler):
-    def get(self, *args, **kwargs):
-        name = None
-        email = None
-        if self.current_user:
-            name = self.current_user.name
-            email = self.current_user.email
-
-        develop = self.settings.get('develop', False)
-        self.render('index.html', user_name=name, email=email, develop=develop)
-
-
 def build_dataset_structure(dataset_version, user=None, dataset=None):
     if dataset is None:
         dataset = dataset_version.dataset
