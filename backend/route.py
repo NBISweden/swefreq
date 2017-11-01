@@ -72,9 +72,8 @@ class Application(tornado.web.Application):
             ## Catch all
             ("/api/.*",                                                              tornado.web.ErrorHandler,
                                                                                          {"status_code": 404} ),
-            (r'^().*',                                                                  tornado.web.StaticFileHandler,
-                                                                                         {"path": "static/templates",  "default_filename": "index.html"}),
-            (r'.*',                                                                  application.Home),
+            (r'().*',                                                                  tornado.web.StaticFileHandler,
+                                                                                         {"path": "templates/",  "default_filename": "index.html"}),
         ]
 
         # google oauth key
