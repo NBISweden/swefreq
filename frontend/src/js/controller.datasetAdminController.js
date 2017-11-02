@@ -1,6 +1,6 @@
 (function() {
-    angular.module('App')
-    .controller('datasetAdminController', ['$http', '$routeParams', 'User', 'Dataset', 'DatasetUsers',
+    angular.module("App")
+    .controller("datasetAdminController", ["$http", "$routeParams", "User", "Dataset", "DatasetUsers",
                                 function($http, $routeParams, User, Dataset, DatasetUsers) {
         var localThis = this;
         var dataset = $routeParams["dataset"];
@@ -16,7 +16,7 @@
             localThis.user = data.data;
         });
 
-        Dataset($routeParams['dataset'], $routeParams['version']).then(function(data){
+        Dataset($routeParams["dataset"], $routeParams["version"]).then(function(data){
                 localThis.dataset = data.dataset;
             },
             function(error) {

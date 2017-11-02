@@ -1,6 +1,6 @@
 (function() {
-    angular.module('App')
-    .factory('Dataset', function($http, $q, $sce) {
+    angular.module("App")
+    .factory("Dataset", function($http, $q, $sce) {
         return function(dataset, version) {
             var state = {dataset: null};
             var defer = $q.defer();
@@ -8,9 +8,9 @@
             if (dataset === undefined) {
                 return defer.reject("No dataset provided");
             }
-            var dataset_uri = 'api/datasets/' + dataset;
+            var dataset_uri = "api/datasets/" + dataset;
             if (version) {
-                dataset_uri += '/versions/' + version;
+                dataset_uri += "/versions/" + version;
             }
 
             $q.all([
@@ -18,9 +18,9 @@
                     var d = data.data;
                     d.version.description = $sce.trustAsHtml( d.version.description );
                     d.version.terms       = $sce.trustAsHtml( d.version.terms );
-                    state['dataset'] = d;
+                    state["dataset"] = d;
                 }),
-                $http.get('/api/datasets/' + dataset + '/collection').then(function(data){
+                $http.get("/api/datasets/" + dataset + "/collection").then(function(data){
                     state.collections = data.data.collections;
                     state.study = data.data.study;
 
