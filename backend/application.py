@@ -261,17 +261,9 @@ class RequestAccess(handlers.SafeHandler):
     def post(self, dataset, *args, **kwargs):
         dataset = db.get_dataset(dataset)
 
-        email       = self.get_argument("email", default='', strip=False)
         affiliation = self.get_argument("affiliation", strip=False)
         country     = self.get_argument("country", strip=False)
         newsletter  = self.get_argument("newsletter", strip=False)
-
-        # This is the only chance for XSRF in the application
-        # avoid it by checking that the email sent by google is the same as
-        # supplied by the form post
-        user = self.current_user
-        if user.email != email:
-            return
 
         user.affiliation = affiliation
         user.country = country
