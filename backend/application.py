@@ -66,7 +66,7 @@ class ListDatasets(handlers.UnsafeHandler):
 
 
 class GetDataset(handlers.UnsafeHandler):
-    def get(self, dataset, version=None, *args, **kwargs):
+    def get(self, dataset, version=None):
         user = self.current_user
 
         current_version = False
@@ -100,7 +100,7 @@ class GetDataset(handlers.UnsafeHandler):
 
 
 class ListDatasetVersions(handlers.UnsafeHandler):
-    def get(self, dataset, *args, **kwargs):
+    def get(self, dataset):
         user = self.current_user
         dataset = db.get_dataset(dataset)
 
@@ -178,7 +178,7 @@ class Collection(handlers.UnsafeHandler):
 
 
 class GetUser(handlers.UnsafeHandler):
-    def get(self, *args, **kwargs):
+    def get(self):
         user = self.current_user
 
         ret = { 'user': None, 'email': None }
@@ -261,7 +261,6 @@ class RequestAccess(handlers.SafeHandler):
     def post(self, dataset, *args, **kwargs):
         dataset = db.get_dataset(dataset)
 
-        userName    = self.get_argument("userName", default='',strip=False)
         email       = self.get_argument("email", default='', strip=False)
         affiliation = self.get_argument("affiliation", strip=False)
         country     = self.get_argument("country", strip=False)

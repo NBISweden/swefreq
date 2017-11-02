@@ -1,6 +1,7 @@
 import handlers
 import pymongo
 import settings
+import tornado.web
 
 class Query(handlers.UnsafeHandler):
     def make_error_response(self):
@@ -17,16 +18,14 @@ class Query(handlers.UnsafeHandler):
                 val = self.get_argument(arg)
                 if arg in checks:
                     ret_str += checks[arg](val)
-            except:
+            except tornado.web.MissingArgumentError:
                 ret_str += arg + " is missing\n"
                 if arg in checks:
                     ret_str += checks[arg]("")
 
-        dataset = self.get_argument('dataset', 'MISSING')
-
         return ret_str
 
-    def get(self, *args, **kwargs):
+    def get(self):
         the_errors = self.make_error_response()
         if len(the_errors) > 0:
             self.set_status(400);
@@ -65,7 +64,7 @@ class Query(handlers.UnsafeHandler):
                 })
 
 class Info(handlers.UnsafeHandler):
-    def get(self, *args, **kwargs):
+    def get(self):
         query_uri = "%s://%s/query?" % ('https', self.request.host)
         self.write({
             'id': 'swefreq-beacon',

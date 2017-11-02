@@ -94,7 +94,7 @@ class Dataset(BaseModel):
         try:
             DatasetLogo.get(DatasetLogo.dataset == self)
             return True
-        except:
+        except DatasetLogo.DoesNotExist:
             return False
 
     class Meta:
