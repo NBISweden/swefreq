@@ -5,7 +5,6 @@
     .config(function($routeProvider, $locationProvider) {
         $routeProvider
             .when("/",                                           { templateUrl: "static/templates/ng-templates/home.html"             })
-            .when("/dataBeacon/",                                { templateUrl: "static/templates/ng-templates/dataBeacon.html"       })
             .when("/dataset/:dataset",                           { templateUrl: "static/templates/ng-templates/dataset.html"          })
             .when("/dataset/:dataset/terms",                     { templateUrl: "static/templates/ng-templates/dataset-terms.html"    })
             .when("/dataset/:dataset/download",                  { templateUrl: "static/templates/ng-templates/dataset-download.html" })
