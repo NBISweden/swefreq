@@ -5,10 +5,10 @@
 
         function _getBeaconReferences(name) {
             var references = [];
-            for (var i = 0; i<service.data["datasets"].length; i++) {
-                var dataset = service.data["datasets"][i];
-                if ( dataset["id"] == name ) {
-                    references.push(dataset["reference"]);
+            for (var i = 0; i < service.data.datasets.length; i++) {
+                var dataset = service.data.datasets[i];
+                if ( dataset.id === name ) {
+                    references.push(dataset.reference);
                 }
             }
             return references;

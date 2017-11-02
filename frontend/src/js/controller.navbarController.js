@@ -14,9 +14,9 @@
                     localThis.urlBase += "/version/" + $routeParams["version"];
                 }
                 DatasetVersions(localThis.dataset).then(function(data) {
-                    for (var ii = 0; ii < data.length; ii++) {
-                        if ( data[ii].name == localThis.thisVersion ) {
-                            data[ii].active = true;
+                    for (var i = 0; i < data.length; i++) {
+                        if ( data[i].name === localThis.thisVersion ) {
+                            data[i].active = true;
                             break;
                         }
                     }
@@ -26,10 +26,10 @@
         );
 
         localThis.createUrl = function(subpage, version) {
-            if (subpage == "admin") {
+            if (subpage === "admin") {
                 return "/dataset/" + localThis.dataset + "/" + subpage;
             }
-            if (subpage == "main") {
+            if (subpage === "main") {
                 subpage = "";
             }
             if (version) {

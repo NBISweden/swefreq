@@ -38,7 +38,7 @@
             else if (localThis.hasOwnProperty("dataset")) {
                 localThis.authorization_level = localThis.dataset.authorization_level;
             }
-        };
+        }
 
         localThis.sendRequest = function(valid){
             if (!valid) {
