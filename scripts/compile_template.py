@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 class Jinja2Renderer(object):
-    def __init__(self, dir):
+    def __init__(self, directory):
         self.env = jinja2.Environment(
                 block_start_string    = '[%',
                 block_end_string      = '%]',
@@ -13,7 +13,7 @@ class Jinja2Renderer(object):
                 comment_start_string  = '[#',
                 comment_end_string    = '#]',
 
-                loader=jinja2.FileSystemLoader( str(dir) )
+                loader=jinja2.FileSystemLoader( str(directory) )
             )
 
     def render(self, file, **kvargs):
