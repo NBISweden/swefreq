@@ -16,9 +16,9 @@ class Jinja2Renderer(object):
                 loader=jinja2.FileSystemLoader( str(directory) )
             )
 
-    def render(self, file, **kvargs):
+    def render(self, file, **kwargs):
         template = self.env.get_template( str(file) )
-        return template.render( **kvargs )
+        return template.render( **kwargs )
 
 def main():
     parser = argparse.ArgumentParser()
