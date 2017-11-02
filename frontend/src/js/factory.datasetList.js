@@ -5,7 +5,7 @@
             return $q(function(resolve,reject) {
                 $http.get("/api/datasets").success(function(res){
                     var len = res.data.length;
-                    var datasets = []
+                    var datasets = [];
                     for (var i = 0; i < len; i++) {
                         var d = res.data[i];
                         d.version.description = $sce.trustAsHtml(d.version.description);

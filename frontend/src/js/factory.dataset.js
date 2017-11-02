@@ -39,6 +39,6 @@
                 });
 
             return defer.promise;
-        }
+        };
     });
 })();

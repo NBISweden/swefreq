@@ -8,7 +8,7 @@
                 $http.get("/api/datasets/" + dataset + "/versions")
                     .then(function(data) {
                         resolve(data.data.data);
-                    })
+                    });
             });
         };
     });

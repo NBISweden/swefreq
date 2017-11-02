@@ -25,7 +25,7 @@
                     defer.resolve(_getBeaconReferences(name));
                 });
             }
-            return defer.promise
+            return defer.promise;
         };
 
         service.queryBeacon = function(query) {
