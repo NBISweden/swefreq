@@ -51,7 +51,7 @@
                 });
         };
 
-        has_already_logged = false;
+        var has_already_logged = false;
         localThis.consented = function(){
             if (!has_already_logged){
                 has_already_logged = true;

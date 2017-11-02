@@ -24,8 +24,8 @@
                     state.collections = data.data.collections;
                     state.study = data.data.study;
 
-                    cn = state.study.contact_name;
-                    state.study.contact_name_uc = cn.charAt(0).toUpperCase() + cn.slice(1);
+                    var contact_name = state.study.contact_name;
+                    state.study.contact_name_uc = contact_name.charAt(0).toUpperCase() + contact_name.slice(1);
                 })
             ]).then(function(data) {
                     defer.resolve(state);

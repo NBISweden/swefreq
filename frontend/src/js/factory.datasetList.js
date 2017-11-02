@@ -7,7 +7,7 @@
                     var len = res.data.length;
                     var datasets = []
                     for (var i = 0; i < len; i++) {
-                        d = res.data[i];
+                        var d = res.data[i];
                         d.version.description = $sce.trustAsHtml(d.version.description);
                         if (d.future) {
                             d.urlbase = "/dataset/" + d.short_name + "/version/" + d.version.version;

@@ -25,7 +25,7 @@
 
         localThis.search = function() {
             Beacon.queryBeacon(localThis).then(function (response) {
-                    d = response.data;
+                    var d = response.data;
                     d.query.position += 1; // Beacon is 0-based
                     d.response.state = d.response.exists ? "Present" : "Absent";
                     localThis.queryResponses.push(d);
