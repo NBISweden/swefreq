@@ -37,7 +37,7 @@
 }
 
 
-// Affiliate footer
+/* Affiliate footer */
 footer img.logo {
     display: block;
     margin-left: auto;
@@ -72,7 +72,7 @@ img.logo.elixir {
 }
 
 
-// For beacon form validation
+/* For beacon form validation */
 input.ng-dirty.ng-valid, select.ng-dirty.ng-valid {
     border: 1px solid Green;
     background-color: #F5FFF5;
@@ -109,7 +109,7 @@ ul.samples li:first-child {
 }
 
 
-// Dataset box CSS
+/* Dataset box CSS */
 .dataset-panel {
     display: flex;
     flex-direction: column;
