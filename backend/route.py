@@ -28,7 +28,6 @@ settings = {"debug": False,
             "redirect_uri": redirect_uri,
             "xsrf_cookies": True,
             "template_path": "templates/",
-            #"template_loader": template.Jinja2TemplateLoader('templates/'),
         }
 
 class Application(tornado.web.Application):
