@@ -12,14 +12,6 @@ class BaseHandler(tornado.web.RequestHandler):
     class directly but from either SafeHandler or UnsafeHandler
     to make security status explicit.
     """
-    def get(self):
-        """ The GET method on this handler will be overwritten by all other handler.
-        As it is the default handler used to match any request that is not mapped
-        in the main app, a 404 error will be raised in that case (because the get method
-        won't be overwritten in that case)
-        """
-        raise tornado.web.HTTPError(404, reason='Page not found')
-
     def prepare(self):
         ## Make sure we have the xsrf_token
         self.xsrf_token
@@ -208,5 +200,5 @@ class AngularTemplate(UnsafeHandler):
     def initialize(self, path):
         self.root = path
 
-    def get(self, path, *args, **kwargs):
+    def get(self, path):
         self.render(self.root + path)

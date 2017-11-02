@@ -1,19 +1,19 @@
 (function() {
-    angular.module('App')
-    .factory('DatasetList', function($http, $q, $sce) {
+    angular.module("App")
+    .factory("DatasetList", function($http, $q, $sce) {
         return function() {
             return $q(function(resolve,reject) {
-                $http.get('/api/datasets').success(function(res){
+                $http.get("/api/datasets").success(function(res){
                     var len = res.data.length;
-                    var datasets = []
+                    var datasets = [];
                     for (var i = 0; i < len; i++) {
-                        d = res.data[i];
+                        var d = res.data[i];
                         d.version.description = $sce.trustAsHtml(d.version.description);
                         if (d.future) {
-                            d.urlbase = '/dataset/' + d.short_name + '/version/' + d.version.version;
+                            d.urlbase = "/dataset/" + d.short_name + "/version/" + d.version.version;
                         }
                         else {
-                            d.urlbase = '/dataset/' + d.short_name;
+                            d.urlbase = "/dataset/" + d.short_name;
                         }
 
                         datasets.push(d);
