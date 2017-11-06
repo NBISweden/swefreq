@@ -1,6 +1,6 @@
 (function() {
     angular.module("App")
-    .factory("Beacon", function($http) {
+    .factory("Beacon", ["$http", function($http) {
         return {
             getBeaconReferences: getBeaconReferences,
             queryBeacon: queryBeacon
@@ -34,5 +34,5 @@
                 }
             );
         };
-    });
+    }]);
 })();

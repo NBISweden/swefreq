@@ -1,6 +1,6 @@
 (function() {
     angular.module("App")
-    .factory("User", function($http) {
+    .factory("User", ["$http", function($http) {
         return {
             getUser: getUser,
         };
@@ -12,5 +12,5 @@
                 }
             );
         };
-    });
+    }]);
 })();

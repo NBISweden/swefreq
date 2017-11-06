@@ -1,6 +1,6 @@
 (function() {
     angular.module("App")
-    .factory("Log", function($http, $cookies) {
+    .factory("Log", ["$http", "$cookies", function($http, $cookies) {
         $http.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded";
         return {
             consent: consent,
@@ -12,5 +12,5 @@
                 $.param({"_xsrf": $cookies.get("_xsrf")})
             );
         };
-    });
+    }]);
 })();

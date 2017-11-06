@@ -1,6 +1,6 @@
 (function() {
     angular.module("App")
-    .factory("Dataset", function($http, $q, $sce) {
+    .factory("Dataset", ["$http", "$q", "$sce", function($http, $q, $sce) {
         return {
             getDataset: getDataset
         };
@@ -44,5 +44,5 @@
 
             return defer.promise;
         };
-    });
+    }]);
 })();

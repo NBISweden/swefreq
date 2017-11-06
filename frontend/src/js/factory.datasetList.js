@@ -1,6 +1,6 @@
 (function() {
     angular.module("App")
-    .factory("DatasetList", function($http, $sce) {
+    .factory("DatasetList", ["$http", "$sce", function($http, $sce) {
         return {
             getDatasetList: getDatasetList,
         };
@@ -26,5 +26,5 @@
                 return datasets
             });
         };
-    });
+    }]);
 })();

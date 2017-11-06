@@ -1,6 +1,6 @@
 (function() {
     angular.module("App")
-    .factory("DatasetUsers", function($http, $cookies, $q) {
+    .factory("DatasetUsers", ["$http", "$cookies", "$q", function($http, $cookies, $q) {
         $http.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded";
         return {
             getUsers: getUsers,
@@ -57,5 +57,5 @@
                 }
             );
         };
-    });
+    }]);
 })();

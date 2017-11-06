@@ -1,6 +1,6 @@
 (function() {
     angular.module("App")
-    .factory("DatasetVersions", function($http) {
+    .factory("DatasetVersions", ["$http", function($http) {
         return {
             getDatasetVersions: getDatasetVersions,
         };
@@ -11,5 +11,5 @@
                 }
             );
         };
-    });
+    }]);
 })();
