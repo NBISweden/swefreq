@@ -23,7 +23,7 @@ javascript: static/js/app.js
 
 static/js/app.js: $(JAVASCRIPT_FILES)
 	mkdir -p $$( dirname $@ )
-	for F in $^; do cat $$F; done >$@
+	cat $^ >$@
 
 static/templates/%.html: frontend/templates/%.html
 	mkdir -p $$( dirname $@ ) 2>/dev/null || true
