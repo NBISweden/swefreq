@@ -113,8 +113,6 @@ ul.samples li:first-child {
 .dataset-panel {
     display: flex;
     flex-direction: column;
-    border: 1px solid black;
-    border-radius: 5px;
     overflow: hidden;
     margin-bottom: 20px;
 }
