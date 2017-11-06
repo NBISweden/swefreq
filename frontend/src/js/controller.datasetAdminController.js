@@ -4,6 +4,8 @@
                                 function($routeParams, User, Dataset, DatasetUsers) {
         var localThis = this;
         var dataset = $routeParams["dataset"];
+        localThis.revokeUser = revokeUser;
+        localThis.approveUser = approveUser;
 
         activate();
 
@@ -34,7 +36,7 @@
         }
 
 
-        localThis.revokeUser = function(userData) {
+        function revokeUser(userData) {
             DatasetUsers.revokeUser(
                     dataset, userData.email
                 ).success(function(data){
@@ -42,7 +44,7 @@
                 });
         };
 
-        localThis.approveUser = function(userData){
+        function approveUser(userData){
             DatasetUsers.approveUser(
                     dataset, userData.email
                 ).success(function(data) {

@@ -3,6 +3,7 @@
     .controller("navbarController", ["$routeParams", "Dataset", "DatasetVersions", function($routeParams, Dataset, DatasetVersions) {
         var localThis = this;
         localThis.is_admin = false;
+        localThis.createUrl = createUrl;
 
         activate();
 
@@ -29,7 +30,7 @@
             );
         }
 
-        localThis.createUrl = function(subpage, version) {
+        function createUrl(subpage, version) {
             if (subpage === "admin") {
                 return "/dataset/" + localThis.dataset + "/" + subpage;
             }

@@ -5,6 +5,8 @@
         var localThis = this;
         var dataset = $routeParams["dataset"];
         localThis.authorization_level = "loggedout";
+        localThis.sendRequest = sendRequest;
+        localThis.consented = consented;
 
         activate();
 
@@ -45,7 +47,7 @@
             }
         }
 
-        localThis.sendRequest = function(valid){
+        function sendRequest(valid){
             if (!valid) {
                 return;
             }
@@ -57,7 +59,7 @@
         };
 
         var has_already_logged = false;
-        localThis.consented = function(){
+        function consented(){
             if (!has_already_logged){
                 has_already_logged = true;
                 Log.consent(dataset, localThis.dataset.version.version);

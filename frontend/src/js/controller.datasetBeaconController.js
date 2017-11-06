@@ -5,6 +5,7 @@
         var localThis = this;
         var dataset = $routeParams["dataset"];
         localThis.queryResponses = [];
+        localThis.search = search;
 
         activate();
 
@@ -29,7 +30,7 @@
                 });
         }
 
-        localThis.search = function() {
+        function search() {
             Beacon.queryBeacon(localThis).then(function (response) {
                     var d = response.data;
                     d.query.position += 1; // Beacon is 0-based
