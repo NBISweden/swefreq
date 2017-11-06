@@ -6,30 +6,35 @@
         var dataset = $routeParams["dataset"];
         localThis.authorization_level = "loggedout";
 
-        $http.get("/api/countries").success(function(data) {
-            localThis.availableCountries = data["countries"];
-        });
+        activate();
 
-        User.getUser().then(function(data) {
-            localThis.user = data;
-            updateAuthorizationLevel();
-        });
 
-        Dataset.getDataset($routeParams["dataset"], $routeParams["version"]).then(function(data){
-                localThis.dataset = data.dataset;
-                updateAuthorizationLevel();
-            },
-            function(error) {
-                localThis.error = error;
+        function activate() {
+            $http.get("/api/countries").success(function(data) {
+                localThis.availableCountries = data["countries"];
             });
 
-        var file_uri = "/api/datasets/" + dataset + "/files";
-        if ( $routeParams["version"] ) {
-            file_uri = "/api/datasets/" + dataset + "/versions/" + $routeParams["version"] + "/files";
+            User.getUser().then(function(data) {
+                localThis.user = data;
+                updateAuthorizationLevel();
+            });
+
+            Dataset.getDataset($routeParams["dataset"], $routeParams["version"]).then(function(data){
+                    localThis.dataset = data.dataset;
+                    updateAuthorizationLevel();
+                },
+                function(error) {
+                    localThis.error = error;
+                });
+
+            var file_uri = "/api/datasets/" + dataset + "/files";
+            if ( $routeParams["version"] ) {
+                file_uri = "/api/datasets/" + dataset + "/versions/" + $routeParams["version"] + "/files";
+            }
+            $http.get(file_uri).success(function(data){
+                localThis.files = data.files;
+            });
         }
-        $http.get(file_uri).success(function(data){
-            localThis.files = data.files;
-        });
 
         function updateAuthorizationLevel () {
             if (!localThis.hasOwnProperty("user") || localThis.user.user == null) {

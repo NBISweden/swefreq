@@ -5,17 +5,22 @@
         var localThis = this;
         var dataset = $routeParams["dataset"];
 
-        User.getUser().then(function(data) {
-            localThis.user = data;
-        });
+        activate();
 
-        Dataset.getDataset($routeParams["dataset"], $routeParams["version"]).then(function(data){
-                localThis.dataset = data.dataset;
-                localThis.collections = data.collections;
-                localThis.study = data.study;
-            },
-            function(error) {
-                localThis.error = error;
+        function activate() {
+            User.getUser().then(function(data) {
+                localThis.user = data;
             });
+
+            Dataset.getDataset($routeParams.dataset, $routeParams.version)
+                .then(function(data){
+                    localThis.dataset = data.dataset;
+                    localThis.collections = data.collections;
+                    localThis.study = data.study;
+                },
+                function(error) {
+                    localThis.error = error;
+            });
+        }
     }]);
 })();

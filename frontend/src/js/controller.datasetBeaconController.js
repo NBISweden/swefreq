@@ -6,22 +6,28 @@
         var dataset = $routeParams["dataset"];
         localThis.queryResponses = [];
 
-        Beacon.getBeaconReferences(dataset).then(
-                function(data) {
-                    localThis.references = data;
-                }
-            );
+        activate();
 
-        User.getUser().then(function(data) {
-            localThis.user = data;
-        });
 
-        Dataset.getDataset($routeParams["dataset"], $routeParams["version"]).then(function(data){
-                localThis.dataset = data.dataset;
-            },
-            function(error) {
-                localThis.error = error;
+        function activate() {
+            Beacon.getBeaconReferences(dataset).then(
+                    function(data) {
+                        localThis.references = data;
+                    }
+                );
+
+            User.getUser().then(function(data) {
+                localThis.user = data;
             });
+
+            Dataset.getDataset($routeParams["dataset"], $routeParams["version"])
+                .then(function(data){
+                    localThis.dataset = data.dataset;
+                },
+                function(error) {
+                    localThis.error = error;
+                });
+        }
 
         localThis.search = function() {
             Beacon.queryBeacon(localThis).then(function (response) {

@@ -5,23 +5,34 @@
         var localThis = this;
         var dataset = $routeParams["dataset"];
 
-        getUsers();
-        function getUsers() {
-            DatasetUsers.getUsers( dataset ).then( function(data) {
-                localThis.users = data;
+        activate();
+
+        function activate() {
+            getUsers();
+
+            User.getUser().then(function(data) {
+                localThis.user = data.data;
             });
+
+            Dataset.getDataset($routeParams["dataset"], $routeParams["version"])
+                .then(function(data) {
+                    localThis.dataset = data.dataset;
+                },
+                function(error) {
+                    localThis.error = error;
+                }
+            );
+
         }
 
-        User.getUser().then(function(data) {
-            localThis.user = data;
-        });
+        function getUsers() {
+            DatasetUsers.getUsers( dataset )
+                .then( function(data) {
+                    localThis.users = data;
+                }
+            );
+        }
 
-        Dataset.getDataset($routeParams["dataset"], $routeParams["version"]).then(function(data){
-                localThis.dataset = data.dataset;
-            },
-            function(error) {
-                localThis.error = error;
-            });
 
         localThis.revokeUser = function(userData) {
             DatasetUsers.revokeUser(

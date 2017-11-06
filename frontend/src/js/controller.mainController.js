@@ -5,11 +5,15 @@
         localThis.url = function () { return $location.path(); };
         localThis.logged_in = false;
 
-        User.getUser().then(function(data) {
-            localThis.user = data;
-            if ( localThis.user.user !== null ) {
-                localThis.logged_in = true;
-            }
-        });
+        activate();
+
+        function activate() {
+            User.getUser().then(function(data) {
+                localThis.user = data;
+                if ( localThis.user.user !== null ) {
+                    localThis.logged_in = true;
+                }
+            });
+        }
     }]);
 })();
