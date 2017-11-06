@@ -6,7 +6,7 @@
         localThis.logged_in = false;
 
         User.getUser().then(function(data) {
-            localThis.user = data.data;
+            localThis.user = data;
             if ( localThis.user.user !== null ) {
                 localThis.logged_in = true;
             }

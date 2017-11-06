@@ -11,7 +11,7 @@
         });
 
         User.getUser().then(function(data) {
-            localThis.user = data.data;
+            localThis.user = data;
             updateAuthorizationLevel();
         });
 

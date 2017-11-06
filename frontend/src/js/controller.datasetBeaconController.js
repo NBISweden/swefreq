@@ -13,7 +13,7 @@
             );
 
         User.getUser().then(function(data) {
-            localThis.user = data.data;
+            localThis.user = data;
         });
 
         Dataset.getDataset($routeParams["dataset"], $routeParams["version"]).then(function(data){
