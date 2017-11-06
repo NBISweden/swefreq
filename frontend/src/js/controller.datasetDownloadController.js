@@ -1,7 +1,7 @@
 (function() {
     angular.module("App")
-    .controller("datasetDownloadController", ["$http", "$routeParams", "User", "Dataset", "DatasetUsers", "Log",
-                                function($http, $routeParams, User, Dataset, DatasetUsers, Log) {
+    .controller("datasetDownloadController", ["$http", "$routeParams", "User", "Dataset", "DatasetUsers", "Log", "DatasetFiles",
+                                function($http, $routeParams, User, Dataset, DatasetUsers, Log, DatasetFiles) {
         var localThis = this;
         var dataset = $routeParams.dataset;
         localThis.authorization_level = "loggedout";
@@ -31,13 +31,11 @@
                 }
             );
 
-            var file_uri = "/api/datasets/" + dataset + "/files";
-            if ( $routeParams.version ) {
-                file_uri = "/api/datasets/" + dataset + "/versions/" + $routeParams.version + "/files";
-            }
-            $http.get(file_uri).then(function(data) {
-                localThis.files = data.data.files;
-            });
+            DatasetFiles.getFiles($routeParams.dataset, $routeParams.version)
+                .then(function(data) {
+                    localThis.files = data;
+                }
+            );
         }
 
         function updateAuthorizationLevel() {
