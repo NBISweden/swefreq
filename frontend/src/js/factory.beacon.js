@@ -1,7 +1,10 @@
 (function() {
     angular.module("App")
     .factory("Beacon", function($http, $q) {
-        var service = {};
+        return {
+            getBeaconReferences: getBeaconReferences,
+            queryBeacon: queryBeacon
+        }
 
         function _getBeaconReferences(name) {
             var references = [];
@@ -14,7 +17,7 @@
             return references;
         }
 
-        service.getBeaconReferences = function(name) {
+        function getBeaconReferences(name) {
             var defer = $q.defer();
             if ( service.hasOwnProperty("id") ) {
                 defer.resolve( _getBeaconReferences(name) );
@@ -28,7 +31,7 @@
             return defer.promise;
         };
 
-        service.queryBeacon = function(query) {
+        function queryBeacon(query) {
             return $http.get("/api/beacon/query", {
                     "params": {
                         "chrom":           query.chromosome,
@@ -40,7 +43,5 @@
                     }
                 });
         };
-
-        return service;
     });
 })();

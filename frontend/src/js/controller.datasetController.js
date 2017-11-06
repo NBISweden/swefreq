@@ -5,11 +5,11 @@
         var localThis = this;
         var dataset = $routeParams["dataset"];
 
-        User().then(function(data) {
+        User.getUser().then(function(data) {
             localThis.user = data.data;
         });
 
-        Dataset($routeParams["dataset"], $routeParams["version"]).then(function(data){
+        Dataset.getDataset($routeParams["dataset"], $routeParams["version"]).then(function(data){
                 localThis.dataset = data.dataset;
                 localThis.collections = data.collections;
                 localThis.study = data.study;

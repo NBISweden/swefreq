@@ -1,7 +1,10 @@
 (function() {
     angular.module("App")
     .factory("DatasetVersions", function($http, $q) {
-        return function(dataset) {
+        return {
+            getDatasetVersions: getDatasetVersions,
+        };
+        function getDatasetVersions(dataset) {
             // Hide the ugly implementation details by using $q to return an
             // async object that resolves to the content of the REST call.
             return $q(function(resolve,reject) {

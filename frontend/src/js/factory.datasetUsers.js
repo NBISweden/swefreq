@@ -1,10 +1,15 @@
 (function() {
     angular.module("App")
     .factory("DatasetUsers", function($http, $cookies, $q) {
-        var service = {};
         $http.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded";
+        return {
+            getUsers: getUsers,
+            approveUser: approveUser,
+            revokeUser: revokeUser,
+            requestAccess: requestAccess,
+        };
 
-        service.getUsers = function(dataset) {
+         function getUsers(dataset) {
             var defer = $q.defer();
             var data = {"pending": [], "current": []};
             $q.all([
@@ -20,21 +25,21 @@
             return defer.promise;
         };
 
-        service.approveUser = function(dataset, email) {
+         function approveUser(dataset, email) {
             return $http.post(
                     "/api/datasets/" + dataset + "/users/" + email + "/approve",
                     $.param({"_xsrf": $cookies.get("_xsrf")})
                 );
         };
 
-        service.revokeUser = function(dataset, email) {
+         function revokeUser(dataset, email) {
             return $http.post(
                     "/api/datasets/" + dataset + "/users/" + email + "/revoke",
                     $.param({"_xsrf": $cookies.get("_xsrf")})
                 )
         };
 
-        service.requestAccess = function(dataset, user) {
+         function requestAccess(dataset, user) {
             return $http({url:"/api/datasets/" + dataset + "/users/" + user.email + "/request",
                    method:"POST",
                    data:$.param({
@@ -47,7 +52,5 @@
                         })
                 });
         };
-
-        return service;
     });
 })();

@@ -1,7 +1,11 @@
 (function() {
     angular.module("App")
     .factory("DatasetList", function($http, $q, $sce) {
-        return function() {
+        return {
+            getDatasetList: getDatasetList,
+        };
+
+        function getDatasetList() {
             return $q(function(resolve,reject) {
                 $http.get("/api/datasets").success(function(res){
                     var len = res.data.length;

@@ -1,7 +1,11 @@
 (function() {
     angular.module("App")
     .factory("Dataset", function($http, $q, $sce) {
-        return function(dataset, version) {
+        return {
+            getDataset: getDataset
+        };
+
+        function getDataset(dataset, version) {
             var state = {dataset: null};
             var defer = $q.defer();
 
