@@ -1,34 +1,24 @@
 (function() {
     angular.module("App")
-    .factory("Beacon", function($http, $q) {
+    .factory("Beacon", function($http) {
         return {
             getBeaconReferences: getBeaconReferences,
             queryBeacon: queryBeacon
         }
 
-        function _getBeaconReferences(name) {
-            var references = [];
-            for (var i = 0; i < service.data.datasets.length; i++) {
-                var dataset = service.data.datasets[i];
-                if ( dataset.id === name ) {
-                    references.push(dataset.reference);
-                }
-            }
-            return references;
-        }
-
         function getBeaconReferences(name) {
-            var defer = $q.defer();
-            if ( service.hasOwnProperty("id") ) {
-                defer.resolve( _getBeaconReferences(name) );
-            }
-            else {
-                $http.get("/api/beacon/info").success(function(data) {
-                    service.data = data;
-                    defer.resolve(_getBeaconReferences(name));
-                });
-            }
-            return defer.promise;
+            return $http.get("/api/beacon/info").then(function(data) {
+                var references = [];
+                var d = data.data.datasets;
+                console.log(d);
+                for (var i = 0; i < d.length; i++) {
+                    var dataset = d[i];
+                    if (dataset.id === name) {
+                        references.push(dataset.reference);
+                    }
+                }
+                return references;
+            });
         };
 
         function queryBeacon(query) {
