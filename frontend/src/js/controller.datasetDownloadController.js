@@ -3,7 +3,7 @@
     .controller("datasetDownloadController", ["$http", "$routeParams", "User", "Dataset", "DatasetUsers", "Log",
                                 function($http, $routeParams, User, Dataset, DatasetUsers, Log) {
         var localThis = this;
-        var dataset = $routeParams["dataset"];
+        var dataset = $routeParams.dataset;
         localThis.authorization_level = "loggedout";
         localThis.sendRequest = sendRequest;
         localThis.consented = consented;
@@ -21,7 +21,7 @@
                 updateAuthorizationLevel();
             });
 
-            Dataset.getDataset($routeParams["dataset"], $routeParams["version"])
+            Dataset.getDataset($routeParams.dataset, $routeParams.version)
                 .then(function(data) {
                     localThis.dataset = data.dataset;
                     updateAuthorizationLevel();
@@ -32,8 +32,8 @@
             );
 
             var file_uri = "/api/datasets/" + dataset + "/files";
-            if ( $routeParams["version"] ) {
-                file_uri = "/api/datasets/" + dataset + "/versions/" + $routeParams["version"] + "/files";
+            if ( $routeParams.version ) {
+                file_uri = "/api/datasets/" + dataset + "/versions/" + $routeParams.version + "/files";
             }
             $http.get(file_uri).success(function(data) {
                 localThis.files = data.files;

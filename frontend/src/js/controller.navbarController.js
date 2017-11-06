@@ -8,15 +8,15 @@
         activate();
 
         function activate() {
-            Dataset.getDataset($routeParams["dataset"], $routeParams["version"])
+            Dataset.getDataset($routeParams.dataset, $routeParams.version)
                 .then(function(data) {
                     localThis.is_admin    = data.dataset.is_admin;
                     localThis.dataset     = data.dataset.short_name;
                     localThis.browser_uri = data.dataset.browser_uri;
                     localThis.urlBase     = "/dataset/" + localThis.dataset;
                     localThis.thisVersion = data.dataset.version.version;
-                    if ($routeParams["version"]) {
-                        localThis.urlBase += "/version/" + $routeParams["version"];
+                    if ($routeParams.version) {
+                        localThis.urlBase += "/version/" + $routeParams.version;
                     }
 
                     DatasetVersions.getDatasetVersions(localThis.dataset)

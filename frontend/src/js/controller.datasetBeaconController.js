@@ -3,7 +3,6 @@
     .controller("datasetBeaconController", ["$routeParams", "Beacon", "Dataset", "User",
                                 function($routeParams, Beacon, Dataset, User) {
         var localThis = this;
-        var dataset = $routeParams["dataset"];
         localThis.queryResponses = [];
         localThis.search = search;
 
@@ -21,7 +20,7 @@
                 localThis.user = data;
             });
 
-            Dataset.getDataset($routeParams["dataset"], $routeParams["version"])
+            Dataset.getDataset($routeParams.dataset, $routeParams.version)
                 .then(function(data) {
                     localThis.dataset = data.dataset;
                 },
