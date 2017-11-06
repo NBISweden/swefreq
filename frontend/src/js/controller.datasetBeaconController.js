@@ -1,7 +1,7 @@
 (function() {
     angular.module("App")
-    .controller("datasetBeaconController", ["$http", "$routeParams", "Beacon", "Dataset", "User",
-                                function($http, $routeParams, Beacon, Dataset, User) {
+    .controller("datasetBeaconController", ["$routeParams", "Beacon", "Dataset", "User",
+                                function($routeParams, Beacon, Dataset, User) {
         var localThis = this;
         var dataset = $routeParams["dataset"];
         localThis.queryResponses = [];

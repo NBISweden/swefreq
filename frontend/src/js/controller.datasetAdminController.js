@@ -1,7 +1,7 @@
 (function() {
     angular.module("App")
-    .controller("datasetAdminController", ["$http", "$routeParams", "User", "Dataset", "DatasetUsers",
-                                function($http, $routeParams, User, Dataset, DatasetUsers) {
+    .controller("datasetAdminController", ["$routeParams", "User", "Dataset", "DatasetUsers",
+                                function($routeParams, User, Dataset, DatasetUsers) {
         var localThis = this;
         var dataset = $routeParams["dataset"];
 

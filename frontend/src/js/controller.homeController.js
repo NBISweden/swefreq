@@ -1,6 +1,6 @@
 (function() {
     angular.module("App")
-    .controller("homeController", ["$http", "$sce", "DatasetList", function($http, $sce, DatasetList) {
+    .controller("homeController", ["DatasetList", function(DatasetList) {
         var localThis = this;
         localThis.datasets = [];
         DatasetList().then(function(datasets) {
