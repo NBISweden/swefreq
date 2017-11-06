@@ -1,36 +1,44 @@
 (function() {
     angular.module("App")
-    .controller("datasetBeaconController", ["$http", "$routeParams", "Beacon", "Dataset", "User",
-                                function($http, $routeParams, Beacon, Dataset, User) {
+    .controller("datasetBeaconController", ["$routeParams", "Beacon", "Dataset", "User",
+                                function($routeParams, Beacon, Dataset, User) {
         var localThis = this;
-        var dataset = $routeParams["dataset"];
         localThis.queryResponses = [];
+        localThis.search = search;
 
-        Beacon.getBeaconReferences(dataset).then(
-                function(data) {
-                    localThis.references = data;
-                }
-            );
+        activate();
 
-        User().then(function(data) {
-            localThis.user = data.data;
-        });
 
-        Dataset($routeParams["dataset"], $routeParams["version"]).then(function(data){
-                localThis.dataset = data.dataset;
-            },
-            function(error) {
-                localThis.error = error;
+        function activate() {
+            Beacon.getBeaconReferences(dataset).then(
+                    function(data) {
+                        localThis.references = data;
+                    }
+                );
+
+            User.getUser().then(function(data) {
+                localThis.user = data;
             });
 
-        localThis.search = function() {
-            Beacon.queryBeacon(localThis).then(function (response) {
+            Dataset.getDataset($routeParams.dataset, $routeParams.version)
+                .then(function(data) {
+                    localThis.dataset = data.dataset;
+                },
+                function(error) {
+                    localThis.error = error;
+                }
+            );
+        }
+
+        function search() {
+            Beacon.queryBeacon(localThis)
+                .then(function(response) {
                     var d = response.data;
                     d.query.position += 1; // Beacon is 0-based
                     d.response.state = d.response.exists ? "Present" : "Absent";
                     localThis.queryResponses.push(d);
                 },
-                function (response){
+                function(response) {
                     localThis.queryResponses.push({
                         "response": { "state": "Error" },
                         "query": {
@@ -41,7 +49,8 @@
                             "reference":       localThis.reference
                         }
                     });
-                });
+                }
+            );
         };
     }]);
 })();

@@ -2,7 +2,7 @@
     ////////////////////////////////////////////////////////////////////////////
     // configure routes
     angular.module("App")
-    .config(function($routeProvider, $locationProvider) {
+    .config(["$routeProvider", "$locationProvider", function($routeProvider, $locationProvider) {
         $routeProvider
             .when("/",                                           { templateUrl: "static/templates/ng-templates/home.html"             })
             .when("/dataset/:dataset",                           { templateUrl: "static/templates/ng-templates/dataset.html"          })
@@ -18,5 +18,5 @@
 
         // Use the HTML5 History API
         $locationProvider.html5Mode(true);
-    });
+    }]);
 })();

@@ -1,26 +1,30 @@
 (function() {
     angular.module("App")
-    .factory("DatasetList", function($http, $q, $sce) {
-        return function() {
-            return $q(function(resolve,reject) {
-                $http.get("/api/datasets").success(function(res){
-                    var len = res.data.length;
-                    var datasets = [];
-                    for (var i = 0; i < len; i++) {
-                        var d = res.data[i];
-                        d.version.description = $sce.trustAsHtml(d.version.description);
-                        if (d.future) {
-                            d.urlbase = "/dataset/" + d.short_name + "/version/" + d.version.version;
-                        }
-                        else {
-                            d.urlbase = "/dataset/" + d.short_name;
-                        }
+    .factory("DatasetList", ["$http", "$sce", function($http, $sce) {
+        return {
+            getDatasetList: getDatasetList,
+        };
 
-                        datasets.push(d);
+        function getDatasetList() {
+            return $http.get("/api/datasets").then(function(data) {
+                var data = data.data.data;
+                var len = data.length;
+                var datasets = [];
+
+                for (var i = 0; i < len; i++) {
+                    var d = data[i];
+                    d.version.description = $sce.trustAsHtml(d.version.description);
+                    if (d.future) {
+                        d.urlbase = "/dataset/" + d.short_name + "/version/" + d.version.version;
                     }
-                    resolve(datasets);
-                });
+                    else {
+                        d.urlbase = "/dataset/" + d.short_name;
+                    }
+
+                    datasets.push(d);
+                }
+                return datasets
             });
         };
-    });
+    }]);
 })();

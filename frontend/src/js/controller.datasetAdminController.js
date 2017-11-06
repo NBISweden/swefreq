@@ -1,42 +1,56 @@
 (function() {
     angular.module("App")
-    .controller("datasetAdminController", ["$http", "$routeParams", "User", "Dataset", "DatasetUsers",
-                                function($http, $routeParams, User, Dataset, DatasetUsers) {
+    .controller("datasetAdminController", ["$routeParams", "User", "Dataset", "DatasetUsers",
+                                function($routeParams, User, Dataset, DatasetUsers) {
         var localThis = this;
-        var dataset = $routeParams["dataset"];
+        localThis.revokeUser = revokeUser;
+        localThis.approveUser = approveUser;
 
-        getUsers();
-        function getUsers() {
-            DatasetUsers.getUsers( dataset ).then( function(data) {
-                localThis.users = data;
+        activate();
+
+        function activate() {
+            getUsers();
+
+            User.getUser().then(function(data) {
+                localThis.user = data.data;
             });
+
+            Dataset.getDataset($routeParams.dataset, $routeParams.version)
+                .then(function(data) {
+                    localThis.dataset = data.dataset;
+                },
+                function(error) {
+                    localThis.error = error;
+                }
+            );
+
         }
 
-        User().then(function(data) {
-            localThis.user = data.data;
-        });
+        function getUsers() {
+            DatasetUsers.getUsers( $routeParams.dataset )
+                .then(function(data) {
+                    localThis.users = data;
+                }
+            );
+        }
 
-        Dataset($routeParams["dataset"], $routeParams["version"]).then(function(data){
-                localThis.dataset = data.dataset;
-            },
-            function(error) {
-                localThis.error = error;
-            });
 
-        localThis.revokeUser = function(userData) {
+        function revokeUser(userData) {
             DatasetUsers.revokeUser(
-                    dataset, userData.email
-                ).success(function(data){
+                    $routeParams.dataset, userData.email
+                ).then(function(data) {
                     getUsers();
-                });
-        };
+                }
+            );
+        }
 
-        localThis.approveUser = function(userData){
+        function approveUser(userData){
             DatasetUsers.approveUser(
-                    dataset, userData.email
-                ).success(function(data) {
+                    $routeParams.dataset, userData.email
+                ).then(function(data) {
                     getUsers();
-                });
-        };
+                }
+            );
+        }
     }]);
 })();

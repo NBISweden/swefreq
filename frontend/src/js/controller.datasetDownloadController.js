@@ -1,37 +1,44 @@
 (function() {
     angular.module("App")
-    .controller("datasetDownloadController", ["$http", "$routeParams", "User", "Dataset", "DatasetUsers", "Log",
-                                function($http, $routeParams, User, Dataset, DatasetUsers, Log) {
+    .controller("datasetDownloadController", ["$http", "$routeParams", "User", "Dataset", "DatasetUsers", "Log", "DatasetFiles",
+                                function($http, $routeParams, User, Dataset, DatasetUsers, Log, DatasetFiles) {
         var localThis = this;
-        var dataset = $routeParams["dataset"];
+        var dataset = $routeParams.dataset;
         localThis.authorization_level = "loggedout";
+        localThis.sendRequest = sendRequest;
+        localThis.consented = consented;
 
-        $http.get("/api/countries").success(function(data) {
-            localThis.availableCountries = data["countries"];
-        });
+        activate();
 
-        User().then(function(data) {
-            localThis.user = data.data;
-            updateAuthorizationLevel();
-        });
 
-        Dataset($routeParams["dataset"], $routeParams["version"]).then(function(data){
-                localThis.dataset = data.dataset;
-                updateAuthorizationLevel();
-            },
-            function(error) {
-                localThis.error = error;
+        function activate() {
+            $http.get("/api/countries").then(function(data) {
+                localThis.availableCountries = data.data.countries;
             });
 
-        var file_uri = "/api/datasets/" + dataset + "/files";
-        if ( $routeParams["version"] ) {
-            file_uri = "/api/datasets/" + dataset + "/versions/" + $routeParams["version"] + "/files";
-        }
-        $http.get(file_uri).success(function(data){
-            localThis.files = data.files;
-        });
+            User.getUser().then(function(data) {
+                localThis.user = data;
+                updateAuthorizationLevel();
+            });
 
-        function updateAuthorizationLevel () {
+            Dataset.getDataset($routeParams.dataset, $routeParams.version)
+                .then(function(data) {
+                    localThis.dataset = data.dataset;
+                    updateAuthorizationLevel();
+                },
+                function(error) {
+                    localThis.error = error;
+                }
+            );
+
+            DatasetFiles.getFiles($routeParams.dataset, $routeParams.version)
+                .then(function(data) {
+                    localThis.files = data;
+                }
+            );
+        }
+
+        function updateAuthorizationLevel() {
             if (!localThis.hasOwnProperty("user") || localThis.user.user == null) {
                 localThis.authorization_level = "loggedout";
             }
@@ -40,19 +47,19 @@
             }
         }
 
-        localThis.sendRequest = function(valid){
+        function sendRequest(valid) {
             if (!valid) {
                 return;
             }
-            DatasetUsers.requestAccess(
-                    dataset, localThis.user
-                ).success(function(data){
+            DatasetUsers.requestAccess(dataset, localThis.user)
+                .then(function(data) {
                     localThis.authorization_level = "thank-you";
-                });
+                }
+            );
         };
 
         var has_already_logged = false;
-        localThis.consented = function(){
+        function consented() {
             if (!has_already_logged){
                 has_already_logged = true;
                 Log.consent(dataset, localThis.dataset.version.version);

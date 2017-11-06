@@ -1,6 +1,6 @@
 (function() {
     angular.module("App")
-    .directive("consent", function ($cookies) {
+    .directive("consent", ["$cookies", function ($cookies) {
         return {
             scope: {},
             template:
@@ -22,5 +22,5 @@
                 };
             }
         };
-    });
+    }]);
 })();

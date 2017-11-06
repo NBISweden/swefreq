@@ -1,34 +1,27 @@
 (function() {
     angular.module("App")
-    .factory("Beacon", function($http, $q) {
-        var service = {};
-
-        function _getBeaconReferences(name) {
-            var references = [];
-            for (var i = 0; i < service.data.datasets.length; i++) {
-                var dataset = service.data.datasets[i];
-                if ( dataset.id === name ) {
-                    references.push(dataset.reference);
-                }
-            }
-            return references;
+    .factory("Beacon", ["$http", function($http) {
+        return {
+            getBeaconReferences: getBeaconReferences,
+            queryBeacon: queryBeacon
         }
 
-        service.getBeaconReferences = function(name) {
-            var defer = $q.defer();
-            if ( service.hasOwnProperty("id") ) {
-                defer.resolve( _getBeaconReferences(name) );
-            }
-            else {
-                $http.get("/api/beacon/info").success(function(data) {
-                    service.data = data;
-                    defer.resolve(_getBeaconReferences(name));
-                });
-            }
-            return defer.promise;
+        function getBeaconReferences(name) {
+            return $http.get("/api/beacon/info").then(function(data) {
+                var references = [];
+                var d = data.data.datasets;
+                console.log(d);
+                for (var i = 0; i < d.length; i++) {
+                    var dataset = d[i];
+                    if (dataset.id === name) {
+                        references.push(dataset.reference);
+                    }
+                }
+                return references;
+            });
         };
 
-        service.queryBeacon = function(query) {
+        function queryBeacon(query) {
             return $http.get("/api/beacon/query", {
                     "params": {
                         "chrom":           query.chromosome,
@@ -38,9 +31,8 @@
                         "dataset":         query.dataset.short_name,
                         "ref":             query.reference
                     }
-                });
+                }
+            );
         };
-
-        return service;
-    });
+    }]);
 })();

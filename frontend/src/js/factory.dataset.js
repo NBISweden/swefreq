@@ -1,14 +1,18 @@
 (function() {
     angular.module("App")
-    .factory("Dataset", function($http, $q, $sce) {
-        return function(dataset, version) {
+    .factory("Dataset", ["$http", "$q", "$sce", function($http, $q, $sce) {
+        return {
+            getDataset: getDataset
+        };
+
+        function getDataset(dataset, version) {
             var state = {dataset: null};
             var defer = $q.defer();
 
             if (dataset === undefined) {
                 return defer.reject("No dataset provided");
             }
-            var dataset_uri = "api/datasets/" + dataset;
+            var dataset_uri = "/api/datasets/" + dataset;
             if (version) {
                 dataset_uri += "/versions/" + version;
             }
@@ -18,7 +22,7 @@
                     var d = data.data;
                     d.version.description = $sce.trustAsHtml( d.version.description );
                     d.version.terms       = $sce.trustAsHtml( d.version.terms );
-                    state["dataset"] = d;
+                    state.dataset = d;
                 }),
                 $http.get("/api/datasets/" + dataset + "/collection").then(function(data){
                     state.collections = data.data.collections;
@@ -36,9 +40,10 @@
                         error_message += " version " + version;
                     }
                     defer.reject(error_message);
-                });
+                }
+            );
 
             return defer.promise;
         };
-    });
+    }]);
 })();
