@@ -2,7 +2,7 @@
     angular.module("App")
     .controller("mainController", [ "$location", "User", function($location, User) {
         var localThis = this;
-        localThis.url = function () { return $location.path(); };
+        localThis.url = function() { return $location.path(); };
         localThis.logged_in = false;
 
         activate();

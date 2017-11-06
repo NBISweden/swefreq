@@ -21,24 +21,26 @@
                 updateAuthorizationLevel();
             });
 
-            Dataset.getDataset($routeParams["dataset"], $routeParams["version"]).then(function(data){
+            Dataset.getDataset($routeParams["dataset"], $routeParams["version"])
+                .then(function(data) {
                     localThis.dataset = data.dataset;
                     updateAuthorizationLevel();
                 },
                 function(error) {
                     localThis.error = error;
-                });
+                }
+            );
 
             var file_uri = "/api/datasets/" + dataset + "/files";
             if ( $routeParams["version"] ) {
                 file_uri = "/api/datasets/" + dataset + "/versions/" + $routeParams["version"] + "/files";
             }
-            $http.get(file_uri).success(function(data){
+            $http.get(file_uri).success(function(data) {
                 localThis.files = data.files;
             });
         }
 
-        function updateAuthorizationLevel () {
+        function updateAuthorizationLevel() {
             if (!localThis.hasOwnProperty("user") || localThis.user.user == null) {
                 localThis.authorization_level = "loggedout";
             }
@@ -47,19 +49,19 @@
             }
         }
 
-        function sendRequest(valid){
+        function sendRequest(valid) {
             if (!valid) {
                 return;
             }
-            DatasetUsers.requestAccess(
-                    dataset, localThis.user
-                ).success(function(data){
+            DatasetUsers.requestAccess(dataset, localThis.user)
+                .success(function(data) {
                     localThis.authorization_level = "thank-you";
-                });
+                }
+            );
         };
 
         var has_already_logged = false;
-        function consented(){
+        function consented() {
             if (!has_already_logged){
                 has_already_logged = true;
                 Log.consent(dataset, localThis.dataset.version.version);

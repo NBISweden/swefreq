@@ -3,7 +3,7 @@
     .controller("datasetAdminController", ["$routeParams", "User", "Dataset", "DatasetUsers",
                                 function($routeParams, User, Dataset, DatasetUsers) {
         var localThis = this;
-        var dataset = $routeParams["dataset"];
+        var dataset = $routeParams.dataset;
         localThis.revokeUser = revokeUser;
         localThis.approveUser = approveUser;
 
@@ -29,7 +29,7 @@
 
         function getUsers() {
             DatasetUsers.getUsers( dataset )
-                .then( function(data) {
+                .then(function(data) {
                     localThis.users = data;
                 }
             );
@@ -39,17 +39,19 @@
         function revokeUser(userData) {
             DatasetUsers.revokeUser(
                     dataset, userData.email
-                ).success(function(data){
+                ).success(function(data) {
                     getUsers();
-                });
-        };
+                }
+            );
+        }
 
         function approveUser(userData){
             DatasetUsers.approveUser(
                     dataset, userData.email
                 ).success(function(data) {
                     getUsers();
-                });
-        };
+                }
+            );
+        }
     }]);
 })();

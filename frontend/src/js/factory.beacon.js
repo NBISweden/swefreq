@@ -31,7 +31,8 @@
                         "dataset":         query.dataset.short_name,
                         "ref":             query.reference
                     }
-                });
+                }
+            );
         };
     });
 })();

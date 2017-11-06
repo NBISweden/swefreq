@@ -22,22 +22,24 @@
             });
 
             Dataset.getDataset($routeParams["dataset"], $routeParams["version"])
-                .then(function(data){
+                .then(function(data) {
                     localThis.dataset = data.dataset;
                 },
                 function(error) {
                     localThis.error = error;
-                });
+                }
+            );
         }
 
         function search() {
-            Beacon.queryBeacon(localThis).then(function (response) {
+            Beacon.queryBeacon(localThis)
+                .then(function(response) {
                     var d = response.data;
                     d.query.position += 1; // Beacon is 0-based
                     d.response.state = d.response.exists ? "Present" : "Absent";
                     localThis.queryResponses.push(d);
                 },
-                function (response){
+                function(response) {
                     localThis.queryResponses.push({
                         "response": { "state": "Error" },
                         "query": {
@@ -48,7 +50,8 @@
                             "reference":       localThis.reference
                         }
                     });
-                });
+                }
+            );
         };
     }]);
 })();

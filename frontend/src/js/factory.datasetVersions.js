@@ -8,7 +8,8 @@
             return $http.get("/api/datasets/" + dataset + "/versions")
                 .then(function(data) {
                     return data.data.data;
-            });
+                }
+            );
         };
     });
 })();

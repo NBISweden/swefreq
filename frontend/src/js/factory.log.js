@@ -7,9 +7,10 @@
         }
 
          function consent(dataset, version) {
-            return $http.post("/api/datasets/" + dataset + "/log/consent/" + version,
-                    $.param({"_xsrf": $cookies.get("_xsrf")})
-                );
+            return $http.post(
+                "/api/datasets/" + dataset + "/log/consent/" + version,
+                $.param({"_xsrf": $cookies.get("_xsrf")})
+            );
         };
     });
 })();

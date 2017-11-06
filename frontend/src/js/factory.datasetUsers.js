@@ -13,12 +13,16 @@
             var defer = $q.defer();
             var data = {"pending": [], "current": []};
             $q.all([
-                $http.get( "/api/datasets/" + dataset + "/users_pending" ).then(function(d) {
-                    data["pending"] = d.data.data;
-                }),
-                $http.get( "/api/datasets/" + dataset + "/users_current" ).then(function(d) {
-                    data["current"] = d.data.data;
-                })
+                $http.get( "/api/datasets/" + dataset + "/users_pending" )
+                    .then(function(d) {
+                        data["pending"] = d.data.data;
+                    }
+                ),
+                $http.get( "/api/datasets/" + dataset + "/users_current" )
+                    .then(function(d) {
+                        data["current"] = d.data.data;
+                    }
+                )
             ]).then(function(d) {
                 defer.resolve(data);
             });
@@ -50,7 +54,8 @@
                            "_xsrf":       $cookies.get("_xsrf"),
                            "newsletter":  user.newsletter ? 1 : 0
                         })
-                });
+                }
+            );
         };
     });
 })();
