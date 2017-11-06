@@ -1,0 +1,221 @@
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    /* Margin bottom by footer height */
+    margin-bottom: 80px;
+}
+
+.navbar {
+    border-radius: 0px;
+
+    img { margin-top: -15px; }
+}
+
+.hidden-blurb {
+    display: none;
+    transition: all 0.5s ease-in-out;
+}
+
+.blurb {
+    padding-top: 30px;
+    padding-bottom: 20px;
+    margin-top: -20px;
+    margin-bottom: 20px;
+
+    background-color: #666;
+    box-shadow: 0 5px 10px -5px #000 inset,
+                0 -5px 10px -5px #000 inset;
+    color: #fff;
+    font-size: 14pt;
+
+    a {
+        color: #63aae7;
+    }
+}
+
+/* For beacon form validation */
+input.ng-dirty.ng-valid, select.ng-dirty.ng-valid {
+    border: 1px solid Green;
+    background-color: #F5FFF5;
+}
+
+input.ng-dirty.ng-invalid, select.ng-dirty.ng-invalid {
+    border: 1px solid Red;
+    background-color: #FFF5F5;
+}
+
+/* Dataset box CSS */
+.dataset-row {
+    padding-bottom: 40px;
+}
+
+.dataset-infobox {
+    ul {
+        font-size: 90%;
+        list-style-type: none;
+        margin: 0;
+        margin-left: 10px;
+        padding:0;
+    }
+}
+
+.dataset-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin-bottom: 20px;
+
+    .future-blurb {
+        font-style: italic;
+        font-size: 90%;
+        color: #900;
+    }
+
+    .future-title {
+        background-color: #BE8542;
+    }
+
+    .dataset-links {
+        display: flex;
+
+        li {
+            display: block;
+            text-align: center;
+            font-size: 21px;
+            font-weight: 200;
+            flex-grow: 1;
+            background-color: #e8e8e8;
+
+            a {
+                color: #000;
+            }
+        }
+
+        li:hover {
+            background-color: #F47D20;
+        }
+
+        .glyphicon {
+            font-size: 75%;
+        }
+
+        li:first-child {
+            border-radius: 0 0 0 5px;
+        }
+
+        li:last-child {
+            border-radius: 0 0 5px 0;
+        }
+    }
+
+    .dataset-heading {
+        background-color: #85BE42;
+        border-radius: 5px 5px 0 0;
+        color: #fff;
+        font-size: 18pt;
+        padding: 2px 0 2px 7px;
+    }
+
+    .dataset-body {
+        overflow: hidden;
+        height: 100%;
+        width: 100%;
+        padding: 15px 15px 7px 15px;
+        font-size: 14pt;
+        background-color: #f8f8f8;
+
+        img.dataset-logo {
+            max-width: 150px;
+            max-height: 300px;
+            float: right;
+            margin: 15px;
+        }
+
+        .ethnicity {
+            font-style: italic;
+            font-size: 80%;
+        }
+
+        ul.samples {
+            margin-left: 20px;
+
+            li:first-child {
+                list-style-type: disc;
+            }
+        }
+    }
+}
+
+.alert-future {
+    font-size: 200%;
+}
+
+.padding-tb {
+    padding-top: 5em;
+    padding-bottom: 3em;
+}
+
+.nav-tabs {
+    li.admin-tab {
+        a, a:hover {
+            background-color: #337ab7;
+            color: black;
+        }
+    }
+    li.future {
+        font-style: italic;
+        background-color: #f2dede;
+    }
+}
+
+div.admin-bar {
+    ul {
+        li {
+            a.active {
+                padding: 10px 15px;
+                border-left: solid 1px #ddd;
+                border-right: solid 1px #ddd;
+                border-top: none;
+                background: #fff;
+                top: -1px;
+            }
+            a {
+                border-radius: 0 0 4px 4px;
+                padding: 10px 15px;
+                top: -1px;
+            }
+        }
+    }
+    ul.nav-tabs {
+        border-bottom: none;
+    }
+}
+
+/* Affiliate footer */
+footer {
+    .container {
+        margin-bottom: 0px;
+        position: absolute;
+        height: 80px;
+        bottom: 0px;
+        width: 100%;
+
+        img.logo {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        img.logo.scilife {
+            top: 8px;
+            position: relative;
+        }
+
+        img.logo.elixir {
+            margin-top: -15px;
+        }
+    }
+}

@@ -4,11 +4,11 @@ FRONT_TEMPLATES = $(wildcard frontend/templates/*.html frontend/templates/ng-tem
 STATIC_TEMPLATES = $(subst frontend,static,$(FRONT_TEMPLATES))
 JAVASCRIPT_FILES = $(wildcard frontend/src/js/app.module.js frontend/src/js/*.js)
 
-.PHONY: all templates clean static dist javascript
+.PHONY: all templates clean static dist javascript css
 
 all: static
 
-static: templates javascript
+static: templates javascript css
 	rsync -rupE frontend/assets/ static/
 
 dist: static
@@ -20,6 +20,12 @@ clean:
 templates: $(STATIC_TEMPLATES)
 
 javascript: static/js/app.js
+
+css: static/css/main.css
+
+static/css/main.css: frontend/src/css/main.scss
+	mkdir -p $$( dirname $@ )
+	frontend/node_modules/.bin/sass $< > $@
 
 static/js/app.js: $(JAVASCRIPT_FILES)
 	mkdir -p $$( dirname $@ )
