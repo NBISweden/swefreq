@@ -12,8 +12,8 @@
 
 
         function activate() {
-            $http.get("/api/countries").success(function(data) {
-                localThis.availableCountries = data["countries"];
+            $http.get("/api/countries").then(function(data) {
+                localThis.availableCountries = data.data.countries;
             });
 
             User.getUser().then(function(data) {
@@ -35,8 +35,8 @@
             if ( $routeParams.version ) {
                 file_uri = "/api/datasets/" + dataset + "/versions/" + $routeParams.version + "/files";
             }
-            $http.get(file_uri).success(function(data) {
-                localThis.files = data.files;
+            $http.get(file_uri).then(function(data) {
+                localThis.files = data.data.files;
             });
         }
 
@@ -54,7 +54,7 @@
                 return;
             }
             DatasetUsers.requestAccess(dataset, localThis.user)
-                .success(function(data) {
+                .then(function(data) {
                     localThis.authorization_level = "thank-you";
                 }
             );
