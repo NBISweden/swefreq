@@ -10,5 +10,5 @@ ALTER TABLE dataset ADD COLUMN
 UPDATE dataset SET mongodb_collection = 'exac'
     WHERE dataset_pk = 1;
 
-ALTER TABLE dataset MODIFY COLUMN mongodb_collection
+ALTER TABLE dataset MODIFY COLUMN
     mongodb_collection VARCHAR(50) NOT NULL;
