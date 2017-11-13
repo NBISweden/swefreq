@@ -78,17 +78,18 @@ class Study(BaseModel):
 
 
 class Dataset(BaseModel):
-    dataset       = PrimaryKeyField(db_column='dataset_pk')
-    study         = ForeignKeyField(db_column='study_pk', rel_model=Study, to_field='study', related_name='datasets')
-    short_name    = CharField()
-    full_name     = CharField()
-    browser_uri   = CharField(null=True)
-    beacon_uri    = CharField(null=True)
-    avg_seq_depth = FloatField(null=True)
-    seq_type      = CharField(null=True)
-    seq_tech      = CharField(null=True)
-    seq_center    = CharField(null=True)
-    dataset_size  = IntegerField()
+    dataset            = PrimaryKeyField(db_column='dataset_pk')
+    study              = ForeignKeyField(db_column='study_pk', rel_model=Study, to_field='study', related_name='datasets')
+    short_name         = CharField()
+    full_name          = CharField()
+    browser_uri        = CharField(null=True)
+    beacon_uri         = CharField(null=True)
+    avg_seq_depth      = FloatField(null=True)
+    seq_type           = CharField(null=True)
+    seq_tech           = CharField(null=True)
+    seq_center         = CharField(null=True)
+    dataset_size       = IntegerField()
+    mongodb_collection = CharField(null=False)
 
     def has_image(self):
         try:

@@ -19,7 +19,6 @@ mysql_passwd = json_settings["mysqlPasswd"]
 # Mongodb settings
 mongo_host = json_settings["mongoHost"]
 mongo_port = json_settings["mongoPort"]
-mongo_db = json_settings["mongoDb"]
 mongo_user = json_settings["mongoUser"]
 mongo_password = json_settings["mongoPassword"]
 
