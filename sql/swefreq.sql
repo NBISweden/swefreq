@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS dataset (
     seq_tech            VARCHAR(50)     DEFAULT NULL,
     seq_center          VARCHAR(100)    DEFAULT NULL,
     dataset_size        INTEGER         UNSIGNED NOT NULL,
+    mongodb_collection  VARCHAR(50)     NOT NULL,
     CONSTRAINT UNIQUE (short_name),
     CONSTRAINT FOREIGN KEY (study_pk) REFERENCES study(study_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
