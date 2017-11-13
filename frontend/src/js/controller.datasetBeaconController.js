@@ -10,7 +10,7 @@
 
 
         function activate() {
-            Beacon.getBeaconReferences(dataset).then(
+            Beacon.getBeaconReferences($routeParams.dataset).then(
                     function(data) {
                         localThis.references = data;
                     }
