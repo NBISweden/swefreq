@@ -1,15 +1,16 @@
 (function() {
     angular.module("App")
-    .controller("datasetDownloadController", ["$http", "$routeParams", "User", "Dataset", "DatasetUsers", "Log", "DatasetFiles",
-                                function($http, $routeParams, User, Dataset, DatasetUsers, Log, DatasetFiles) {
+    .controller("datasetDownloadController", ["$location", "$http", "$routeParams", "User", "Dataset", "DatasetUsers", "Log", "DatasetFiles", "EphemeralLink",
+                                function($location, $http, $routeParams, User, Dataset, DatasetUsers, Log, DatasetFiles, EphemeralLink) {
         var localThis = this;
         var dataset = $routeParams.dataset;
         localThis.authorization_level = "loggedout";
         localThis.sendRequest = sendRequest;
         localThis.consented = consented;
+        localThis.createEphemeralLink = createEphemeralLink;
+        localThis.host = $location.protocol() + "://" + $location.host();
 
         activate();
-
 
         function activate() {
             $http.get("/api/countries").then(function(data) {
@@ -64,6 +65,19 @@
                 has_already_logged = true;
                 Log.consent(dataset, localThis.dataset.version.version);
             }
+        };
+
+        function createEphemeralLink() {
+            EphemeralLink.getEphemeral($routeParams.dataset, $routeParams.version).success(function(data) {
+                localThis.ephemerals = true;
+                for (let file of localThis.files) {
+                    file["temp_url"] = localThis.host
+                                     + file["dirname"] + "/"
+                                     + data.hash + "/"
+                                     + file["name"];
+                    file["expires_on"] = data.expires_on;
+                }
+            });
         };
     }]);
 })();
