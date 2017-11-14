@@ -1,5 +1,6 @@
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from os import path
 import json
 import logging
 from datetime import datetime, timedelta
@@ -147,7 +148,10 @@ class DatasetFiles(handlers.AuthorizedHandler):
         dataset_version = db.get_dataset_version(dataset, version)
         ret = []
         for f in dataset_version.files:
-            ret.append(db.build_dict_from_row(f))
+            d = db.build_dict_from_row(f)
+            d['dirname'] = path.dirname(d['uri'])
+            ret.append(d)
+
         self.finish({'files': ret})
 
 
