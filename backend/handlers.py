@@ -181,8 +181,10 @@ class BaseStaticNginxFileHandler(UnsafeHandler):
             path = "/" + path
         self.root = path
 
-    def get(self, dataset, file):
-        user = self.current_user
+    def get(self, dataset, file, user=None):
+        if not user:
+            user = self.current_user
+
         dbfile = (db.DatasetFile
                   .select()
                   .where(db.DatasetFile.name == file)
@@ -214,6 +216,14 @@ class AuthorizedStaticNginxFileHandler(AuthorizedHandler, BaseStaticNginxFileHan
 
 
 class EphemeralStaticNginxFileHandler(BaseStaticNginxFileHandler):
+    def get_user_from_hash(self, hash):
+        logging.debug("Getting the ephemeral user")
+        return (db.User
+                   .select(db.User)
+                   .join(db.Linkhash)
+                   .where(db.Linkhash.hash == hash)
+               ).get()
+
     def get(self, dataset, hash, file):
         linkhash = (db.Linkhash
                         .select()
@@ -223,7 +233,8 @@ class EphemeralStaticNginxFileHandler(BaseStaticNginxFileHandler):
                                db.Linkhash.expires_on >  datetime.datetime.now(),
                                db.DatasetFile.name    == file))
         if linkhash.count() > 0:
-            super().get(dataset,file)
+            user = self.get_user_from_hash(hash)
+            super().get(dataset, file, user)
         else:
             self.send_error(status_code=403)
 
