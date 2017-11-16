@@ -8,6 +8,7 @@ import peewee
 import smtplib
 import tornado.web
 import uuid
+import math
 
 import db
 import handlers
@@ -150,9 +151,15 @@ class DatasetFiles(handlers.AuthorizedHandler):
         for f in dataset_version.files:
             d = db.build_dict_from_row(f)
             d['dirname'] = path.dirname(d['uri'])
+            d['human_size'] = format_bytes(d['bytes'])
             ret.append(d)
 
         self.finish({'files': ret})
+
+def format_bytes(bytes):
+    postfixes = ['b', 'Kb', 'Mb', 'Gb', 'Tb', 'Pb', 'Eb']
+    exponent = math.floor( math.log(bytes) / math.log(1000) )
+    return "{} {}".format( round(bytes/1000**exponent, 2), postfixes[exponent])
 
 
 class Collection(handlers.UnsafeHandler):
