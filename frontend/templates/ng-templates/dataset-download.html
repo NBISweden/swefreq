@@ -102,6 +102,7 @@
                 <tr>
                     <th></th>
                     <th>File</th>
+                    <th>Size</th>
                     <th>Temporary link<a class="popup-trigger" tabindex="0" data-trigger="focus" title="Temporary link" data-placement="top" data-toggle="popover" data-content="Time-limited link{{ctrl.files.length>1?'s':''}} that can be used to download the file{{ctrl.files.length>1?'s':''}} without logging in to the site, e.g. with a command line tool">[?]</a> <span ng-if='!ctrl.ephemerals'><a class="btn btn-primary btn-xs" ng-class="{'disabled': !ctrl.checked}" href="#" ng-click="ctrl.createEphemeralLink()">Create</a></span></th>
                     <th>Valid Until</th>
                 </tr>
@@ -110,6 +111,7 @@
             <tr ng-repeat="file in ctrl.files" class="table">
                 <td><a class="btn btn-primary btn-download btn-sm" ng-class="{'disabled': !ctrl.checked}" download="{{file.name}}" href="{{file.uri}}" target="_self" ng-click="ctrl.downloadData()" aria-label="Download" title="Download"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span></a></td>
                 <td>{{file.name}}</td>
+                <td class="text-right">{{file.human_size}}</td>
 
                 <td>
                     <div class="temporary-links">
