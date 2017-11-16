@@ -138,6 +138,16 @@ class GenerateEphemeralLink(handlers.AuthorizedHandler):
                 hash            = uuid.uuid4().hex,
                 expires_on      = datetime.now() + timedelta(hours=3),
             )
+
+        try:
+            (db.Linkhash.delete()
+                        .where(db.Linkhash.expires_on < datetime.now())
+                        .execute()
+                        )
+        except Exception as e:
+            logging.error("Could not clean old linkhashes")
+            logging.error(e)
+
         self.finish({
                 'hash':       lh.hash,
                 'expires_on': lh.expires_on.strftime("%Y-%m-%d %H:%M")
