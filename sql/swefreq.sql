@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS dataset_file (
     dataset_version_pk  INTEGER         NOT NULL,
     name                VARCHAR(100)    NOT NULL,
     uri                 VARCHAR(200)    NOT NULL,
+    bytes               BIGINT          NOT NULL,
     CONSTRAINT FOREIGN KEY (dataset_version_pk)
         REFERENCES dataset_version(dataset_version_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
