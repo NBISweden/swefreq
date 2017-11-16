@@ -1,16 +1,16 @@
 (function() {
     angular.module("App")
-    .factory("EphemeralLink", ["$http", "$cookies", function($http, $cookies) {
+    .factory("TemporaryLink", ["$http", "$cookies", function($http, $cookies) {
         return {
-            getEphemeral: getEphemeral
+            getTemporary: getTemporary
         };
 
-        function getEphemeral(dataset, version) {
+        function getTemporary(dataset, version) {
             url = "/api/datasets/" + dataset;
             if (version) {
                 url += "/versions/" + version;
             }
-            url += "/ephemeral_link"
+            url += "/temporary_link"
             return $http.post(
                     url,
                     $.param({"_xsrf": $cookies.get("_xsrf")})

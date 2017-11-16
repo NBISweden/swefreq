@@ -128,7 +128,7 @@ class ListDatasetVersions(handlers.UnsafeHandler):
         self.finish({'data': data})
 
 
-class GenerateEphemeralLink(handlers.AuthorizedHandler):
+class GenerateTemporaryLink(handlers.AuthorizedHandler):
     def post(self, dataset, version=None, *args, **kwargs):
         user = self.current_user
         dataset_version = db.get_dataset_version(dataset, version)

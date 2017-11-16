@@ -1,13 +1,13 @@
 (function() {
     angular.module("App")
-    .controller("datasetDownloadController", ["$location", "$http", "$routeParams", "clipboard", "User", "Dataset", "DatasetUsers", "Log", "DatasetFiles", "EphemeralLink",
-                                function($location, $http, $routeParams, clipboard, User, Dataset, DatasetUsers, Log, DatasetFiles, EphemeralLink) {
+    .controller("datasetDownloadController", ["$location", "$http", "$routeParams", "clipboard", "User", "Dataset", "DatasetUsers", "Log", "DatasetFiles", "TemporaryLink",
+                                function($location, $http, $routeParams, clipboard, User, Dataset, DatasetUsers, Log, DatasetFiles, TemporaryLink) {
         var localThis                 = this;
         var dataset                   = $routeParams.dataset;
         localThis.authorization_level = "loggedout";
         localThis.sendRequest         = sendRequest;
         localThis.consented           = consented;
-        localThis.createEphemeralLink = createEphemeralLink;
+        localThis.createTemporaryLink = createTemporaryLink;
         localThis.copyLink            = copyLink;
         localThis.canCopy             = clipboard.supported;
 
@@ -70,9 +70,9 @@
             }
         };
 
-        function createEphemeralLink() {
-            EphemeralLink.getEphemeral($routeParams.dataset, $routeParams.version).success(function(data) {
-                localThis.ephemerals = true;
+        function createTemporaryLink() {
+            TemporaryLink.getTemporary($routeParams.dataset, $routeParams.version).success(function(data) {
+                localThis.temporaries = true;
                 for (let file of localThis.files) {
                     file["temp_url"] = localThis.host
                                      + file["dirname"] + "/"
