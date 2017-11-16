@@ -141,6 +141,7 @@ class DatasetFile(BaseModel):
     dataset_version = ForeignKeyField(db_column='dataset_version_pk', rel_model=DatasetVersion, to_field='dataset_version', related_name='files')
     name            = CharField()
     uri             = CharField()
+    bytes           = IntegerField()
 
     class Meta:
         db_table = 'dataset_file'
