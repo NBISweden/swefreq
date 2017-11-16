@@ -226,9 +226,9 @@ class AuthorizedStaticNginxFileHandler(AuthorizedHandler, BaseStaticNginxFileHan
     pass
 
 
-class EphemeralStaticNginxFileHandler(BaseStaticNginxFileHandler):
+class TemporaryStaticNginxFileHandler(BaseStaticNginxFileHandler):
     def get_user_from_hash(self, hash):
-        logging.debug("Getting the ephemeral user")
+        logging.debug("Getting the temporary user")
         return (db.User
                    .select(db.User)
                    .join(db.Linkhash)
