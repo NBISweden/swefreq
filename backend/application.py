@@ -2,10 +2,11 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 import peewee
 import smtplib
 import tornado.web
+import uuid
 
 import db
 import handlers
@@ -123,6 +124,22 @@ class ListDatasetVersions(handlers.UnsafeHandler):
             })
 
         self.finish({'data': data})
+
+
+class GenerateEphemeralLink(handlers.AuthorizedHandler):
+    def post(self, dataset, version=None, *args, **kwargs):
+        user = self.current_user
+        dataset_version = db.get_dataset_version(dataset, version)
+        lh = db.Linkhash.create(
+                user            = user,
+                dataset_version = dataset_version,
+                hash            = uuid.uuid4().hex,
+                expires_on      = datetime.now() + timedelta(hours=3),
+            )
+        self.finish({
+                'hash':       lh.hash,
+                'expires_on': lh.expires_on.strftime("%Y-%m-%d %H:%M")
+            })
 
 
 class DatasetFiles(handlers.AuthorizedHandler):
