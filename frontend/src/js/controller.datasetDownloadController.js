@@ -1,13 +1,16 @@
 (function() {
     angular.module("App")
-    .controller("datasetDownloadController", ["$location", "$http", "$routeParams", "User", "Dataset", "DatasetUsers", "Log", "DatasetFiles", "EphemeralLink",
-                                function($location, $http, $routeParams, User, Dataset, DatasetUsers, Log, DatasetFiles, EphemeralLink) {
-        var localThis = this;
-        var dataset = $routeParams.dataset;
+    .controller("datasetDownloadController", ["$location", "$http", "$routeParams", "clipboard", "User", "Dataset", "DatasetUsers", "Log", "DatasetFiles", "EphemeralLink",
+                                function($location, $http, $routeParams, clipboard, User, Dataset, DatasetUsers, Log, DatasetFiles, EphemeralLink) {
+        var localThis                 = this;
+        var dataset                   = $routeParams.dataset;
         localThis.authorization_level = "loggedout";
-        localThis.sendRequest = sendRequest;
-        localThis.consented = consented;
+        localThis.sendRequest         = sendRequest;
+        localThis.consented           = consented;
         localThis.createEphemeralLink = createEphemeralLink;
+        localThis.copyLink            = copyLink;
+        localThis.canCopy             = clipboard.supported;
+
         localThis.host = $location.protocol() + "://" + $location.host();
 
         activate();
@@ -79,5 +82,9 @@
                 }
             });
         };
+
+        function copyLink(link) {
+            clipboard.copyText(link);
+        }
     }]);
 })();
