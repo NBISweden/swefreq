@@ -3,6 +3,7 @@ import peewee
 import tornado.auth
 import tornado.web
 import os.path
+import datetime
 
 import db
 
@@ -58,10 +59,12 @@ class SafeHandler(BaseHandler):
         authentication in all their methods.
         """
         if not self.current_user:
+            logging.debug("No current user: Send error 403")
             self.send_error(status_code=403)
 
 class AuthorizedHandler(SafeHandler):
     def prepare(self):
+        logging.debug("Checking if user is authorized")
         super().prepare()
 
         if self._finished:
@@ -69,9 +72,12 @@ class AuthorizedHandler(SafeHandler):
 
         kwargs = self.path_kwargs
         if not kwargs['dataset']:
+            logging.debug("No dataset: Send error 403")
             self.send_error(status_code=403)
         if not self.current_user.has_access( db.get_dataset(kwargs['dataset']) ):
+            logging.debug("No user access: Send error 403")
             self.send_error(status_code=403)
+        logging.debug("User is authorized")
 
 class AdminHandler(SafeHandler):
     def prepare(self):
@@ -82,8 +88,10 @@ class AdminHandler(SafeHandler):
 
         kwargs = self.path_kwargs
         if not kwargs['dataset']:
+            logging.debug("No dataset: Send error 403")
             self.send_error(status_code=403)
         if not self.current_user.is_admin( db.get_dataset(kwargs['dataset']) ):
+            logging.debug("No user admin: Send error 403")
             self.send_error(status_code=403)
 
 class UnsafeHandler(BaseHandler):
@@ -162,8 +170,9 @@ class SafeStaticFileHandler(tornado.web.StaticFileHandler, SafeHandler):
     """
     pass
 
-class AuthorizedStaticNginxFileHandler(AuthorizedHandler):
-    """ Serve static files for authenticated users from the nginx frontend
+
+class BaseStaticNginxFileHandler(UnsafeHandler):
+    """Serve static files for users from the nginx frontend
 
     Requires a ``path`` argument in constructor which should be the root of
     the nginx frontend where the files can be found. Then configure the nginx
@@ -179,8 +188,12 @@ class AuthorizedStaticNginxFileHandler(AuthorizedHandler):
             path = "/" + path
         self.root = path
 
-    def get(self, dataset, file):
-        user = self.current_user
+    def get(self, dataset, file, user=None):
+        logging.debug("Want to download dataset {} ({})".format(dataset, file))
+
+        if not user:
+            user = self.current_user
+
         dbfile = (db.DatasetFile
                   .select()
                   .where(db.DatasetFile.name == file)
@@ -193,7 +206,51 @@ class AuthorizedStaticNginxFileHandler(AuthorizedHandler):
         abspath = os.path.abspath(os.path.join(self.root, file))
         self.set_header("X-Accel-Redirect", abspath)
         self.set_header("Content-Disposition", "attachment")
+
+        logging.debug("Setting X-Accel-Redirect to {}".format(abspath))
         self.finish()
+
+
+class AuthorizedStaticNginxFileHandler(AuthorizedHandler, BaseStaticNginxFileHandler):
+    """Serve static files for authenticated users from the nginx frontend
+
+    Requires a ``path`` argument in constructor which should be the root of
+    the nginx frontend where the files can be found. Then configure the nginx
+    frontend something like this
+
+        location <path> {
+            internal;
+            alias <location of files>;
+        }
+    """
+    pass
+
+
+class EphemeralStaticNginxFileHandler(BaseStaticNginxFileHandler):
+    def get_user_from_hash(self, hash):
+        logging.debug("Getting the ephemeral user")
+        return (db.User
+                   .select(db.User)
+                   .join(db.Linkhash)
+                   .where(db.Linkhash.hash == hash)
+               ).get()
+
+    def get(self, dataset, hash, file):
+        logging.debug("Want to download hash {} ({})".format(hash, file))
+        linkhash = (db.Linkhash
+                        .select()
+                        .join(db.DatasetVersion)
+                        .join(db.DatasetFile)
+                        .where(db.Linkhash.hash       == hash,
+                               db.Linkhash.expires_on >  datetime.datetime.now(),
+                               db.DatasetFile.name    == file))
+        if linkhash.count() > 0:
+            logging.debug("Linkhash valid")
+            user = self.get_user_from_hash(hash)
+            super().get(dataset, file, user)
+        else:
+            logging.debug("Linkhash invalid")
+            self.send_error(status_code=403)
 
 
 class AngularTemplate(UnsafeHandler):

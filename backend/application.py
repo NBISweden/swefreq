@@ -1,11 +1,13 @@
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from os import path
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 import peewee
 import smtplib
 import tornado.web
+import uuid
 
 import db
 import handlers
@@ -69,32 +71,19 @@ class GetDataset(handlers.UnsafeHandler):
     def get(self, dataset, version=None):
         user = self.current_user
 
-        current_version = False
-        future_version  = False
-        dataset = db.get_dataset(dataset)
-        if version:
-            version = db.DatasetVersion.select().where(
-                    db.DatasetVersion.version == version,
-                    db.DatasetVersion.dataset == dataset
-                ).get()
-        else:
-            version = dataset.current_version.get()
-            current_version = True
+        future_version = False
+
+        version = db.get_dataset_version(dataset, version)
 
         if version.available_from > datetime.now():
             # If it's not available yet, only return if user is admin.
-            if not (user and user.is_admin(dataset)):
+            if not (user and user.is_admin(version.dataset)):
                 self.send_error(status_code=403)
                 return
             future_version = True
-        elif not current_version:
-            # Make another check on whether this is the current version
-            cv = dataset.current_version.get()
-            current_version = cv.version == version.version
 
-        ret = build_dataset_structure(version, user, dataset)
-        ret['current'] = current_version
-        ret['future']  = future_version
+        ret = build_dataset_structure(version, user)
+        ret['future'] = future_version
 
         self.finish(ret)
 
@@ -138,16 +127,31 @@ class ListDatasetVersions(handlers.UnsafeHandler):
         self.finish({'data': data})
 
 
+class GenerateEphemeralLink(handlers.AuthorizedHandler):
+    def post(self, dataset, version=None, *args, **kwargs):
+        user = self.current_user
+        dataset_version = db.get_dataset_version(dataset, version)
+        lh = db.Linkhash.create(
+                user            = user,
+                dataset_version = dataset_version,
+                hash            = uuid.uuid4().hex,
+                expires_on      = datetime.now() + timedelta(hours=3),
+            )
+        self.finish({
+                'hash':       lh.hash,
+                'expires_on': lh.expires_on.strftime("%Y-%m-%d %H:%M")
+            })
+
+
 class DatasetFiles(handlers.AuthorizedHandler):
     def get(self, dataset, version=None, *args, **kwargs):
-        dataset = db.get_dataset(dataset)
-        if version:
-            dataset_version = dataset.versions.where(db.DatasetVersion.version==version).get()
-        else:
-            dataset_version = dataset.current_version.get()
+        dataset_version = db.get_dataset_version(dataset, version)
         ret = []
         for f in dataset_version.files:
-            ret.append(db.build_dict_from_row(f))
+            d = db.build_dict_from_row(f)
+            d['dirname'] = path.dirname(d['uri'])
+            ret.append(d)
+
         self.finish({'files': ret})
 
 
