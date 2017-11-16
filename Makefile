@@ -3,6 +3,7 @@
 FRONT_TEMPLATES = $(wildcard frontend/templates/*.html frontend/templates/ng-templates/*.html)
 STATIC_TEMPLATES = $(subst frontend,static,$(FRONT_TEMPLATES))
 JAVASCRIPT_FILES = $(wildcard frontend/src/js/app.module.js frontend/src/js/*.js)
+JAVASCRIPT_VENDOR = frontend/node_modules/angular-clipboard/angular-clipboard.js
 
 .PHONY: all templates clean static dist javascript css
 
@@ -19,13 +20,17 @@ clean:
 
 templates: $(STATIC_TEMPLATES)
 
-javascript: static/js/app.js
+javascript: static/js/app.js static/js/vendor.js
 
 css: static/css/main.css
 
 static/css/main.css: frontend/src/css/main.scss
 	mkdir -p $$( dirname $@ )
 	frontend/node_modules/.bin/sass $< > $@
+
+static/js/vendor.js: $(JAVASCRIPT_VENDOR)
+	mkdir -p $$( dirname $@ )
+	cat $^ >$@
 
 static/js/app.js: $(JAVASCRIPT_FILES)
 	mkdir -p $$( dirname $@ )

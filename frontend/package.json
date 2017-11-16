@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Swefreq site",
   "dependencies": {
+    "angular-clipboard": "^1.6.2",
     "sass": "^1.0.0-beta.2"
   },
   "devDependencies": {},

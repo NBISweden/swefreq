@@ -8,7 +8,7 @@
     </div>
     <div class="container" ng-if="!ctrl.error">
         <div class="row">
-            <div class="col-sm-12">
+            <div>
                 <div ng-if="ctrl.dataset.future" class="alert alert-danger alert-future">This version will become public at {{ctrl.dataset.version.available_from}}</div>
                 <h1>{{ ctrl.dataset.full_name }}</h1>
             </div>
