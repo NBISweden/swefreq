@@ -12,3 +12,8 @@ UPDATE dataset SET mongodb_collection = 'exac'
 
 ALTER TABLE dataset MODIFY COLUMN
     mongodb_collection VARCHAR(50) NOT NULL;
+
+-- Add file size to dataset_file table
+
+ALTER TABLE dataset_file ADD COLUMN
+    bytes               BIGINT          NOT NULL;
