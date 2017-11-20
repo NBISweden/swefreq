@@ -5,3 +5,11 @@ tornado/static/pilot.OF-0839.merged.AF.vcf.gz
 venv
 # Editor temp files
 *~
+# Nodejs stuff
+dist/
+node_modules/
+npm-debug.log
+tornado/static/js/app.js
+tornado/static/js/app.min.js
+backend/static
+backend/templates

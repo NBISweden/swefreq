@@ -1,0 +1,20 @@
+{
+  "name": "swefreq",
+  "version": "1.0.0",
+  "description": "Swefreq site",
+  "dependencies": {
+    "angular-clipboard": "^1.6.2",
+    "sass": "^1.0.0-beta.2"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NBISweden/swefreq.git"
+  },
+  "author": "NBIS",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/NBISweden/swefreq/issues"
+  },
+  "homepage": "https://github.com/NBISweden/swefreq#readme"
+}
