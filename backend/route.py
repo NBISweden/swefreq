@@ -22,6 +22,11 @@ tornado_settings = {"debug": False,
                 "key": settings.google_key,
                 "secret": settings.google_secret
             },
+            "elixir_oauth": {
+                "id": settings.elixir["id"],
+                "secret": settings.elixir["secret"],
+                "redirect_uri": settings.elixir["redirectUri"],
+            },
             "contact_person": 'mats.dahlberg@scilifelab.se',
             "redirect_uri": settings.redirect_uri,
             "xsrf_cookies": True,
