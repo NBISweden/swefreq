@@ -116,7 +116,7 @@
                 <td>
                     <div class="temporary-links">
                         <input class="input-sm" type="text" value="{{ file.temp_url }}" size="50" readonly>
-                        <a ng-if="ctrl.canCopy" ng-class="{'disabled': !ctrl.temporaries}" class="btn btn-primary btn-sm" ng-click="ctrl.copyLink(file.temp_url)" aria-label="Copy {{file.temp_url}} to clipboard"><span class="glyphicon glyphicon-copy" aria-hidden="true"></a>
+                        <a ng-if="ctrl.canCopy" ng-class="{'disabled': !ctrl.temporaries}" class="btn btn-primary btn-sm" ng-click="ctrl.copyLink(file.temp_url)" aria-label="Copy {{file.temp_url}} to clipboard" title="Copy to clipboard"><span class="glyphicon glyphicon-copy" aria-hidden="true"></a>
                     </div>
                 <td><nobr>{{ file.expires_on }}</nobr></td>
             </tr>
