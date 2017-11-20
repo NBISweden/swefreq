@@ -17,7 +17,7 @@ define("develop", default=False, help="Run in develop environment", type=bool)
 redirect_uri = settings.redirect_uri
 
 # Setup the Tornado Application
-settings = {"debug": False,
+tornado_settings = {"debug": False,
             "cookie_secret": settings.cookie_secret,
             "login_url": "/login",
             "google_oauth": {
@@ -80,7 +80,7 @@ class Application(tornado.web.Application):
         ]
 
         # google oauth key
-        self.oauth_key = settings["google_oauth"]["key"]
+        self.oauth_key = tornado_settings["google_oauth"]["key"]
 
         # Setup the Tornado Application
         tornado.web.Application.__init__(self, self.declared_handlers, **settings)
@@ -90,12 +90,12 @@ if __name__ == '__main__':
     tornado.options.parse_command_line()
 
     if options.develop:
-        settings['debug'] = True
-        settings['develop'] = True
+        tornado_settings['debug'] = True
+        tornado_settings['develop'] = True
         logging.getLogger().setLevel(logging.DEBUG)
 
     # Instantiate Application
-    application = Application(settings)
+    application = Application(tornado_settings)
     application.listen(options.port)
 
     # Start HTTP Server
