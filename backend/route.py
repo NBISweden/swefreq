@@ -14,8 +14,6 @@ import beacon
 define("port", default=4000, help="run on the given port", type=int)
 define("develop", default=False, help="Run in develop environment", type=bool)
 
-redirect_uri = settings.redirect_uri
-
 # Setup the Tornado Application
 tornado_settings = {"debug": False,
             "cookie_secret": settings.cookie_secret,
@@ -25,7 +23,7 @@ tornado_settings = {"debug": False,
                 "secret": settings.google_secret
             },
             "contact_person": 'mats.dahlberg@scilifelab.se',
-            "redirect_uri": redirect_uri,
+            "redirect_uri": settings.redirect_uri,
             "xsrf_cookies": True,
             "template_path": "templates/",
         }
