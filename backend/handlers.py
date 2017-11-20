@@ -2,8 +2,13 @@ import logging
 import peewee
 import tornado.auth
 import tornado.web
+import tornado.escape
+import tornado.httpclient
 import os.path
 import datetime
+import urllib.parse
+import base64
+import uuid
 
 import db
 
@@ -96,6 +101,119 @@ class AdminHandler(SafeHandler):
 
 class UnsafeHandler(BaseHandler):
     pass
+
+class ElixirLoginHandler(tornado.web.RequestHandler, tornado.auth.OAuth2Mixin):
+    _OAUTH_AUTHORIZE_URL     = "https://perun.elixir-czech.cz/oidc/authorize"
+    _OAUTH_ACCESS_TOKEN_URL  = "https://perun.elixir-czech.cz/oidc/token"
+    _OAUTH_USERINFO_ENDPOINT = "https://perun.elixir-czech.cz/oidc/userinfo"
+    _OAUTH_SETTINGS_KEY      = 'elixir_oauth'
+
+    def _generate_state(self):
+        state = uuid.uuid4().hex
+        self.set_secure_cookie('state', state)
+        return state
+
+    def _check_state(self, state):
+        cookie_state = self.get_secure_cookie('state').decode('ascii')
+        return state == cookie_state
+
+    async def get(self):
+        if self.get_argument("code", False):
+
+            if not self._check_state(self.get_argument('state', 'N/A')):
+                # TODO Redirect somewhere?
+                logging.error("We're beeing MITM:ed or something ABORT!")
+                return
+
+            user_token = await self.get_user_token(self.get_argument('code'))
+            user       = await self.get_user(user_token["access_token"])
+
+            self.set_secure_cookie('access_token', user_token["access_token"])
+            self.set_secure_cookie('user', user["name"])
+            self.set_secure_cookie('email', user["email"])
+
+            redirect = self.get_secure_cookie("login_redirect")
+            self.clear_cookie("login_redirect")
+            if redirect is None:
+                redirect = '/'
+            self.redirect(redirect)
+
+        elif self.get_argument("error", False):
+            logging.error("Elixir error: {}".format( self.get_argument("error") ))
+            logging.error(" Description: {}".format( self.get_argument("error_description") ))
+            # TODO We should do some redirect here I guess
+
+        else:
+            self.set_secure_cookie('login_redirect', self.get_argument("next", '/'), 1)
+            state = self._generate_state()
+            self.authorize_redirect(
+                    redirect_uri  = self.settings['elixir_oauth']['redirect_uri'],
+                    client_id     = self.settings['elixir_oauth']['id'],
+                    scope         = ['openid', 'profile', 'email', 'bona_fide_status'],
+                    response_type = 'code',
+                    extra_params  = {'state': state}
+                )
+
+    async def get_user(self, access_token):
+        http = self.get_auth_http_client()
+
+        response = await http.fetch(
+                self._OAUTH_USERINFO_ENDPOINT,
+                headers = {
+                    'Content-Type':  'application/x-www-form-urlencoded',
+                    'Authorization': "Bearer {}".format(access_token),
+                }
+            )
+
+        if response.error:
+            logging.error("get_user error: {}".format(response))
+            return
+
+        return tornado.escape.json_decode( response.body )
+
+    async def get_user_token(self, code):
+        redirect_uri = self.settings['elixir_oauth']['redirect_uri']
+        http = self.get_auth_http_client()
+        body = urllib.parse.urlencode({
+                "redirect_uri": redirect_uri,
+                "code": code,
+                "grant_type": "authorization_code",
+            })
+
+        id     = self.settings['elixir_oauth']['id']
+        secret = self.settings['elixir_oauth']['secret']
+
+        authorization = base64.b64encode(
+                bytes("{}:{}".format(id, secret),
+                      'ascii' )
+            ).decode('ascii')
+
+        response = await http.fetch(
+                self._OAUTH_ACCESS_TOKEN_URL,
+                method  = "POST",
+                body    = body,
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Authorization': "Basic {}".format(authorization),
+                },
+            )
+
+        if response.error:
+            logging.error("get_user_token error: {}".format(response))
+            return
+
+        return tornado.escape.json_decode( response.body )
+
+
+class ElixirLogoutHandler(tornado.web.RequestHandler, tornado.auth.OAuth2Mixin):
+    def get(self):
+        self.clear_cookie("access_token")
+        self.clear_cookie("login_redirect")
+        self.clear_cookie("user")
+        self.clear_cookie("email")
+
+        redirect = self.get_argument("next", '/')
+        self.redirect(redirect)
 
 class LoginHandler(tornado.web.RequestHandler, tornado.auth.GoogleOAuth2Mixin):
     """

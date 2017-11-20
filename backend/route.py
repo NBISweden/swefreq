@@ -48,6 +48,8 @@ class Application(tornado.web.Application):
             ## Authentication
             ("/login",                                                               handlers.LoginHandler),
             ("/logout",                                                              handlers.LogoutHandler),
+            ("/elixir/login",                                                        handlers.ElixirLoginHandler),
+            ("/elixir/logout",                                                       handlers.ElixirLogoutHandler),
             ## API Methods
             ("/api/countries",                                                       application.CountryList),
             ("/api/users/me",                                                        application.GetUser),
