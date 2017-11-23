@@ -7,7 +7,7 @@ ALTER TABLE study ADD
 ALTER TABLE dataset_version ADD
     CONSTRAINT UNIQUE (dataset_pk, version);
 ALTER TABLE collection ADD
-    CONSTRAINT UNIQUE (name, ethnicity);
+    CONSTRAINT UNIQUE (name);
 ALTER TABLE sample_set ADD
     CONSTRAINT UNIQUE (dataset_pk, collection_pk);
 ALTER TABLE dataset_file ADD
