@@ -5,7 +5,8 @@ database = MySQLDatabase(
         settings.mysql_schema,
         host=settings.mysql_host,
         user=settings.mysql_user,
-        password=settings.mysql_passwd
+        password=settings.mysql_passwd,
+        port=settings.mysql_port
     )
 
 
