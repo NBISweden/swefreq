@@ -83,6 +83,9 @@ class Application(tornado.web.Application):
             (r'().*',                                                                  tornado.web.StaticFileHandler,
                                                                                          {"path": "templates/",  "default_filename": "index.html"}),
         ]
+        ## Adding developer login handler
+        if settings['develop'] == True:
+            self.declared_handlers.insert(-1, ("/developer/login", handlers.DeveloperLoginHandler))
 
         # google oauth key
         self.oauth_key = tornado_settings["google_oauth"]["key"]
