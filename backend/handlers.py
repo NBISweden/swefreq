@@ -180,11 +180,11 @@ class ElixirLoginHandler(tornado.web.RequestHandler, tornado.auth.OAuth2Mixin):
                 "grant_type": "authorization_code",
             })
 
-        id     = self.settings['elixir_oauth']['id']
-        secret = self.settings['elixir_oauth']['secret']
+        client_id = self.settings['elixir_oauth']['id']
+        secret    = self.settings['elixir_oauth']['secret']
 
         authorization = base64.b64encode(
-                bytes("{}:{}".format(id, secret),
+                bytes("{}:{}".format(client_id, secret),
                       'ascii' )
             ).decode('ascii')
 
