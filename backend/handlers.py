@@ -102,6 +102,26 @@ class AdminHandler(SafeHandler):
 class UnsafeHandler(BaseHandler):
     pass
 
+class DeveloperLoginHandler(tornado.web.RequestHandler):
+    def get(self):
+        if not self.get_argument("user", False):
+            self.send_error(status_code=403)
+        elif not self.get_argument("email", False):
+            self.send_error(status_code=403)
+
+        self.set_secure_cookie('user', self.get_argument("user"))
+        self.set_secure_cookie('email', self.get_argument("email"))
+        self.finish()
+
+class DeveloperLogoutHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.clear_cookie("login_redirect")
+        self.clear_cookie("user")
+        self.clear_cookie("email")
+
+        redirect = self.get_argument("next", '/')
+        self.redirect(redirect)
+
 class ElixirLoginHandler(tornado.web.RequestHandler, tornado.auth.OAuth2Mixin):
     _OAUTH_AUTHORIZE_URL     = "https://perun.elixir-czech.cz/oidc/authorize"
     _OAUTH_ACCESS_TOKEN_URL  = "https://perun.elixir-czech.cz/oidc/token"
@@ -205,7 +225,7 @@ class ElixirLoginHandler(tornado.web.RequestHandler, tornado.auth.OAuth2Mixin):
         return tornado.escape.json_decode( response.body )
 
 
-class ElixirLogoutHandler(tornado.web.RequestHandler, tornado.auth.OAuth2Mixin):
+class ElixirLogoutHandler(tornado.web.RequestHandler):
     def get(self):
         self.clear_cookie("access_token")
         self.clear_cookie("login_redirect")
@@ -282,6 +302,7 @@ class LogoutHandler(tornado.web.RequestHandler, tornado.auth.GoogleOAuth2Mixin):
 
         redirect = self.get_argument("next", '/')
         self.redirect(redirect)
+
 
 class SafeStaticFileHandler(tornado.web.StaticFileHandler, SafeHandler):
     """ Serve static files for logged in users
