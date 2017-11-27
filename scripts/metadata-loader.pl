@@ -54,7 +54,7 @@ my $dbh = DBI->connect( sprintf( "DBI:mysql:database=%s;host=%s",
 my $study = $data->{'study'};
 
 # Insert study
-if ( -f $study->{'description'} ) {
+if ( exists( $study->{'description'} ) && -f $study->{'description'} ) {
     $study->{'description'} = get_file( $study->{'description'} );
 }
 $dbh->do( 'INSERT IGNORE INTO study '
@@ -84,10 +84,11 @@ foreach my $dataset ( @{ $study->{'datasets'} } ) {
 
     # Insert dataset_version
     my $version = $dataset->{'version'};
-    if ( -f $version->{'description'} ) {
+    if ( exists( $version->{'description'} ) && -f $version->{'description'} )
+    {
         $version->{'description'} = get_file( $version->{'description'} );
     }
-    if ( -f $version->{'terms'} ) {
+    if ( exists( $version->{'terms'} ) && -f $version->{'terms'} ) {
         $version->{'terms'} = get_file( $version->{'terms'} );
     }
     $dbh->do( 'INSERT IGNORE INTO dataset_version '
@@ -119,7 +120,7 @@ foreach my $dataset ( @{ $study->{'datasets'} } ) {
     }
 
     # Insert logotype if present
-    if ( -f $dataset->{'logotype'} ) {
+    if ( exists( $dataset->{'logotype'} ) && -f $dataset->{'logotype'} ) {
         my $mt = MIME::Types->new();
         $dataset->{'logotype-mimetype'}
             = $mt->mimeTypeOf( $dataset->{'logotype'} )->type();
