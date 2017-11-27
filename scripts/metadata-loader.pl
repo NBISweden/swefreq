@@ -32,6 +32,20 @@ sub get_file {
     return $text;
 }
 
+sub validate_required {
+    my ( $variable, $name, @keys ) = @_;
+
+    my $error = 0;
+    foreach my $key (@keys) {
+        if ( !exists( $variable->{$key} ) ) {
+            ++$error;
+            printf( STDERR "%s is missing required key %s\n", $name, $key );
+        }
+    }
+
+    return $error;
+}
+
 if ( !GetOptions( 'help|h'     => \$opt_help,
                   'config|c=s' => \$opt_config,
                   'file|f=s'   => \$opt_file ) )
@@ -51,6 +65,13 @@ my $dbh = DBI->connect( sprintf( "DBI:mysql:database=%s;host=%s",
                         $settings->{'mysqlPasswd'},
                         { 'RaiseError' => 1 } );
 
+die
+    if validate_required(
+    $study,
+    'study',
+    qw( title publication-date pi-name pi-email contact-name contact-email datasets )
+    );
+
 # Insert study
 if ( exists( $study->{'description'} ) && -f $study->{'description'} ) {
     $study->{'description'} = get_file( $study->{'description'} );
@@ -67,6 +88,10 @@ $dbh->do( 'INSERT IGNORE INTO study '
               'publication-date', 'ref-doi' } );
 
 foreach my $dataset ( @{ $study->{'datasets'} } ) {
+    die
+        if validate_required( $dataset, 'dataset',
+                qw( short-name full-name dataset-size version sample-sets ) );
+
     # Insert dataset
     $dbh->do(
         'INSERT IGNORE INTO dataset '
@@ -80,8 +105,12 @@ foreach my $dataset ( @{ $study->{'datasets'} } ) {
             'seq-tech',   'seq-center', 'dataset-size' },
         @{$study}{ 'title', 'pi-email' } );
 
-    # Insert dataset_version
     my $version = $dataset->{'version'};
+    die
+        if validate_required( $version, 'version',
+                              qw( version description terms ) );
+
+    # Insert dataset_version
     if ( exists( $version->{'description'} ) && -f $version->{'description'} )
     {
         $version->{'description'} = get_file( $version->{'description'} );
@@ -103,6 +132,10 @@ foreach my $dataset ( @{ $study->{'datasets'} } ) {
 
     # Insert collection and sample_set
     foreach my $sample_set ( @{ $dataset->{'sample-sets'} } ) {
+        die
+            if validate_required( $sample_set, 'sample-set',
+                                  qw( collection sample-size phenotype ) );
+
         $dbh->do( 'INSERT IGNORE INTO collection '
                       . '(name,ethnicity) VALUE (?,?)',
                   undef,
