@@ -42,7 +42,7 @@ if ( !GetOptions( 'help|h'     => \$opt_help,
 if ($opt_help) { usage(); exit 0; }
 
 my $settings = decode_json( get_file($opt_config) );
-my $data     = decode_json( get_file($opt_file) );
+my $study    = decode_json( get_file($opt_file) );
 
 my $dbh = DBI->connect( sprintf( "DBI:mysql:database=%s;host=%s",
                                  $settings->{'mysqlSchema'},
@@ -50,8 +50,6 @@ my $dbh = DBI->connect( sprintf( "DBI:mysql:database=%s;host=%s",
                         $settings->{'mysqlUser'},
                         $settings->{'mysqlPasswd'},
                         { 'RaiseError' => 1 } );
-
-my $study = $data->{'study'};
 
 # Insert study
 if ( exists( $study->{'description'} ) && -f $study->{'description'} ) {
