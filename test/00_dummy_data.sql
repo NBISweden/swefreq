@@ -4,29 +4,30 @@ INSERT INTO study (study_pk, pi_name, pi_email, contact_name, contact_email, tit
 
 INSERT INTO collection (collection_pk, name, ethnicity) VALUES
     (1000001, 'Collection1', 'CollEth1'),
-    (1000002, 'Collection2', 'CollEth2');
+    (1000002, 'Collection2', 'CollEth2'),
+    (1000003, 'Collection3', 'CollEth3');
+
+INSERT INTO dataset (dataset_pk, study_pk, short_name, full_name, browser_uri, beacon_uri, avg_seq_depth, seq_type, seq_tech, seq_center, dataset_size, mongodb_collection)
+    VALUES (1000001, 1000001, 'Dataset 1', 'Dataset 1 Long name', 'http://example.com/browser1', 'http://example.com/beacon1', 1.0, 'SeqType1', 'SeqTech1', 'SeqCenter1', 1001, 'na'),
+           (1000002, 1000002, 'Dataset 2', 'Dataset 2 Long name', 'http://example.com/browser2', 'http://example.com/beacon2', 2.0, 'SeqType2', 'SeqTech2', 'SeqCenter2', 1002, 'na');
 
 INSERT INTO sample_set (sample_set_pk, dataset_pk, collection_pk, sample_size, phenotype)
-    VALUES (1000001, 1000001, 1001, 'SamplePheno1'),
-           (1000002, 1000001, 1002, 'SamplePheno2 Coll1'),
-           (1000003, 1000002, 1003, 'SamplePheno2 Coll2');
+    VALUES (1000001, 1000001, 1000001, 10, 'SamplePheno1'),
+           (1000002, 1000001, 1000002, 15, 'SamplePheno2 Coll1'),
+           (1000003, 1000002, 1000003, 20, 'SamplePheno2 Coll2');
 
-INSERT INTO dataset (dataset_pk, study_pk, short_name, full_name, browser_uri, beacon_uri, avg_seq_depth, seq_type, seq_tech, seq_center, dataset_size)
-    VALUES (1000001, 1000001, 'Dataset 1', 'Dataset 1 Long name', 'http://example.com/browser1', 'http://example.com/beacon1', 1.0, 'SeqType1', 'SeqTech1', 'SeqCenter1', 1001),
-           (1000002, 1000002, 'Dataset 2', 'Dataset 2 Long name', 'http://example.com/browser2', 'http://example.com/beacon2', 2.0, 'SeqType2', 'SeqTech2', 'SeqCenter2', 1002);
+INSERT INTO dataset_version (dataset_version_pk, dataset_pk, version, description, terms, var_call_ref, available_from, ref_doi)
+    VALUES (1000001, 1000001, 'Version 1-1', 'Dataset 1-1, description', 'Dataset 1-1, terms', 'CallRef11', '2017-01-01', 'datset11DOI'),
+           (1000002, 1000002, 'Version 2-1', 'Dataset 2-1, description', 'Dataset 2-1, terms', 'CallRef21', '2017-02-01', 'datset21DOI'),
+           (1000003, 1000002, 'Version 2-2', 'Dataset 2-2, description', 'Dataset 2-2, terms', 'CallRef22', '2017-02-02', 'datset22DOI'),
+           (1000004, 1000002, 'InvVer  2-3', 'Dataset 2-3, description', 'Dataset 2-3, terms', 'CallRef23', '2030-02-03', 'datset23DOI');
 
-INSERT INTO dataset_version (dataset_version_pk, dataset_pk, version, is_current, description, terms, var_call_ref, available_from, ref_doi)
-    VALUES (1000001, 1000001, 'Version 1-1', 1, 'Dataset 1-1, description', 'Dataset 1-1, terms', 'CallRef11', '2017-01-01', 'datset11DOI'),
-           (1000002, 1000002, 'Version 2-1', 0, 'Dataset 2-1, description', 'Dataset 2-1, terms', 'CallRef21', '2017-02-01', 'datset21DOI'),
-           (1000003, 1000002, 'Version 2-2', 1, 'Dataset 2-2, description', 'Dataset 2-2, terms', 'CallRef22', '2017-02-02', 'datset22DOI'),
-           (1000004, 1000002, 'InvVer  2-3', 1, 'Dataset 2-3, description', 'Dataset 2-3, terms', 'CallRef23', '2030-02-03', 'datset23DOI');
-
-INSERT INTO dataset_file(dataset_file_pk, dataset_version_pk, name, uri)
-    VALUES (1000001, 1000001, 'File11-1', '/release/file111.txt'),
-           (1000002, 1000001, 'File11-2', '/release/file112.txt'),
-           (1000003, 1000002, 'File21-1', '/release/file211.txt'),
-           (1000004, 1000003, 'File22-1', '/release/file221.txt'),
-           (1000005, 1000004, 'File23-1', '/release/file231.txt');
+INSERT INTO dataset_file(dataset_file_pk, dataset_version_pk, name, uri, bytes)
+    VALUES (1000001, 1000001, 'File11-1', '/release/file111.txt', 100),
+           (1000002, 1000001, 'File11-2', '/release/file112.txt', 100000),
+           (1000003, 1000002, 'File21-1', '/release/file211.txt', 1000000000),
+           (1000004, 1000003, 'File22-1', '/release/file221.txt', 973826482736),
+           (1000005, 1000004, 'File23-1', '/release/file231.txt', 239847293874293874);
 
 INSERT INTO user(user_pk, name, email, affiliation, country) VALUES
     (1000100, 'Not req yet',          'email0',  'i',     ''),
@@ -48,7 +49,7 @@ INSERT INTO dataset_access(user_pk, dataset_pk) VALUES
     (1000106, 1000001), (1000107, 1000001), (1000108, 1000001), (1000108, 1000002), (1000109, 1000001), (1000109, 1000002),
     (1000110, 1000001), (1000110, 1000002), (1000111, 1000001), (1000111, 1000002), (1000112, 1000001), (1000112, 1000002);
 
-INSERT INTO user_log(user_pk, dataset_pk, action, ts) VALUES
+INSERT INTO user_access_log(user_pk, dataset_pk, action, ts) VALUES
     (1000101, 1000001, 'access_requested', '2017-01-01'),
     (1000102, 1000001, 'access_requested', '2017-01-02'),
     (1000103, 1000001, 'access_requested', '2017-01-03'),
