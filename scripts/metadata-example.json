@@ -1,5 +1,4 @@
 {
-  "study": {
     "title": "Title/name of study [VARCHAR(100)]",
     "description": "Long description of study (or filename) [optional, TEXT]",
     "publication-date": "Date of publication [DATE]",
@@ -36,5 +35,4 @@
         ]
       }
     ]
-  }
 }
