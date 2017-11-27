@@ -21,5 +21,11 @@
     "adminAddress" : "someone@example.com",
     "replyToAddress" : "no-reply@example.com",
     "fromAddress" : "no-reply@example.com",
-    "mailServer" : "smtp.example.com"
+    "mailServer" : "smtp.example.com",
+
+   "elixir": {
+       "redirectUri": "Elixir AAI Redirect URI",
+       "id": "Elixir AAI client id",
+       "secret": "Elixir AAI client secret"
+   }
 }

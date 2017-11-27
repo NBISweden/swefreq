@@ -7,6 +7,8 @@ google_key = json_settings["googleKey"]
 google_secret = json_settings["googleSecret"]
 redirect_uri = json_settings["redirectUri"]
 
+elixir = json_settings["elixir"]
+
 ## Generated with base64.b64encode(uuid.uuid4().bytes + uuid.uuid4().bytes)
 cookie_secret = json_settings["cookieSecret"]
 

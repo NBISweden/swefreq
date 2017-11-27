@@ -14,18 +14,21 @@ import beacon
 define("port", default=4000, help="run on the given port", type=int)
 define("develop", default=False, help="Run in develop environment", type=bool)
 
-redirect_uri = settings.redirect_uri
-
 # Setup the Tornado Application
-settings = {"debug": False,
+tornado_settings = {"debug": False,
             "cookie_secret": settings.cookie_secret,
             "login_url": "/login",
             "google_oauth": {
                 "key": settings.google_key,
                 "secret": settings.google_secret
             },
+            "elixir_oauth": {
+                "id": settings.elixir["id"],
+                "secret": settings.elixir["secret"],
+                "redirect_uri": settings.elixir["redirectUri"],
+            },
             "contact_person": 'mats.dahlberg@scilifelab.se',
-            "redirect_uri": redirect_uri,
+            "redirect_uri": settings.redirect_uri,
             "xsrf_cookies": True,
             "template_path": "templates/",
         }
@@ -45,6 +48,8 @@ class Application(tornado.web.Application):
             ## Authentication
             ("/login",                                                               handlers.LoginHandler),
             ("/logout",                                                              handlers.LogoutHandler),
+            ("/elixir/login",                                                        handlers.ElixirLoginHandler),
+            ("/elixir/logout",                                                       handlers.ElixirLogoutHandler),
             ## API Methods
             ("/api/countries",                                                       application.CountryList),
             ("/api/users/me",                                                        application.GetUser),
@@ -80,7 +85,7 @@ class Application(tornado.web.Application):
         ]
 
         # google oauth key
-        self.oauth_key = settings["google_oauth"]["key"]
+        self.oauth_key = tornado_settings["google_oauth"]["key"]
 
         # Setup the Tornado Application
         tornado.web.Application.__init__(self, self.declared_handlers, **settings)
@@ -90,12 +95,12 @@ if __name__ == '__main__':
     tornado.options.parse_command_line()
 
     if options.develop:
-        settings['debug'] = True
-        settings['develop'] = True
+        tornado_settings['debug'] = True
+        tornado_settings['develop'] = True
         logging.getLogger().setLevel(logging.DEBUG)
 
     # Instantiate Application
-    application = Application(settings)
+    application = Application(tornado_settings)
     application.listen(options.port)
 
     # Start HTTP Server
