@@ -42,12 +42,18 @@ INSERT INTO user(user_pk, name, email, affiliation, country) VALUES
     (1000109, 'Combo2 w1 c2',         'email9',  'w1 c2', ''),
     (1000110, 'Combo3 c1 w2',         'email10', 'c1 w2', ''),
     (1000111, 'Combo4 c1 c2',         'email11', 'c1 c2', ''),
-    (1000112, 'Combo5 c1 i2',         'email12', 'c1 i2', '');
+    (1000112, 'Combo5 c1 i2',         'email12', 'c1 i2', ''),
+    (1000113, 'Admin1',               'admin1',  'Rootspace', ''),
+    (1000114, 'Admin2',               'admin2',  'Rootspace', ''),
+    (1000115, 'Admin12',              'admin12', 'Rootspace', '');
 
 INSERT INTO dataset_access(user_pk, dataset_pk) VALUES
     (1000100, 1000001), (1000101, 1000001), (1000102, 1000001), (1000103, 1000001), (1000104, 1000001), (1000105, 1000001),
     (1000106, 1000001), (1000107, 1000001), (1000108, 1000001), (1000108, 1000002), (1000109, 1000001), (1000109, 1000002),
     (1000110, 1000001), (1000110, 1000002), (1000111, 1000001), (1000111, 1000002), (1000112, 1000001), (1000112, 1000002);
+
+INSERT INTO dataset_access(user_pk, dataset_pk, is_admin) VALUES
+    (1000113, 1000001, 1), (1000114, 1000002, 1), (1000115, 1000001, 1), (1000115, 1000002, 1);
 
 INSERT INTO user_access_log(user_pk, dataset_pk, action, ts) VALUES
     (1000101, 1000001, 'access_requested', '2017-01-01'),
@@ -88,7 +94,15 @@ INSERT INTO user_access_log(user_pk, dataset_pk, action, ts) VALUES
     (1000112, 1000002, 'access_requested', '2017-02-05'),
     (1000112, 1000001, 'access_granted',   '2017-02-06'),
     (1000112, 1000002, 'access_granted',   '2017-02-07'),
-    (1000112, 1000002, 'access_revoked',   '2017-02-08');
+    (1000112, 1000002, 'access_revoked',   '2017-02-08'),
+    (1000113, 1000001, 'access_requested', '2017-02-09'),
+    (1000113, 1000001, 'access_granted',   '2017-02-10'),
+    (1000114, 1000002, 'access_requested', '2017-02-11'),
+    (1000114, 1000002, 'access_granted',   '2017-02-12'),
+    (1000115, 1000001, 'access_requested', '2017-02-13'),
+    (1000115, 1000001, 'access_granted',   '2017-02-14'),
+    (1000115, 1000002, 'access_requested', '2017-02-15'),
+    (1000115, 1000002, 'access_granted',   '2017-02-16');
 
 SELECT "Waiting", user.name, user.affiliation as visibility, user.user_pk,
        dataset_access_pending.dataset_pk,
