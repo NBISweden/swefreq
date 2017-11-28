@@ -21,7 +21,11 @@ class BaseHandler(tornado.web.RequestHandler):
     def prepare(self):
         ## Make sure we have the xsrf_token
         self.xsrf_token
-        db.database.connect()
+        if db.database.is_closed():
+            try:
+                db.database.connect()
+            except Exception as e:
+                logging.error("Failed to connect to database: {}".format(e))
 
     def on_finish(self):
         if not db.database.is_closed():
