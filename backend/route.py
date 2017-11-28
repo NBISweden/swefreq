@@ -81,7 +81,7 @@ class Application(tornado.web.Application):
             ("/api/.*",                                                              tornado.web.ErrorHandler,
                                                                                          {"status_code": 404} ),
             (r'().*',                                                                  tornado.web.StaticFileHandler,
-                                                                                         {"path": "templates/",  "default_filename": "index.html"}),
+                                                                                         {"path": "static/templates/",  "default_filename": "index.html"}),
         ]
         ## Adding developer login handler
         if settings['develop'] == True:
