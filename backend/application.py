@@ -271,14 +271,6 @@ class CountryList(handlers.UnsafeHandler):
 
 
 class RequestAccess(handlers.SafeHandler):
-    def get(self, dataset, *args, **kwargs):
-        user = self.current_user
-        name = user.name
-        email = user.email
-
-        logging.info("Request: " + name + ' ' + email)
-        self.finish(json.dumps({'user':name, 'email':email}))
-
     def post(self, dataset, *args, **kwargs):
         user    = self.current_user
         dataset = db.get_dataset(dataset)
