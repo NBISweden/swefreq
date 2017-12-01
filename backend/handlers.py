@@ -57,6 +57,10 @@ class BaseHandler(tornado.web.RequestHandler):
         logging.info("Error do something here again")
 
 
+class UnsafeHandler(BaseHandler):
+    pass
+
+
 class SafeHandler(BaseHandler):
     """ All handlers that need authentication and authorization should inherit
     from this class.
@@ -103,9 +107,6 @@ class AdminHandler(SafeHandler):
         if not self.current_user.is_admin( db.get_dataset(kwargs['dataset']) ):
             logging.debug("No user admin: Send error 403")
             self.send_error(status_code=403)
-
-class UnsafeHandler(BaseHandler):
-    pass
 
 class DeveloperLoginHandler(BaseHandler):
     def get(self):
