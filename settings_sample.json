@@ -9,7 +9,7 @@
     "mysqlPasswd" : "password",
     "mysqlSchema" : "swefreq",
     "mysqlUser" : "swefreq",
-    "mysqlPort" : "3306",
+    "mysqlPort" : 3306,
 
     "mongoDb" : "exac",
     "mongoHost" : "mongodb host",
