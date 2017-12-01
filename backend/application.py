@@ -338,20 +338,25 @@ class ApproveUser(handlers.AdminHandler):
                     action = 'access_granted'
                 )
 
-        msg = MIMEMultipart()
-        msg['to'] = email
-        msg['from'] = settings.from_address
-        msg['subject'] = 'Swefreq access granted to {}'.format(dataset.short_name)
-        msg.add_header('reply-to', settings.reply_to_address)
-        body = """You now have access to the {} dataset
+        try:
+            msg = MIMEMultipart()
+            msg['to'] = email
+            msg['from'] = settings.from_address
+            msg['subject'] = 'Swefreq access granted to {}'.format(dataset.short_name)
+            msg.add_header('reply-to', settings.reply_to_address)
+            body = """You now have access to the {} dataset
 
-Please visit https://swefreq.nbis.se/dataset/{}/download to download files.
-        """.format(dataset.full_name, dataset.short_name,
-                dataset.study.contact_name)
-        msg.attach(MIMEText(body, 'plain'))
+    Please visit https://swefreq.nbis.se/dataset/{}/download to download files.
+            """.format(dataset.full_name, dataset.short_name,
+                    dataset.study.contact_name)
+            msg.attach(MIMEText(body, 'plain'))
 
-        server = smtplib.SMTP(settings.mail_server)
-        server.sendmail(msg['from'], [msg['to']], msg.as_string())
+            server = smtplib.SMTP(settings.mail_server)
+            server.sendmail(msg['from'], [msg['to']], msg.as_string())
+        except Exception as e:
+            logging.error("Email error: {}".format(e))
+
+        self.finish()
 
 
 class RevokeUser(handlers.AdminHandler):
