@@ -2,6 +2,7 @@ import json
 
 json_settings_fh = open("../settings.json")
 json_settings = json.load(json_settings_fh)
+json_settings_fh.close()
 
 google_key = json_settings["googleKey"]
 google_secret = json_settings["googleSecret"]
@@ -17,6 +18,7 @@ mysql_host = json_settings["mysqlHost"]
 mysql_schema = json_settings["mysqlSchema"]
 mysql_user = json_settings["mysqlUser"]
 mysql_passwd = json_settings["mysqlPasswd"]
+mysql_port = json_settings["mysqlPort"]
 
 # Mongodb settings
 mongo_host = json_settings["mongoHost"]

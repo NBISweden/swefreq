@@ -81,8 +81,11 @@ class Application(tornado.web.Application):
             ("/api/.*",                                                              tornado.web.ErrorHandler,
                                                                                          {"status_code": 404} ),
             (r'().*',                                                                  tornado.web.StaticFileHandler,
-                                                                                         {"path": "templates/",  "default_filename": "index.html"}),
+                                                                                         {"path": "static/templates/",  "default_filename": "index.html"}),
         ]
+        ## Adding developer login handler
+        if settings.get('develop', False) == True:
+            self.declared_handlers.insert(-1, ("/developer/login", handlers.DeveloperLoginHandler))
 
         # google oauth key
         self.oauth_key = tornado_settings["google_oauth"]["key"]

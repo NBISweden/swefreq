@@ -59,9 +59,10 @@ if ($opt_help) { usage(); exit 0; }
 my $settings = decode_json( get_file($opt_config) );
 my $study    = decode_json( get_file($opt_file) );
 
-my $dbh = DBI->connect( sprintf( "DBI:mysql:database=%s;host=%s",
+my $dbh = DBI->connect( sprintf( "DBI:mysql:database=%s;host=%s;port=%s",
                                  $settings->{'mysqlSchema'},
-                                 $settings->{'mysqlHost'} ),
+                                 $settings->{'mysqlHost'},
+                                 $settings->{'mysqlPort'} ),
                         $settings->{'mysqlUser'},
                         $settings->{'mysqlPasswd'},
                         { 'RaiseError' => 1 } );
