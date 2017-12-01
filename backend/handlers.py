@@ -67,6 +67,7 @@ class SafeHandler(BaseHandler):
         the Handlers that inherit from this one are going to require
         authentication in all their methods.
         """
+        super().prepare()
         if not self.current_user:
             logging.debug("No current user: Send error 403")
             self.send_error(status_code=403)
@@ -106,7 +107,7 @@ class AdminHandler(SafeHandler):
 class UnsafeHandler(BaseHandler):
     pass
 
-class DeveloperLoginHandler(tornado.web.RequestHandler):
+class DeveloperLoginHandler(BaseHandler):
     def get(self):
         if not self.get_argument("user", False):
             self.send_error(status_code=403)
@@ -117,7 +118,7 @@ class DeveloperLoginHandler(tornado.web.RequestHandler):
         self.set_secure_cookie('email', self.get_argument("email"))
         self.finish()
 
-class DeveloperLogoutHandler(tornado.web.RequestHandler):
+class DeveloperLogoutHandler(BaseHandler):
     def get(self):
         self.clear_cookie("login_redirect")
         self.clear_cookie("user")
@@ -126,7 +127,7 @@ class DeveloperLogoutHandler(tornado.web.RequestHandler):
         redirect = self.get_argument("next", '/')
         self.redirect(redirect)
 
-class ElixirLoginHandler(tornado.web.RequestHandler, tornado.auth.OAuth2Mixin):
+class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
     _OAUTH_AUTHORIZE_URL     = "https://perun.elixir-czech.cz/oidc/authorize"
     _OAUTH_ACCESS_TOKEN_URL  = "https://perun.elixir-czech.cz/oidc/token"
     _OAUTH_USERINFO_ENDPOINT = "https://perun.elixir-czech.cz/oidc/userinfo"
@@ -229,7 +230,7 @@ class ElixirLoginHandler(tornado.web.RequestHandler, tornado.auth.OAuth2Mixin):
         return tornado.escape.json_decode( response.body )
 
 
-class ElixirLogoutHandler(tornado.web.RequestHandler):
+class ElixirLogoutHandler(BaseHandler):
     def get(self):
         self.clear_cookie("access_token")
         self.clear_cookie("login_redirect")
@@ -239,7 +240,7 @@ class ElixirLogoutHandler(tornado.web.RequestHandler):
         redirect = self.get_argument("next", '/')
         self.redirect(redirect)
 
-class LoginHandler(tornado.web.RequestHandler, tornado.auth.GoogleOAuth2Mixin):
+class LoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
     """
     See http://www.tornadoweb.org/en/stable/auth.html#google for documentation
     on this. Here I have copied the example more or less verbatim.
@@ -285,7 +286,7 @@ class LoginHandler(tornado.web.RequestHandler, tornado.auth.GoogleOAuth2Mixin):
                         response_type='code',
                         extra_params={'approval_prompt': 'auto'})
 
-class LogoutHandler(tornado.web.RequestHandler, tornado.auth.GoogleOAuth2Mixin):
+class LogoutHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
     def get(self):
         def handle_request(response):
             if response.error:
