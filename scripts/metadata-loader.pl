@@ -32,6 +32,12 @@ sub get_file {
     return $text;
 }
 
+sub has_data {
+    my ( $hash, $key ) = @_;
+
+    return exists( $hash->{$key} ) && $hash->{$key} =~ /\S/;
+}
+
 sub validate_required {
     my ( $variable, $name, @keys ) = @_;
 
