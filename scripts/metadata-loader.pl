@@ -43,7 +43,7 @@ sub validate_required {
 
     my $error = 0;
     foreach my $key (@keys) {
-        if ( !exists( $variable->{$key} ) ) {
+        if ( has_data( $variable, $key ) ) {
             ++$error;
             printf( STDERR "%s is missing required key %s\n",
                     $name, $key );
@@ -81,7 +81,7 @@ die
   );
 
 # Insert study
-if ( exists( $study->{'description'} ) && -f $study->{'description'} ) {
+if ( has_data( $study, 'description' ) && -f $study->{'description'} ) {
     $study->{'description'} = get_file( $study->{'description'} );
 }
 $dbh->do( 'INSERT IGNORE INTO study ' .
@@ -121,13 +121,13 @@ foreach my $dataset ( @{ $study->{'datasets'} } ) {
                             qw( version description terms ) );
 
     # Insert dataset_version
-    if ( exists( $version->{'description'} ) &&
+    if ( has_data( $version, 'description' ) &&
          -f $version->{'description'} )
     {
         $version->{'description'} =
           get_file( $version->{'description'} );
     }
-    if ( exists( $version->{'terms'} ) && -f $version->{'terms'} ) {
+    if ( has_data( $version, 'terms' ) && -f $version->{'terms'} ) {
         $version->{'terms'} = get_file( $version->{'terms'} );
     }
     $dbh->do( 'INSERT IGNORE INTO dataset_version ' .
@@ -164,7 +164,7 @@ foreach my $dataset ( @{ $study->{'datasets'} } ) {
     }
 
     # Insert logotype if present
-    if ( exists( $dataset->{'logotype'} ) && -f $dataset->{'logotype'} )
+    if ( has_data( $dataset, 'logotype' ) && -f $dataset->{'logotype'} )
     {
         my $mt = MIME::Types->new();
         $dataset->{'logotype-mimetype'} =
