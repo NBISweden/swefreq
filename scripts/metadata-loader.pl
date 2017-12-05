@@ -88,6 +88,10 @@ if ( has_data( $study, 'description' ) ) {
 }
 else { delete( $study->{'description'} ); }
 
+if ( !has_data( $study, 'ref-doi' ) ) {
+    delete( $study->{'ref-doi'} );
+}
+
 $dbh->do( 'INSERT IGNORE INTO study ' .
             '(pi_name,pi_email,contact_name,contact_email,' .
             'title,description,publication_date,ref_doi) ' .
@@ -105,6 +109,14 @@ foreach my $dataset ( @{ $study->{'datasets'} } ) {
           qw( short-name full-name dataset-size version sample-sets ) );
 
     # Insert dataset
+    foreach
+      my $opt_key (qw( avg-seq-depth seq-type seq-tech seq-center ))
+    {
+        if ( !has_data( $dataset, $opt_key ) ) {
+            delete( $dataset->{$opt_key} );
+        }
+    }
+
     $dbh->do( 'INSERT IGNORE INTO dataset ' .
                 '(study_pk,short_name,full_name,avg_seq_depth,' .
                 'seq_type,seq_tech,seq_center,' .
@@ -157,6 +169,10 @@ foreach my $dataset ( @{ $study->{'datasets'} } ) {
         die
           if validate_required( $sample_set, 'sample-set',
                                qw( collection sample-size phenotype ) );
+
+        if ( !has_data( $sample_set, 'ethnicity' ) ) {
+            delete( $sample_set->{'ethnicity'} );
+        }
 
         $dbh->do( 'INSERT IGNORE INTO collection ' .
                     '(name,ethnicity) VALUE (?,?)',
