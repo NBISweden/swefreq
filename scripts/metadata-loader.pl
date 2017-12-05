@@ -81,9 +81,13 @@ die
   );
 
 # Insert study
-if ( has_data( $study, 'description' ) && -f $study->{'description'} ) {
-    $study->{'description'} = get_file( $study->{'description'} );
+if ( has_data( $study, 'description' ) ) {
+    if ( -f $study->{'description'} ) {
+        $study->{'description'} = get_file( $study->{'description'} );
+    }
 }
+else { delete( $study->{'description'} ); }
+
 $dbh->do( 'INSERT IGNORE INTO study ' .
             '(pi_name,pi_email,contact_name,contact_email,' .
             'title,description,publication_date,ref_doi) ' .
@@ -121,15 +125,21 @@ foreach my $dataset ( @{ $study->{'datasets'} } ) {
                             qw( version description terms ) );
 
     # Insert dataset_version
-    if ( has_data( $version, 'description' ) &&
-         -f $version->{'description'} )
-    {
-        $version->{'description'} =
-          get_file( $version->{'description'} );
+    if ( has_data( $version, 'description' ) ) {
+        if ( -f $version->{'description'} ) {
+            $version->{'description'} =
+              get_file( $version->{'description'} );
+        }
     }
-    if ( has_data( $version, 'terms' ) && -f $version->{'terms'} ) {
-        $version->{'terms'} = get_file( $version->{'terms'} );
+    else { delete( $version->{'description'} ); }
+
+    if ( has_data( $version, 'terms' ) ) {
+        if ( -f $version->{'terms'} ) {
+            $version->{'terms'} = get_file( $version->{'terms'} );
+        }
     }
+    else { delete( $version->{'terms'} ); }
+
     $dbh->do( 'INSERT IGNORE INTO dataset_version ' .
                 '(dataset_pk,version,description,terms,var_call_ref,' .
                 'available_from,ref_doi) ' .
