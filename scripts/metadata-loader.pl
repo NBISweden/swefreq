@@ -73,6 +73,7 @@ my $dbh = DBI->connect(sprintf( "DBI:mysql:database=%s;host=%s;port=%s",
                        $settings->{'mysqlPasswd'},
                        { 'RaiseError' => 1 } );
 
+# Insert study
 die
   if validate_required(
     $study,
@@ -80,7 +81,6 @@ die
     qw( title publication-date pi-name pi-email contact-name contact-email datasets )
   );
 
-# Insert study
 if ( has_data( $study, 'description' ) ) {
     if ( -f $study->{'description'} ) {
         $study->{'description'} = get_file( $study->{'description'} );
@@ -104,11 +104,11 @@ $dbh->do( 'INSERT IGNORE INTO study ' .
               'publication-date', 'ref-doi' } );
 
 foreach my $dataset ( @{ $study->{'datasets'} } ) {
+    # Insert dataset
     die
       if validate_required( $dataset, 'dataset',
           qw( short-name full-name dataset-size version sample-sets ) );
 
-    # Insert dataset
     foreach
       my $opt_key (qw( avg-seq-depth seq-type seq-tech seq-center ))
     {
@@ -131,12 +131,12 @@ foreach my $dataset ( @{ $study->{'datasets'} } ) {
                   'dataset-size' },
               @{$study}{ 'title', 'pi-email' } );
 
+    # Insert dataset_version
     my $version = $dataset->{'version'};
     die
       if validate_required( $version, 'version',
                             qw( version description terms ) );
 
-    # Insert dataset_version
     foreach my $opt_key (qw( var-call-ref ref-doi available-from )) {
         if ( !has_data( $version, $opt_key ) ) {
             delete( $version->{$opt_key} );
