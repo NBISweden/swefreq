@@ -3,12 +3,12 @@
 use strict;
 use warnings;
 
+use Carp;
 use DBI;
 use Data::Dumper;
+use Getopt::Long;
 use IO::File;
 use JSON;
-use Getopt::Long;
-use Carp;
 use MIME::Types;
 
 my $opt_config = 'settings.json';
