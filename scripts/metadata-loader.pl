@@ -137,20 +137,20 @@ foreach my $dataset ( @{ $study->{'datasets'} } ) {
                             qw( version description terms ) );
 
     # Insert dataset_version
-    if ( has_data( $version, 'description' ) ) {
-        if ( -f $version->{'description'} ) {
-            $version->{'description'} =
-              get_file( $version->{'description'} );
+    foreach my $opt_key (qw( var-call-ref ref-doi available-from )) {
+        if ( !has_data( $version, $opt_key ) ) {
+            delete( $version->{$opt_key} );
         }
     }
-    else { delete( $version->{'description'} ); }
 
-    if ( has_data( $version, 'terms' ) ) {
-        if ( -f $version->{'terms'} ) {
-            $version->{'terms'} = get_file( $version->{'terms'} );
-        }
+    if ( -f $version->{'description'} ) {
+        $version->{'description'} =
+          get_file( $version->{'description'} );
     }
-    else { delete( $version->{'terms'} ); }
+
+    if ( -f $version->{'terms'} ) {
+        $version->{'terms'} = get_file( $version->{'terms'} );
+    }
 
     $dbh->do( 'INSERT IGNORE INTO dataset_version ' .
                 '(dataset_pk,version,description,terms,var_call_ref,' .
