@@ -43,7 +43,7 @@ sub validate_required {
 
     my $error = 0;
     foreach my $key (@keys) {
-        if ( has_data( $variable, $key ) ) {
+        if ( !has_data( $variable, $key ) ) {
             ++$error;
             printf( STDERR "%s is missing required key %s\n",
                     $name, $key );
