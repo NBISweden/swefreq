@@ -12,3 +12,5 @@ ALTER TABLE sample_set ADD
     CONSTRAINT UNIQUE (dataset_pk, collection_pk);
 ALTER TABLE dataset_file ADD
     CONSTRAINT UNIQUE (uri);
+
+ALTER TABLE banan ADD CONSTRAINT UNIQUE (apple);
