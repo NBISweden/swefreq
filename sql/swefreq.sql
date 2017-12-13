@@ -9,7 +9,11 @@ CREATE TABLE IF NOT EXISTS user (
     email               VARCHAR(100)    NOT NULL,
     affiliation         VARCHAR(100)    DEFAULT NULL,
     country             VARCHAR(100)    DEFAULT NULL,
-    CONSTRAINT UNIQUE (email)
+    identity            VARCHAR(100)    NOT NULL,
+    identity_type       ENUM ('google', 'elixir')
+                                        NOT NULL,
+    CONSTRAINT UNIQUE (email),
+    CONSTRAINT UNIQUE (identity, identity_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS study (
