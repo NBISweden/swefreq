@@ -12,7 +12,10 @@ cat settings.json
 echo "/SETTINGS"
 
 echo ">>> Test 1. The SQL Patch"
+
+git fetch origin refs/heads/master:master
 git show origin/master:sql/swefreq.sql > master-schema.sql
+
 mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test < master-schema.sql
 mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test < sql/patch-master-db.sql
 # Empty the database
