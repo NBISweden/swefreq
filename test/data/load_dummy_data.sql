@@ -29,23 +29,23 @@ INSERT INTO dataset_file(dataset_file_pk, dataset_version_pk, name, uri, bytes)
            (1000004, 1000003, 'File22-1', '/release/file221.txt', 973826482736),
            (1000005, 1000004, 'File23-1', '/release/file231.txt', 239847293874293874);
 
-INSERT INTO user(user_pk, name, email, affiliation, country) VALUES
-    (1000100, 'Not req yet',          'email0',  'i',     ''),
-    (1000101, 'Requested access',     'email1',  'w1',    ''),
-    (1000102, 'Approved access',      'email2',  'c1',    ''),
-    (1000103, 'Denied access',        'email3',  'i',     ''),
-    (1000104, 'Approved then denied', 'email4',  'i',     ''),
-    (1000105, 'R->A->D->R',           'email5',  'w1',    ''),
-    (1000106, 'R->A->D->R->A',        'email6',  'c1',    ''),
-    (1000107, 'R->A->D->R->D',        'email7',  'i',     ''),
-    (1000108, 'Combo1 w1 w2',         'email8',  'w1 w2', ''),
-    (1000109, 'Combo2 w1 c2',         'email9',  'w1 c2', ''),
-    (1000110, 'Combo3 c1 w2',         'email10', 'c1 w2', ''),
-    (1000111, 'Combo4 c1 c2',         'email11', 'c1 c2', ''),
-    (1000112, 'Combo5 c1 i2',         'email12', 'c1 i2', ''),
-    (1000113, 'Admin1',               'admin1',  'Rootspace', ''),
-    (1000114, 'Admin2',               'admin2',  'Rootspace', ''),
-    (1000115, 'Admin12',              'admin12', 'Rootspace', '');
+INSERT INTO user(user_pk, name, email, affiliation, country, identity, identity_type) VALUES
+    (1000100, 'Not req yet',          'email0',  'i',         '', 'email0', 'elixir'),
+    (1000101, 'Requested access',     'email1',  'w1',        '', 'email1', 'google'),
+    (1000102, 'Approved access',      'email2',  'c1',        '', 'email2', 'elixir'),
+    (1000103, 'Denied access',        'email3',  'i',         '', 'email3', 'google'),
+    (1000104, 'Approved then denied', 'email4',  'i',         '', 'email4', 'elixir'),
+    (1000105, 'R->A->D->R',           'email5',  'w1',        '', 'email5', 'google'),
+    (1000106, 'R->A->D->R->A',        'email6',  'c1',        '', 'email6', 'elixir'),
+    (1000107, 'R->A->D->R->D',        'email7',  'i',         '', 'email7', 'google'),
+    (1000108, 'Combo1 w1 w2',         'email8',  'w1 w2',     '', 'email8', 'elixir'),
+    (1000109, 'Combo2 w1 c2',         'email9',  'w1 c2',     '', 'email9', 'google'),
+    (1000110, 'Combo3 c1 w2',         'email10', 'c1 w2',     '', 'email10', 'elixir'),
+    (1000111, 'Combo4 c1 c2',         'email11', 'c1 c2',     '', 'email11', 'google'),
+    (1000112, 'Combo5 c1 i2',         'email12', 'c1 i2',     '', 'email12', 'elixir'),
+    (1000113, 'Admin1',               'admin1',  'Rootspace', '', 'admin1', 'google'),
+    (1000114, 'Admin2',               'admin2',  'Rootspace', '', 'admin2', 'elixir'),
+    (1000115, 'Admin12',              'admin12', 'Rootspace', '', 'admin12', 'google');
 
 INSERT INTO dataset_access(user_pk, dataset_pk) VALUES
     (1000100, 1000001), (1000101, 1000001), (1000102, 1000001), (1000103, 1000001), (1000104, 1000001), (1000105, 1000001),
