@@ -19,7 +19,7 @@ git show master:sql/swefreq.sql > master-schema.sql
 mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test < master-schema.sql
 mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test < sql/patch-master-db.sql
 # Empty the database
-mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test < __END__
+mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test <<__END__
 SET FOREIGN_KEY_CHECKS = 0;
 
 SELECT group_concat(table_name) INTO @v FROM information_schema.views WHERE table_schema='swefreq_test';
