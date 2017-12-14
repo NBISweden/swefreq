@@ -34,13 +34,13 @@ class EnumField(Field):
 
 
 class User(BaseModel):
-    user        = PrimaryKeyField(db_column='user_pk')
-    name        = CharField(null=True)
-    email       = CharField(unique=True)
-    identity    = CharField(unique=True)
+    user          = PrimaryKeyField(db_column='user_pk')
+    name          = CharField(null=True)
+    email         = CharField(unique=True)
+    identity      = CharField(unique=True)
     identity_type = EnumField(null=False, values=['google', 'elixir'])
-    affiliation = CharField(null=True)
-    country     = CharField(null=True)
+    affiliation   = CharField(null=True)
+    country       = CharField(null=True)
 
     def is_admin(self, dataset):
         return DatasetAccess.select().where(
