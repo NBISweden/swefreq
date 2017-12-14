@@ -259,17 +259,11 @@ class LoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
                     "https://www.googleapis.com/plus/v1/people/me",
                     access_token=user_token["access_token"])
 
+
             self.set_secure_cookie('user', user["displayName"])
             self.set_secure_cookie('access_token', user_token["access_token"])
+            self.set_secure_cookie('email', self._get_google_email(user))
 
-            # There can be several emails registered for a user.
-            for email in user["emails"]:
-                if email.get('type', '') == 'account':
-                    self.set_secure_cookie('email', email['value'])
-                    break
-            else:
-                # No account email, just take the first one
-                self.set_secure_cookie('email', user['emails'][0]['value'])
 
             url = self.get_secure_cookie("login_redirect")
             self.clear_cookie("login_redirect")
@@ -286,6 +280,16 @@ class LoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
                         scope=['profile', 'email'],
                         response_type='code',
                         extra_params={'approval_prompt': 'auto'})
+
+    def _get_google_email(self, user):
+        email = ''
+        # There can be several emails registered for a user.
+        for email in user["emails"]:
+            if email.get('type', '') == 'account':
+                return email['value']
+
+        return user['emails'][0]['value']
+
 
 class LogoutHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
     def get(self):
