@@ -281,8 +281,6 @@ class RequestAccess(handlers.SafeHandler):
 
         user.affiliation = affiliation
         user.country = country
-        user.identity = self.get_secure_cookie('identity')
-        user.identity_type = self.get_secure_cookie('identity_type')
 
         logging.info("Inserting into database: {}, {}".format(user.name, user.email))
 
