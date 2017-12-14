@@ -157,6 +157,8 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
             self.set_secure_cookie('access_token', user_token["access_token"])
             self.set_secure_cookie('user', user["name"])
             self.set_secure_cookie('email', user["email"])
+            self.set_secure_cookie('identity', user["sub"])
+            self.set_secure_cookie('identity_type', 'elixir')
 
             redirect = self.get_secure_cookie("login_redirect")
             self.clear_cookie("login_redirect")
@@ -263,6 +265,8 @@ class LoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
             self.set_secure_cookie('user', user["displayName"])
             self.set_secure_cookie('access_token', user_token["access_token"])
             self.set_secure_cookie('email', self._get_google_email(user))
+            self.set_secure_cookie('identity', self._get_google_email(user))
+            self.set_secure_cookie('identity_type', 'google')
 
 
             url = self.get_secure_cookie("login_redirect")
