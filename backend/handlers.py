@@ -34,6 +34,8 @@ class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
         email = self.get_secure_cookie('email')
         name  = self.get_secure_cookie('user')
+        identity = self.get_secure_cookie('identity')
+        identity_type = self.get_secure_cookie('identity_type')
 
         # Fix ridiculous bug with quotation marks showing on the web
         if name and (name[0] == '"') and (name[-1] == '"'):
@@ -41,11 +43,13 @@ class BaseHandler(tornado.web.RequestHandler):
 
         if email:
             try:
-                return db.User.select().where( db.User.email == email ).get()
+                return db.User.select().where( db.User.identity == identity ).get()
             except peewee.DoesNotExist:
                 ## Not saved in the database yet
                 return db.User(email = email.decode('utf-8'),
-                               name  = name.decode('utf-8'))
+                               name  = name.decode('utf-8'),
+                               identity = identity.decode('utf-8'),
+                               identity_type = identity_type.decode('utf-8'))
         else:
             return None
 
@@ -117,6 +121,8 @@ class DeveloperLoginHandler(BaseHandler):
 
         self.set_secure_cookie('user', self.get_argument("user"))
         self.set_secure_cookie('email', self.get_argument("email"))
+        self.set_secure_cookie('identity', self.get_argument("email"))
+        self.set_secure_cookie('identity_type', 'google')
         self.finish()
 
 class DeveloperLogoutHandler(BaseHandler):
@@ -157,6 +163,8 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
             self.set_secure_cookie('access_token', user_token["access_token"])
             self.set_secure_cookie('user', user["name"])
             self.set_secure_cookie('email', user["email"])
+            self.set_secure_cookie('identity', user["sub"])
+            self.set_secure_cookie('identity_type', 'elixir')
 
             redirect = self.get_secure_cookie("login_redirect")
             self.clear_cookie("login_redirect")
@@ -259,17 +267,13 @@ class LoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
                     "https://www.googleapis.com/plus/v1/people/me",
                     access_token=user_token["access_token"])
 
+
             self.set_secure_cookie('user', user["displayName"])
             self.set_secure_cookie('access_token', user_token["access_token"])
+            self.set_secure_cookie('email', self._get_google_email(user))
+            self.set_secure_cookie('identity', self._get_google_email(user))
+            self.set_secure_cookie('identity_type', 'google')
 
-            # There can be several emails registered for a user.
-            for email in user["emails"]:
-                if email.get('type', '') == 'account':
-                    self.set_secure_cookie('email', email['value'])
-                    break
-            else:
-                # No account email, just take the first one
-                self.set_secure_cookie('email', user['emails'][0]['value'])
 
             url = self.get_secure_cookie("login_redirect")
             self.clear_cookie("login_redirect")
@@ -286,6 +290,16 @@ class LoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
                         scope=['profile', 'email'],
                         response_type='code',
                         extra_params={'approval_prompt': 'auto'})
+
+    def _get_google_email(self, user):
+        email = ''
+        # There can be several emails registered for a user.
+        for email in user["emails"]:
+            if email.get('type', '') == 'account':
+                return email['value']
+
+        return user['emails'][0]['value']
+
 
 class LogoutHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
     def get(self):

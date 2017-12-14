@@ -281,6 +281,7 @@ class RequestAccess(handlers.SafeHandler):
 
         user.affiliation = affiliation
         user.country = country
+
         logging.info("Inserting into database: {}, {}".format(user.name, user.email))
 
         try:
