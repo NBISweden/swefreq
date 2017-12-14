@@ -117,6 +117,8 @@ class DeveloperLoginHandler(BaseHandler):
 
         self.set_secure_cookie('user', self.get_argument("user"))
         self.set_secure_cookie('email', self.get_argument("email"))
+        self.set_secure_cookie('identity', self.get_argument("email"))
+        self.set_secure_cookie('identity_type', 'google')
         self.finish()
 
 class DeveloperLogoutHandler(BaseHandler):
