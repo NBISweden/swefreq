@@ -130,9 +130,7 @@ class DeveloperLoginHandler(BaseHandler):
 
 class DeveloperLogoutHandler(BaseHandler):
     def get(self):
-        self.clear_cookie("login_redirect")
-        self.clear_cookie("user")
-        self.clear_cookie("email")
+        self.clear_all_cookies()
 
         redirect = self.get_argument("next", '/')
         self.redirect(redirect)
@@ -244,10 +242,7 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
 
 class ElixirLogoutHandler(BaseHandler):
     def get(self):
-        self.clear_cookie("access_token")
-        self.clear_cookie("login_redirect")
-        self.clear_cookie("user")
-        self.clear_cookie("email")
+        self.clear_all_cookies()
 
         redirect = self.get_argument("next", '/')
         self.redirect(redirect)
@@ -318,10 +313,7 @@ class LogoutHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
         http_client = tornado.httpclient.AsyncHTTPClient()
         http_client.fetch(sLogoutUrl, handle_request)
 
-        self.clear_cookie("access_token")
-        self.clear_cookie("login_redirect")
-        self.clear_cookie("user")
-        self.clear_cookie("email")
+        self.clear_all_cookies()
 
         redirect = self.get_argument("next", '/')
         self.redirect(redirect)
