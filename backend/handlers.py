@@ -41,7 +41,7 @@ class BaseHandler(tornado.web.RequestHandler):
         if name and (name[0] == '"') and (name[-1] == '"'):
             name = user[1:-1]
 
-        if email:
+        if identity:
             try:
                 return db.User.select().where( db.User.identity == identity ).get()
             except peewee.DoesNotExist:
