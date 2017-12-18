@@ -50,5 +50,28 @@
                 </form>
             </div>
         </div>
+
+        <!-- Dataset Access -->
+        <div class="row">
+            <div class="col-sm-12">
+                <h1>Dataset Access</h1>
+            </div class="col-sm-12">
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <table class="table table-striped">
+                    <tr>
+                        <th>Dataset
+                        <th>Subscribed to email updates
+                        <th>Access
+                    </tr>
+                    <tr ng-repeat="row in ctrl.datasets">
+                        <td>{{row.shortName}}</td>
+                        <td>{{row.email ? "Yes" : "No"}}</td>
+                        <td>{{row.access ? (row.isAdmin ? "Admin" : "Approved" ) : "Request pending" }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
     </div>
 </div>

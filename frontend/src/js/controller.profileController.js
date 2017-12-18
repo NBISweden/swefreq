@@ -2,7 +2,7 @@
     angular.module("App")
     .controller("profileController", ["User", "Countries",
                                 function(User, Countries) {
-    var localThis                 = this;
+    var localThis = this;
 
     activate();
 
@@ -15,6 +15,10 @@
         Countries.getCountries().then(function(data) {
             localThis.availableCountries = data;
             setCountry();
+        });
+
+        User.getDatasets().then(function(data) {
+            localThis.datasets = data;
         });
     }
 
