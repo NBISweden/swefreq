@@ -79,6 +79,12 @@ class TestEndpoints(RequestTests):
     def test_request_access(self):
         self.assertHTTPCode('/api/datasets/Dataset%201/users/email0/request', 403)
 
+    def test_user_me(self):
+        self.assertHTTPCode('/api/users/me')
+
+    def test_user_datasets(self):
+        self.assertHTTPCode('/api/users/datasets', 403)
+
 
 class TestRequestAccess(RequestTests):
     USER='e1'
@@ -191,6 +197,16 @@ class TestRequestAccess(RequestTests):
         count = db.User.select().where(db.User.email==self.USER).count()
         self.assertEqual(count, 1)
 
+        r = self.get('/api/users/datasets')
+        self.assertEqual(r.status_code, 200)
+        try:
+            json = r.json()
+        except Exception:
+            self.fail("Can't parse JSON Data")
+
+        self.assertIn('data', json)
+        self.assertEqual(json['data'][0]['access'], False)
+
 
 class TestAdminAccess(RequestTests):
     def setUp(self):
@@ -248,6 +264,20 @@ class TestAdminAccess(RequestTests):
         self.assertIn('user', user)
         self.assertIn('hasAccess', user)
         self.assertEqual(user['hasAccess'], 0)
+
+    def test_admin_is_admin(self):
+        self.login_user('admin1')
+
+        r = self.get('/api/users/datasets')
+        self.assertEqual(r.status_code, 200)
+        try:
+            json = r.json()
+        except Exception:
+            self.fail("Can't parse JSON Data")
+
+        self.assertIn('data', json)
+        self.assertEqual(json['data'][0]['access'], True)
+        self.assertEqual(json['data'][0]['isAdmin'], True)
 
 
 class TestUserManagement(RequestTests):
@@ -307,6 +337,17 @@ class TestUserManagement(RequestTests):
         self.newSession()
         self.login_user(u['email'])
         self.assertHTTPCode('/api/datasets/Dataset%201/files', 200)
+
+        # The dataset should be listed on the dataset page as well
+        r = self.get('/api/users/datasets')
+        self.assertEqual(r.status_code, 200)
+        try:
+            json = r.json()
+        except Exception:
+            self.fail("Can't parse JSON Data")
+
+        self.assertIn('data', json)
+        self.assertEqual(json['data'][0]['access'], True)
 
     def test_recently_revoked_user_cant_list_files(self):
         self.login_user('admin1')
