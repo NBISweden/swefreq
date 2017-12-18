@@ -431,6 +431,35 @@ class DatasetUsersCurrent(handlers.AdminHandler, DatasetUsers):
             query, lambda u: u.access_current_prefetch)})
 
 
+class UserDatasetAccess(handlers.SafeHandler):
+    def get(self):
+        user = self.current_user
+
+        ret = {
+            "data": [],
+        }
+
+        for access in user.access_pending:
+            d = {}
+            d['short_name']       = access.dataset.short_name
+            d['wants_newsletter'] = access.wants_newsletter
+            d['is_admin']         = False
+            d['access']           = False
+
+            ret['data'].append( d )
+
+        for access in user.access_current:
+            d = {}
+            d['short_name']       = access.dataset.short_name
+            d['wants_newsletter'] = access.wants_newsletter
+            d['is_admin']         = access.is_admin
+            d['access']           = True
+
+            ret['data'].append( d )
+
+        self.finish(ret)
+
+
 class ServeLogo(handlers.UnsafeHandler):
     def get(self, dataset, *args, **kwargs):
         try:
