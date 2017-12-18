@@ -1,7 +1,7 @@
 (function() {
     angular.module("App")
-    .controller("datasetDownloadController", ["$location", "$http", "$routeParams", "clipboard", "User", "Dataset", "DatasetUsers", "Log", "DatasetFiles", "TemporaryLink",
-                                function($location, $http, $routeParams, clipboard, User, Dataset, DatasetUsers, Log, DatasetFiles, TemporaryLink) {
+    .controller("datasetDownloadController", ["$location", "$http", "$routeParams", "clipboard", "User", "Dataset", "DatasetUsers", "Log", "DatasetFiles", "TemporaryLink", "Countries",
+                                function($location, $http, $routeParams, clipboard, User, Dataset, DatasetUsers, Log, DatasetFiles, TemporaryLink, Countries) {
         var localThis                 = this;
         var dataset                   = $routeParams.dataset;
         localThis.authorizationLevel  = "logged_out";
@@ -16,8 +16,8 @@
         activate();
 
         function activate() {
-            $http.get("/api/countries").then(function(data) {
-                localThis.availableCountries = data.data.countries;
+            Countries.getCountries().then(function(data) {
+                localThis.availableCountries = data;
             });
 
             User.getUser().then(function(data) {
