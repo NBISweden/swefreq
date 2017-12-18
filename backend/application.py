@@ -204,7 +204,12 @@ class GetUser(handlers.UnsafeHandler):
 
         ret = { 'user': None, 'email': None }
         if user:
-            ret = { 'user': user.name, 'email': user.email }
+            ret = {
+                'user':        user.name,
+                'email':       user.email,
+                'affiliation': user.affiliation,
+                'country':     user.country,
+            }
 
         self.finish(ret)
 
