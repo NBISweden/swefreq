@@ -46,3 +46,21 @@ Start the server
 
     source /path/to/bin/activate                   # activate your virtualenv
     python /path/to/route.py
+
+
+Quick development mode
+----------------------
+
+1. Install docker
+2. Look at `test/travis_before_install.sh` to initiate the mysql docker image.
+3. Copy `settings_sample.json` into `settings.json` and
+    - Change mysqlSchema into `swefreq_test`.
+    - Change mysqlPort to 3366
+4. Do "Test 2. Load the swefreq schema" from `test/travis_script.sh`.
+5. Run `make` in the root directory of the porject.
+6. Make a symbolic link from `backend/static` to `static`.
+7. Run the server:
+```bash
+$ cd backend
+$ python route.py --develop
+```
