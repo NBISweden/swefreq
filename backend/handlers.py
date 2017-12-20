@@ -9,6 +9,7 @@ import datetime
 import urllib.parse
 import base64
 import uuid
+import re
 
 import db
 
@@ -73,9 +74,17 @@ def _convert_keys_to_camel_case(chunk):
     if not isinstance(chunk, dict):
         return chunk
 
+    def upcase_word(w):
+        return re.sub(r"^[a-z]([A-Za-z]+)?$",
+                      lambda mo: mo.group(0)[0].upper() +
+                                 mo.group(0)[1:],
+                      w)
+
     new_chunk = {}
     for k, v in chunk.items():
-        new_key = "".join( [ word.title() for word in k.split("_") ] )
+        new_key = "".join( [ upcase_word(word) for word in k.split("_") ] )
+        # First character should be the same as in the original string
+        new_key = k[0] + new_key[1:]
         new_chunk[new_key] = _convert_keys_to_camel_case(v)
     return new_chunk
 
