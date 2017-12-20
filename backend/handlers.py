@@ -63,6 +63,22 @@ class BaseHandler(tornado.web.RequestHandler):
         reason = 'Page not found'
         logging.info("Error do something here again")
 
+    def write(self, chunk):
+        if not isinstance(chunk, dict):
+            return super().write(chunk)
+        new_chunk = _convert_keys_to_camel_case(chunk)
+        super().write(new_chunk)
+
+def _convert_keys_to_camel_case(chunk):
+    if not isinstance(chunk, dict):
+        return chunk
+
+    new_chunk = {}
+    for k, v in chunk.items():
+        new_key = "".join( [ word.title() for word in k.split("_") ] )
+        new_chunk[new_key] = _convert_keys_to_camel_case(v)
+    return new_chunk
+
 
 class UnsafeHandler(BaseHandler):
     pass
