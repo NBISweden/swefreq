@@ -71,6 +71,9 @@ class BaseHandler(tornado.web.RequestHandler):
         super().write(new_chunk)
 
 def _convert_keys_to_camel_case(chunk):
+    if isinstance(chunk, list):
+        return [_convert_keys_to_camel_case(e) for e in chunk]
+
     if not isinstance(chunk, dict):
         return chunk
 
