@@ -21,7 +21,7 @@
             "error",
             "always"
         ],
-        "camelcase": [ "error" ]
+        "camelcase": [ "error", { "properties": "always" } ]
     },
     "globals": {
         "angular": true,
