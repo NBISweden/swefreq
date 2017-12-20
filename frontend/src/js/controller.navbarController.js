@@ -10,9 +10,9 @@
         function activate() {
             Dataset.getDataset($routeParams.dataset, $routeParams.version)
                 .then(function(data) {
-                    localThis.isAdmin     = data.dataset.is_admin;
-                    localThis.dataset     = data.dataset.short_name;
-                    localThis.browserUri  = data.dataset.browser_uri;
+                    localThis.isAdmin     = data.dataset.isAdmin;
+                    localThis.dataset     = data.dataset.shortName;
+                    localThis.browserUri  = data.dataset.browserUri;
                     localThis.urlBase     = "/dataset/" + localThis.dataset;
                     localThis.thisVersion = data.dataset.version.version;
                     if ($routeParams.version) {

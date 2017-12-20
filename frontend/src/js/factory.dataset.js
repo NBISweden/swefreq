@@ -28,7 +28,7 @@
                     state.collections = data.data.collections;
                     state.study = data.data.study;
 
-                    var contactName = state.study.contact_name;
+                    var contactName = state.study.contactName;
                     state.study.contactNameUc = contactName.charAt(0).toUpperCase() + contactName.slice(1);
                 })
             ]).then(function() {

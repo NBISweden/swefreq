@@ -28,7 +28,7 @@
                         "pos":             query.position - 1, // Beacon is 0-based
                         "allele":          query.allele,
                         "referenceAllele": query.referenceAllele,
-                        "dataset":         query.dataset.short_name,
+                        "dataset":         query.dataset.shortName,
                         "ref":             query.reference
                     }
                 }

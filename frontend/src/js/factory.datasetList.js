@@ -15,10 +15,10 @@
                     var d = data[i];
                     d.version.description = $sce.trustAsHtml(d.version.description);
                     if (d.future) {
-                        d.urlbase = "/dataset/" + d.short_name + "/version/" + d.version.version;
+                        d.urlbase = "/dataset/" + d.shortName + "/version/" + d.version.version;
                     }
                     else {
-                        d.urlbase = "/dataset/" + d.short_name;
+                        d.urlbase = "/dataset/" + d.shortName;
                     }
 
                     datasets.push(d);
