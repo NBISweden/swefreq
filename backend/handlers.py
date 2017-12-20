@@ -41,15 +41,18 @@ class BaseHandler(tornado.web.RequestHandler):
         if name and (name[0] == '"') and (name[-1] == '"'):
             name = user[1:-1]
 
-        if email:
+        if identity:
             try:
                 return db.User.select().where( db.User.identity == identity ).get()
             except peewee.DoesNotExist:
                 ## Not saved in the database yet
-                return db.User(email = email.decode('utf-8'),
-                               name  = name.decode('utf-8'),
-                               identity = identity.decode('utf-8'),
-                               identity_type = identity_type.decode('utf-8'))
+                try:
+                    return db.User(email = email.decode('utf-8'),
+                                   name  = name.decode('utf-8'),
+                                   identity = identity.decode('utf-8'),
+                                   identity_type = identity_type.decode('utf-8'))
+                except Exception as e:
+                    logging.error("Can't create new user: {}".format(e))
         else:
             return None
 
@@ -127,9 +130,7 @@ class DeveloperLoginHandler(BaseHandler):
 
 class DeveloperLogoutHandler(BaseHandler):
     def get(self):
-        self.clear_cookie("login_redirect")
-        self.clear_cookie("user")
-        self.clear_cookie("email")
+        self.clear_all_cookies()
 
         redirect = self.get_argument("next", '/')
         self.redirect(redirect)
@@ -241,10 +242,7 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
 
 class ElixirLogoutHandler(BaseHandler):
     def get(self):
-        self.clear_cookie("access_token")
-        self.clear_cookie("login_redirect")
-        self.clear_cookie("user")
-        self.clear_cookie("email")
+        self.clear_all_cookies()
 
         redirect = self.get_argument("next", '/')
         self.redirect(redirect)
@@ -315,10 +313,7 @@ class LogoutHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
         http_client = tornado.httpclient.AsyncHTTPClient()
         http_client.fetch(sLogoutUrl, handle_request)
 
-        self.clear_cookie("access_token")
-        self.clear_cookie("login_redirect")
-        self.clear_cookie("user")
-        self.clear_cookie("email")
+        self.clear_all_cookies()
 
         redirect = self.get_argument("next", '/')
         self.redirect(redirect)
