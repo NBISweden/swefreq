@@ -11,20 +11,20 @@
 
          function getUsers(dataset) {
             var defer = $q.defer();
-            var data = {"pending": [], "current": []};
+            var users = {"pending": [], "current": []};
             $q.all([
                 $http.get( "/api/datasets/" + dataset + "/users_pending" )
-                    .then(function(d) {
-                        data["pending"] = d.data.data;
+                    .then(function(data) {
+                        users.pending = data.data.data;
                     }
                 ),
                 $http.get( "/api/datasets/" + dataset + "/users_current" )
-                    .then(function(d) {
-                        data["current"] = d.data.data;
+                    .then(function(data) {
+                        users.current = data.data.data;
                     }
                 )
-            ]).then(function(data) {
-                defer.resolve(data);
+            ]).then(function() {
+                defer.resolve(users);
             });
             return defer.promise;
         }
