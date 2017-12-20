@@ -4,7 +4,7 @@
         return {
             getBeaconReferences: getBeaconReferences,
             queryBeacon: queryBeacon
-        }
+        };
 
         function getBeaconReferences(name) {
             return $http.get("/api/beacon/info").then(function(data) {
@@ -19,7 +19,7 @@
                 }
                 return references;
             });
-        };
+        }
 
         function queryBeacon(query) {
             return $http.get("/api/beacon/query", {
@@ -33,6 +33,6 @@
                     }
                 }
             );
-        };
+        }
     }]);
 })();

@@ -27,21 +27,21 @@
                 defer.resolve(data);
             });
             return defer.promise;
-        };
+        }
 
          function approveUser(dataset, email) {
             return $http.post(
                     "/api/datasets/" + dataset + "/users/" + email + "/approve",
                     $.param({"_xsrf": $cookies.get("_xsrf")})
                 );
-        };
+        }
 
          function revokeUser(dataset, email) {
             return $http.post(
                     "/api/datasets/" + dataset + "/users/" + email + "/revoke",
                     $.param({"_xsrf": $cookies.get("_xsrf")})
-                )
-        };
+                );
+        }
 
          function requestAccess(dataset, user) {
             return $http({url:"/api/datasets/" + dataset + "/users/" + user.email + "/request",
@@ -56,6 +56,6 @@
                         })
                 }
             );
-        };
+        }
     }]);
 })();

@@ -45,6 +45,6 @@
                 return "/dataset/" + localThis.dataset + "/version/" + version + "/" + subpage;
             }
             return localThis.urlBase + "/" + subpage;
-        };
+        }
     }]);
 })();

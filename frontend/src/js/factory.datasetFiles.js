@@ -11,7 +11,7 @@
                 file_uri = "/api/datasets/" + dataset + "/versions/" + version + "/files";
             }
             return $http.get(file_uri).then(function(data) {
-                return data.data.files
+                return data.data.files;
             });
         }
     }]);

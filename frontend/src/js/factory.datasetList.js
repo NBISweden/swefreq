@@ -23,8 +23,8 @@
 
                     datasets.push(d);
                 }
-                return datasets
+                return datasets;
             });
-        };
+        }
     }]);
 })();

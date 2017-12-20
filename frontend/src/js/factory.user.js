@@ -8,9 +8,9 @@
         function getUser() {
             return $http.get("/api/users/me")
                 .then(function(data) {
-                    return data.data
+                    return data.data;
                 }
             );
-        };
+        }
     }]);
 })();
