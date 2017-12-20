@@ -3,7 +3,7 @@
 [% block controller %]datasetDownloadController[% endblock %]
 [% block contents %]
 <div ng-switch on='ctrl.authorizationLevel'>
-<div ng-switch-when="loggedout">
+<div ng-switch-when="logged_out">
     <div class="row">
         <div class="col-sm-12">
             <div class="dataset-body padding-tb">You need to login for this access</div>
@@ -65,7 +65,7 @@
         </div>
     </div>
 </div>
-<div ng-switch-when="thank-you">
+<div ng-switch-when="thank_you">
     <div class="row">
         <div class="col-sm-12">
             <div class="dataset-body padding-tb">Thank you for your application. We will review it as soon as possible, thank you for your patience.</div>
