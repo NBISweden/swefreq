@@ -246,8 +246,8 @@ class TestAdminAccess(RequestTests):
 
         self.assertIn('email', user)
         self.assertIn('user', user)
-        self.assertIn('has_access', user)
-        self.assertEqual(user['has_access'], 0)
+        self.assertIn('hasAccess', user)
+        self.assertEqual(user['hasAccess'], 0)
 
 
 class TestUserManagement(RequestTests):
