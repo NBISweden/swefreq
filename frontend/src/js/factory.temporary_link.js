@@ -6,7 +6,7 @@
         };
 
         function getTemporary(dataset, version) {
-            url = "/api/datasets/" + dataset;
+            var url = "/api/datasets/" + dataset;
             if (version) {
                 url += "/versions/" + version;
             }

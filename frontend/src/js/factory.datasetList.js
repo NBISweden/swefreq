@@ -7,7 +7,7 @@
 
         function getDatasetList() {
             return $http.get("/api/datasets").then(function(data) {
-                var data = data.data.data;
+                data = data.data.data;
                 var len = data.length;
                 var datasets = [];
 

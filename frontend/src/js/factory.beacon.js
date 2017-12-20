@@ -10,7 +10,7 @@
             return $http.get("/api/beacon/info").then(function(data) {
                 var references = [];
                 var d = data.data.datasets;
-                console.log(d);
+
                 for (var i = 0; i < d.length; i++) {
                     var dataset = d[i];
                     if (dataset.id === name) {

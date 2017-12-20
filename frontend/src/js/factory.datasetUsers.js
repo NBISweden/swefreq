@@ -23,7 +23,7 @@
                         data["current"] = d.data.data;
                     }
                 )
-            ]).then(function(d) {
+            ]).then(function(data) {
                 defer.resolve(data);
             });
             return defer.promise;

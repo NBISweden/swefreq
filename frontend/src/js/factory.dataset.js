@@ -31,10 +31,10 @@
                     var contact_name = state.study.contact_name;
                     state.study.contact_name_uc = contact_name.charAt(0).toUpperCase() + contact_name.slice(1);
                 })
-            ]).then(function(data) {
+            ]).then(function() {
                     defer.resolve(state);
                 },
-                function(error) {
+                function() {
                     var error_message = "Can't find dataset " + dataset;
                     if (version) {
                         error_message += " version " + version;
