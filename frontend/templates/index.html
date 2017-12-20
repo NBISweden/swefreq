@@ -49,7 +49,7 @@
                 <div class="collapse navbar-collapse" id="navbar-things">
                     <ul class="nav navbar-nav navbar-right">
                         <li><a ng-click="showAbout = !showAbout" style="cursor: pointer">About</a>
-                        <li ng-if="mainCtrl.loggedIn == true"><a href="/logout?next={{ mainCtrl.url() }}" target="_self" title="Logout {{user_name}}">Logout</a></li>
+                        <li ng-if="mainCtrl.loggedIn == true"><a href="/logout?next={{ mainCtrl.url() }}" target="_self" title="Logout {{mainCtrl.user.user}}">Logout</a></li>
                         <li ng_if="mainCtrl.loggedIn == false"><a href="/login?next={{ mainCtrl.url() }}" target="_self">Login</a></li>
                     </ul>
                 </div>
