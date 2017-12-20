@@ -23,6 +23,7 @@
         "camelcase": [ "error" ]
     },
     "globals": {
-        "angular": true
+        "angular": true,
+        "$": true
     }
 }
