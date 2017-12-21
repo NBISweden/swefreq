@@ -53,6 +53,7 @@ class Application(tornado.web.Application):
             ## API Methods
             ("/api/countries",                                                       application.CountryList),
             ("/api/users/me",                                                        application.GetUser),
+            ("/api/users/datasets",                                                  application.UserDatasetAccess),
             ### Dataset Api
             ("/api/datasets",                                                        application.ListDatasets),
             ("/api/datasets/(?P<dataset>[^\/]+)",                                    application.GetDataset),
