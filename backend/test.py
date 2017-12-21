@@ -113,7 +113,7 @@ class TestRequestAccess(RequestTests):
                 u.delete_instance()
             except peewee.PeeweeException:
                 pass
-        except peewee.PeeweeException:
+        except db.User.DoesNotExist:
             pass
 
         if not db.database.is_closed():

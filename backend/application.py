@@ -470,7 +470,7 @@ class ServeLogo(handlers.UnsafeHandler):
                 ).where(
                     db.Dataset.short_name == dataset
                 ).get()
-        except peewee.PeeweeException:
+        except db.DatasetLogo.DoesNotExist:
             self.send_error(status_code=404)
             return
 
