@@ -1,5 +1,5 @@
 import unittest
-from unittest import skip, TestCase
+from unittest import TestCase
 import requests
 import db
 
@@ -26,6 +26,7 @@ class RequestTests(TestCase):
     def cookies(self):
         if hasattr(self, '_session'):
             return self._session.cookies
+        return {}
 
     def getUrl(self, path):
         return "{}{}".format(self.HOST, path)
@@ -94,7 +95,7 @@ class TestRequestAccess(RequestTests):
         if db.database.is_closed():
             try:
                 db.database.connect()
-            except Exception as e:
+            except Exception:
                 pass
 
     def tearDown(self):
@@ -385,7 +386,7 @@ class TestUserManagement(RequestTests):
                     }
                 )
         self.assertHTTPCode('/api/datasets/Dataset%201/files', 403)
-        
+
         ## Approve user
         self.newSession()
         self.login_user('admin1')
@@ -441,9 +442,6 @@ class TestLoggedInUser(RequestTests):
 
     def testLoggedInFiles(self):
         self.assertHTTPCode('/api/datasets/Dataset 1/files', 200)
-
-    def testLoggedInTempLinkGet(self):
-        self.assertHTTPCode('/api/datasets/Dataset 1/temporary_link', 405)
 
     def testLoggedInTempLinkGet(self):
         self.assertHTTPCode('/api/datasets/Dataset 1/temporary_link', 405)

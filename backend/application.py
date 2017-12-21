@@ -272,7 +272,7 @@ class CountryList(handlers.UnsafeHandler):
                 "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom",
                 "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican",
                 "Venezuela", "Vietnam", "Wallis and Futuna", "Western Sahara",
-                "Yemen", "Zambia", "Zimbabwe" ];
+                "Yemen", "Zambia", "Zimbabwe" ]
 
 
 class RequestAccess(handlers.SafeHandler):

@@ -66,7 +66,8 @@ class BaseHandler(tornado.web.RequestHandler):
 
     def write(self, chunk):
         if not isinstance(chunk, dict):
-            return super().write(chunk)
+            super().write(chunk)
+            return
         new_chunk = _convert_keys_to_camel_case(chunk)
         super().write(new_chunk)
 

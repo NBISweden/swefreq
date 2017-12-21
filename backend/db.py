@@ -1,4 +1,16 @@
-from peewee import *
+from peewee import (
+        BlobField,
+        CharField,
+        DateTimeField,
+        Field,
+        FloatField,
+        ForeignKeyField,
+        IntegerField,
+        Model,
+        MySQLDatabase,
+        PrimaryKeyField,
+        TextField,
+    )
 import settings
 
 database = MySQLDatabase(
@@ -18,8 +30,8 @@ class BaseModel(Model):
 class EnumField(Field):
     db_field = 'string' # The same as for CharField
 
-    def __init__(self, values=[], *args, **kwargs):
-        self.values = values
+    def __init__(self, values=None, *args, **kwargs):
+        self.values = values or []
         super().__init__(*args, **kwargs)
 
     def db_value(self, value):
