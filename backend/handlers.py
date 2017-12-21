@@ -40,7 +40,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
         # Fix ridiculous bug with quotation marks showing on the web
         if name and (name[0] == '"') and (name[-1] == '"'):
-            name = user[1:-1]
+            name = name[1:-1]
 
         if identity:
             try:
@@ -61,7 +61,6 @@ class BaseHandler(tornado.web.RequestHandler):
         """ Overwrites write_error method to have custom error pages.
         http://tornado.readthedocs.org/en/latest/web.html#tornado.web.RequestHandler.write_error
         """
-        reason = 'Page not found'
         logging.info("Error do something here again")
 
     def write(self, chunk):

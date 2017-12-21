@@ -1,6 +1,7 @@
 import unittest
 from unittest import TestCase
 import requests
+import peewee
 import db
 
 
@@ -93,10 +94,7 @@ class TestRequestAccess(RequestTests):
     def setUp(self):
         self.newSession()
         if db.database.is_closed():
-            try:
-                db.database.connect()
-            except Exception:
-                pass
+            db.database.connect()
 
     def tearDown(self):
         self.destroySession()
@@ -104,18 +102,18 @@ class TestRequestAccess(RequestTests):
             u = db.User.select(db.User).where(db.User.email==self.USER).get()
             try:
                 u.access.get().delete_instance()
-            except Exception:
+            except peewee.PeeweeException:
                 pass
             try:
                 for l in u.access_logs:
                     l.delete_instance()
-            except Exception:
+            except peewee.PeeweeException:
                 pass
             try:
                 u.delete_instance()
-            except Exception:
+            except peewee.PeeweeException:
                 pass
-        except Exception:
+        except peewee.PeeweeException:
             pass
 
         if not db.database.is_closed():
@@ -202,7 +200,7 @@ class TestRequestAccess(RequestTests):
         self.assertEqual(r.status_code, 200)
         try:
             json = r.json()
-        except Exception:
+        except ValueError:
             self.fail("Can't parse JSON Data")
 
         self.assertIn('data', json)
@@ -255,7 +253,7 @@ class TestAdminAccess(RequestTests):
         u = self.get('/api/datasets/Dataset%201/users_pending')
         try:
             json = u.json()
-        except Exception:
+        except ValueError:
             self.fail("Can't parse JSON Data")
 
         self.assertIn('data', json)
@@ -273,7 +271,7 @@ class TestAdminAccess(RequestTests):
         self.assertEqual(r.status_code, 200)
         try:
             json = r.json()
-        except Exception:
+        except ValueError:
             self.fail("Can't parse JSON Data")
 
         self.assertIn('data', json)
@@ -344,7 +342,7 @@ class TestUserManagement(RequestTests):
         self.assertEqual(r.status_code, 200)
         try:
             json = r.json()
-        except Exception:
+        except ValueError:
             self.fail("Can't parse JSON Data")
 
         self.assertIn('data', json)
