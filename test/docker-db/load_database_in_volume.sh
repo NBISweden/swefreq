@@ -1,6 +1,10 @@
 #!/bin/bash
 
-MYSQL_PORT=3367
+# After this script has run you can run the container like this for example
+#
+#  $ export MYSQL_PORT=3367
+#  $ docker run -v $VOLUME:/var/lib/mysql --rm --name mysql -d -p $MYSQL_PORT:3306 mysql:5.7 >/dev/null
+
 VOLUME='mysql-data-volume'
 
 echo "Downloading data"
@@ -14,5 +18,3 @@ cd mysql-data
 docker cp . loader:/var/lib/mysql/
 cd ..
 docker stop loader
-
-#docker run -v $VOLUME:/var/lib/mysql --rm --name mysql -d -p $MYSQL_PORT:3306 mysql:5.7 >/dev/null
