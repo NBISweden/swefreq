@@ -25,7 +25,7 @@ class BaseHandler(tornado.web.RequestHandler):
         if db.database.is_closed():
             try:
                 db.database.connect()
-            except Exception as e:
+            except peewee.DatabaseError as e:
                 logging.error("Failed to connect to database: {}".format(e))
 
     def on_finish(self):
@@ -45,7 +45,7 @@ class BaseHandler(tornado.web.RequestHandler):
         if identity:
             try:
                 return db.User.select().where( db.User.identity == identity ).get()
-            except peewee.DoesNotExist:
+            except db.User.DoesNotExist:
                 ## Not saved in the database yet
                 try:
                     return db.User(email = email.decode('utf-8'),
@@ -409,26 +409,26 @@ class AuthorizedStaticNginxFileHandler(AuthorizedHandler, BaseStaticNginxFileHan
 
 
 class TemporaryStaticNginxFileHandler(BaseStaticNginxFileHandler):
-    def get_user_from_hash(self, hash):
+    def get_user_from_hash(self, hashv):
         logging.debug("Getting the temporary user")
         return (db.User
                    .select(db.User)
                    .join(db.Linkhash)
-                   .where(db.Linkhash.hash == hash)
+                   .where(db.Linkhash.hash == hashv)
                ).get()
 
-    def get(self, dataset, hash, file):
-        logging.debug("Want to download hash {} ({})".format(hash, file))
+    def get(self, dataset, hashv, file):
+        logging.debug("Want to download hash {} ({})".format(hashv, file))
         linkhash = (db.Linkhash
                         .select()
                         .join(db.DatasetVersion)
                         .join(db.DatasetFile)
-                        .where(db.Linkhash.hash       == hash,
+                        .where(db.Linkhash.hash       == hashv,
                                db.Linkhash.expires_on >  datetime.datetime.now(),
                                db.DatasetFile.name    == file))
         if linkhash.count() > 0:
             logging.debug("Linkhash valid")
-            user = self.get_user_from_hash(hash)
+            user = self.get_user_from_hash(hashv)
             super().get(dataset, file, user)
         else:
             logging.debug("Linkhash invalid")

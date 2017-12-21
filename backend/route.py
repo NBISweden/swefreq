@@ -64,7 +64,7 @@ class Application(tornado.web.Application):
             (r"/api/datasets/(?P<dataset>[^\/]+)/users_current",                      application.DatasetUsersCurrent),
             (r"/api/datasets/(?P<dataset>[^\/]+)/users_pending",                      application.DatasetUsersPending),
             (r"/api/datasets/(?P<dataset>[^\/]+)/temporary_link",                     application.GenerateTemporaryLink),
-            (r"/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/request",    application.RequestAccess),
+            (r"/api/datasets/(?P<dataset>[^\/]+)/users/[^\/]+/request",               application.RequestAccess),
             (r"/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/approve",    application.ApproveUser),
             (r"/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/revoke",     application.RevokeUser),
             (r"/api/datasets/(?P<dataset>[^\/]+)/versions",                           application.ListDatasetVersions),

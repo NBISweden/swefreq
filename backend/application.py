@@ -165,10 +165,10 @@ class DatasetFiles(handlers.AuthorizedHandler):
 
         self.finish({'files': ret})
 
-def format_bytes(bytes):
+def format_bytes(nbytes):
     postfixes = ['b', 'Kb', 'Mb', 'Gb', 'Tb', 'Pb', 'Eb']
-    exponent = math.floor( math.log(bytes) / math.log(1000) )
-    return "{} {}".format( round(bytes/1000**exponent, 2), postfixes[exponent])
+    exponent = math.floor( math.log(nbytes) / math.log(1000) )
+    return "{} {}".format( round(nbytes/1000**exponent, 2), postfixes[exponent])
 
 
 class Collection(handlers.UnsafeHandler):
@@ -214,8 +214,9 @@ class GetUser(handlers.UnsafeHandler):
 
 class CountryList(handlers.UnsafeHandler):
     def get(self):
-        self.write({'countries': [{'name': c} for c in self.country_list()]})
+        self.write({'countries': [{'name': c} for c in self.country_list]})
 
+    @property
     def country_list(self):
         return ["Afghanistan", "Albania", "Algeria", "American Samoa", "Andorra",
                 "Angola", "Anguilla", "Antarctica", "Antigua and Barbuda",
@@ -274,7 +275,7 @@ class CountryList(handlers.UnsafeHandler):
 
 
 class RequestAccess(handlers.SafeHandler):
-    def post(self, dataset, *args, **kwargs):
+    def post(self, dataset):
         user    = self.current_user
         dataset = db.get_dataset(dataset)
 
@@ -377,33 +378,32 @@ class RevokeUser(handlers.AdminHandler):
                     action = 'access_revoked'
                 )
 
-class DatasetUsers():
-    def _build_json_response(self, query, access_for):
-        json_response = []
-        for user in query:
-            applyDate = '-'
-            access = access_for(user)
-            if not access:
-                continue
-            access = access[0]
-            if access.access_requested:
-                applyDate = access.access_requested.strftime('%Y-%m-%d')
+def _build_json_response(query, access_for):
+    json_response = []
+    for user in query:
+        applyDate = '-'
+        access = access_for(user)
+        if not access:
+            continue
+        access = access[0]
+        if access.access_requested:
+            applyDate = access.access_requested.strftime('%Y-%m-%d')
 
-            data = {
-                    'user':        user.name,
-                    'email':       user.email,
-                    'affiliation': user.affiliation,
-                    'country':     user.country,
-                    'newsletter':  access.wants_newsletter,
-                    'has_access':  access.has_access,
-                    'applyDate':   applyDate
-                }
-            json_response.append(data)
-        return json_response
+        data = {
+                'user':        user.name,
+                'email':       user.email,
+                'affiliation': user.affiliation,
+                'country':     user.country,
+                'newsletter':  access.wants_newsletter,
+                'has_access':  access.has_access,
+                'applyDate':   applyDate
+            }
+        json_response.append(data)
+    return json_response
 
 
-class DatasetUsersPending(handlers.AdminHandler, DatasetUsers):
-    def get(self, dataset, *args, **kwargs):
+class DatasetUsersPending(handlers.AdminHandler):
+    def get(self, dataset):
         dataset = db.get_dataset(dataset)
         users = db.User.select()
         access = (db.DatasetAccessPending
@@ -413,12 +413,11 @@ class DatasetUsersPending(handlers.AdminHandler, DatasetUsers):
                    ))
         query = peewee.prefetch(users, access)
 
-        self.finish({'data': self._build_json_response(
-            query, lambda u: u.access_pending_prefetch)})
+        self.finish({'data': _build_json_response(query, lambda u: u.access_pending_prefetch)})
 
 
-class DatasetUsersCurrent(handlers.AdminHandler, DatasetUsers):
-    def get(self, dataset, *args, **kwargs):
+class DatasetUsersCurrent(handlers.AdminHandler):
+    def get(self, dataset):
         dataset = db.get_dataset(dataset)
         users = db.User.select()
         access = (db.DatasetAccessCurrent
@@ -427,7 +426,7 @@ class DatasetUsersCurrent(handlers.AdminHandler, DatasetUsers):
                        db.DatasetAccessCurrent.dataset == dataset,
                    ))
         query = peewee.prefetch(users, access)
-        self.finish({'data': self._build_json_response(
+        self.finish({'data': _build_json_response(
             query, lambda u: u.access_current_prefetch)})
 
 
@@ -461,7 +460,7 @@ class UserDatasetAccess(handlers.SafeHandler):
 
 
 class ServeLogo(handlers.UnsafeHandler):
-    def get(self, dataset, *args, **kwargs):
+    def get(self, dataset):
         try:
             logo_entry = db.DatasetLogo.select(
                     db.DatasetLogo
