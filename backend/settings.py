@@ -26,11 +26,7 @@ mongo_port = json_settings["mongoPort"]
 mongo_user = json_settings["mongoUser"]
 mongo_password = json_settings["mongoPassword"]
 
-# ExAC server location
-exac_server = json_settings["exacServer"]
-
 # e-mail config
 mail_server = json_settings["mailServer"]
 from_address = json_settings["fromAddress"]
 reply_to_address = json_settings["replyToAddress"]
-admin_address = json_settings["adminAddress"]
