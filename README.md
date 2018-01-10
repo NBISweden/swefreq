@@ -60,7 +60,7 @@ Quick development mode
 3. Copy `settings_sample.json` into `settings.json` and
     - Change mysqlSchema into `swefreq_test`.
     - Change mysqlPort to 3366
-    - Update the crenentials for elixir and google oauth.
+    - Update the credentials for elixir and google oauth.
         - Elixir/redirectUri: http://localhost:4000/elixir/login
         - redirectUri: http://localhost:4000/login
 4. Run "Test 2. Load the swefreq schema" from `test/travis_script.sh`.
