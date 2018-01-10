@@ -46,10 +46,10 @@ class Application(tornado.web.Application):
             (r"/release/(?P<dataset>[^\/]+)/(?P<file>[^\/]+)",                       handlers.AuthorizedStaticNginxFileHandler,
                                                                                          {"path": "/release-files/"}),
             ## Authentication
-            (r"/login",                                                               handlers.LoginHandler),
-            (r"/logout",                                                              handlers.LogoutHandler),
             (r"/elixir/login",                                                        handlers.ElixirLoginHandler),
             (r"/elixir/logout",                                                       handlers.ElixirLogoutHandler),
+            (r"/google/login",                                                        handlers.GoogleLoginHandler),
+            (r"/google/logout",                                                       handlers.GoogleLogoutHandler),
             ## API Methods
             (r"/api/countries",                                                       application.CountryList),
             (r"/api/users/me",                                                        application.GetUser),

@@ -275,7 +275,7 @@ class ElixirLogoutHandler(BaseHandler):
         redirect = self.get_argument("next", '/')
         self.redirect(redirect)
 
-class LoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
+class GoogleLoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
     """
     See http://www.tornadoweb.org/en/stable/auth.html#google for documentation
     on this. Here I have copied the example more or less verbatim.
@@ -327,7 +327,7 @@ class LoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
         return user['emails'][0]['value']
 
 
-class LogoutHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
+class GoogleLogoutHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
     def get(self):
         def handle_request(response):
             if response.error:
