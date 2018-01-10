@@ -19,7 +19,6 @@
 
     "exacServer" : "https://url for exac server",
 
-    "adminAddress" : "someone@example.com",
     "replyToAddress" : "no-reply@example.com",
     "fromAddress" : "no-reply@example.com",
     "mailServer" : "smtp.example.com",
