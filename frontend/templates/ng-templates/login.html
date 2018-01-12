@@ -4,22 +4,21 @@
     <div class="login-header">
         <h1>Login to swefreq is changing</h1>
     </div>
-        <div class="login-information">
-            Due to a combination of technical and political reasons, we are switching away from using google login to only using 
-            elixir login. We hope that this isn't a problem for anyone, but we understand that some people have been using google 
-            to log in in the past. If this is the case, use the google login link below to transfer your access permissions to 
-            your elixir account. If you don't have any current access permissions, just use the elixir login and you will never 
-            have any trouble with this transfer!
+    <div class="login">
+        <div class="login-information" ng-if="login.loggedIn == false">
+            <p> Due to a combination of technical and political reasons, we are switching away from using google login to only using 
+                elixir login. We hope that this isn't a problem for anyone, but we understand that some people have been using google 
+                to log in in the past. If this is the case, use the google login link below to transfer your access permissions to 
+                your elixir account. If you don't have any current access permissions, just use the elixir login and you will never 
+                have any trouble with this transfer!
+            </p>
+            <ul>
+               <li><a href="/google/login?next={{ login.url() }}" target="_self">Login with Google</a></li>
+            </ul>
         </div>
-        <div class="login-options">
-            <div ng-if="login.loggedIn == true">You seem to be logged in already! Click <a href="/logout?next={{ login.url() }}" target="_self" title="Logout {{login.user.user}}">Here to logout</a>.
-            </div>
-            </div ng-if="login.loggedIn == false">
-                <ul>
-                   <li><a href="/elixir/login?next={{ login.url() }}" target="_self">Login with Elixir</a></li>
-                   <li><a href="/google/login?next={{ login.url() }}" target="_self">Login with Google</a></li>
-                </ul>
-            </div>
+        <div  ng-if="login.loggedIn == true">
+           Thanks for logging in! Click <a href="/elixir/login?next={{ login.url() }}" target="_self" title="Login to elixir}">Here to login</a>
+            with Elixir and transfer your credentials.
         </div>
     </div>
 </div>
