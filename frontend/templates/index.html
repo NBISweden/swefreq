@@ -50,8 +50,13 @@
                     <ul class="nav navbar-nav navbar-right">
                         <li><a ng-click="showAbout = !showAbout" style="cursor: pointer">About</a>
                         <li ng-if="mainCtrl.loggedIn == true"><a href="/logout?next={{ mainCtrl.url() }}" target="_self" title="Logout {{mainCtrl.user.user}}">Logout</a></li>
-                        <li ng_if="mainCtrl.loggedIn == false"><a href="/login?next={{ mainCtrl.url() }}" target="_self">Login</a></li>
-                    </ul>
+                        <li class="dropdown" ng_if="mainCtrl.loggedIn == false">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/elixir/login?next={{ mainCtrl.url() }}" target="_self">Elixir AAI</a></li>
+                                <li><a href="/login?next={{ mainCtrl.url() }}" target="_self">Google (legacy)</a></li>
+                            </ul>
+</li>                    </ul>
                 </div>
             </div>
         </nav>

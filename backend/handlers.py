@@ -188,6 +188,22 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
 
             user_token = await self.get_user_token(self.get_argument('code'))
             user       = await self.get_user(user_token["access_token"])
+            
+            try:
+                _email = self.get_secure_cookie('email').decode('utf-8')
+                _identity_type = self.get_secure_cookie('identity_type').decode('utf-8')
+
+                if _identity_type == "google":
+                    db.User.update( name = user["name"],
+                                    email = user["email"], 
+                                    identity = user["sub"], 
+                                    identity_type = 'elixir'
+                                   ).where( db.User.email == _email ).execute()
+            except AttributeError as e:
+                # This will happen whenever we don't have a previous login, so this is fine
+                pass
+            except Exception as e:
+                logging.info("Something went wrong when updating user credentials: " % e)
 
             self.set_secure_cookie('access_token', user_token["access_token"])
             self.set_secure_cookie('user', user["name"])

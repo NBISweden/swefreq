@@ -12,12 +12,12 @@
             have any trouble with this transfer!
         </div>
         <div class="login-options">
-            <div ng-if="login.loggedIn == true">You seem to be logged in already! Click <a href="/logout?next={{ mainCtrl.url() }}" target="_self" title="Logout {{login.user.user}}">Here to logout</a>.
+            <div ng-if="login.loggedIn == true">You seem to be logged in already! Click <a href="/logout?next={{ login.url() }}" target="_self" title="Logout {{login.user.user}}">Here to logout</a>.
             </div>
             </div ng-if="login.loggedIn == false">
                 <ul>
-                   <li><a href="/elixir/login?next=/" target="_self">Login with Elixir</a></li>
-                   <li><a href="/google/login?next=/" target="_self">Login with Google</a></li>
+                   <li><a href="/elixir/login?next={{ login.url() }}" target="_self">Login with Elixir</a></li>
+                   <li><a href="/google/login?next={{ login.url() }}" target="_self">Login with Google</a></li>
                 </ul>
             </div>
         </div>
