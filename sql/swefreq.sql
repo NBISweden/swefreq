@@ -16,6 +16,39 @@ CREATE TABLE IF NOT EXISTS user (
     CONSTRAINT UNIQUE (identity, identity_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE IF NOT EXISTS sftp_user (
+    sftp_user_pk        INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    user_pk             INTEGER         NOT NULL,
+    user_uid            INTEGER         NOT NULL,
+    user_name           VARCHAR(50)     NOT NULL,
+    password_hash       VARCHAR(100)    NOT NULL,
+    CONSTRAINT FOREIGN KEY (user_pk) REFERENCES user(user_pk),
+    CONSTRAINT UNIQUE (user_uid)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- Triggers on INSERT and UPDATE of sftp_user.user_uid to make sure the
+-- new value is always 10000 or larger.
+
+DELIMITER $$
+
+CREATE TRIGGER check_before_insert BEFORE INSERT ON sftp_user
+FOR EACH ROW
+IF NEW.user_uid < 10000 THEN
+    SIGNAL SQLSTATE '38001'
+    SET MESSAGE_TEXT = 'Check constraint failed on sftp_user.user_uid insert';
+END IF$$
+
+CREATE TRIGGER check_before_update BEFORE UPDATE ON sftp_user
+FOR EACH ROW
+IF NEW.user_uid < 10000 THEN
+    SIGNAL SQLSTATE '38002'
+    SET MESSAGE_TEXT = 'Check constraint failed on sftp_user.user_uid update';
+END IF$$
+
+DELIMITER ;
+
+-- End of triggers
+
 CREATE TABLE IF NOT EXISTS study (
     study_pk            INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
     pi_name             VARCHAR(100)    NOT NULL,
