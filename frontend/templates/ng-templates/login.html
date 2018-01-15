@@ -5,20 +5,19 @@
         <h1>Login to swefreq is changing</h1>
     </div>
     <div class="login">
-        <div class="login-information" ng-if="login.loggedIn == false">
-            <p> Due to a combination of technical and political reasons, we are switching away from using google login to only using 
-                elixir login. We hope that this isn't a problem for anyone, but we understand that some people have been using google 
-                to log in in the past. If this is the case, use the google login link below to transfer your access permissions to 
-                your elixir account. If you don't have any current access permissions, just use the elixir login and you will never 
-                have any trouble with this transfer!
-            </p>
-            <ul>
-               <li><a href="/google/login?next={{ login.url() }}" target="_self">Login with Google</a></li>
-            </ul>
-        </div>
-        <div  ng-if="login.loggedIn == true">
-           Thanks for logging in! Click <a href="/elixir/login?next={{ login.url() }}" target="_self" title="Login to elixir}">Here to login</a>
-            with Elixir and transfer your credentials.
-        </div>
+        <p>
+            To transfer your login credentials from a google account to an elixir account, just use the buttons below to first log in to google,
+            then click the elixir button to login again and do the account update.
+        </p>
+        <!-- Google Login button -->
+        <a class="button" class="login-button" ng-class="{'none':'blue', 'google':'green', 'elixir':'green'}[login.loginType]" href="/google/login?next={{ login.url() }}" target="_self">Login with Google</a>
+
+        <!-- Elixir Login button -->
+        <a class="button" class="login-button" ng-class="{'none':'red', 'google':'blue', 'elixir':'green'}[login.loginType]" href="/elixir/login?next={{ login.url() }}" target="_self">Login with Elixir</a>
+        
+        <p><h4 ng-if="login.loginType == 'none'">Start by logging in using your Google account.</h4>
+           <h4 ng-if="login.loginType == 'google'">Now log in with Elixir to complete the update.</h4>
+           <h4 ng-if="login.loginType == 'elixir'">Great! Your account has been updated, you can now return and use the site as usual.</h4>
+        </p>
     </div>
 </div>
