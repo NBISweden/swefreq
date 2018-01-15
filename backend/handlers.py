@@ -61,7 +61,14 @@ class BaseHandler(tornado.web.RequestHandler):
         """ Overwrites write_error method to have custom error pages.
         http://tornado.readthedocs.org/en/latest/web.html#tornado.web.RequestHandler.write_error
         """
-        logging.info("Error do something here again")
+        level = kwargs.get("level", "error")
+        msg = kwargs.get("msg", "An unspecified error occurred.")
+        if level == 'error':
+            logging.error(msg)
+        if level == 'warning':
+            logging.warn(msg)
+        if level == 'info':
+            logging.info(msg)
 
     def write(self, chunk):
         if not isinstance(chunk, dict):
@@ -196,7 +203,11 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
             # This will happen whenever we don't have a previous login, so this is fine
             pass
         except Exception as e:
-            logging.info("Something went wrong when updating user credentials: " % e)
+            
+            if "Duplicate entry" in str(e):
+                self.write_error(200, msg = "This elixir account is already in our database, so it can't be used to update another google account.", level = 'error')
+            else:
+                self.write_error(200, msg = str(e), level = 'error')
 
     async def get(self):
         if self.get_argument("code", False):
