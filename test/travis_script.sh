@@ -22,7 +22,7 @@ mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test < sql/patch-master-db.sql
 mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test <<__END__
 SET FOREIGN_KEY_CHECKS = 0;
 
-SELECT group_concat(table_name) INTO @t FROM information_schema.triggers WHERE table_schema='swefreq_test';
+SELECT group_concat(trigger_name) INTO @t FROM information_schema.triggers WHERE table_schema='swefreq_test';
 SET @t = concat('DROP TRIGGER ', @t);
 PREPARE stmt FROM @v;
 EXECUTE stmt;
