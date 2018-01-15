@@ -37,3 +37,38 @@ MODIFY COLUMN
 MODIFY COLUMN
     identity_type       ENUM ('google', 'elixir')
                                         NOT NULL;
+
+-- Add sftp_user and associated triggers
+
+CREATE TABLE IF NOT EXISTS sftp_user (
+    sftp_user_pk        INTEGER         NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    user_pk             INTEGER         NOT NULL,
+    user_uid            INTEGER         NOT NULL,
+    user_name           VARCHAR(50)     NOT NULL,
+    password_hash       VARCHAR(100)    NOT NULL,
+    CONSTRAINT FOREIGN KEY (user_pk) REFERENCES user(user_pk),
+    CONSTRAINT UNIQUE (user_uid)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- Triggers on INSERT and UPDATE of sftp_user.user_uid to make sure the
+-- new value is always 10000 or larger.
+
+DELIMITER $$
+
+CREATE TRIGGER check_before_insert BEFORE INSERT ON sftp_user
+FOR EACH ROW
+IF NEW.user_uid < 10000 THEN
+    SIGNAL SQLSTATE '031'
+    SET MESSAGE_TEXT := 'Check constraint failed on sftp_user.user_uid insert';
+END IF$$
+
+CREATE TRIGGER check_before_update BEFORE UPDATE ON sftp_user
+FOR EACH ROW
+IF NEW.user_uid < 10000 THEN
+    SIGNAL SQLSTATE '032'
+    SET MESSAGE_TEXT := 'Check constraint failed on sftp_user.user_uid update';
+END IF$$
+
+DELIMITER ;
+
+-- End of triggers
