@@ -35,14 +35,14 @@ CREATE TRIGGER check_before_insert BEFORE INSERT ON sftp_user
 FOR EACH ROW
 IF NEW.user_uid < 10000 THEN
     SIGNAL SQLSTATE '38001'
-    SET MESSAGE_TEXT := 'Check constraint failed on sftp_user.user_uid insert';
+    SET MESSAGE_TEXT = 'Check constraint failed on sftp_user.user_uid insert';
 END IF$$
 
 CREATE TRIGGER check_before_update BEFORE UPDATE ON sftp_user
 FOR EACH ROW
 IF NEW.user_uid < 10000 THEN
     SIGNAL SQLSTATE '38002'
-    SET MESSAGE_TEXT := 'Check constraint failed on sftp_user.user_uid update';
+    SET MESSAGE_TEXT = 'Check constraint failed on sftp_user.user_uid update';
 END IF$$
 
 DELIMITER ;
