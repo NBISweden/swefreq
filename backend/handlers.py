@@ -178,6 +178,29 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
         cookie_state = self.get_secure_cookie('state').decode('ascii')
         return state == cookie_state
 
+    def _update_to_elixir_account(self, user, from_account_type = "google"):
+        """
+        Takes a previous login session and updates the user in the database
+        """
+        try:
+            _email = self.get_secure_cookie('email').decode('utf-8')
+            _identity_type = self.get_secure_cookie('identity_type').decode('utf-8')
+
+            if _identity_type == from_account_type:
+                db.User.update( name = user["name"],
+                                email = user["email"],
+                                identity = user["sub"],
+                                identity_type = 'elixir'
+                               ).where( db.User.email == _email ).execute()
+        except AttributeError as e:
+            # This will happen whenever we don't have a previous login, so this is fine
+            pass
+        except Exception as e:
+            if "Duplicate entry" in str(e):
+                logging.error("This elixir account is already in our database, so it can't be used to update another google account.")
+            else:
+                logging.error(str(e))
+
     async def get(self):
         if self.get_argument("code", False):
 
@@ -188,6 +211,8 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
 
             user_token = await self.get_user_token(self.get_argument('code'))
             user       = await self.get_user(user_token["access_token"])
+
+            self._update_to_elixir_account(user = user, from_account_type = "google")
 
             self.set_secure_cookie('access_token', user_token["access_token"])
             self.set_secure_cookie('user', user["name"])
@@ -275,7 +300,7 @@ class ElixirLogoutHandler(BaseHandler):
         redirect = self.get_argument("next", '/')
         self.redirect(redirect)
 
-class LoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
+class GoogleLoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
     """
     See http://www.tornadoweb.org/en/stable/auth.html#google for documentation
     on this. Here I have copied the example more or less verbatim.
@@ -327,7 +352,7 @@ class LoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
         return user['emails'][0]['value']
 
 
-class LogoutHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
+class GoogleLogoutHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
     def get(self):
         def handle_request(response):
             if response.error:
