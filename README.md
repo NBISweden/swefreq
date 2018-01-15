@@ -64,7 +64,7 @@ Quick development mode
         - Elixir/redirectUri: http://localhost:4000/elixir/login
         - redirectUri: http://localhost:4000/login
 4. Run "Test 2. Load the swefreq schema" from `test/travis_script.sh`.
-5. Run `make` in the root directory of the porject.
+5. Run `make` in the root directory of the project.
 6. Make a symbolic link from `backend/static` to `static`.
 7. Run the server:
 ```bash
