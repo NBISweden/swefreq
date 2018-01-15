@@ -20,27 +20,8 @@ mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test < master-schema.sql
 mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test < sql/patch-master-db.sql
 # Empty the database
 mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test <<__END__
-SET FOREIGN_KEY_CHECKS = 0;
-
-SELECT group_concat(trigger_name) INTO @t FROM information_schema.triggers WHERE trigger_schema='swefreq_test';
-SET @t = concat('DROP TRIGGER ', @t);
-PREPARE stmt FROM @v;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SELECT group_concat(table_name) INTO @v FROM information_schema.views WHERE table_schema='swefreq_test';
-SET @v = concat('DROP VIEW IF EXISTS ', @v);
-PREPARE stmt FROM @v;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SELECT group_concat(table_name) INTO @t FROM information_schema.tables WHERE table_schema='swefreq_test';
-SET @t = concat('DROP TABLE IF EXISTS ', @t);
-PREPARE stmt FROM @v;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET FOREIGN_KEY_CHECKS = 1;
+DROP DATABASE swefreq_test;
+CREATE DATABASE swefreq_test;
 __END__
 
 
