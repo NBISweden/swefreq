@@ -10,11 +10,15 @@
             then click the elixir button to login again and do the account update.
         </p>
         <!-- Google Login button -->
-        <a class="button" class="login-button" ng-class="{'none':'blue', 'google':'green', 'elixir':'green'}[login.loginType]" href="/google/login?next={{ login.url() }}" target="_self">Login with Google</a>
+        <a href="/google/login?next={{ login.url() }}" target="_self">
+            <button type="button" class="btn" ng-class="{'none':'btn-primary', 'google':'btn-success', 'elixir':'btn-success'}[login.loginType]">Login with Google</button>
+        </a>
 
         <!-- Elixir Login button -->
-        <a class="button" class="login-button" ng-class="{'none':'red', 'google':'blue', 'elixir':'green'}[login.loginType]" href="/elixir/login?next={{ login.url() }}" target="_self">Login with Elixir</a>
-        
+        <a href="/elixir/login?next={{ login.url() }}" target="_self">
+            <button type="button" class="btn" ng-class="{'none':'btn-warning', 'google':'btn-primary', 'elixir':'btn-success'}[login.loginType]">Login with Elixir</button>
+        </a>
+
         <p><h4 ng-if="login.loginType == 'none'">Start by logging in using your Google account.</h4>
            <h4 ng-if="login.loginType == 'google'">Now log in with Elixir to complete the update.</h4>
            <h4 ng-if="login.loginType == 'elixir'">Great! Your account has been updated, you can now return and use the site as usual.</h4>
