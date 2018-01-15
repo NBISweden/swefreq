@@ -66,7 +66,7 @@ class BaseHandler(tornado.web.RequestHandler):
         if level == 'error':
             logging.error(msg)
         if level == 'warning':
-            logging.warn(msg)
+            logging.warning(msg)
         if level == 'info':
             logging.info(msg)
 
@@ -195,15 +195,14 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
 
             if _identity_type == from_account_type:
                 db.User.update( name = user["name"],
-                                email = user["email"], 
-                                identity = user["sub"], 
+                                email = user["email"],
+                                identity = user["sub"],
                                 identity_type = 'elixir'
                                ).where( db.User.email == _email ).execute()
         except AttributeError as e:
             # This will happen whenever we don't have a previous login, so this is fine
             pass
         except Exception as e:
-            
             if "Duplicate entry" in str(e):
                 self.write_error(200, msg = "This elixir account is already in our database, so it can't be used to update another google account.", level = 'error')
             else:
