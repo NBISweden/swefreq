@@ -6,6 +6,7 @@ from tornado.options import define, options
 
 import application
 import handlers
+import auth
 import settings
 import beacon
 #import template
@@ -46,11 +47,11 @@ class Application(tornado.web.Application):
             (r"/release/(?P<dataset>[^\/]+)/(?P<file>[^\/]+)",                       handlers.AuthorizedStaticNginxFileHandler,
                                                                                          {"path": "/release-files/"}),
             ## Authentication
-            (r"/logout",                                                              handlers.ElixirLogoutHandler),
-            (r"/elixir/login",                                                        handlers.ElixirLoginHandler),
-            (r"/elixir/logout",                                                       handlers.ElixirLogoutHandler),
-            (r"/google/login",                                                        handlers.GoogleLoginHandler),
-            (r"/google/logout",                                                       handlers.GoogleLogoutHandler),
+            (r"/logout",                                                              auth.ElixirLogoutHandler),
+            (r"/elixir/login",                                                        auth.ElixirLoginHandler),
+            (r"/elixir/logout",                                                       auth.ElixirLogoutHandler),
+            (r"/google/login",                                                        auth.GoogleLoginHandler),
+            (r"/google/logout",                                                       auth.GoogleLogoutHandler),
             ## API Methods
             (r"/api/countries",                                                       application.CountryList),
             (r"/api/users/me",                                                        application.GetUser),
@@ -87,7 +88,7 @@ class Application(tornado.web.Application):
         ]
         ## Adding developer login handler
         if settings.get('develop', False):
-            self.declared_handlers.insert(-1, ("/developer/login", handlers.DeveloperLoginHandler))
+            self.declared_handlers.insert(-1, ("/developer/login", auth.DeveloperLoginHandler))
 
         # google oauth key
         self.oauth_key = tornado_settings["google_oauth"]["key"]
