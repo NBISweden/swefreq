@@ -91,8 +91,10 @@ def _convert_keys_to_camel_case(chunk):
         new_chunk[new_key] = _convert_keys_to_camel_case(v)
     return new_chunk
 
+
 class UnsafeHandler(BaseHandler):
     pass
+
 
 class SafeHandler(BaseHandler):
     """ All handlers that need authentication and authorization should inherit
@@ -108,6 +110,7 @@ class SafeHandler(BaseHandler):
         if not self.current_user:
             logging.debug("No current user: Send error 403")
             self.send_error(status_code=403)
+
 
 class AuthorizedHandler(SafeHandler):
     def prepare(self):
@@ -126,6 +129,7 @@ class AuthorizedHandler(SafeHandler):
             self.send_error(status_code=403)
         logging.debug("User is authorized")
 
+
 class AdminHandler(SafeHandler):
     def prepare(self):
         super().prepare()
@@ -141,10 +145,12 @@ class AdminHandler(SafeHandler):
             logging.debug("No user admin: Send error 403")
             self.send_error(status_code=403)
 
+
 class SafeStaticFileHandler(tornado.web.StaticFileHandler, SafeHandler):
     """ Serve static files for logged in users
     """
     pass
+
 
 class BaseStaticNginxFileHandler(UnsafeHandler):
     """Serve static files for users from the nginx frontend
@@ -185,6 +191,7 @@ class BaseStaticNginxFileHandler(UnsafeHandler):
         logging.debug("Setting X-Accel-Redirect to {}".format(abspath))
         self.finish()
 
+
 class AuthorizedStaticNginxFileHandler(AuthorizedHandler, BaseStaticNginxFileHandler):
     """Serve static files for authenticated users from the nginx frontend
 
@@ -198,6 +205,7 @@ class AuthorizedStaticNginxFileHandler(AuthorizedHandler, BaseStaticNginxFileHan
         }
     """
     pass
+
 
 class TemporaryStaticNginxFileHandler(BaseStaticNginxFileHandler):
     def get_user_from_hash(self, hashv):
@@ -224,6 +232,7 @@ class TemporaryStaticNginxFileHandler(BaseStaticNginxFileHandler):
         else:
             logging.debug("Linkhash invalid")
             self.send_error(status_code=403)
+
 
 class AngularTemplate(UnsafeHandler):
     def initialize(self, path):

@@ -17,12 +17,14 @@ class DeveloperLoginHandler(BaseHandler):
         self.set_secure_cookie('identity_type', 'google')
         self.finish()
 
+
 class DeveloperLogoutHandler(BaseHandler):
     def get(self):
         self.clear_all_cookies()
 
         redirect = self.get_argument("next", '/')
         self.redirect(redirect)
+
 
 class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
     _OAUTH_AUTHORIZE_URL     = "https://perun.elixir-czech.cz/oidc/authorize"
@@ -153,12 +155,14 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
 
         return tornado.escape.json_decode( response.body )
 
+
 class ElixirLogoutHandler(BaseHandler):
     def get(self):
         self.clear_all_cookies()
 
         redirect = self.get_argument("next", '/')
         self.redirect(redirect)
+
 
 class GoogleLoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
     """
@@ -208,6 +212,7 @@ class GoogleLoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
                 return email['value']
 
         return user['emails'][0]['value']
+
 
 class GoogleLogoutHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
     def get(self):
