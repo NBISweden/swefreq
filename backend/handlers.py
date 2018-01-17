@@ -60,8 +60,8 @@ class BaseHandler(tornado.web.RequestHandler):
 
     def set_user_msg(self, msg, level="info"):
         """
-        This function sets the user message cookie. The system takes four default 
-        levels, 'success', 'info', 'warning', and 'error'. Messages set to other 
+        This function sets the user message cookie. The system takes four default
+        levels, 'success', 'info', 'warning', and 'error'. Messages set to other
         levels will be defaulted to 'info'.
         """
         if level not in ["success", "info", "warning", "error"]:
