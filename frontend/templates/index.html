@@ -82,17 +82,8 @@
         </div>
 
         <!-- User information message -->
-        <div class="alert" ng-class="{'success':'alert-success', 'info':'alert-info', 'warning':'alert-warning', 'error':'alert-error'}[mainCtrl.msg.level]" ng-if="mainCtrl.msg.msg">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-2"></div>
-                    <div class="col-sm-12 col-md-8">
-                        <strong>{{ mainCtrl.msg.level }}!</strong>
-                        <p>{{ mainCtrl.msg.msg }}</p>
-                    </div>
-                    <div class="col-md-2"></div>
-                </div>
-            </div>
+        <div class="alert fade in" ng-class="{'success':'alert-success', 'info':'alert-info', 'warning':'alert-warning', 'error':'alert-error'}[mainCtrl.msg.level]" ng-if="mainCtrl.msg.msg">
+            <center><strong>{{ mainCtrl.msg.level }}!</strong> {{ mainCtrl.msg.msg }}</center>
         </div>
 
         <div id="main">
