@@ -4,7 +4,6 @@
         return {
             getUser: getUser,
             getDatasets: getDatasets,
-            getMessage: getMessage,
         };
 
         function getUser() {
@@ -19,14 +18,6 @@
             return $http.get("/api/users/datasets")
                 .then(function(data) {
                     return data.data.data;
-                }
-            );
-        }
-
-        function getMessage() {
-            return $http.get("/api/users/messages")
-                .then(function(data) {
-                    return data.data;
                 }
             );
         }

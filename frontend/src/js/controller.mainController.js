@@ -1,6 +1,6 @@
 (function() {
     angular.module("App")
-    .controller("mainController", ["$location", "User", function($location, User) {
+    .controller("mainController", ["$location", "$cookies", "User", function($location, $cookies, User) {
         var localThis = this;
         localThis.url = function() { return $location.path(); };
         localThis.loggedIn = false;
@@ -16,9 +16,8 @@
                     localThis.loggedIn = true;
                 }
             });
-            User.getMessage().then(function(data) {
-                localThis.msg = data;
-            });
+            localThis.msg = $cookies.getObject("msg");
+            $cookies.remove("msg");
         }
     }]);
 })();
