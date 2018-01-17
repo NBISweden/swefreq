@@ -213,6 +213,30 @@ class GetUser(handlers.UnsafeHandler):
         self.finish(ret)
 
 
+class GetUserMessages(handlers.UnsafeHandler):
+    """
+    This system was never completely implemented.
+    
+    In this function you can return a message that will be viewed on the next 
+    loaded page. The message can have four levels: 'success', 'info', 'warning'
+    and 'error', as set in the return dictionary. 
+    """
+    def get(self):
+        
+        ret = { 'msg':"" , 'level': "info" }
+        
+        msg = self.get_secure_cookie("user_msg")
+        level = self.get_secure_cookie("user_msg_level")
+        if msg:
+            if level:
+                level = level.decode('utf-8')
+                self.clear_cookie("user_msg_level")
+            ret = {'msg':msg.decode('utf-8'), 'level':level}
+            self.clear_cookie("user_msg")
+        
+        self.finish( ret )
+
+
 class CountryList(handlers.UnsafeHandler):
     def get(self):
         self.write({'countries': [{'name': c} for c in self.country_list]})

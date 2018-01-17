@@ -5,6 +5,7 @@
         localThis.url = function() { return $location.path(); };
         localThis.loggedIn = false;
         localThis.loginType = "none";
+        localThis.msg = {"level":"", "msg":""}
         activate();
 
         function activate() {
@@ -14,6 +15,9 @@
                 if ( localThis.user.user !== null ) {
                     localThis.loggedIn = true;
                 }
+            });
+            User.getMessage().then(function(data) {
+                localThis.msg = data;
             });
         }
     }]);

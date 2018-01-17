@@ -57,6 +57,15 @@ class BaseHandler(tornado.web.RequestHandler):
         else:
             return None
 
+    def set_user_msg(self, msg, level="info"):
+        """
+        This function just sets two cookies, 'msg' and 'level'.
+        There is likely to be a better way to do this, but this works for now.
+        """
+        
+        self.set_secure_cookie("user_msg", msg)
+        self.set_secure_cookie("user_msg_level", level)
+
     def write_error(self, status_code, **kwargs):
         """ Overwrites write_error method to have custom error pages.
         http://tornado.readthedocs.org/en/latest/web.html#tornado.web.RequestHandler.write_error
