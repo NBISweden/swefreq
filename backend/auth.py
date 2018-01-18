@@ -1,6 +1,8 @@
 import logging
 import tornado.auth
 import urllib.parse
+import base64
+import uuid
 import db
 
 from handlers import BaseHandler
@@ -193,7 +195,7 @@ class GoogleLoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
                 self.set_secure_cookie('email', self._get_google_email(user))
                 self.set_secure_cookie('identity', self._get_google_email(user))
                 self.set_secure_cookie('identity_type', 'google')
-            except Exception:
+            except db.User.DoesNotExist:
                 msg = "You have no user information logged in our database, so you may directly log in using elixir without updating."
                 self.set_user_msg(msg, "success")
 
