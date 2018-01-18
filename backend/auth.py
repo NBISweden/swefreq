@@ -1,5 +1,8 @@
 import logging
 import tornado.auth
+import urllib.parse
+import base64
+import uuid
 import db
 
 from handlers import BaseHandler
@@ -182,11 +185,19 @@ class GoogleLoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
                     "https://www.googleapis.com/plus/v1/people/me",
                     access_token=user_token["access_token"])
 
-            self.set_secure_cookie('user', user["displayName"])
-            self.set_secure_cookie('access_token', user_token["access_token"])
-            self.set_secure_cookie('email', self._get_google_email(user))
-            self.set_secure_cookie('identity', self._get_google_email(user))
-            self.set_secure_cookie('identity_type', 'google')
+            try:
+                # Check if there is the user is already in the database.
+                # This will generate an exception if the user does not exist, preventing login
+                db.User.select().where(db.User.email == self._get_google_email(user)).get()
+
+                self.set_secure_cookie('user', user["displayName"])
+                self.set_secure_cookie('access_token', user_token["access_token"])
+                self.set_secure_cookie('email', self._get_google_email(user))
+                self.set_secure_cookie('identity', self._get_google_email(user))
+                self.set_secure_cookie('identity_type', 'google')
+            except db.User.DoesNotExist:
+                msg = "You have no user information logged in our database, so you may directly log in using elixir without updating."
+                self.set_user_msg(msg, "success")
 
             url = self.get_secure_cookie("login_redirect")
             self.clear_cookie("login_redirect")

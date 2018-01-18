@@ -81,6 +81,11 @@
             </div>
         </div>
 
+        <!-- User information message -->
+        <div class="alert fade in" ng-class="{'success':'alert-success', 'info':'alert-info', 'warning':'alert-warning', 'error':'alert-error'}[mainCtrl.msg.level]" ng-if="mainCtrl.msg.msg">
+            <center><strong>{{ mainCtrl.msg.level }}!</strong> {{ mainCtrl.msg.msg }}</center>
+        </div>
+
         <div id="main">
             <!-- angular templating -->
             <!-- this is where content will be injected by angular -->

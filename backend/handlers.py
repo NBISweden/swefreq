@@ -10,6 +10,7 @@ import urllib.parse
 import base64
 import uuid
 import re
+from tornado.escape import json_encode
 
 import db
 
@@ -56,6 +57,16 @@ class BaseHandler(tornado.web.RequestHandler):
                     logging.error("Can't create new user: {}".format(e))
         else:
             return None
+
+    def set_user_msg(self, msg, level="info"):
+        """
+        This function sets the user message cookie. The system takes four default
+        levels, 'success', 'info', 'warning', and 'error'. Messages set to other
+        levels will be defaulted to 'info'.
+        """
+        if level not in ["success", "info", "warning", "error"]:
+            level = "info"
+        self.set_cookie("msg", urllib.parse.quote( json_encode({"msg":msg, "level":level}) ) )
 
     def write_error(self, status_code, **kwargs):
         """ Overwrites write_error method to have custom error pages.
