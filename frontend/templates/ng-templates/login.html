@@ -1,27 +1,57 @@
 <!-- login.html -->
 <div ng-controller="mainController as login" class="container">
 
-    <div class="login-header">
-        <h1>Login to swefreq is changing</h1>
+    <div class="alert alert-success" style="width:75%; margin: 20px auto;" ng-if="login.loginType == 'updated'">
+        <center>
+            <h1>Your account has been updated!</h1>
+            You may now use the site as you used to, using your Elixir account.
+        </center>
     </div>
-    <div class="login">
-        <p>
-            To transfer your login credentials from a google account to an elixir account, just use the buttons below to first log in to google,
-            then click the elixir button to login again and do the account update.
-        </p>
-        <!-- Google Login button -->
-        <a href="/google/login?next={{ login.url() }}" target="_self">
-            <button type="button" class="btn" ng-class="{'none':'btn-primary', 'google':'btn-success', 'elixir':'btn-success'}[login.loginType]">Login with Google</button>
-        </a>
+    <div style="width:75%; margin: 20px auto;" ng-if="login.loginType != 'updated'">
+            <h1>Login to swefreq is changing</h1>
+        <div class="panel-body">
+            <p>
+                To transfer your login credentials from a google account to an elixir account, 
+                just use the buttons below to log in to both google and elixir, we will then 
+                give you the option to update your account with the elixir information.
+            </p>
+            <center>
+                <!-- Google Login button -->
+                <a href="/google/login?next={{ login.url() }}" target="_self">
+                    <button type="button" class="btn" ng-class="{'none':'btn-primary', 'google':'btn-success', 'elixir':'btn-primary', 'elixir_google':'btn-success'}[login.loginType]">
+                        <span ng-if="login.loginType != 'google' && login.loginType != 'elixir_google'">Login with Google</span>
+                        <span ng-if="login.loginType == 'google' || login.loginType == 'elixir_google'">Logged in with Google <span class="glyphicon glyphicon-ok" aria-hidden="true"/></span>
+                    </button>
+                </a>
 
-        <!-- Elixir Login button -->
-        <a href="/elixir/login?next={{ login.url() }}" target="_self">
-            <button type="button" class="btn" ng-class="{'none':'btn-warning', 'google':'btn-primary', 'elixir':'btn-success'}[login.loginType]">Login with Elixir</button>
-        </a>
+                <!-- Elixir Login button -->
+                <a href="/elixir/login?next={{ login.url() }}" target="_self">
+                    <button type="button" class="btn" ng-class="{'none':'btn-primary', 'google':'btn-primary', 'elixir':'btn-success', 'elixir_google':'btn-success'}[login.loginType]">
+                        <span ng-if="login.loginType != 'elixir' && login.loginType != 'elixir_google'">Login with Elixir</span>
+                        <span ng-if="login.loginType == 'elixir' || login.loginType == 'elixir_google'">Logged in with Elixir <span class="glyphicon glyphicon-ok" aria-hidden="true"/></span>
+                    </button>
+                </a>
+            </center>
+            
+        </div>
 
-        <p><h4 ng-if="login.loginType == 'none'">Start by logging in using your Google account.</h4>
-           <h4 ng-if="login.loginType == 'google'">Now log in with Elixir to complete the update.</h4>
-           <h4 ng-if="login.loginType == 'elixir'">Great! Your account has been updated, you can now return and use the site as usual.</h4>
-        </p>
+    </div>
+    <div class="panel panel-info" style="width:50%; margin: 20px auto;" ng-if="login.loginType == 'elixir_google'">
+        <div class="panel-heading">Transfer Account Credentials</div>
+        <div class="panel-body">
+            <p>
+                We can now transfer your credentials from your google account to your Elixir account!
+            </p>
+            <div class="alert alert-warning">
+                Note that this will make you unable to log in with your google account in the future,
+                as your user data will be permanently updated with the elixir information.
+            </div>
+            <center>
+                <a href="/transfer?next={{ login.url() }}" target="_self">
+                    <button type="button" class="btn btn-success">Transfer Credentials</button>
+                </a>
+            </center>
+            
+        </div>
     </div>
 </div>

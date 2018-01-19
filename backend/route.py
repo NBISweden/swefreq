@@ -7,7 +7,7 @@ from tornado.options import define, options
 import application
 import handlers
 import auth
-import settings
+import settings as swefreq_settings
 import beacon
 #import template
 
@@ -17,19 +17,19 @@ define("develop", default=False, help="Run in develop environment", type=bool)
 
 # Setup the Tornado Application
 tornado_settings = {"debug": False,
-            "cookie_secret": settings.cookie_secret,
+            "cookie_secret": swefreq_settings.cookie_secret,
             "login_url": "/login",
             "google_oauth": {
-                "key": settings.google_key,
-                "secret": settings.google_secret
+                "key": swefreq_settings.google_key,
+                "secret": swefreq_settings.google_secret
             },
             "elixir_oauth": {
-                "id": settings.elixir["id"],
-                "secret": settings.elixir["secret"],
-                "redirect_uri": settings.elixir["redirectUri"],
+                "id": swefreq_settings.elixir["id"],
+                "secret": swefreq_settings.elixir["secret"],
+                "redirect_uri": swefreq_settings.elixir["redirectUri"],
             },
             "contact_person": 'mats.dahlberg@scilifelab.se',
-            "redirect_uri": settings.redirect_uri,
+            "redirect_uri": swefreq_settings.redirect_uri,
             "xsrf_cookies": True,
             "template_path": "templates/",
         }
@@ -52,6 +52,7 @@ class Application(tornado.web.Application):
             (r"/elixir/logout",                                                       auth.ElixirLogoutHandler),
             (r"/google/login",                                                        auth.GoogleLoginHandler),
             (r"/google/logout",                                                       auth.GoogleLogoutHandler),
+            (r"/transfer",                                                            auth.UpdateUserHandler),
             ## API Methods
             (r"/api/countries",                                                       application.CountryList),
             (r"/api/users/me",                                                        application.GetUser),
