@@ -1,12 +1,12 @@
 import logging
+import handlers
+from handlers import BaseHandler
 import tornado.auth
 import urllib.parse
 import base64
 import uuid
 import db
 import peewee
-
-from handlers import BaseHandler
 
 class DeveloperLoginHandler(BaseHandler):
     def get(self):
@@ -251,8 +251,8 @@ class GoogleLogoutHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
         self.redirect(redirect)
 
 
-class UpdateUserHandler(BaseHandler):
-    def get(self):
+class UpdateUserHandler(handlers.SafeHandler):
+    def post(self):
         """
         If a user is logged in to elixir, and also has google login cookies, the
         google users information in the database will be updated with the elixir
@@ -262,19 +262,18 @@ class UpdateUserHandler(BaseHandler):
             # Double check so that the elixir user isn't already have any credentials
             # in the database.
 
-            elixir_email = self.get_secure_cookie('email')
+            elixir_identity = self.get_secure_cookie('user')
 
             (db.User.select()
                     .join(db.DatasetAccess)
                     .where(
                            db.User.user == db.DatasetAccess.user,
-                           db.User.email == elixir_email)
+                           db.User.identity == elixir_identity)
                     .get())
             msg = "This elixir account already has its own credentials. Sadly, you will have to contact us directly to merge your accounts."
             self.set_user_msg(msg, "error")
 
-            redirect = self.get_argument("next", '/')
-            self.redirect(redirect)
+            self.finish({'redirect':'/login'})
             return
         except db.User.DoesNotExist:
             # This is what we want
@@ -296,11 +295,19 @@ class UpdateUserHandler(BaseHandler):
 
             self.set_secure_cookie('identity_type', 'updated')
         except AttributeError:
-            # This will happen whenever we don't have a previous login, so this is fine
-            pass
+            # This will happen when we don't have a google cookie
+            msg = "You need to log in to a google account to be able to transfer credentials"
+            self.set_user_msg(msg, "info")
+            self.finish({'redirect':'/login'})
+            return
         except peewee.IntegrityError:
+            # This will happen if the elixir account is already in the database
             msg = "This elixir account is already in our database, so it can't be used to update another google account."
             self.set_user_msg(msg, "error")
+            self.finish({'redirect':'/login'})
+            return
 
-        redirect = self.get_argument("next", '/')
-        self.redirect(redirect)
+        msg = "Your account has been updated! You may now use the site as you used to, using your Elixir account."
+        self.set_user_msg(msg, "success")
+
+        self.finish({'redirect':'/'})

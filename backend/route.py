@@ -52,7 +52,7 @@ class Application(tornado.web.Application):
             (r"/elixir/logout",                                                       auth.ElixirLogoutHandler),
             (r"/google/login",                                                        auth.GoogleLoginHandler),
             (r"/google/logout",                                                       auth.GoogleLogoutHandler),
-            (r"/transfer",                                                            auth.UpdateUserHandler),
+            (r"/api/users/elixir_transfer",                                           auth.UpdateUserHandler),
             ## API Methods
             (r"/api/countries",                                                       application.CountryList),
             (r"/api/users/me",                                                        application.GetUser),
