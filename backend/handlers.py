@@ -20,7 +20,7 @@ class BaseHandler(tornado.web.RequestHandler):
     """
     def prepare(self):
         ## Make sure we have the xsrf_token
-        hasattr(self, 'xsrf_token')
+        self.xsrf_token
         if db.database.is_closed():
             try:
                 db.database.connect()

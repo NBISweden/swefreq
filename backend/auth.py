@@ -180,7 +180,7 @@ class GoogleLoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
             try:
                 # Check if there is the user is already in the database.
                 # This will generate an exception if the user does not exist, preventing login
-                db.User.select().where(db.User.email == self._get_google_email(user)).get()
+                db.User.select().where(db.User.identity == self._get_google_email(user)).get()
 
                 extra_login = None
                 try: # check if the user is already logged in
