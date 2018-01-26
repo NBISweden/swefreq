@@ -252,6 +252,17 @@ class DatasetVersionCurrent(DatasetVersion):
         db_table = 'dataset_version_current'
 
 
+class SFTPUser(BaseModel):
+    sftp_user     = PrimaryKeyField(db_column='sftp_user_pk')
+    user          = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='sftp_user')
+    user_uid      = IntegerField(unique=True)
+    user_name     = CharField(null=False)
+    password_hash = CharField(null=False)
+
+    class Meta:
+        db_table = 'sftp_user'
+
+
 def get_dataset(dataset):
     dataset = Dataset.select().where( Dataset.short_name == dataset).get()
     return dataset
