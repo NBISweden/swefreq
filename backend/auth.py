@@ -258,6 +258,13 @@ class UpdateUserHandler(handlers.SafeHandler):
         google users information in the database will be updated with the elixir
         users information.
         """
+        # set redirect
+        try:
+            redirect = self.get_argument("next")
+        except tornado.web.MissingArgumentError:
+            redirect = self.get_cookie("login_redirect", '/')
+            self.clear_cookie("login_redirect")
+
         try:
             # Double check so that the elixir user isn't already have any credentials
             # in the database.
@@ -272,7 +279,6 @@ class UpdateUserHandler(handlers.SafeHandler):
                     .get())
             msg = "This elixir account already has its own credentials. Sadly, you will have to contact us directly to merge your accounts."
             self.set_user_msg(msg, "error")
-
             self.finish({'redirect':'/login'})
             return
         except db.User.DoesNotExist:
@@ -298,6 +304,7 @@ class UpdateUserHandler(handlers.SafeHandler):
             # This will happen when we don't have a google cookie
             msg = "You need to log in to a google account to be able to transfer credentials"
             self.set_user_msg(msg, "info")
+
             self.finish({'redirect':'/login'})
             return
         except peewee.IntegrityError:
@@ -310,4 +317,4 @@ class UpdateUserHandler(handlers.SafeHandler):
         msg = "Your account has been updated! You may now use the site as you used to, using your Elixir account."
         self.set_user_msg(msg, "success")
 
-        self.finish({'redirect':'/'})
+        self.finish({'redirect':redirect})

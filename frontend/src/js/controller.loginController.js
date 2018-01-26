@@ -1,8 +1,14 @@
 (function() {
     angular.module("App")
-    .controller("loginController", ["$http", "User", function($http, User) {
+    .controller("loginController", ["$location", "$cookies", "User", function($location, $cookies, User) {
         var localThis = this;
         localThis.postTransferForm = postTransferForm;
+        activate();
+
+        function activate() {
+            var next = $location.search()["next"] || "/";
+            if (next != "/") { $cookies.put("login_redirect", next); }
+        }
 
         function postTransferForm(valid) {
             if (!valid) {

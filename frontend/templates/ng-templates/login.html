@@ -40,7 +40,7 @@
                 </div>
             </div>
         </div>
-        <div class="row">
+        <div class="row" ng-controller="loginController as login">
             <div class="col-md-offset-3 col-md-6" ng-if="main.loginType == 'elixir_google'">
                 <div class="panel panel-info">
                     <div class="panel-heading">Transfer Account Credentials</div>
@@ -52,7 +52,7 @@
                             Note that this will make you unable to log in with your google account in the future,
                             as your user data will be permanently updated with the elixir information.
                         </div>
-                        <form role="form" name="transferForm" ng-controller="loginController as login">
+                        <form role="form" name="transferForm">
                             <center>
                                 <button ng-click="login.postTransferForm(transferForm.$valid)" class="btn btn-primary">Transfer Credentials</button>
                             </center>
