@@ -258,6 +258,7 @@ class SFTPUser(BaseModel):
     user_uid      = IntegerField(unique=True)
     user_name     = CharField(null=False)
     password_hash = CharField(null=False)
+    account_expires = DateTimeField(null=False)
 
     class Meta:
         db_table = 'sftp_user'

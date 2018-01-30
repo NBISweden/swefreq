@@ -493,17 +493,18 @@ class SFTPAccess(handlers.AdminHandler):
 
         password = None
         username = None
-        expires = datetime.today() + timedelta(days=30)
+        expires = None
         # Check if an sFTP user exists for the current user
         try:
             data = self.current_user.sftp_user.get()
             username = data.user_name
+            expires = data.expires.strftime("%Y-%m-%d %H:%M")
         except db.SFTPUser.DoesNotExist:
             # Otherwise return empty values
             pass
 
         self.finish({'user':username,
-                     'expires':expires.strftime("%Y-%m-%d %H:%M"),
+                     'expires':expires,
                      'password':password})
 
     def post(self, dataset):
@@ -522,7 +523,8 @@ class SFTPAccess(handlers.AdminHandler):
         try:
             self.current_user.sftp_user.get()
             # if we have a user, update it
-            db.SFTPUser.update(password_hash = crypt.crypt( password, username )
+            db.SFTPUser.update(password_hash = crypt.crypt( password, username ),
+                               account_expires = expires
                                ).where(db.SFTPUser.user == self.current_user.get_id()).execute()
             # TODO: update expiry date to expires.timestamp()
         except db.SFTPUser.DoesNotExist:
@@ -530,7 +532,8 @@ class SFTPAccess(handlers.AdminHandler):
             db.SFTPUser.insert(user = self.current_user.get_id(),
                                user_uid = self.get_uid(),
                                user_name = username,
-                               password_hash = crypt.crypt( password, username )
+                               password_hash = crypt.crypt( password, username ),
+                               account_expires = expires
                                ).execute()
             # TODO: set expiry date to expires.timestamp() when the database is ready
 
