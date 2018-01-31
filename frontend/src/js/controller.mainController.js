@@ -19,5 +19,6 @@
             localThis.msg = $cookies.getObject("msg");
             $cookies.remove("msg");
         }
+
     }]);
 })();

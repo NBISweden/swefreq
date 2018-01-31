@@ -7,8 +7,6 @@ import tornado.httpclient
 import os.path
 import datetime
 import urllib.parse
-import base64
-import uuid
 import re
 from tornado.escape import json_encode
 

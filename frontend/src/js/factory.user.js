@@ -1,9 +1,11 @@
 (function() {
     angular.module("App")
-    .factory("User", ["$http", function($http) {
+    .factory("User", ["$http", "$cookies", function($http, $cookies) {
+        $http.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded";
         return {
             getUser: getUser,
             getDatasets: getDatasets,
+            transferAccount: transferAccount,
         };
 
         function getUser() {
@@ -20,6 +22,12 @@
                     return data.data.data;
                 }
             );
+        }
+
+        function transferAccount() {
+            return $http.post("/api/users/elixir_transfer",
+                    $.param({"_xsrf": $cookies.get("_xsrf")})
+                );
         }
     }]);
 })();
