@@ -22,7 +22,6 @@ CREATE TABLE IF NOT EXISTS sftp_user (
     user_uid            INTEGER         NOT NULL,
     user_name           VARCHAR(50)     NOT NULL,
     password_hash       VARCHAR(100)    NOT NULL,
-    account_expires     TIMESTAMP       NOT NULL,
     CONSTRAINT FOREIGN KEY (user_pk) REFERENCES user(user_pk),
     CONSTRAINT UNIQUE (user_uid)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
