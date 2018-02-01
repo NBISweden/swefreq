@@ -498,7 +498,7 @@ class SFTPAccess(handlers.AdminHandler):
         try:
             data = self.current_user.sftp_user.get()
             username = data.user_name
-            expires = data.expires.strftime("%Y-%m-%d %H:%M")
+            expires = data.account_expires.strftime("%Y-%m-%d %H:%M")
         except db.SFTPUser.DoesNotExist:
             # Otherwise return empty values
             pass
@@ -525,11 +525,11 @@ class SFTPAccess(handlers.AdminHandler):
             # if we have a user, update it
             db.SFTPUser.update(password_hash = crypt.crypt( password, username ),
                                account_expires = expires
-                               ).where(db.SFTPUser.user == self.current_user.get_id()).execute()
+                               ).where(db.SFTPUser.user == self.current_user).execute()
             # TODO: update expiry date to expires.timestamp()
         except db.SFTPUser.DoesNotExist:
             # if there is no user, insert the user in the database
-            db.SFTPUser.insert(user = self.current_user.get_id(),
+            db.SFTPUser.insert(user = self.current_user,
                                user_uid = self.get_uid(),
                                user_name = username,
                                password_hash = crypt.crypt( password, username ),

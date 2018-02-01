@@ -75,27 +75,24 @@
 
         <div class="tab-pane" id="sftp">
             <div class="table-responsive">
-                <form role="form" name="SFTPForm">
-                    <table class="table table-striped">
-                        <tr>
-                            <th>sFTP username:</th>
-                            <td id="sftp-user">{{ ctrl.sftp.user }}</td>
-                        </tr>
-                        <tr>
-                            <th>sFTP password</th>
-                            <td id="sftp-password">{{ ctrl.sftp.password }}</td>
-                        </tr>
-                        <tr>
-                            <th>Expiry date:</th>
-                            <td id="sftp-expires">{{ ctrl.sftp.expires }}</td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                            <td><button type="button" ng-click="ctrl.postSFTPForm(SFTPForm.$valid)" class="btn btn-primary">Generate Credentials</button></td>
-    </td>
-                        </tr>
-                    </table>
-                </form>
+                <table class="table table-striped">
+                    <tr>
+                        <th>sFTP username:</th>
+                        <td id="sftp-user">{{ ctrl.sftp.user }}</td>
+                    </tr>
+                    <tr>
+                        <th>sFTP password</th>
+                        <td id="sftp-password">{{ ctrl.sftp.password }}</td>
+                    </tr>
+                    <tr>
+                        <th>Expiry date:</th>
+                        <td id="sftp-expires">{{ ctrl.sftp.expires }}</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td><button type="button" ng-click="ctrl.createSFTPCredentials()" class="btn btn-primary">Generate Credentials</button></td>
+                    </tr>
+                </table>
             </div>
         </div>
 

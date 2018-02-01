@@ -1,12 +1,12 @@
 (function() {
     angular.module("App")
-    .controller("datasetAdminController", ["$routeParams", "$http", "$cookies", "User", "Dataset", "DatasetUsers",
-                                function($routeParams, $http, $cookies, User, Dataset, DatasetUsers) {
+    .controller("datasetAdminController", ["$routeParams", "User", "Dataset", "DatasetUsers", "SFTPAccess",
+                                function($routeParams, User, Dataset, DatasetUsers, SFTPAccess) {
         var localThis = this;
         localThis.revokeUser = revokeUser;
         localThis.approveUser = approveUser;
-        localThis.postSFTPForm = postSFTPForm;
         localThis.sftp = {"user":"", "password":"", "expires":null};
+        localThis.createSFTPCredentials = function() { return SFTPAccess.createCredentials( $routeParams.dataset ); }
 
         activate();
 
@@ -26,10 +26,10 @@
                 }
             );
 
-            $http.get("/api/datasets/" + $routeParams.dataset + "/sftp_access")
-                 .then(function(data) {
-                     return localThis.sftp = data.data;
-                 });
+            SFTPAccess.getCredentials( $routeParams.dataset )
+                .then( function(data) {
+                    localThis.sftp = data;
+                });
 
         }
 
@@ -60,21 +60,5 @@
             );
         }
 
-        function postSFTPForm(valid) {
-            if (!valid) {
-                return;
-            }
-            $.ajax({
-              url:"/api/datasets/" + $routeParams.dataset + "/sftp_access",
-              type:"POST",
-              data:{"_xsrf": $cookies.get("_xsrf")},
-              contentType:"application/x-www-form-urlencoded",
-              success: function(data){
-                  $("#sftp-user").html(data.user);
-                  $("#sftp-password").html(data.password);
-                  $("#sftp-expires").html(data.expires);
-              }
-            });
-        }
     }]);
 })();
