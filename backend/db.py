@@ -10,6 +10,7 @@ from peewee import (
         MySQLDatabase,
         PrimaryKeyField,
         TextField,
+        fn,
     )
 import settings
 
@@ -262,6 +263,23 @@ class SFTPUser(BaseModel):
 
     class Meta:
         db_table = 'sftp_user'
+
+
+def get_next_free_uid():
+    """
+    Returns the next free uid >= 10000, and higher than the current uid's
+    from the sftp_user table in the database.
+    """
+    default = 10000
+    next_uid = default
+    try:
+        current_max_uid = SFTPUser.select(fn.MAX(SFTPUser.user_uid)).get().user_uid
+        if current_max_uid:
+            next_uid = current_max_uid+1
+    except SFTPUser.DoesNotExist:
+        pass
+
+    return next_uid
 
 
 def get_dataset(dataset):
