@@ -11,7 +11,7 @@
                 .then( function(data) {
                     localThis.sftp = data;
                 });
-        }
+        };
 
         activate();
 
