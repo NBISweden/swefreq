@@ -526,7 +526,6 @@ class SFTPAccess(handlers.AdminHandler):
             db.SFTPUser.update(password_hash = fn.SHA2(password, 256),
                                account_expires = expires
                                ).where(db.SFTPUser.user == self.current_user).execute()
-            # TODO: update expiry date to expires.timestamp()
         except db.SFTPUser.DoesNotExist:
             # if there is no user, insert the user in the database
             db.SFTPUser.insert(user = self.current_user,
@@ -535,7 +534,6 @@ class SFTPAccess(handlers.AdminHandler):
                                password_hash = fn.SHA2(password, 256),
                                account_expires = expires
                                ).execute()
-            # TODO: set expiry date to expires.timestamp() when the database is ready
 
         self.finish({'user':username,
                      'expires':expires.strftime("%Y-%m-%d %H:%M"),
