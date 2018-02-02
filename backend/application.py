@@ -530,7 +530,7 @@ class SFTPAccess(handlers.AdminHandler):
         except db.SFTPUser.DoesNotExist:
             # if there is no user, insert the user in the database
             db.SFTPUser.insert(user = self.current_user,
-                               user_uid = self.get_uid(),
+                               user_uid = self.get_next_free_uid(),
                                user_name = username,
                                password_hash = fn.SHA2(password, 256),
                                account_expires = expires
@@ -541,11 +541,21 @@ class SFTPAccess(handlers.AdminHandler):
                      'expires':expires.strftime("%Y-%m-%d %H:%M"),
                      'password':password})
 
-    def get_uid(self):
+    def get_next_free_uid(self):
         """
-        Returns the uid of the current users sftp user.
+        Returns the next free uid >= 10000, and higher than the current uid's
+        from the sftp_user table in the database.
         """
-        return self.current_user.get_id()
+        default = 10000
+        next_uid = default
+        try:
+            current_max_uid = db.SFTPUser.select(fn.MAX(db.SFTPUser.user_uid)).get().user_uid
+            if current_max_uid:
+                next_uid = current_max_uid+1
+        except db.SFTPUser.DoesNotExist:
+            pass
+
+        return next_uid
 
     def generate_password(self, size = 12):
         """
