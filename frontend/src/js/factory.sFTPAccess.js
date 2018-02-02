@@ -14,17 +14,14 @@
         }
 
         function createCredentials( dataset ) {
-            $.ajax({
-              url:"/api/datasets/" + dataset + "/sftp_access",
-              type:"POST",
-              data:{"_xsrf": $cookies.get("_xsrf")},
-              contentType:"application/x-www-form-urlencoded",
-              success: function(data){
-                  $("#sftp-user").html(data.user);
-                  $("#sftp-password").html(data.password);
-                  $("#sftp-expires").html(data.expires);
-              }
-            });
+            return $http.post("/api/datasets/" + dataset + "/sftp_access",
+                              $.param({"_xsrf": $cookies.get("_xsrf")}),
+                              {headers : {
+                                "Content-Type": "application/x-www-form-urlencoded;"
+                              }})
+                .then( function(data) {
+                    return data.data;
+                });
         }
     }]);
 })();

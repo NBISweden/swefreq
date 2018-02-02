@@ -6,7 +6,12 @@
         localThis.revokeUser = revokeUser;
         localThis.approveUser = approveUser;
         localThis.sftp = {"user":"", "password":"", "expires":null};
-        localThis.createSFTPCredentials = function() { return SFTPAccess.createCredentials( $routeParams.dataset ); }
+        localThis.createSFTPCredentials = function() {
+            SFTPAccess.createCredentials( $routeParams.dataset )
+                .then( function(data) {
+                    localThis.sftp = data;
+                });
+        }
 
         activate();
 
