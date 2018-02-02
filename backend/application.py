@@ -3,12 +3,12 @@ from email.mime.text import MIMEText
 from os import path
 import logging
 from datetime import datetime, timedelta
+from peewee import fn
 import peewee
 import smtplib
 import tornado.web
 import random
 import string
-import crypt
 import uuid
 import math
 
@@ -523,7 +523,7 @@ class SFTPAccess(handlers.AdminHandler):
         try:
             self.current_user.sftp_user.get()
             # if we have a user, update it
-            db.SFTPUser.update(password_hash = crypt.crypt( password, username ),
+            db.SFTPUser.update(password_hash = fn.SHA2(password, 256),
                                account_expires = expires
                                ).where(db.SFTPUser.user == self.current_user).execute()
             # TODO: update expiry date to expires.timestamp()
@@ -532,7 +532,7 @@ class SFTPAccess(handlers.AdminHandler):
             db.SFTPUser.insert(user = self.current_user,
                                user_uid = self.get_uid(),
                                user_name = username,
-                               password_hash = crypt.crypt( password, username ),
+                               password_hash = fn.SHA2(password, 256),
                                account_expires = expires
                                ).execute()
             # TODO: set expiry date to expires.timestamp() when the database is ready
