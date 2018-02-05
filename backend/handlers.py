@@ -76,28 +76,21 @@ class BaseHandler(tornado.web.RequestHandler):
         if not isinstance(chunk, dict):
             super().write(chunk)
             return
-        new_chunk = _convert_keys_to_camel_case(chunk)
+        new_chunk = _convert_keys_to_hump_back(chunk)
         super().write(new_chunk)
 
-def _convert_keys_to_camel_case(chunk):
+def _convert_keys_to_hump_back(chunk):
     if isinstance(chunk, list):
-        return [_convert_keys_to_camel_case(e) for e in chunk]
+        return [_convert_keys_to_hump_back(e) for e in chunk]
 
     if not isinstance(chunk, dict):
         return chunk
 
-    def upcase_word(w):
-        return re.sub(r"^[a-z]([A-Za-z]+)?$",
-                      lambda mo: mo.group(0)[0].upper() +
-                                 mo.group(0)[1:],
-                      w)
-
     new_chunk = {}
     for k, v in chunk.items():
-        new_key = "".join( [ upcase_word(word) for word in k.split("_") ] )
         # First character should be the same as in the original string
-        new_key = k[0] + new_key[1:]
-        new_chunk[new_key] = _convert_keys_to_camel_case(v)
+        new_key = k[0] + k.title().replace("_", "")[1:]
+        new_chunk[new_key] = _convert_keys_to_hump_back(v)
     return new_chunk
 
 
