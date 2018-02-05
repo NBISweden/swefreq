@@ -1,10 +1,17 @@
 (function() {
     angular.module("App")
-    .controller("datasetAdminController", ["$routeParams", "User", "Dataset", "DatasetUsers",
-                                function($routeParams, User, Dataset, DatasetUsers) {
+    .controller("datasetAdminController", ["$routeParams", "User", "Dataset", "DatasetUsers", "SFTPAccess",
+                                function($routeParams, User, Dataset, DatasetUsers, SFTPAccess) {
         var localThis = this;
         localThis.revokeUser = revokeUser;
         localThis.approveUser = approveUser;
+        localThis.sftp = {"user":"", "password":"", "expires":null};
+        localThis.createSFTPCredentials = function() {
+            SFTPAccess.createCredentials( $routeParams.dataset )
+                .then( function(data) {
+                    localThis.sftp = data;
+                });
+        };
 
         activate();
 
@@ -23,6 +30,11 @@
                     localThis.error = error;
                 }
             );
+
+            SFTPAccess.getCredentials( $routeParams.dataset )
+                .then( function(data) {
+                    localThis.sftp = data;
+                });
 
         }
 
@@ -52,5 +64,6 @@
                 }
             );
         }
+
     }]);
 })();

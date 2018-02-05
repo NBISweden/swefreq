@@ -3,9 +3,12 @@ from email.mime.text import MIMEText
 from os import path
 import logging
 from datetime import datetime, timedelta
+from peewee import fn
 import peewee
 import smtplib
 import tornado.web
+import random
+import string
 import uuid
 import math
 
@@ -477,3 +480,69 @@ class ServeLogo(handlers.UnsafeHandler):
         self.set_header("Content-Type", logo_entry.mimetype)
         self.write(logo_entry.data)
         self.finish()
+
+
+class SFTPAccess(handlers.AdminHandler):
+    """
+    Creates, or re-enables, sFTP users in the database.
+    """
+    def get(self, dataset):
+        """
+        Returns sFTP credentials for the current user.
+        """
+
+        password = None
+        username = None
+        expires = None
+        # Check if an sFTP user exists for the current user
+        try:
+            data = self.current_user.sftp_user.get()
+            username = data.user_name
+            expires = data.account_expires.strftime("%Y-%m-%d %H:%M")
+        except db.SFTPUser.DoesNotExist:
+            # Otherwise return empty values
+            pass
+
+        self.finish({'user':username,
+                     'expires':expires,
+                     'password':password})
+
+    def post(self, dataset):
+        """
+        Handles generation of new credentials. This function either creates a
+        new set of sftp credentials for a user, or updates the old ones with a
+        new password and expiry date.
+        """
+
+        # Create a new password
+        username = "_".join(self.current_user.name.split()) + "_sftp"
+        password = self.generate_password()
+        expires = datetime.today() + timedelta(days=30)
+
+        # Check if an sFTP user exists for the current user when the database is ready
+        try:
+            self.current_user.sftp_user.get()
+            # if we have a user, update it
+            db.SFTPUser.update(password_hash = fn.SHA2(password, 256),
+                               account_expires = expires
+                               ).where(db.SFTPUser.user == self.current_user).execute()
+        except db.SFTPUser.DoesNotExist:
+            # if there is no user, insert the user in the database
+            db.SFTPUser.insert(user = self.current_user,
+                               user_uid = db.get_next_free_uid(),
+                               user_name = username,
+                               password_hash = fn.SHA2(password, 256),
+                               account_expires = expires
+                               ).execute()
+
+        self.finish({'user':username,
+                     'expires':expires.strftime("%Y-%m-%d %H:%M"),
+                     'password':password})
+
+    def generate_password(self, size = 12):
+        """
+        Generates a password of length 'size', comprised of random lowercase and
+        uppercase letters, and numbers.
+        """
+        chars = string.ascii_letters + string.digits
+        return ''.join(random.SystemRandom().choice(chars) for _ in range(size))
