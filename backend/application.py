@@ -200,14 +200,14 @@ class GetUser(handlers.UnsafeHandler):
     def get(self):
         user = self.current_user
 
-        ret = { 'user': None, 'email': None, 'loginType': 'none' }
+        ret = { 'user': None, 'email': None, 'login_type': 'none' }
         if user:
             ret = {
                 'user':        user.name,
                 'email':       user.email,
                 'affiliation': user.affiliation,
                 'country':     user.country,
-                'loginType':   self.get_secure_cookie('identity_type').decode('utf-8'),
+                'login_type':  self.get_secure_cookie('identity_type').decode('utf-8'),
             }
 
         self.finish(ret)
