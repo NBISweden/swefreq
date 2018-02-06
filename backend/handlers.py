@@ -210,26 +210,26 @@ class AuthorizedStaticNginxFileHandler(AuthorizedHandler, BaseStaticNginxFileHan
 
 
 class TemporaryStaticNginxFileHandler(BaseStaticNginxFileHandler):
-    def get_user_from_hash(self, hashv):
+    def get_user_from_hash(self, hash_value):
         logging.debug("Getting the temporary user")
         return (db.User
                    .select(db.User)
                    .join(db.Linkhash)
-                   .where(db.Linkhash.hash == hashv)
+                   .where(db.Linkhash.hash == hash_value)
                ).get()
 
-    def get(self, dataset, hashv, file):
-        logging.debug("Want to download hash {} ({})".format(hashv, file))
+    def get(self, dataset, hash_value, file):
+        logging.debug("Want to download hash {} ({})".format(hash_value, file))
         linkhash = (db.Linkhash
                         .select()
                         .join(db.DatasetVersion)
                         .join(db.DatasetFile)
-                        .where(db.Linkhash.hash       == hashv,
+                        .where(db.Linkhash.hash       == hash_value,
                                db.Linkhash.expires_on >  datetime.datetime.now(),
                                db.DatasetFile.name    == file))
         if linkhash.count() > 0:
             logging.debug("Linkhash valid")
-            user = self.get_user_from_hash(hashv)
+            user = self.get_user_from_hash(hash_value)
             super().get(dataset, file, user)
         else:
             logging.debug("Linkhash invalid")
