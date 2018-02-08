@@ -91,7 +91,7 @@ class Info(handlers.UnsafeHandler):
                 ] #
             })
 
-def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset):
+def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset): #pylint: disable=too-many-arguments, unused-argument
     """CHeck if an allele is present in the database
     Args:
         chrom: The chromosome, format matches [1-22XY]

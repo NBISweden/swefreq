@@ -49,8 +49,8 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
         if self.get_argument("code", False):
 
             if not self._check_state(self.get_argument('state', 'N/A')):
-                # TODO Redirect somewhere?
-                logging.error("We're beeing MITM:ed or something ABORT!")
+                self.set_user_msg("We're beeing MITM:ed or something ABORT!", "error")
+                self.redirect("/security_warning")
                 return
 
             user_token = await self.get_user_token(self.get_argument('code'))
@@ -87,7 +87,10 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
         elif self.get_argument("error", False):
             logging.error("Elixir error: {}".format( self.get_argument("error") ))
             logging.error(" Description: {}".format( self.get_argument("error_description") ))
-            # TODO We should do some redirect here I guess
+
+            self.set_user_msg("Elixir Error: %s, %s" % (self.get_argument("error"),
+                                                        self.get_argument("error_description")))
+            self.redirect("/error")
 
         else:
             self.set_secure_cookie('login_redirect', self.get_argument("next", '/'), 1)
@@ -170,12 +173,14 @@ class GoogleLoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
             logging.debug("Requesting user token")
             user_token = yield self.get_authenticated_user(
                 redirect_uri=self.application.settings['redirect_uri'],
-                code=self.get_argument('code'))
+                code=self.get_argument('code'),
+                callback = lambda *_, **__: None)
 
             logging.debug("Requesting user info")
             user = yield self.oauth2_request(
                     "https://www.googleapis.com/plus/v1/people/me",
-                    access_token=user_token["access_token"])
+                    access_token=user_token["access_token"],
+                    callback = lambda *_, **__: None)
 
             try:
                 # Check if there is the user is already in the database.
@@ -221,7 +226,7 @@ class GoogleLoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
                         response_type='code',
                         extra_params={'approval_prompt': 'auto'})
 
-    def _get_google_email(self, user):
+    def _get_google_email(self, user): #pylint: disable=no-self-use
         email = ''
         # There can be several emails registered for a user.
         for email in user["emails"]:

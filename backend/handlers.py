@@ -7,7 +7,6 @@ import tornado.httpclient
 import os.path
 import datetime
 import urllib.parse
-import re
 from tornado.escape import json_encode
 
 import db
@@ -19,8 +18,8 @@ class BaseHandler(tornado.web.RequestHandler):
     to make security status explicit.
     """
     def prepare(self):
-        ## Make sure we have the xsrf_token
-        self.xsrf_token
+        ## Make sure we have the xsrf_token, this will generate the xsrf cookie if it isn't set
+        self.xsrf_token #pylint: disable=pointless-statement
         if db.database.is_closed():
             try:
                 db.database.connect()
@@ -51,7 +50,7 @@ class BaseHandler(tornado.web.RequestHandler):
                                    name  = name.decode('utf-8'),
                                    identity = identity.decode('utf-8'),
                                    identity_type = identity_type.decode('utf-8'))
-                except Exception as e:
+                except peewee.OperationalError as e:
                     logging.error("Can't create new user: {}".format(e))
         else:
             return None
@@ -80,6 +79,16 @@ class BaseHandler(tornado.web.RequestHandler):
         super().write(new_chunk)
 
 def _convert_keys_to_hump_back(chunk):
+    """
+    Converts keys given in snake_case to humbBack-case, while preserving the
+    capitalization of the first letter.
+
+    This conversion will rewrite a name already in camel, or humpback,
+    i.e. thisIsAKey -> thisisakey.
+    If this is unwanted, the conversion can instead be written as:
+    new_key = k[0] + "".join([a[0].upper() + a[1:] for a in k.split("_")])[1:]
+    to preserve upper-case letters within words.
+    """
     if isinstance(chunk, list):
         return [_convert_keys_to_hump_back(e) for e in chunk]
 
@@ -210,13 +219,6 @@ class AuthorizedStaticNginxFileHandler(AuthorizedHandler, BaseStaticNginxFileHan
 
 
 class TemporaryStaticNginxFileHandler(BaseStaticNginxFileHandler):
-    def get_user_from_hash(self, hash_value):
-        logging.debug("Getting the temporary user")
-        return (db.User
-                   .select(db.User)
-                   .join(db.Linkhash)
-                   .where(db.Linkhash.hash == hash_value)
-               ).get()
 
     def get(self, dataset, hash_value, file):
         logging.debug("Want to download hash {} ({})".format(hash_value, file))
@@ -229,7 +231,12 @@ class TemporaryStaticNginxFileHandler(BaseStaticNginxFileHandler):
                                db.DatasetFile.name    == file))
         if linkhash.count() > 0:
             logging.debug("Linkhash valid")
-            user = self.get_user_from_hash(hash_value)
+            # Get temporary user from hash_value
+            user = (db.User
+                       .select(db.User)
+                       .join(db.Linkhash)
+                       .where(db.Linkhash.hash == hash_value)
+                   ).get()
             super().get(dataset, file, user)
         else:
             logging.debug("Linkhash invalid")
