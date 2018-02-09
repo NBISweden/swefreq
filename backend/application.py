@@ -146,13 +146,12 @@ class GenerateTemporaryLink(handlers.AuthorizedHandler):
                         .where(db.Linkhash.expires_on < datetime.now())
                         .execute()
                         )
-        except Exception as e:
-            logging.error("Could not clean old linkhashes")
-            logging.error(e)
+        except peewee.OperationalError as e:
+            logging.error("Could not clean old linkhashes: {}".format(e))
 
         self.finish({
                 'hash':       lh.hash,
-                'expires_on': lh.expires_on.strftime("%Y-%m-%d %H:%M")
+                'expires_on': lh.expires_on.strftime("%Y-%m-%d %H:%M") #pylint: disable=no-member
             })
 
 
@@ -203,14 +202,14 @@ class GetUser(handlers.UnsafeHandler):
     def get(self):
         user = self.current_user
 
-        ret = { 'user': None, 'email': None, 'loginType': 'none' }
+        ret = { 'user': None, 'email': None, 'login_type': 'none' }
         if user:
             ret = {
                 'user':        user.name,
                 'email':       user.email,
                 'affiliation': user.affiliation,
                 'country':     user.country,
-                'loginType':   self.get_secure_cookie('identity_type').decode('utf-8'),
+                'login_type':  self.get_secure_cookie('identity_type').decode('utf-8'),
             }
 
         self.finish(ret)
@@ -306,8 +305,8 @@ class RequestAccess(handlers.SafeHandler):
                         dataset = dataset,
                         action = 'access_requested'
                     )
-        except Exception as e:
-            logging.error(e)
+        except peewee.OperationalError as e:
+            logging.error("Database Error: {}".format(e))
 
 
 class LogEvent(handlers.SafeHandler):
@@ -364,7 +363,7 @@ class ApproveUser(handlers.AdminHandler):
 
             server = smtplib.SMTP(settings.mail_server)
             server.sendmail(msg['from'], [msg['to']], msg.as_string())
-        except Exception as e:
+        except smtplib.SMTPException as e:
             logging.error("Email error: {}".format(e))
 
         self.finish()

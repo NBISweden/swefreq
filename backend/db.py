@@ -304,7 +304,7 @@ def get_dataset_version(dataset, version=None):
 
 def build_dict_from_row(row):
     d = {}
-    for field in row._meta.sorted_fields:
+    for field in row._meta.sorted_fields: #pylint: disable=protected-access
         column = field.db_column
         if column.endswith("_pk"):
             continue
