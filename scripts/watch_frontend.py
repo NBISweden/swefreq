@@ -1,6 +1,7 @@
 import inotify.adapters
 import re
 import subprocess
+import os
 
 def files_to_watch():
     r = re.compile("^/code/frontend/(templates|src)")
@@ -13,7 +14,17 @@ def events_to_watch():
 def comb(*args):
     return lambda x: all(f(x) for f in args)
 
+def install_node_deps():
+    os.chdir('frontend')
+    subprocess.call(['npm','install'])
+    os.chdir('..')
+
 def main():
+    install_node_deps()
+
+    subprocess.call(['make', 'clean'])
+    subprocess.call('make')
+
     i = inotify.adapters.InotifyTree("/code/frontend")
     grepper = comb(files_to_watch(), events_to_watch())
 
