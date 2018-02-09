@@ -27,10 +27,10 @@ class Query(handlers.UnsafeHandler):
 
     def get(self):
         the_errors = self.make_error_response()
-        if len(the_errors) > 0:
-            self.set_status(400);
-            self.set_header('Content-Type', 'text/plain');
-            self.write(the_errors);
+        if the_errors:
+            self.set_status(400)
+            self.set_header('Content-Type', 'text/plain')
+            self.write(the_errors)
             return
 
         sChr      = self.get_argument('chrom', '').upper()
@@ -91,7 +91,7 @@ class Info(handlers.UnsafeHandler):
                 ] #
             })
 
-def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset):
+def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset): #pylint: disable=too-many-arguments, unused-argument
     """CHeck if an allele is present in the database
     Args:
         chrom: The chromosome, format matches [1-22XY]
