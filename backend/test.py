@@ -8,10 +8,6 @@ import db
 class RequestTests(TestCase):
     HOST = 'http://localhost:4000'
 
-    def __init__(self):
-        super().__init__()
-        self._session = None
-
     def newSession(self):
         if hasattr(self, '_session'):
             self.destroySession()
@@ -284,10 +280,6 @@ class TestAdminAccess(RequestTests):
 
 
 class TestUserManagement(RequestTests):
-
-    def __init__(self):
-        super().__init__()
-        self._email = None
 
     def setUp(self):
         self.newSession()

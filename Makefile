@@ -44,4 +44,4 @@ static/js/app.js: $(JAVASCRIPT_FILES)
 
 static/templates/%.html: frontend/templates/%.html
 	mkdir -p $$( dirname $@ ) 2>/dev/null || true
-	python scripts/compile_template.py ${COMPILE_TEMPLATE_OPTS} -b frontend/templates -s $< >$@
+	python3 scripts/compile_template.py ${COMPILE_TEMPLATE_OPTS} -b frontend/templates -s $< >$@

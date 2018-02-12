@@ -8,7 +8,7 @@
 VOLUME='mysql-data-volume'
 
 echo "Downloading data"
-curl -O https://swefreq.nbis.se/static/testing/mysql-data.tar.bz2 
+curl -O https://swefreq.nbis.se/static/testing/mysql-data.tar.bz2
 tar xjf mysql-data.tar.bz2
 
 echo "Creating datavolume and filling it with data"
