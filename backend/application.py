@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from peewee import fn
 import peewee
 import smtplib
+import socket
 import tornado.web
 import random
 import string
@@ -364,6 +365,8 @@ class ApproveUser(handlers.AdminHandler):
             server = smtplib.SMTP(settings.mail_server)
             server.sendmail(msg['from'], [msg['to']], msg.as_string())
         except smtplib.SMTPException as e:
+            logging.error("Email error: {}".format(e))
+        except socket.gaierror as e:
             logging.error("Email error: {}".format(e))
 
         self.finish()
