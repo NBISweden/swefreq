@@ -127,6 +127,8 @@ class DatasetVersion(BaseModel):
     var_call_ref    = CharField(null=True)
     available_from  = DateTimeField()
     ref_doi         = CharField(null=True)
+    data_contact_name = CharField(null=True)
+    data_contact_link = CharField(null=True)
 
     class Meta:
         db_table = 'dataset_version'
