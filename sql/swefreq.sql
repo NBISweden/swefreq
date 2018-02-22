@@ -89,6 +89,8 @@ CREATE TABLE IF NOT EXISTS dataset_version (
     var_call_ref        VARCHAR(50)     DEFAULT NULL,
     available_from      TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
     ref_doi             VARCHAR(100)    DEFAULT NULL,
+    data_contact_name   VARCHAR(100)    DEFAULT NULL,
+    data_contact_link   VARCHAR(100)    DEFAULT NULL,
     CONSTRAINT UNIQUE (dataset_pk, version),
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
