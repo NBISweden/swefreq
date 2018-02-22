@@ -119,14 +119,14 @@ class Dataset(BaseModel):
 
 
 class DatasetVersion(BaseModel):
-    dataset_version = PrimaryKeyField(db_column='dataset_version_pk')
-    dataset         = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='versions')
-    version         = CharField()
-    description     = TextField()
-    terms           = TextField()
-    var_call_ref    = CharField(null=True)
-    available_from  = DateTimeField()
-    ref_doi         = CharField(null=True)
+    dataset_version   = PrimaryKeyField(db_column='dataset_version_pk')
+    dataset           = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='versions')
+    version           = CharField()
+    description       = TextField()
+    terms             = TextField()
+    var_call_ref      = CharField(null=True)
+    available_from    = DateTimeField()
+    ref_doi           = CharField(null=True)
     data_contact_name = CharField(null=True)
     data_contact_link = CharField(null=True)
 
