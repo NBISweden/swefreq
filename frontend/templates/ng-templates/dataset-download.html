@@ -5,8 +5,8 @@
 <div class="row">
     <div class="col-sm-12">
         <div class="alert" role="alert">
-            <strong>Nota Bene:</strong> You can only request access to and download
-            summary files here<span ng-if="ctrl.dataset.version.dataContactLink">,
+            <strong>Nota Bene:</strong> You can only request access to, and
+            download, summary files here<span ng-if="ctrl.dataset.version.dataContactLink">,
             if you want access to the underlying individual data you need to
             {{ ctrl.dataContactIsEmail() ? "contact" : "visit" }}
             <a href="{{ ctrl.dataContactIsEmail() ? 'mailto:' : ''}}{{ ctrl.dataset.version.dataContactLink }}">{{ ctrl.dataset.version.dataContactName }}</a></span>.
