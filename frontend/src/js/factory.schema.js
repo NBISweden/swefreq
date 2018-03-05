@@ -7,8 +7,6 @@
 
         function getSchema(dataset, version) {
             // Check if we have a dataset
-
-            var datasetSchema = null;
             if ( dataset ) {
                 var schemaUri = "/api/datasets/" + dataset + "/schema";
 
@@ -17,19 +15,21 @@
                     schemaUri = "/api/datasets/" + dataset + "/versions/" + version + "/schema";
                 }
 
-                $http.get(schemaUri).then( function(data) {
-                    datasetSchema = data.data;
-                });
+                // Add the dataset information to the static data, and return it.
+                return $http.get(schemaUri).then( function(schema) {
+                    return $http.get("/static/json/bioschema.json")
+                                .then( function(data) {
+                                    data.data.dataset = schema.data;
+                                    return data.data;
+                        });
+                    });
             }
 
-            var schema = $http.get("/static/json/bioschema.json")
+            // Else return the static information
+            return $http.get("/static/json/bioschema.json")
                  .then( function(data) {
-                     if ( datasetSchema )
-                         data.data.dataset = datasetSchema;
                      return data.data;
                  });
-
-            return schema;
         }
     }]);
 })();

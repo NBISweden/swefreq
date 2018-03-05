@@ -20,8 +20,10 @@
             localThis.msg = $cookies.getObject("msg");
             $cookies.remove("msg");
 
-            Schema.getSchema($routeParams.dataset, $routeParams.version).then( function(data) {
-                $scope.$root.ld = data;
+            $scope.$on('$routeChangeSuccess', function() {
+                Schema.getSchema($routeParams.dataset, $routeParams.version).then( function(data) {
+                    $scope.$root.ld = data;
+                })
             });
         }
 
