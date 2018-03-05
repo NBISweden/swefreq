@@ -173,7 +173,8 @@ class DatasetSchema(handlers.UnsafeHandler):
                 if not (user and user.is_admin(version.dataset)):
                     self.send_error(status_code=403)
 
-            ret['url']         = "/dataset/" + dataset_version.dataset.short_name
+            base_url = "%s://%s" % (self.request.protocol, self.request.host)
+            ret['url']         = base_url + "/dataset/" + dataset_version.dataset.short_name
             ret['@id']         = ret['url']
             ret['name']        = dataset_version.dataset.short_name
             ret['description'] = dataset_version.description
