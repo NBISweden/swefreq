@@ -156,6 +156,40 @@ class GenerateTemporaryLink(handlers.AuthorizedHandler):
             })
 
 
+class DatasetSchema(handlers.UnsafeHandler):
+    """
+    Returns the schema.org, and bioschemas.org, annotation for a given
+    dataset.
+    """
+    def get(self, dataset, version=None):
+
+        ret = {'@type':"Dataset"}
+
+        try:
+            dataset_version = db.get_dataset_version(dataset, version)
+
+            if dataset_version.available_from > datetime.now():
+                # If it's not available yet, only return if user is admin.
+                if not (user and user.is_admin(version.dataset)):
+                    self.send_error(status_code=403)
+
+            ret['url']         = "/dataset/" + dataset_version.dataset.short_name
+            ret['@id']         = ret['url']
+            ret['name']        = dataset_version.dataset.short_name
+            ret['description'] = dataset_version.description
+            ret['identifier']  = ret['name']
+            if dataset_version.ref_doi:
+                ret['citation'] = {'@type': "ScholarlyArticle",
+                                   'identifier': dataset_version.ref_doi}
+
+        except db.DatasetVersion.DoesNotExist as e:
+            logging.error("Dataset version does not exist: {}".format(e))
+        except db.DatasetVersionCurrent.DoesNotExist as e:
+            logging.error("Dataset does not exist: {}".format(e))
+
+        self.finish(ret)
+
+
 class DatasetFiles(handlers.AuthorizedHandler):
     def get(self, dataset, version=None):
         dataset_version = db.get_dataset_version(dataset, version)

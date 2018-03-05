@@ -1,6 +1,7 @@
 (function() {
     angular.module("App")
-    .controller("mainController", ["$location", "$cookies", "User", function($location, $cookies, User) {
+    .controller("mainController", ["$location", "$cookies", "$scope", "$routeParams", "Schema", "User",
+                          function( $location,   $cookies,   $scope,   $routeParams,   Schema,   User) {
         var localThis = this;
         localThis.url = function() { return $location.path(); };
         localThis.loggedIn = false;
@@ -18,6 +19,10 @@
             });
             localThis.msg = $cookies.getObject("msg");
             $cookies.remove("msg");
+
+            Schema.getSchema($routeParams.dataset, $routeParams.version).then( function(data) {
+                $scope.$root.ld = data;
+            });
         }
 
     }]);

@@ -1,0 +1,27 @@
+{
+    "@context": "http://schema.org/",
+    "@type": "DataCatalog",
+    "name": "SweFreq",
+    "alternateName": [
+        "The Swedish Frequency resource for genomics"
+    ],
+    "description": "The Swedish Frequency resource for genomics (SweFreq) is a website developed to make genomic datasets more findable and accessible in order to promote collaboration, new research and increase public benefit.",
+    "url": "https://swefreq.nbis.se/",
+    "provider": {
+        "@type": "Organization",
+        "name": "National Bioinformatics Infrastructure Sweden",
+        "alternateName": [
+            "NBIS",
+            "ELIXIR Sweden"
+        ],
+        "logo": "http://nbis.se/assets/img/logos/nbislogo-green.svg",
+        "url": "https://nbis.se/"
+    },
+    "datePublished": "2016-12-23",
+    "dateModified": "2017-02-01",
+    "license": {
+        "@type": "CreativeWork",
+        "name": "GNU General Public License v3.0",
+        "url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
+    }
+}
