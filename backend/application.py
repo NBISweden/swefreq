@@ -170,7 +170,7 @@ class DatasetSchema(handlers.UnsafeHandler):
 
             if dataset_version.available_from > datetime.now():
                 # If it's not available yet, only return if user is admin.
-                if not (user and user.is_admin(version.dataset)):
+                if not (self.current_user and self.current_user.is_admin(version.dataset)):
                     self.send_error(status_code=403)
 
             base_url = "%s://%s" % (self.request.protocol, self.request.host)
