@@ -178,9 +178,7 @@ class DatasetSchema(handlers.UnsafeHandler):
             ret['name']        = dataset_version.dataset.short_name
             ret['description'] = dataset_version.description
             ret['identifier']  = ret['name']
-            if dataset_version.ref_doi:
-                ret['citation'] = {'@type': "ScholarlyArticle",
-                                   'identifier': dataset_version.ref_doi}
+            ret['citation']    = dataset_version.ref_doi
 
         except db.DatasetVersion.DoesNotExist as e:
             logging.error("Dataset version does not exist: {}".format(e))
