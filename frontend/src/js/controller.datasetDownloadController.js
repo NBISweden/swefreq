@@ -89,8 +89,8 @@
         }
 
         function dataContactIsEmail() {
-            return localThis.hasOwnProperty('dataset') &&
-                    localThis.dataset.version.dataContactLink.indexOf('@') > -1;
+            return localThis.hasOwnProperty("dataset") &&
+                    localThis.dataset.version.dataContactLink.indexOf("@") > -1;
         }
     }]);
 })();

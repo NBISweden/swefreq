@@ -13,7 +13,7 @@
                 });
         }
 
-        function createCredentials( dataset ) {
+        function createCredentials() {
             return $http.post("/api/users/sftp_access",
                               $.param({"_xsrf": $cookies.get("_xsrf")}),
                               {headers : {
