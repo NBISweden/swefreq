@@ -56,9 +56,9 @@
             <div class="col-sm-12">
                 <table class="table table-striped">
                     <tr>
-                        <th>Dataset
-                        <th>Subscribed to email updates
-                        <th>Access
+                        <th>Dataset</td>
+                        <th>Subscribed to email updates</td>
+                        <th>Access</td>
                     </tr>
                     <tr ng-repeat="row in ctrl.datasets">
                         <td>{{row.shortName}}</td>
@@ -68,5 +68,31 @@
                 </table>
             </div>
         </div>
+
+        <!-- sFTP Access -->
+        <div class="row">
+            <div class="col-sm-12">
+                <h1>sFTP Access</h1>
+            </div class="col-sm-12">
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <table class="table table-striped">
+                    <tr>
+                        <th>Username</td>
+                        <th>Password</td>
+                        <th>Expiry date</td>
+                        <th></td>
+                    </tr>
+                    <tr>
+                        <td>{{ ctrl.sftp.user }}</td>
+                        <td>{{ ctrl.sftp.password }}</td>
+                        <td>{{ ctrl.sftp.expires }}</td>
+                        <td><button type="button" ng-click="ctrl.createSFTPCredentials()" class="btn btn-primary form-control">Generate Credentials</button></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
     </div>
 </div>

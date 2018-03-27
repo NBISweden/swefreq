@@ -6,15 +6,15 @@
             createCredentials: createCredentials,
         };
 
-        function getCredentials( dataset ) {
-            return $http.get("/api/datasets/" + dataset + "/sftp_access")
+        function getCredentials() {
+            return $http.get("/api/users/sftp_access")
                 .then(function(data) {
                     return data.data;
                 });
         }
 
         function createCredentials( dataset ) {
-            return $http.post("/api/datasets/" + dataset + "/sftp_access",
+            return $http.post("/api/users/sftp_access",
                               $.param({"_xsrf": $cookies.get("_xsrf")}),
                               {headers : {
                                 "Content-Type": "application/x-www-form-urlencoded;"

@@ -1,8 +1,15 @@
 (function() {
     angular.module("App")
-    .controller("profileController", ["User", "Countries",
-                                function(User, Countries) {
+    .controller("profileController", ["User", "Countries", "SFTPAccess", 
+                              function(User,   Countries,   SFTPAccess) {
     var localThis = this;
+    localThis.sftp = {"user":"", "password":"", "expires":null};
+    localThis.createSFTPCredentials = function() {
+        SFTPAccess.createCredentials()
+            .then( function(data) {
+                localThis.sftp = data;
+            });
+    };
 
     activate();
 
@@ -19,6 +26,11 @@
 
         User.getDatasets().then(function(data) {
             localThis.datasets = data;
+        });
+
+        SFTPAccess.getCredentials()
+            .then( function(data) {
+                localThis.sftp = data;
         });
     }
 
