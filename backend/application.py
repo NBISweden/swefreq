@@ -12,6 +12,8 @@ import random
 import string
 import uuid
 import math
+import re
+from urllib.parse import unquote
 
 import db
 import handlers
@@ -38,6 +40,83 @@ def build_dataset_structure(dataset_version, user=None, dataset=None):
             r['authorization_level'] = 'no_access'
 
     return r
+
+
+class GetSchema(handlers.UnsafeHandler):
+    """
+    Returns the schema.org, and bioschemas.org, annotation for a given
+    url.
+
+    This function behaves quite differently from the rest of the application as
+    the structured data testing tool had trouble catching the schema inject
+    when it went through AngularJS. The solution for now has been to make this
+    very general function that "re-parses" the current uri to figure out what
+    information to return.
+    """
+    def get(self):
+
+        dataset = None
+        version = None
+        match = re.match(".*\?url=(.*)",  unquote(self.request.uri) )
+        if match:
+            url = match.group(1)
+            dataset_match = re.match(".*/dataset/([^/]+)", url)
+            if dataset_match:
+                dataset = dataset_match.group(1)
+                version_match = re.match(".*/version/([^/]+)", url)
+                if version_match:
+                    version = version_match.group(1)
+
+        base = {"@context": "http://schema.org/",
+                "@type": "DataCatalog",
+                "name": "SweFreq",
+                "alternateName": [ "The Swedish Frequency resource for genomics" ],
+                "description": "The Swedish Frequency resource for genomics (SweFreq) is a website developed to make genomic datasets more findable and accessible in order to promote collaboration, new research and increase public benefit.",
+                "url": "https://swefreq.nbis.se/",
+                "provider": {
+                    "@type": "Organization",
+                    "name": "National Bioinformatics Infrastructure Sweden",
+                    "alternateName": [ "NBIS",
+                                       "ELIXIR Sweden" ],
+                    "logo": "http://nbis.se/assets/img/logos/nbislogo-green.svg",
+                    "url": "https://nbis.se/"
+                },
+                "datePublished": "2016-12-23",
+                "dateModified": "2017-02-01",
+                "license": {
+                    "@type": "CreativeWork",
+                    "name": "GNU General Public License v3.0",
+                    "url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
+                }
+            }
+
+        if dataset:
+            dataset_schema = {'@type':"Dataset"}
+
+            try:
+                dataset_version = db.get_dataset_version(dataset, version)
+
+                if dataset_version.available_from > datetime.now():
+                    # If it's not available yet, only return if user is admin.
+                    if not (self.current_user and self.current_user.is_admin(version.dataset)):
+                        self.send_error(status_code=403)
+
+                base_url = "%s://%s" % (self.request.protocol, self.request.host)
+                dataset_schema['url']         = base_url + "/dataset/" + dataset_version.dataset.short_name
+                dataset_schema['@id']         = dataset_schema['url']
+                dataset_schema['name']        = dataset_version.dataset.short_name
+                dataset_schema['description'] = dataset_version.description
+                dataset_schema['identifier']  = dataset_schema['name']
+                dataset_schema['citation']    = dataset_version.ref_doi
+
+                base["dataset"] = dataset_schema
+
+            except db.DatasetVersion.DoesNotExist as e:
+                logging.error("Dataset version does not exist: {}".format(e))
+            except db.DatasetVersionCurrent.DoesNotExist as e:
+                logging.error("Dataset does not exist: {}".format(e))
+
+        self.finish(base)
 
 
 class ListDatasets(handlers.UnsafeHandler):
@@ -154,39 +233,6 @@ class GenerateTemporaryLink(handlers.AuthorizedHandler):
                 'hash':       lh.hash,
                 'expires_on': lh.expires_on.strftime("%Y-%m-%d %H:%M") #pylint: disable=no-member
             })
-
-
-class DatasetSchema(handlers.UnsafeHandler):
-    """
-    Returns the schema.org, and bioschemas.org, annotation for a given
-    dataset.
-    """
-    def get(self, dataset, version=None):
-
-        ret = {'@type':"Dataset"}
-
-        try:
-            dataset_version = db.get_dataset_version(dataset, version)
-
-            if dataset_version.available_from > datetime.now():
-                # If it's not available yet, only return if user is admin.
-                if not (self.current_user and self.current_user.is_admin(version.dataset)):
-                    self.send_error(status_code=403)
-
-            base_url = "%s://%s" % (self.request.protocol, self.request.host)
-            ret['url']         = base_url + "/dataset/" + dataset_version.dataset.short_name
-            ret['@id']         = ret['url']
-            ret['name']        = dataset_version.dataset.short_name
-            ret['description'] = dataset_version.description
-            ret['identifier']  = ret['name']
-            ret['citation']    = dataset_version.ref_doi
-
-        except db.DatasetVersion.DoesNotExist as e:
-            logging.error("Dataset version does not exist: {}".format(e))
-        except db.DatasetVersionCurrent.DoesNotExist as e:
-            logging.error("Dataset does not exist: {}".format(e))
-
-        self.finish(ret)
 
 
 class DatasetFiles(handlers.AuthorizedHandler):

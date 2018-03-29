@@ -58,13 +58,13 @@ class Application(tornado.web.Application):
             (r"/api/users/me",                                                        application.GetUser),
             (r"/api/users/datasets",                                                  application.UserDatasetAccess),
             (r"/api/users/sftp_access",                                               application.SFTPAccess),
+            (r"/api/schema",                                                          application.GetSchema),
             ### Dataset Api
             (r"/api/datasets",                                                        application.ListDatasets),
             (r"/api/datasets/(?P<dataset>[^\/]+)",                                    application.GetDataset),
             (r"/api/datasets/(?P<dataset>[^\/]+)/log/(?P<event>[^\/]+)/(?P<target>[^\/]+)", application.LogEvent),
             (r"/api/datasets/(?P<dataset>[^\/]+)/logo",                               application.ServeLogo),
             (r"/api/datasets/(?P<dataset>[^\/]+)/files",                              application.DatasetFiles),
-            (r"/api/datasets/(?P<dataset>[^\/]+)/schema",                             application.DatasetSchema),
             (r"/api/datasets/(?P<dataset>[^\/]+)/collection",                         application.Collection),
             (r"/api/datasets/(?P<dataset>[^\/]+)/users_current",                      application.DatasetUsersCurrent),
             (r"/api/datasets/(?P<dataset>[^\/]+)/users_pending",                      application.DatasetUsersPending),
@@ -75,7 +75,6 @@ class Application(tornado.web.Application):
             (r"/api/datasets/(?P<dataset>[^\/]+)/versions",                           application.ListDatasetVersions),
             (r"/api/datasets/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)",       application.GetDataset),
             (r"/api/datasets/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)/files", application.DatasetFiles),
-            (r"/api/datasets/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)/schema",application.DatasetSchema),
             (r"/api/datasets/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)/temporary_link", application.GenerateTemporaryLink),
             ### Beacon API
             (r"/api/beacon/query",                                                    beacon.Query),
