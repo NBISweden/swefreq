@@ -4,13 +4,8 @@
                               function(User,   Countries,   SFTPAccess) {
     var localThis = this;
     localThis.sftp = {"user":"", "password":"", "expires":null};
-    localThis.createSFTPCredentials = function() {
-        SFTPAccess.createCredentials()
-            .then( function(data) {
-                localThis.sftp = data;
-            });
-    };
-
+    localThis.createSFTPCredentials = createSFTPCredentials;
+    localThis.isAdmin = false;
     activate();
 
     function activate() {
@@ -26,6 +21,9 @@
 
         User.getDatasets().then(function(data) {
             localThis.datasets = data;
+            $.each(data, function(_,dataset) {
+                localThis.isAdmin = localThis.isAdmin || dataset.isAdmin;
+            });
         });
 
         SFTPAccess.getCredentials()
@@ -40,5 +38,12 @@
             localThis.user.country = { name: country, id: country };
         }
     }
+
+    function createSFTPCredentials() {
+        SFTPAccess.createCredentials()
+            .then( function(data) {
+                localThis.sftp = data;
+            });
+        };
     }]);
 })();
