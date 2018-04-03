@@ -1,9 +1,11 @@
 (function() {
     angular.module("App")
-    .controller("profileController", ["User", "Countries",
-                                function(User, Countries) {
+    .controller("profileController", ["User", "Countries", "SFTPAccess", 
+                              function(User,   Countries,   SFTPAccess) {
     var localThis = this;
-
+    localThis.sftp = {"user":"", "password":"", "expires":null};
+    localThis.createSFTPCredentials = createSFTPCredentials;
+    localThis.isAdmin = false;
     activate();
 
     function activate() {
@@ -19,6 +21,14 @@
 
         User.getDatasets().then(function(data) {
             localThis.datasets = data;
+            $.each(data, function(_,dataset) {
+                localThis.isAdmin = localThis.isAdmin || dataset.isAdmin;
+            });
+        });
+
+        SFTPAccess.getCredentials()
+            .then( function(data) {
+                localThis.sftp = data;
         });
     }
 
@@ -28,5 +38,12 @@
             localThis.user.country = { name: country, id: country };
         }
     }
+
+    function createSFTPCredentials() {
+        SFTPAccess.createCredentials()
+            .then( function(data) {
+                localThis.sftp = data;
+            });
+        }
     }]);
 })();

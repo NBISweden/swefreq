@@ -57,11 +57,11 @@ class Application(tornado.web.Application):
             (r"/api/countries",                                                       application.CountryList),
             (r"/api/users/me",                                                        application.GetUser),
             (r"/api/users/datasets",                                                  application.UserDatasetAccess),
+            (r"/api/users/sftp_access",                                               application.SFTPAccess),
             ### Dataset Api
             (r"/api/datasets",                                                        application.ListDatasets),
             (r"/api/datasets/(?P<dataset>[^\/]+)",                                    application.GetDataset),
             (r"/api/datasets/(?P<dataset>[^\/]+)/log/(?P<event>[^\/]+)/(?P<target>[^\/]+)", application.LogEvent),
-            (r"/api/datasets/(?P<dataset>[^\/]+)/sftp_access",                        application.SFTPAccess),
             (r"/api/datasets/(?P<dataset>[^\/]+)/logo",                               application.ServeLogo),
             (r"/api/datasets/(?P<dataset>[^\/]+)/files",                              application.DatasetFiles),
             (r"/api/datasets/(?P<dataset>[^\/]+)/collection",                         application.Collection),

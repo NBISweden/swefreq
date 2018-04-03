@@ -284,6 +284,10 @@ def get_next_free_uid():
     return next_uid
 
 
+def get_admin_datasets(user):
+    return DatasetAccess.select().where( DatasetAccess.user == user, DatasetAccess.is_admin)
+
+
 def get_dataset(dataset):
     dataset = Dataset.select().where( Dataset.short_name == dataset).get()
     return dataset

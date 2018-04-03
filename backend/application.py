@@ -484,14 +484,16 @@ class ServeLogo(handlers.UnsafeHandler):
         self.finish()
 
 
-class SFTPAccess(handlers.AdminHandler):
+class SFTPAccess(handlers.SafeHandler):
     """
     Creates, or re-enables, sFTP users in the database.
     """
-    def get(self, dataset):
+    def get(self):
         """
         Returns sFTP credentials for the current user.
         """
+        if db.get_admin_datasets(self.current_user).count() <= 0:
+            self.finish({'user':None, 'expires':None, 'password':None})
 
         password = None
         username = None
@@ -509,12 +511,14 @@ class SFTPAccess(handlers.AdminHandler):
                      'expires':expires,
                      'password':password})
 
-    def post(self, dataset):
+    def post(self):
         """
         Handles generation of new credentials. This function either creates a
         new set of sftp credentials for a user, or updates the old ones with a
         new password and expiry date.
         """
+        if db.get_admin_datasets(self.current_user).count() <= 0:
+            self.finish({'user':None, 'expires':None, 'password':None})
 
         # Create a new password
         username = "_".join(self.current_user.name.split()) + "_sftp"
