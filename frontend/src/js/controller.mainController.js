@@ -10,6 +10,11 @@
         activate();
 
         function activate() {
+            // This function is the same as is run from schema-injector.js.
+            // It re-runs every time the route changes to keep the schema.org
+            // annotation updated.
+            // It passes the new url to the backend to update the the schema tag
+            // based on what is currently being browsed.
             $scope.$on("$routeChangeStart", function() {
                 $.getJSON( "/api/schema?url=" + $location.path(), function(data) {
                   $("#ldJsonTarget").html( JSON.stringify(data, null, 2) );

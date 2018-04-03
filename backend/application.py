@@ -50,22 +50,21 @@ class GetSchema(handlers.UnsafeHandler):
     This function behaves quite differently from the rest of the application as
     the structured data testing tool had trouble catching the schema inject
     when it went through AngularJS. The solution for now has been to make this
-    very general function that "re-parses" the current uri to figure out what
-    information to return.
+    very general function that "re-parses" the 'url' request parameter to
+    figure out what information to return.
     """
     def get(self):
 
         dataset = None
         version = None
-        match = re.match(".*\?url=(.*)",  unquote(self.request.uri) )
-        if match:
-            url = match.group(1)
-            dataset_match = re.match(".*/dataset/([^/]+)", url)
-            if dataset_match:
-                dataset = dataset_match.group(1)
-                version_match = re.match(".*/version/([^/]+)", url)
-                if version_match:
-                    version = version_match.group(1)
+        try:
+            url = self.get_argument('url')
+            match = re.match(".*/dataset/([^/]+)(/version/([^/]+))?", url)
+            if match:
+                dataset = match.group(1)
+                version = match.group(3)
+        except tornado.web.MissingArgumentError:
+            pass
 
         base = {"@context": "http://schema.org/",
                 "@type": "DataCatalog",
