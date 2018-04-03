@@ -1,7 +1,7 @@
 (function() {
     angular.module("App")
-    .controller("mainController", ["$location", "$cookies", "User",
-                          function( $location,   $cookies,   User) {
+    .controller("mainController", ["$location", "$cookies", "$scope", "User",
+                          function( $location,   $cookies,   $scope,   User) {
         var localThis = this;
         localThis.url = function() { return $location.path(); };
         localThis.loggedIn = false;
@@ -10,6 +10,11 @@
         activate();
 
         function activate() {
+            $scope.$on('$routeChangeStart', function($event, next, current) {
+                $.getJSON( "/api/schema?url=" + $location.path(), function(data) {
+                  $("#ldJsonTarget").html( JSON.stringify(data, null, 2) );
+                });
+            });
             User.getUser().then(function(data) {
                 localThis.user = data;
                 localThis.loginType = data.loginType;
