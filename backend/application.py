@@ -492,10 +492,7 @@ class SFTPAccess(handlers.SafeHandler):
         """
         Returns sFTP credentials for the current user.
         """
-        for dataset in db.Dataset.select():
-            if self.current_user.is_admin( dataset ):
-                break
-        else:
+        if db.get_admin_datasets(self.current_user).count() <= 0:
             self.finish({'user':None, 'expires':None, 'password':None})
 
         password = None
@@ -520,10 +517,7 @@ class SFTPAccess(handlers.SafeHandler):
         new set of sftp credentials for a user, or updates the old ones with a
         new password and expiry date.
         """
-        for dataset in db.Dataset.select():
-            if self.current_user.is_admin( dataset ):
-                break
-        else:
+        if db.get_admin_datasets(self.current_user).count() <= 0:
             self.finish({'user':None, 'expires':None, 'password':None})
 
         # Create a new password
