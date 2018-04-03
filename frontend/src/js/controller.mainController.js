@@ -10,7 +10,7 @@
         activate();
 
         function activate() {
-            $scope.$on('$routeChangeStart', function($event, next, current) {
+            $scope.$on("$routeChangeStart", function() {
                 $.getJSON( "/api/schema?url=" + $location.path(), function(data) {
                   $("#ldJsonTarget").html( JSON.stringify(data, null, 2) );
                 });
