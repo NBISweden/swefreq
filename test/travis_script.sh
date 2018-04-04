@@ -56,5 +56,7 @@ python backend/test.py -v
 kill -2 $BACKEND_PID
 sleep 2
 
-coveralls
-coverage report
+if [ -f .coverage ]; then
+    coveralls
+    coverage report
+fi
