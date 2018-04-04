@@ -51,7 +51,7 @@ function exit_handler() {
 trap exit_handler EXIT
 
 sleep 2 # Lets wait a little bit so the server has started
-python test.py -v
+python backend/test.py -v
 
 kill -2 $BACKEND_PID
 sleep 2
