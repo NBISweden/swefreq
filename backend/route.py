@@ -58,6 +58,7 @@ class Application(tornado.web.Application):
             (r"/api/users/me",                                                        application.GetUser),
             (r"/api/users/datasets",                                                  application.UserDatasetAccess),
             (r"/api/users/sftp_access",                                               application.SFTPAccess),
+            (r"/api/schema",                                                          application.GetSchema),
             ### Dataset Api
             (r"/api/datasets",                                                        application.ListDatasets),
             (r"/api/datasets/(?P<dataset>[^\/]+)",                                    application.GetDataset),

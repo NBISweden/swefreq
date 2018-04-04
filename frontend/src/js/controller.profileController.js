@@ -1,6 +1,6 @@
 (function() {
     angular.module("App")
-    .controller("profileController", ["User", "Countries", "SFTPAccess", 
+    .controller("profileController", ["User", "Countries", "SFTPAccess",
                               function(User,   Countries,   SFTPAccess) {
     var localThis = this;
     localThis.sftp = {"user":"", "password":"", "expires":null};

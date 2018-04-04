@@ -80,14 +80,8 @@ class BaseHandler(tornado.web.RequestHandler):
 
 def _convert_keys_to_hump_back(chunk):
     """
-    Converts keys given in snake_case to humbBack-case, while preserving the
+    Converts keys given in snake_case to humpBack-case, while preserving the
     capitalization of the first letter.
-
-    This conversion will rewrite a name already in camel, or humpback,
-    i.e. thisIsAKey -> thisisakey.
-    If this is unwanted, the conversion can instead be written as:
-    new_key = k[0] + "".join([a[0].upper() + a[1:] for a in k.split("_")])[1:]
-    to preserve upper-case letters within words.
     """
     if isinstance(chunk, list):
         return [_convert_keys_to_hump_back(e) for e in chunk]
@@ -98,7 +92,7 @@ def _convert_keys_to_hump_back(chunk):
     new_chunk = {}
     for k, v in chunk.items():
         # First character should be the same as in the original string
-        new_key = k[0] + k.title().replace("_", "")[1:]
+        new_key = k[0] + "".join([a[0].upper() + a[1:] for a in k.split("_")])[1:]
         new_chunk[new_key] = _convert_keys_to_hump_back(v)
     return new_chunk
 
