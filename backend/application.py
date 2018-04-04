@@ -8,6 +8,7 @@ import peewee
 import smtplib
 import socket
 import tornado.web
+import tornado
 import random
 import string
 import uuid
@@ -39,6 +40,12 @@ def build_dataset_structure(dataset_version, user=None, dataset=None):
             r['authorization_level'] = 'no_access'
 
     return r
+
+
+class QuitHandler(handlers.UnsafeHandler):
+    def get(self):
+        ioloop = tornado.ioloop.IOLoop.instance()
+        ioloop.stop()
 
 
 class GetSchema(handlers.UnsafeHandler):

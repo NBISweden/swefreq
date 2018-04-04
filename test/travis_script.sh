@@ -52,9 +52,10 @@ trap exit_handler EXIT
 
 sleep 2 # Lets wait a little bit so the server has started
 python backend/test.py -v
-
-kill -2 $BACKEND_PID
 sleep 2
+
+# Quit the app
+curl localhost:4000/developer/quit
 
 if [ -f .coverage ]; then
     coveralls
