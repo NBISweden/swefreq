@@ -1,7 +1,7 @@
 SweFreq - Swedish Frequency database
 ====================================
 [![Travis Status][travis-badge]][travis-link]
-[![Coverage Status][coveralls-badge]][coverage-link]
+[![Coverage Status][coveralls-badge]][coveralls-link]
 
 
 Running on a production system
@@ -77,4 +77,4 @@ $ docker-compose up
 [travis-badge]: https://travis-ci.org/NBISweden/swefreq.svg?branch=develop
 [travis-link]: https://travis-ci.org/NBISweden/swefreq
 [coveralls-badge]: https://coveralls.io/repos/github/NBISweden/swefreq/badge.svg?branch=develop
-[coveralls-link]: https://coveralls.io/github/NBISweden/swefreq?branch=release
+[coveralls-link]: https://coveralls.io/github/NBISweden/swefreq?branch=develop
