@@ -1,0 +1,5 @@
+[run]
+omit = /usr/local/*,/home/travis/virtualenv/*
+
+[report]
+omit = /usr/local/*,/home/travis/virtualenv/*

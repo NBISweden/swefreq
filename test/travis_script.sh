@@ -38,7 +38,7 @@ cd ..
 
 
 echo ">>> Test 4. the backend API"
-coverage run backend/route.py --develop 1>http_log.txt 2>&1 &
+coverage run backend/route.py --port=4000 --develop 1>http_log.txt 2>&1 &
 BACKEND_PID=$!
 
 function exit_handler() {
@@ -57,3 +57,4 @@ kill -2 $BACKEND_PID
 sleep 2
 
 coveralls
+coverage report
