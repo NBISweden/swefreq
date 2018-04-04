@@ -31,13 +31,14 @@ mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test < test/data/load_dummy_data.s
 
 
 echo ">>> Test 3. Check that the backend starts"
-cd backend
 
+cd backend
 ../test/01_daemon_starts.sh
+cd ..
 
 
 echo ">>> Test 4. the backend API"
-python route.py --develop 1>http_log.txt 2>&1 &
+coverage run backend/route.py --develop 1>http_log.txt 2>&1 &
 BACKEND_PID=$!
 
 function exit_handler() {
@@ -51,3 +52,8 @@ trap exit_handler EXIT
 
 sleep 2 # Lets wait a little bit so the server has started
 python test.py -v
+
+kill -2 $BACKEND_PID
+sleep 2
+
+coveralls

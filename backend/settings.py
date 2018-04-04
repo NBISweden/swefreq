@@ -1,6 +1,10 @@
 import json
 
-json_settings_fh = open("../settings.json")
+try:
+    json_settings_fh = open("settings.json")
+except FileNotFoundError:
+    json_settings_fh = open("../settings.json")
+
 json_settings = json.load(json_settings_fh)
 json_settings_fh.close()
 
