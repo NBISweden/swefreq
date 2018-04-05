@@ -32,9 +32,7 @@ mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test < test/data/load_dummy_data.s
 
 echo ">>> Test 3. Check that the backend starts"
 
-cd backend
-../test/01_daemon_starts.sh
-cd ..
+(cd backend && ../test/01_daemon_starts.sh)
 
 
 echo ">>> Test 4. the backend API"
@@ -43,10 +41,12 @@ BACKEND_PID=$!
 
 sleep 2 # Lets wait a little bit so the server has started
 
-function exit_handler() {
+exit_handler() {
     rv=$?
     # Ignore errors in the exit handler
     set +e 
+    # We want to make sure the background process has stopped, otherwise the
+    # travis test will stall for a long time.
     kill -9 $BACKEND_PID
 
     echo "THE HTTP LOG WAS:"
