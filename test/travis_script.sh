@@ -41,6 +41,8 @@ echo ">>> Test 4. the backend API"
 coverage run backend/route.py --port=4000 --develop 1>http_log.txt 2>&1 &
 BACKEND_PID=$!
 
+sleep 2 # Lets wait a little bit so the server has started
+
 function exit_handler() {
     kill -9 $BACKEND_PID
 
@@ -50,12 +52,12 @@ function exit_handler() {
 
 trap exit_handler EXIT
 
-sleep 2 # Lets wait a little bit so the server has started
+
 python backend/test.py -v
-sleep 2
 
 # Quit the app
 curl localhost:4000/developer/quit
+sleep 2 # Lets wait a little bit so the server has stopped
 
 if [ -f .coverage ]; then
     coveralls
