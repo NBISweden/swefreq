@@ -44,10 +44,14 @@ BACKEND_PID=$!
 sleep 2 # Lets wait a little bit so the server has started
 
 function exit_handler() {
+    rv=$?
+    # Ignore errors in the exit handler
+    set +e 
     kill -9 $BACKEND_PID
 
     echo "THE HTTP LOG WAS:"
     cat http_log.txt
+    exit $rv
 }
 
 trap exit_handler EXIT
