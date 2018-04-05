@@ -7,5 +7,6 @@ before_install:
     - test/travis_before_install.sh
 install:
     - pip install -r backend/requirements.txt
+    - pip install coverage coveralls
 script:
     - test/travis_script.sh
