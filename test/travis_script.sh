@@ -13,7 +13,7 @@ echo "/SETTINGS"
 
 echo ">>> Test 1. The SQL Patch ($TRAVIS_BRANCH)"
 
-if [ "$TRAVIS_BRANCH" == "master" ]; then
+if [ "$TRAVIS_BRANCH" != "master" ]; then
     git fetch origin refs/heads/master:master
     git show master:sql/swefreq.sql > master-schema.sql
 
