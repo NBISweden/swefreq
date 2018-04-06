@@ -1,0 +1,26 @@
+{
+  "study": {
+    "pi_name": "Ulf Gyllensten",
+    "pi_email": "Ulf.Gyllensten@igp.uu.se",
+    "contact_name": "the SweGen project",
+    "contact_email": "swegen@scilifelab.se",
+    "title": "SweGen",
+    "description": "SweGen study",
+    "ts": "2016",
+    "ref_doi": "10.1038/ejhg.2017.130"
+  },
+  "sample_set": {
+    "ethnicity": "Swedish",
+    "collection": "Swedish Twin Registry",
+    "sample_size": 1000
+  },
+  "dataset": {
+    "browser_uri": "?Already in database?",
+    "beacon_uri": "?Already in database?",
+    "averagesequencingdepth": "36.7",
+    "sequencingtype": "WGS",
+    "sequencingtechnology": "Illumina HiSeq X",
+    "sequencingcentre": "NGI, Scilifelab",
+    "datasetsize": 1000
+  }
+}
