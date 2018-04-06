@@ -33,7 +33,7 @@ def main():
         if changes:
             print("Files updated rerunning")
             for c in changes:
-                (first, type_names, path, filename) = c
+                (_, type_names, path, filename) = c
                 print("    PATH=[{}] FILENAME=[{}] EVENT_TYPES={}".format(path, filename, type_names))
             subprocess.call('make')
 
