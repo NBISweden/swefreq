@@ -20,6 +20,7 @@
                   $("#ldJsonTarget").html( JSON.stringify(data, null, 2) );
                 });
             });
+
             User.getUser().then(function(data) {
                 localThis.user = data;
                 localThis.loginType = data.loginType;
@@ -27,6 +28,7 @@
                     localThis.loggedIn = true;
                 }
             });
+
             localThis.msg = $cookies.getObject("msg");
             $cookies.remove("msg");
         }
