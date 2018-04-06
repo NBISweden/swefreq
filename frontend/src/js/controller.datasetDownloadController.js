@@ -10,6 +10,7 @@
         localThis.createTemporaryLink = createTemporaryLink;
         localThis.copyLink            = copyLink;
         localThis.canCopy             = clipboard.supported;
+        localThis.dataContactIsEmail  = dataContactIsEmail;
 
         localThis.host = $location.protocol() + "://" + $location.host();
 
@@ -85,6 +86,11 @@
 
         function copyLink(link) {
             clipboard.copyText(link);
+        }
+
+        function dataContactIsEmail() {
+            return localThis.hasOwnProperty("dataset") &&
+                    localThis.dataset.version.dataContactLink.indexOf("@") > -1;
         }
     }]);
 })();

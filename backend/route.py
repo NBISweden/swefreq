@@ -57,6 +57,8 @@ class Application(tornado.web.Application):
             (r"/api/countries",                                                       application.CountryList),
             (r"/api/users/me",                                                        application.GetUser),
             (r"/api/users/datasets",                                                  application.UserDatasetAccess),
+            (r"/api/users/sftp_access",                                               application.SFTPAccess),
+            (r"/api/schema",                                                          application.GetSchema),
             ### Dataset Api
             (r"/api/datasets",                                                        application.ListDatasets),
             (r"/api/datasets/(?P<dataset>[^\/]+)",                                    application.GetDataset),
@@ -90,6 +92,7 @@ class Application(tornado.web.Application):
         ## Adding developer login handler
         if settings.get('develop', False):
             self.declared_handlers.insert(-1, ("/developer/login", auth.DeveloperLoginHandler))
+            self.declared_handlers.insert(-1, ("/developer/quit",  application.QuitHandler))
 
         # google oauth key
         self.oauth_key = tornado_settings["google_oauth"]["key"]

@@ -3,11 +3,17 @@ from email.mime.text import MIMEText
 from os import path
 import logging
 from datetime import datetime, timedelta
+from peewee import fn
 import peewee
 import smtplib
+import socket
 import tornado.web
+import tornado
+import random
+import string
 import uuid
 import math
+import re
 
 import db
 import handlers
@@ -34,6 +40,88 @@ def build_dataset_structure(dataset_version, user=None, dataset=None):
             r['authorization_level'] = 'no_access'
 
     return r
+
+
+class QuitHandler(handlers.UnsafeHandler):
+    def get(self):
+        ioloop = tornado.ioloop.IOLoop.instance()
+        ioloop.stop()
+
+
+class GetSchema(handlers.UnsafeHandler):
+    """
+    Returns the schema.org, and bioschemas.org, annotation for a given
+    url.
+
+    This function behaves quite differently from the rest of the application as
+    the structured data testing tool had trouble catching the schema inject
+    when it went through AngularJS. The solution for now has been to make this
+    very general function that "re-parses" the 'url' request parameter to
+    figure out what information to return.
+    """
+    def get(self):
+
+        dataset = None
+        version = None
+        try:
+            url = self.get_argument('url')
+            match = re.match(".*/dataset/([^/]+)(/version/([^/]+))?", url)
+            if match:
+                dataset = match.group(1)
+                version = match.group(3)
+        except tornado.web.MissingArgumentError:
+            pass
+
+        base = {"@context": "http://schema.org/",
+                "@type": "DataCatalog",
+                "name": "SweFreq",
+                "alternateName": [ "The Swedish Frequency resource for genomics" ],
+                "description": "The Swedish Frequency resource for genomics (SweFreq) is a website developed to make genomic datasets more findable and accessible in order to promote collaboration, new research and increase public benefit.",
+                "url": "https://swefreq.nbis.se/",
+                "provider": {
+                    "@type": "Organization",
+                    "name": "National Bioinformatics Infrastructure Sweden",
+                    "alternateName": [ "NBIS",
+                                       "ELIXIR Sweden" ],
+                    "logo": "http://nbis.se/assets/img/logos/nbislogo-green.svg",
+                    "url": "https://nbis.se/"
+                },
+                "datePublished": "2016-12-23",
+                "dateModified": "2017-02-01",
+                "license": {
+                    "@type": "CreativeWork",
+                    "name": "GNU General Public License v3.0",
+                    "url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
+                }
+            }
+
+        if dataset:
+            dataset_schema = {'@type':"Dataset"}
+
+            try:
+                dataset_version = db.get_dataset_version(dataset, version)
+
+                if dataset_version.available_from > datetime.now():
+                    # If it's not available yet, only return if user is admin.
+                    if not (self.current_user and self.current_user.is_admin(version.dataset)):
+                        self.send_error(status_code=403)
+
+                base_url = "%s://%s" % (self.request.protocol, self.request.host)
+                dataset_schema['url']         = base_url + "/dataset/" + dataset_version.dataset.short_name
+                dataset_schema['@id']         = dataset_schema['url']
+                dataset_schema['name']        = dataset_version.dataset.short_name
+                dataset_schema['description'] = dataset_version.description
+                dataset_schema['identifier']  = dataset_schema['name']
+                dataset_schema['citation']    = dataset_version.ref_doi
+
+                base["dataset"] = dataset_schema
+
+            except db.DatasetVersion.DoesNotExist as e:
+                logging.error("Dataset version does not exist: {}".format(e))
+            except db.DatasetVersionCurrent.DoesNotExist as e:
+                logging.error("Dataset does not exist: {}".format(e))
+
+        self.finish(base)
 
 
 class ListDatasets(handlers.UnsafeHandler):
@@ -362,6 +450,8 @@ class ApproveUser(handlers.AdminHandler):
             server.sendmail(msg['from'], [msg['to']], msg.as_string())
         except smtplib.SMTPException as e:
             logging.error("Email error: {}".format(e))
+        except socket.gaierror as e:
+            logging.error("Email error: {}".format(e))
 
         self.finish()
 
@@ -476,3 +566,73 @@ class ServeLogo(handlers.UnsafeHandler):
         self.set_header("Content-Type", logo_entry.mimetype)
         self.write(logo_entry.data)
         self.finish()
+
+
+class SFTPAccess(handlers.SafeHandler):
+    """
+    Creates, or re-enables, sFTP users in the database.
+    """
+    def get(self):
+        """
+        Returns sFTP credentials for the current user.
+        """
+        if db.get_admin_datasets(self.current_user).count() <= 0:
+            self.finish({'user':None, 'expires':None, 'password':None})
+
+        password = None
+        username = None
+        expires = None
+        # Check if an sFTP user exists for the current user
+        try:
+            data = self.current_user.sftp_user.get()
+            username = data.user_name
+            expires = data.account_expires.strftime("%Y-%m-%d %H:%M")
+        except db.SFTPUser.DoesNotExist:
+            # Otherwise return empty values
+            pass
+
+        self.finish({'user':username,
+                     'expires':expires,
+                     'password':password})
+
+    def post(self):
+        """
+        Handles generation of new credentials. This function either creates a
+        new set of sftp credentials for a user, or updates the old ones with a
+        new password and expiry date.
+        """
+        if db.get_admin_datasets(self.current_user).count() <= 0:
+            self.finish({'user':None, 'expires':None, 'password':None})
+
+        # Create a new password
+        username = "_".join(self.current_user.name.split()) + "_sftp"
+        password = self.generate_password()
+        expires = datetime.today() + timedelta(days=30)
+
+        # Check if an sFTP user exists for the current user when the database is ready
+        try:
+            self.current_user.sftp_user.get()
+            # if we have a user, update it
+            db.SFTPUser.update(password_hash = fn.SHA2(password, 256),
+                               account_expires = expires
+                               ).where(db.SFTPUser.user == self.current_user).execute()
+        except db.SFTPUser.DoesNotExist:
+            # if there is no user, insert the user in the database
+            db.SFTPUser.insert(user = self.current_user,
+                               user_uid = db.get_next_free_uid(),
+                               user_name = username,
+                               password_hash = fn.SHA2(password, 256),
+                               account_expires = expires
+                               ).execute()
+
+        self.finish({'user':username,
+                     'expires':expires.strftime("%Y-%m-%d %H:%M"),
+                     'password':password})
+
+    def generate_password(self, size = 12):
+        """
+        Generates a password of length 'size', comprised of random lowercase and
+        uppercase letters, and numbers.
+        """
+        chars = string.ascii_letters + string.digits
+        return ''.join(random.SystemRandom().choice(chars) for _ in range(size))

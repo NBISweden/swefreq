@@ -1,0 +1,34 @@
+version: "3.2"
+services:
+  web:
+    build:
+      context: ./
+      dockerfile: Dockerfile-backend
+    depends_on:
+      - db
+    ports:
+      - 4000:4000
+    restart: on-failure
+    volumes:
+      - type: bind
+        source: .
+        target: /code
+  db:
+    image: "mysql:5.7"
+    volumes:
+      - type: volume
+        source: mysql-data-volume
+        target: /var/lib/mysql/
+  rebuilder:
+    build:
+      context: ./
+      dockerfile: Dockerfile-frontend-rebuilder
+    volumes:
+      - type: bind
+        source: .
+        target: /code
+
+
+volumes:
+  mysql-data-volume:
+    external: true

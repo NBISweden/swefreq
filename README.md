@@ -1,5 +1,8 @@
 SweFreq - Swedish Frequency database
 ====================================
+[![Travis Status][travis-badge]][travis-link]
+[![Coverage Status][coveralls-badge]][coveralls-link]
+
 
 Running on a production system
 ------------------------------
@@ -55,19 +58,23 @@ The application has only been tested with python 3.5.2. It will most likely work
 Quick development mode
 ----------------------
 
-1. Install docker
-2. Look at `test/travis_before_install.sh` to initiate the mysql docker image.
+1. Install docker (and docker-compose in case it's not included in the installation)
+2. Create test database
+  2.1. Initiate a mysql data volume by running `./scripts/download_and_create_docker_db_volume.sh`
+  2.2. Load mysql dummy data by running `./scripts/load_mysql_dummy_data.sh`
 3. Copy `settings_sample.json` into `settings.json` and
     - Change mysqlSchema into `swefreq_test`.
-    - Change mysqlPort to 3366
     - Update the credentials for elixir and google oauth.
         - Elixir/redirectUri: http://localhost:4000/elixir/login
         - redirectUri: http://localhost:4000/login
-4. Run "Test 2. Load the swefreq schema" from `test/travis_script.sh`.
-5. Run `make` in the root directory of the project.
-6. Make a symbolic link from `backend/static` to `static`.
-7. Run the server:
+    - Set `mysqlHost` to `db`
+4. Make a symbolic link from `backend/static` to `static`.
+5. Run the server:
 ```bash
-$ cd backend
-$ python route.py --develop
+$ docker-compose up
 ```
+
+[travis-badge]: https://travis-ci.org/NBISweden/swefreq.svg?branch=develop
+[travis-link]: https://travis-ci.org/NBISweden/swefreq
+[coveralls-badge]: https://coveralls.io/repos/github/NBISweden/swefreq/badge.svg?branch=develop
+[coveralls-link]: https://coveralls.io/github/NBISweden/swefreq?branch=develop

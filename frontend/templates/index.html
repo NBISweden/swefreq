@@ -3,6 +3,7 @@
 <html ng-app="App">
     <head>
         <title>SweFreq</title>
+        <script type="application/ld+json" id="ldJsonTarget"></script>
         <!-- SCROLLS -->
         <meta charset="utf-8" />
         <base href="/">
@@ -49,7 +50,12 @@
                 <div class="collapse navbar-collapse" id="navbar-things">
                     <ul class="nav navbar-nav navbar-right">
                         <li><a ng-click="showAbout = !showAbout" style="cursor: pointer">About</a>
-                        <li ng-if="mainCtrl.loggedIn == true"><a href="/logout?next={{ mainCtrl.url() }}" target="_self" title="Logout {{mainCtrl.user.user}}">Logout</a></li>
+                        <li class="dropdown" ng_if="mainCtrl.loggedIn == true"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ mainCtrl.user.user }}<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/profile" target="_self">User Profile</a></li>
+                                <li><a href="/logout?next={{ mainCtrl.url() }}" target="_self" title="Logout {{mainCtrl.user.user}}">Logout</a></li>
+                            </ul>
+                        </li>
                         <li class="dropdown" ng_if="mainCtrl.loggedIn == false">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login <span class="caret"></span></a>
                             <ul class="dropdown-menu">
@@ -127,6 +133,8 @@
          <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular-route.min.js"></script>
          <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular-cookies.min.js"></script>
 [% endif %]
+        <!-- Schema.org injector -->
+        <script src="/static/js/schema-injector.js"></script>
         <!-- The application -->
         <script src="/static/js/vendor.js"></script>
         <script src="/static/js/app.js"></script>

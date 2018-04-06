@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS sftp_user (
 
 DELIMITER $$
 
+DROP TRIGGER IF EXISTS check_before_insert $$
 CREATE TRIGGER check_before_insert BEFORE INSERT ON sftp_user
 FOR EACH ROW
 IF NEW.user_uid < 10000 THEN
@@ -39,6 +40,7 @@ IF NEW.user_uid < 10000 THEN
     SET MESSAGE_TEXT = 'Check constraint failed on sftp_user.user_uid insert';
 END IF$$
 
+DROP TRIGGER IF EXISTS check_before_update $$
 CREATE TRIGGER check_before_update BEFORE UPDATE ON sftp_user
 FOR EACH ROW
 IF NEW.user_uid < 10000 THEN
@@ -89,6 +91,8 @@ CREATE TABLE IF NOT EXISTS dataset_version (
     var_call_ref        VARCHAR(50)     DEFAULT NULL,
     available_from      TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
     ref_doi             VARCHAR(100)    DEFAULT NULL,
+    data_contact_name   VARCHAR(100)    DEFAULT NULL,
+    data_contact_link   VARCHAR(100)    DEFAULT NULL,
     CONSTRAINT UNIQUE (dataset_pk, version),
     CONSTRAINT FOREIGN KEY (dataset_pk) REFERENCES dataset(dataset_pk)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

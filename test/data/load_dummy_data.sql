@@ -16,11 +16,11 @@ INSERT INTO sample_set (sample_set_pk, dataset_pk, collection_pk, sample_size, p
            (1000002, 1000001, 1000002, 15, 'SamplePheno2 Coll1'),
            (1000003, 1000002, 1000003, 20, 'SamplePheno2 Coll2');
 
-INSERT INTO dataset_version (dataset_version_pk, dataset_pk, version, description, terms, var_call_ref, available_from, ref_doi)
-    VALUES (1000001, 1000001, 'Version 1-1', 'Dataset 1-1, description', 'Dataset 1-1, terms', 'CallRef11', '2017-01-01', 'datset11DOI'),
-           (1000002, 1000002, 'Version 2-1', 'Dataset 2-1, description', 'Dataset 2-1, terms', 'CallRef21', '2017-02-01', 'datset21DOI'),
-           (1000003, 1000002, 'Version 2-2', 'Dataset 2-2, description', 'Dataset 2-2, terms', 'CallRef22', '2017-02-02', 'datset22DOI'),
-           (1000004, 1000002, 'InvVer  2-3', 'Dataset 2-3, description', 'Dataset 2-3, terms', 'CallRef23', '2030-02-03', 'datset23DOI');
+INSERT INTO dataset_version (dataset_version_pk, dataset_pk, version, description, terms, var_call_ref, available_from, ref_doi, data_contact_name, data_contact_link)
+    VALUES (1000001, 1000001, 'Version 1-1', 'Dataset 1-1, description', 'Dataset 1-1, terms', 'CallRef11', '2017-01-01', 'datset11DOI', "Gunnar Green",     "gunnar.green@example.com"),
+           (1000002, 1000002, 'Version 2-1', 'Dataset 2-1, description', 'Dataset 2-1, terms', 'CallRef21', '2017-02-01', 'datset21DOI', NULL, NULL),
+           (1000003, 1000002, 'Version 2-2', 'Dataset 2-2, description', 'Dataset 2-2, terms', 'CallRef22', '2017-02-02', 'datset22DOI', "Strummer project", "https://example.com/strummer"),
+           (1000004, 1000002, 'InvVer  2-3', 'Dataset 2-3, description', 'Dataset 2-3, terms', 'CallRef23', '2030-02-03', 'datset23DOI', "Drummer project",  "https://example.com/drummer");
 
 INSERT INTO dataset_file(dataset_file_pk, dataset_version_pk, name, uri, bytes)
     VALUES (1000001, 1000001, 'File11-1', '/release/file111.txt', 100),
