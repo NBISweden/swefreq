@@ -11,20 +11,18 @@ echo "SETTINGS"
 cat settings.json
 echo "/SETTINGS"
 
-echo ">>> Test 1. The SQL Patch ($TRAVIS_BRANCH)"
+echo ">>> Test 1. The SQL Patch"
 
-if [ "$TRAVIS_BRANCH" != "master" ]; then
-    git fetch origin refs/heads/master:master
-    git show master:sql/swefreq.sql > master-schema.sql
+LATEST_RELEASE=$(git tag | grep '^v' | sort -V | tail -n 1)
+git show ${LATEST_RELEASE}:sql/swefreq.sql > master-schema.sql
 
-    mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test < master-schema.sql
-    mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test < sql/patch-master-db.sql
-    # Empty the database
-    mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test <<__END__
-    DROP DATABASE swefreq_test;
-    CREATE DATABASE swefreq_test;
-    __END__
-fi
+mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test < master-schema.sql
+mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test < sql/patch-master-db.sql
+# Empty the database
+mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test <<__END__
+DROP DATABASE swefreq_test;
+CREATE DATABASE swefreq_test;
+__END__
 
 
 echo ">>> Test 2. Load the swefreq schema"
