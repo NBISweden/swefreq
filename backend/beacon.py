@@ -91,6 +91,15 @@ class Info(handlers.UnsafeHandler):
                 ] #
             })
 
+def connect_mongo(dataset):
+    client = pymongo.MongoClient(host=settings.mongo_host, port=settings.mongo_port)
+
+    auth_db = client['exac-user']
+    auth_db.authenticate(settings.mongo_user, settings.mongo_password)
+
+    return client[dataset]
+
+
 def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset): #pylint: disable=too-many-arguments, unused-argument
     """CHeck if an allele is present in the database
     Args:
@@ -98,20 +107,17 @@ def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset): #pyli
         pos: Coordinate within a chromosome. Position is a number and is 0-based
         allele: Any string of nucleotides A,C,T,G
         alternate: Any string of nucleotides A,C,T,G
-        reference: The human reference build that was used (currently unused)
+        reference: The human reference build that was used
         dataset: Dataset to look in (currently used to select Mongo database)
     Returns:
         The string 'true' if the allele was found, otherwise the string 'false'
     """
-    client = pymongo.MongoClient(host=settings.mongo_host, port=settings.mongo_port)
+    if reference == 'hg19':
+        reference = 'GRChg37'
 
-    # The name of the dataset in the database is exac as required by the
-    # exac browser we are using.
-    if dataset == 'SweGen':
-        dataset = 'exac'
+    dataset = "exac-{}-{}".format(dataset.lower(), reference)
 
-    mdb = client[dataset]
-    mdb.authenticate(settings.mongo_user, settings.mongo_password)
+    mdb = connect_mongo(dataset)
 
     # Beacon is 0-based, our database is 1-based in coords.
     pos += 1
