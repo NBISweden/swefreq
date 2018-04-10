@@ -31,9 +31,9 @@ class DeveloperLogoutHandler(BaseHandler):
 
 
 class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
-    _OAUTH_AUTHORIZE_URL     = "https://perun.elixir-czech.cz/oidc/authorize"
-    _OAUTH_ACCESS_TOKEN_URL  = "https://perun.elixir-czech.cz/oidc/token"
-    _OAUTH_USERINFO_ENDPOINT = "https://perun.elixir-czech.cz/oidc/userinfo"
+    _OAUTH_AUTHORIZE_URL     = "https://login.elixir-czech.org/oidc/authorize"
+    _OAUTH_ACCESS_TOKEN_URL  = "https://login.elixir-czech.org/oidc/token"
+    _OAUTH_USERINFO_ENDPOINT = "https://login.elixir-czech.org/oidc/userinfo"
     _OAUTH_SETTINGS_KEY      = 'elixir_oauth'
 
     def _generate_state(self):
