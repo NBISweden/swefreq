@@ -1,0 +1,27 @@
+[% set active='browser' %]
+[% extends "ng-templates/dataset-base.html" %]
+[% block controller %]browserController[% endblock %]
+[% block contents %]
+<div class="container" ng-if="ctrl.transcript.id">
+    <h1>{{ ctrl.gene.name }}</h1>
+    <h4>{{ ctrl.gene.fullName }}</h4>
+    <h3>Transcript: {{ ctrl.transcript.id }} ({{ ctrl.transcript.numberOfCDS }} coding exons)</h3>
+    <div class="dropdown">
+        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+            Other transcripts in this gene
+            <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu" aria-labelledby="transcript_dropdown">
+            <li ng-repeat="transcript in ctrl.gene.transcripts" role="presentation">
+                <a role="menuitem" tabindex="-1" href="{{ ctrl.browserLink('transcript/' + transcript) }}">
+                    {{ transcript }}
+                    <span ng-if="transcript == ctrl.gene.canonicalTranscript">*</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+<div ng-if="!ctrl.transcript.id">
+    <h1>Loading Transcript</h1>
+</div>
+[% endblock %]

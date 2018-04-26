@@ -6,6 +6,7 @@ from tornado.options import define, options
 
 import application
 import handlers
+import browser
 import auth
 import settings as swefreq_settings
 import beacon
@@ -76,6 +77,7 @@ class Application(tornado.web.Application):
             (r"/api/datasets/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)",       application.GetDataset),
             (r"/api/datasets/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)/files", application.DatasetFiles),
             (r"/api/datasets/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)/temporary_link", application.GenerateTemporaryLink),
+            (r"/api/datasets/(?P<dataset>[^\/]+)/browser/transcript/(?P<transcript>[^\/]+)",   browser.GetTranscript),
             ### Beacon API
             (r"/api/beacon/query",                                                    beacon.Query),
             (r"/api/beacon/info",                                                     beacon.Info),
