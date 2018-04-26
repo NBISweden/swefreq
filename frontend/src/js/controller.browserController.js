@@ -1,7 +1,7 @@
 (function() {
     angular.module("App")
-    .controller("browserController", ["$routeParams", "User", "Dataset", "browserTranscript",
-                             function( $routeParams,   User,   Dataset,   browserTranscript) {
+    .controller("browserController", ["$routeParams", "User", "Dataset", "browserTranscript", "browserRegion",
+                             function( $routeParams,   User,   Dataset,   browserTranscript,   browserRegion) {
         var localThis = this;
         localThis.browserLink = browserLink;
         localThis.dataset = {'shortName':$routeParams.dataset};
@@ -15,6 +15,11 @@
                 browserTranscript.getTranscript($routeParams.dataset, $routeParams.transcript).then( function(data) {
                     localThis.transcript = data.transcript;
                     localThis.gene       = data.gene;
+                });
+            }
+            if ($routeParams.region) {
+                browserRegion.getRegion($routeParams.dataset, $routeParams.region).then( function(data) {
+                    localThis.region = data.region;
                 });
             }
             Dataset.getDataset($routeParams.dataset, $routeParams.version)

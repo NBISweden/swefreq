@@ -1,0 +1,49 @@
+[% set active='browser' %]
+[% extends "ng-templates/dataset-base.html" %]
+[% block controller %]browserController[% endblock %]
+[% block contents %]
+<div class="container" ng-if="ctrl.region">
+
+    <!-- HEADER -->
+    <h1 ng-if="ctrl.rsid">{{ ctrl.rsid }}</h1>
+    <h1 ng-if="!ctrl.rsid">Region: {{ ctrl.region.chrom }}
+        <span ng-if="ctrl.region.stop"> / {{ ctrl.region.start }} / {{ ctrl.region.stop }}</span>
+    </h1>
+
+    <!-- WARNINGS -->
+    <div ng-if="ctrl.region.stop">
+        <div ng-if="ctrl.region.stop - ctrl.region.start > 100000">
+            <div class="alert alert-danger col-md-offset-3 col-md-6">
+                <h3>Region too large!</h3>
+                <p>Your region is too large. Please submit a region of at most 100 kb.</p>
+                <p>If you require larger regions, please see our <a href="/dataset/{{ ctrl.dataset.shortName }}/download">Download</a> page for raw data.</p>
+            </div>
+        </div>
+        <div ng-if="ctrl.region.stop < ctrl.region.start">
+            <div class="alert alert-danger col-md-offset-3 col-md-6">
+                <h3>Invalid region!</h3>
+                <p>The region ends ({{ ctrl.region.stop }}) before it begins ({{ ctrl.region.start }}).</p>
+                <p>Did you mean <a href="{{ ctrl.browserLink('region/' + ctrl.region.chrom + '-' + ctrl.region.stop + '-' + ctrl.region.start) }}">{{ ctrl.region.chrom }}-{{ ctrl.region.stop }}-{{ ctrl.region.start }}</a>?</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- GENES -->
+    <div ng-if="ctrl.region.genes">
+        <div class="section_header">Genes</div>
+            <ul>
+                <li ng-repeat="gene in ctrl.region.genes">
+                    <a href="{{ ctrl.browserLink('gene/' + gene.geneId) }}">{{ gene.geneId }}</a>
+                    ({{ gene.fullGeneName }})
+                </li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+
+<!-- LOADING MESSAGE -->
+<div ng-if="!ctrl.region">
+    <h1>Loading Region</h1>
+</div>
+[% endblock %]

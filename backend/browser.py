@@ -1,3 +1,4 @@
+import logging
 import settings
 import handlers
 
@@ -51,5 +52,51 @@ class GetTranscript(handlers.UnsafeHandler):
 
         except Exception as e:
             logging.error('{} when loading transcript {}: {}'.format(type(e), transcript_id, e))
-        
+
+        self.finish( ret )
+
+
+class GetRegion(handlers.UnsafeHandler):
+    def get(self, dataset, region):
+        region_id = region
+        region = region.split('-')
+        REGION_LIMIT = 100000
+
+        chrom = region[0]
+        start = None
+        stop = None
+        if len(region) > 1:
+            start = int(region[1])
+        if len(region) > 2:
+            stop = int(region[2])
+        if not start:
+            start = 0
+        if not stop and start:
+            stop = start
+        if start == stop:
+            start -= min(start, 20)
+            stop += 20
+        ret = {'region':{'chrom': chrom,
+                         'start': start,
+                         'stop':  stop,
+                         'limit': REGION_LIMIT,
+                        },
+              }
+        try:
+            db = connect_db(dataset, False)
+            db_shared = connect_db(dataset, True)
+            try:
+                genes_in_region = lookups.get_genes_in_region(db_shared, chrom, start, stop)
+                if (genes_in_region):
+                    ret['region']['genes'] = []
+                    for gene in genes_in_region:
+                        ret['region']['genes'] += [{'gene_id':gene['gene_id'],
+                                                    'gene_name':gene['gene_name'],
+                                                    'full_gene_name':gene['full_gene_name'],
+                                                   }]
+            except Exception as e:
+                logging.error("{}".format(e))
+        except Exception as e:
+            logging.error('{} when loading region {}: {}'.format(type(e), region_id, e))
+
         self.finish( ret )
