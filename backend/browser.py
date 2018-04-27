@@ -100,3 +100,37 @@ class GetRegion(handlers.UnsafeHandler):
             logging.error('{} when loading region {}: {}'.format(type(e), region_id, e))
 
         self.finish( ret )
+
+
+class GetGene(handlers.UnsafeHandler):
+    def get(self, dataset, gene):
+        gene_id = gene
+
+        ret = {'gene':{'gene_id': gene_id}}
+        try:
+            db = connect_db(dataset, False)
+            db_shared = connect_db(dataset, True)
+            try:
+                # Gene
+                gene = lookups.get_gene(db_shared, gene_id)
+                ret['gene'] = gene
+
+                # Variants
+                variants_in_transcript = lookups.get_variants_in_transcript(db, gene['canonical_transcript'])
+                if (variants_in_transcript):
+                    ret['variants'] = {'filtered':len([v for v in variants_in_transcript if v['filter'] == 'PASS']),
+                                       'total':   len( variants_in_transcript )}
+
+                # Transcripts
+                transcripts_in_gene = lookups.get_transcripts_in_gene(db_shared, gene_id)
+                if (transcripts_in_gene):
+                    ret['transcripts'] = []
+                    for transcript in transcripts_in_gene:
+                        ret['transcripts'] += [{'transcript_id':transcript['transcript_id']}]
+
+            except Exception as e:
+                logging.error("{}".format(e))
+        except Exception as e:
+            logging.error('{} when loading gene {}: {}'.format(type(e), gene_id, e))
+
+        self.finish( ret )

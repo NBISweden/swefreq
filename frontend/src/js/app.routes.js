@@ -21,6 +21,7 @@
             .when("/dataset/:dataset/browser",                          { templateUrl: "static/templates/ng-templates/dataset-browser.html"     })
             .when("/dataset/:dataset/browser/transcript/:transcript",   { templateUrl: "static/templates/ng-templates/browser-transcript.html"  })
             .when("/dataset/:dataset/browser/region/:region",           { templateUrl: "static/templates/ng-templates/browser-region.html"      })
+            .when("/dataset/:dataset/browser/gene/:gene",               { templateUrl: "static/templates/ng-templates/browser-gene.html"        })
             .otherwise(                                                 { templateUrl: "static/templates/ng-templates/404.html"                 });
 
         // Use the HTML5 History API
