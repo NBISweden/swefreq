@@ -1,0 +1,160 @@
+[% set active='browser' %]
+[% extends "ng-templates/dataset-base.html" %]
+[% block controller %]browserController[% endblock %]
+[% block contents %]
+<div class="container" ng-if="ctrl.variant">
+    <div class="container">
+
+        <!-- HEADER -->
+        <div class="row">
+            <div class="col-md-6">
+                <h1><span class="hidden-xs">Variant: </span>{{ ctrl.variant.chrom }}:{{ ctrl.variant.pos }} {{ ctrl.variant.ref }} / {{ ctrl.variant.alt }}</h1>
+            </div>
+
+            <div class="col-md-6" ng-if="ctrl.variant.origAltAlleles.length > 1">
+                <h5><span class="label label-info">Note:</span> This variant is multiallelic! The other alt alleles are:</h5>
+                <ul>
+                    <li ng-repeat="allele in ctrl.variant.origAltAlleles">
+                        <a href="{{ ctrl.browserLink('variant/' + allele) }}">{{ allele }}</a>
+                    </li>
+                </ul>
+            </div>
+        </div> <!-- END HEADER -->
+        <hr/>
+
+        <!--  Left top pane -->
+        <div ng-if="ctrl.variant.variantId">
+            <div class="alert alert-warning" ng-if="ctrl.variant.alleleNum < ctrl.dataset.datasetSize * 1.6">
+                <h4>Warning!</h4>
+                <p>This variant is only covered in {{ (ctrl.variant.alleleNum/2) | number:0 }} individuals (adjusted allele number = {{ ctrl.variant.alleleNum }}).</p>
+                <p>This means that the site is covered in fewer than 80% of the individuals in {{ ctrl.dataset.shortName }}, which may indicate a low-quality site.</p>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <dl class="dl-horizontal" style="margin-bottom: 0px;">
+                        <dt><span ng-class="{'label label-danger':ctrl.variant.filter != 'PASS'}">Filter Status</span></dt>
+                            <dd>{{ ctrl.variant.filter }}</dd>
+                        <dt>dbSNP</dt>
+                                <dd ng-if="ctrl.variant.rsid && ctrl.variant.rsid != '.'">
+                                    <a href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?rs={{ ctrl.variant.rsid }}" target="_blank">{{ ctrl.variant.rsid }}</a>
+                                </dd>
+                                <dd ng-if="!ctrl.variant.rsid || ctrl.variant.rsid == '.'">Not found in dbSNP</dd>
+                        <dt>Allele Frequency</dt>
+                            <dd ng-if="ctrl.variant.alleleFreq">{{ ctrl.variant.alleleFreq | number : 4 }}</dd>
+                            <dd ng-if="!ctrl.variant.alleleFreq">NA (Allele Number = 0)</dd>
+                        <dt>Allele Count</dt>
+                            <dd>{{ ctrl.variant.alleleCount }} / {{ ctrl.variant.alleleNum }}</dd>
+                        <dt>UCSC</dt>
+                            <dd>
+                                <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr{{ ctrl.variant.chrom }}%3A{{ ctrl.variant.pos }}-{{ ctrl.variant.pos + ctrl.variant.ref.length - 1 }}&position=chr{{ ctrl.variant.chrom }}%3A{{ ctrl.variant.pos - 25 }}-{{ ctrl.variant.pos + ctrl.variant.ref.length - 1 + 25 }}" target="_blank">
+                                    {{ ctrl.variant.variantId }}
+                                    <i class="fa fa-external-link"></i>
+                                </a>
+                            </dd>
+                        <dt>ClinVar</dt>
+                            <dd ng-if="!ctrl.variant.rsid || ctrl.variant.rsid == '.'">
+                                    <a href="http://www.ncbi.nlm.nih.gov/clinvar?term=({{ ctrl.variant.chrom }}%5BChromosome%5D)%20AND%20{{ ctrl.variant.pos }}%5BBase%20Position%20for%20Assembly%20GRCh37%5D" target="_blank">
+                            </dd>
+                            <dd ng-if="ctrl.variant.rsid && ctrl.variant.rsid != '.'">
+                                <a href="http://www.ncbi.nlm.nih.gov/clinvar?term={{ ctrl.variant.rsid }}%5BVariant%20ID%5D" target="_blank">
+                                    Click to search for variant in Clinvar
+                                    <i class="fa fa-external-link"></i>
+                                </a>
+                            </dd>
+                    </dl>
+                </div>
+
+                    <!-- top right pane -->
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-md-8 col-md-offset-1">
+                                <div class="panel-group" id="metrics_outer_accordion" role="tablist" aria-multiselectable="true">
+
+                                    <!--  Genotype quality metrics -->
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading" role="tab" id="gt_quality_collapse_heading" style="height: auto">
+                                            <div class="panel-title">
+                                                <a data-toggle="collapse" data-parent="#accordion" href="#gt_quality_collapse" aria-expanded="false" aria-controls="gt_quality_collapse">
+                                                    <small>Genotype Quality Metrics</small>
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <div id="gt_quality_collapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="gt_quality_collapse_heading">
+                                            <div class="row">
+                                                <div class="col-md-10 col-md-offset-1">
+                                                    <div id="quality_metrics_container">
+                                                        <span class="btn-group" data-toggle="buttons" id="quality_full_site_button_group">
+                                                            <button class="btn btn-primary btn-sm active quality_full_site_buttons" id="variant_carriers_button"
+                                                                    data-tooltip="Show metric for only individuals with this allele.">
+                                                                <input type="radio"> Variant carriers
+                                                            </button>
+                                                            <button class="btn btn-primary btn-sm quality_full_site_buttons" id="variant_site_button"
+                                                                    data-tooltip="Show metric for all individuals (at this site, whether or not they have this allele).">
+                                                                <input type="radio" > All individuals
+                                                            </button>
+                                                        </span>
+                                                        <div id="quality_display_container" class="d3_graph"></div>
+                                                        <small><span class="label label-info">Note:</span>
+                                                            Plot may include low-quality genotypes that were excluded from allele counts in the table above
+                                                        </small>
+                                                        <span class="btn-group" data-toggle="buttons" id="quality_display_button_group" >
+                                                            <button class="btn btn-primary btn-sm active quality_display_buttons" id="genotype_depths_button"
+                                                                    data-tooltip="Per sample depth. Capped at 100X">
+                                                                <input type="radio"> Depth
+                                                            </button>
+                                                            <button class="btn btn-primary btn-sm quality_display_buttons" id="genotype_qualities_button"
+                                                                    data-tooltip="Per sample genotype quality.">
+                                                                <input type="radio" > Genotype Quality
+                                                            </button>
+                                                        </span>
+                                                    </div>
+                                                    <br/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!--  Genotype quality metrics -->
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading" role="tab" id="quality_collapse_heading"   style="height: auto">
+                                            <div class="panel-title">
+                                                <a data-toggle="collapse" data-parent="#accordion" href="#quality_collapse" aria-expanded="false" aria-controls="quality_collapse">
+                                                    <small>Site Quality Metrics</small>
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div id="quality_collapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="quality_collapse_heading">
+                                            <div class="row">
+                                                <div class="col-md-10 col-md-offset-1">
+                                                    <div id="quality_metric_container"></div>
+                                                    <small><div id="site_quality_note"></div></small>
+                                                    <small><span class="label label-info">Note:</span>
+                                                        These are site-level quality metrics: they may be unpredictable for multi-allelic sites.
+                                                    </small>
+                                                    <select id="quality_metric_select" class="form-control">
+                                                        <option><small>Site Quality: {{ ctrl.variant.siteQuality }}</small></option>
+                                                        <option ng-repeat="(metric, value) in ctrl.variant.qualityMetrics"><small>{{ metric }}: {{ value }}</small></option>
+                                                    </select>
+                                                    <br/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+            </div>
+            <hr/>
+        </div> <!-- if variantId -->
+    </div>
+</div>
+
+<!-- LOADING MESSAGE -->
+<div ng-if="!ctrl.variant">
+    <h1>Loading Gene</h1>
+</div>
+[% endblock %]

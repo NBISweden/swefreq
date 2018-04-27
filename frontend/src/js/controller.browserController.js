@@ -29,6 +29,11 @@
                     localThis.transcripts = data.transcripts;
                 });
             }
+            if ($routeParams.variant) {
+                Browser.getVariant($routeParams.dataset, $routeParams.variant).then( function(data) {
+                    localThis.variant = data.variant;
+                });
+            }
             Dataset.getDataset($routeParams.dataset, $routeParams.version)
                 .then(function(data) {
                     localThis.dataset = data.dataset;

@@ -4,6 +4,8 @@ import handlers
 
 import pymongo
 import lookups
+from utils import *
+from collections import OrderedDict
 
 def connect_db(dataset, use_shared_data=False):
     """
@@ -132,5 +134,41 @@ class GetGene(handlers.UnsafeHandler):
                 logging.error("{}".format(e))
         except Exception as e:
             logging.error('{} when loading gene {}: {}'.format(type(e), gene_id, e))
+
+        self.finish( ret )
+
+
+class GetVariant(handlers.UnsafeHandler):
+    def get(self, dataset, variant):
+        variant_id = variant
+
+        ret = {'variant':{}}
+        try:
+            db = connect_db(dataset, False)
+            db_shared = connect_db(dataset, True)
+            try:
+                # Variant
+                chrom, pos, ref, alt = variant_id.split('-')
+                pos = int(pos)
+
+                xpos = get_xpos(chrom, pos)
+                variant = lookups.get_variant(db, db_shared, xpos, ref, alt)
+
+                if variant is None:
+                    variant = {
+                        'chrom': chrom,
+                        'pos': pos,
+                        'xpos': xpos,
+                        'ref': ref,
+                        'alt': alt
+                    }
+                # Just get the information we need
+                for item in ["variant_id", "chrom", "pos", "ref", "alt", "filter", "rsid", "allele_num", "allele_freq", "allele_count", "orig_alt_alleles", "site_quality", "quality_metrics"]:
+                    ret['variant'][item] = variant[item]
+                consequences = OrderedDict()
+            except Exception as e:
+                logging.error("{}".format(e))
+        except Exception as e:
+            logging.error('{} when loading variant {}: {}'.format(type(e), variant_id, e))
 
         self.finish( ret )

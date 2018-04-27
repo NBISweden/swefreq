@@ -5,6 +5,7 @@
             getGene:       getGene,
             getRegion:     getRegion,
             getTranscript: getTranscript,
+            getVariant:    getVariant,
         };
 
         function getGene(dataset, gene) {
@@ -21,6 +22,12 @@
 
         function getTranscript(dataset, transcript) {
             return $http.get("/api/datasets/" + dataset + "/browser/transcript/" + transcript).then(function(data) {
+                return data.data;
+            });
+        }
+
+        function getVariant(dataset, variant) {
+            return $http.get("/api/datasets/" + dataset + "/browser/variant/" + variant).then(function(data) {
                 return data.data;
             });
         }
