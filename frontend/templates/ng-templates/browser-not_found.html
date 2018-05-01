@@ -1,0 +1,18 @@
+[% set active='browser' %]
+[% extends "ng-templates/dataset-base.html" %]
+[% block controller %]browserController[% endblock %]
+[% block contents %]
+<div class="row">
+    <div class="col-sm-12">
+        <div class="dataset-panel">
+            <div class="dataset-body">
+
+                <h1>Not Found</h1>
+                <p>Sadly - your search did not return any results.</p>
+                <p>Click <a href="{{ ctrl.browserLink('') }}">here</a> to go back and search again.</p>
+
+            </div>
+        </div>
+    </div>
+</div>
+[% endblock %]

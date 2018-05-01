@@ -163,7 +163,8 @@ class GetVariant(handlers.UnsafeHandler):
                         'alt': alt
                     }
                 # Just get the information we need
-                for item in ["variant_id", "chrom", "pos", "ref", "alt", "filter", "rsid", "allele_num", "allele_freq", "allele_count", "orig_alt_alleles", "site_quality", "quality_metrics"]:
+                for item in ["variant_id", "chrom", "pos", "ref", "alt", "filter", "rsid", "allele_num",
+                             "allele_freq", "allele_count", "orig_alt_alleles", "site_quality", "quality_metrics"]:
                     ret['variant'][item] = variant[item]
                 consequences = OrderedDict()
             except Exception as e:
@@ -172,3 +173,23 @@ class GetVariant(handlers.UnsafeHandler):
             logging.error('{} when loading variant {}: {}'.format(type(e), variant_id, e))
 
         self.finish( ret )
+
+
+class Search(handlers.UnsafeHandler):
+    def get(self, dataset):
+        try:
+            db = connect_db(dataset, False)
+            db_shared = connect_db(dataset, True)
+
+            query = self.get_argument('query', "")
+            datatype, identifier = lookups.get_awesomebar_result(db, db_shared, query)
+
+            if datatype in ["error", "not_found"]:
+                self.redirect("/dataset/{}/browser/not_found".format(dataset))
+            if datatype == "dbsnp_variant_set":
+                datatype = "dbsnp"
+
+            self.redirect("/dataset/{}/browser/{}/{}".format(dataset,datatype,identifier))
+        except Exception as e:
+            logging.error('{} when connecting to database for dataset {}.'.format(type(e), dataset))
+            self.redirect("/dataset/{}/browser/not_found".format(dataset))

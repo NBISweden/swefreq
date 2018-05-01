@@ -7,7 +7,7 @@
         <div class="dataset-panel">
             <div class="dataset-body">
                 <div id="home-searchbox">
-                    <form action="{{ ctrl.browserLink('/awesome') }}">
+                    <form action="{{ ctrl.browserLink('search') }}">
                         <input type="submit"
                                style="display: none;" />
                         <input id="home-searchbox-input"
@@ -19,11 +19,11 @@
                                style="position: absolute; left: -9999px" />
                     </form>
                     <p class="text-muted">Examples - Gene:
-                    <a href="{{ ctrl.browserLink('awesome?query=PCSK9') }}">PCSK9</a>, Transcript:
+                    <a href="{{ ctrl.browserLink('search?query=PCSK9') }}" target="_self">PCSK9</a>, Transcript:
                     <a href="{{ ctrl.browserLink('transcript/ENST00000407236') }}">ENST00000407236</a>, Variant:
                     <a href="{{ ctrl.browserLink('variant/22-46615880-T-C') }}">22-46615880-T-C</a>, Multi-allelic
                     variant:
-                    <a href="{{ ctrl.browserLink('awesome?query=rs1800234') }}">rs1800234</a>, Region:
+                    <a href="{{ ctrl.browserLink('search?query=rs1800234') }}" target="_self">rs1800234</a>, Region:
                     <a href="{{ ctrl.browserLink('region/22-46615715-46615880') }}">22:46615715-46615880</a></p>
                 </div>
                 <div class="row" style="font-size: 16px;">

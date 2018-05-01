@@ -19,6 +19,7 @@
             .when("/dataset/:dataset/version/:version/download",        { templateUrl: "static/templates/ng-templates/dataset-download.html"    })
             .when("/dataset/:dataset/version/:version/beacon",          { templateUrl: "static/templates/ng-templates/dataset-beacon.html"      })
             .when("/dataset/:dataset/browser",                          { templateUrl: "static/templates/ng-templates/dataset-browser.html"     })
+            .when("/dataset/:dataset/browser/not_found",                { templateUrl: "static/templates/ng-templates/browser-not_found.html"   })
             .when("/dataset/:dataset/browser/gene/:gene",               { templateUrl: "static/templates/ng-templates/browser-gene.html"        })
             .when("/dataset/:dataset/browser/region/:region",           { templateUrl: "static/templates/ng-templates/browser-region.html"      })
             .when("/dataset/:dataset/browser/transcript/:transcript",   { templateUrl: "static/templates/ng-templates/browser-transcript.html"  })
