@@ -1,3 +1,4 @@
+import os
 import logging
 import settings
 import handlers
@@ -193,3 +194,20 @@ class Search(handlers.UnsafeHandler):
         except Exception as e:
             logging.error('{} when connecting to database for dataset {}.'.format(type(e), dataset))
             self.redirect("/dataset/{}/browser/not_found".format(dataset))
+
+
+class Autocomplete(handlers.UnsafeHandler):
+    def get(self, dataset, query):
+        ret = {}
+        # This is a workaround so that I don't have to modify the lookups.py file (yet)
+        class Autocomplete(object):
+            pass
+        g = Autocomplete()
+        try:
+            g.autocomplete_strings = [s.strip() for s in open(os.path.join(os.path.dirname(__file__), 'autocomplete_strings.txt'))]
+            suggestions = lookups.get_awesomebar_suggestions(g, query)
+
+            ret = {'values': sorted(list(set(suggestions)))[:5]}
+        except Exception as e:
+            logging.error('{} when fetching autocomplete for {} in dataset {}: {}'.format(type(e), query, dataset, e))
+        self.finish( ret )

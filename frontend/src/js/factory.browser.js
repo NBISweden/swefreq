@@ -6,6 +6,7 @@
             getRegion:     getRegion,
             getTranscript: getTranscript,
             getVariant:    getVariant,
+            autocomplete:  autocomplete,
         };
 
         function getGene(dataset, gene) {
@@ -28,6 +29,12 @@
 
         function getVariant(dataset, variant) {
             return $http.get("/api/datasets/" + dataset + "/browser/variant/" + variant).then(function(data) {
+                return data.data;
+            });
+        }
+
+        function autocomplete(dataset, query) {
+            return $http.get("/api/datasets/" + dataset + "/browser/autocomplete/" + query).then(function(data) {
                 return data.data;
             });
         }

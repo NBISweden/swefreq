@@ -6,18 +6,27 @@
     <div class="col-sm-12">
         <div class="dataset-panel">
             <div class="dataset-body">
-                <div id="home-searchbox">
-                    <form action="{{ ctrl.browserLink('search') }}">
-                        <input type="submit"
-                               style="display: none;" />
-                        <input id="home-searchbox-input"
-                               name="query"
-                               class="form-control input-lg awesomebar"
-                               type="text"
-                               placeholder="Search for a gene or variant or region" />
-                        <input type="submit"
-                               style="position: absolute; left: -9999px" />
-                    </form>
+                <div>
+                    <div class="dropdown">
+                        <form action="{{ ctrl.browserLink('search') }}">
+                            <input type="submit"
+                                   style="display: none;"/>
+                            <input id="home-searchbox-input"
+                                   name="query"
+                                   class="form-control input-lg dropdown-toggle"
+                                   type="text"
+                                   placeholder="Search for a gene or variant or region"
+                                   ng-model="search.query"
+                                   ng-change="ctrl.autocomplete()"
+                                   data-toggle="dropdown"
+                                   autocomplete="off"/>
+                            <input type="submit"
+                                   style="position: absolute; left: -9999px"/>
+                            <ul class="dropdown-menu" style="overflow:visible;">
+                              <li ng-repeat="term in search.autocomplete"><a href="{{ ctrl.browserLink('search?query=' + term) }}" target="_self">{{ term }}</a></li>
+                            </ul>
+                        </form>
+                    </div>
                     <p class="text-muted">Examples - Gene:
                     <a href="{{ ctrl.browserLink('search?query=PCSK9') }}" target="_self">PCSK9</a>, Transcript:
                     <a href="{{ ctrl.browserLink('transcript/ENST00000407236') }}">ENST00000407236</a>, Variant:
@@ -27,11 +36,11 @@
                     <a href="{{ ctrl.browserLink('region/22-46615715-46615880') }}">22:46615715-46615880</a></p>
                 </div>
                 <div class="row" style="font-size: 16px;">
-                      <div class="col-md-12">
-                          <p> This genome browser displays the variant frequencies obtained from the
-                              {{ ctrl.dataset.datasetSize }} individuals of the {{ ctrl.dataset.shortName }} dataset,
-                              using software adapted from the Exome Aggregation Consortium (ExAC).</p>
-                      </div>
+                    <div class="col-md-12">
+                        <p> This genome browser displays the variant frequencies obtained from the
+                            {{ ctrl.dataset.datasetSize }} individuals of the {{ ctrl.dataset.shortName }} dataset,
+                            using software adapted from the Exome Aggregation Consortium (ExAC).</p>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,10 +1,12 @@
 (function() {
     angular.module("App")
-    .controller("browserController", ["$routeParams", "User", "Dataset", "Browser",
-                             function( $routeParams,   User,   Dataset,   Browser) {
+    .controller("browserController", ["$routeParams", "$scope", "User", "Dataset", "Browser",
+                             function( $routeParams,   $scope,   User,   Dataset,   Browser) {
         var localThis = this;
+        $scope.search = {"query":"", "autocomplete":[]};
         localThis.browserLink = browserLink;
         localThis.dataset = {'shortName':$routeParams.dataset};
+        localThis.autocomplete = autocomplete;
         activate();
 
         function activate() {
@@ -45,6 +47,17 @@
 
         function browserLink(link) {
             return "/dataset/" + $routeParams.dataset + "/browser/" + link;
+        }
+
+        function autocomplete() {
+            if ($scope.search.query) {
+                Browser.autocomplete($routeParams.dataset, $scope.search.query)
+                       .then( function(data) {
+                            $scope.search.autocomplete = data.values;
+                        });
+            } else {
+                $scope.search.autocomplete = [];
+            }
         }
     }]);
 })();
