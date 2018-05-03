@@ -6,6 +6,7 @@
             getRegion:     getRegion,
             getTranscript: getTranscript,
             getVariant:    getVariant,
+            search:        search,
             autocomplete:  autocomplete,
         };
 
@@ -29,6 +30,12 @@
 
         function getVariant(dataset, variant) {
             return $http.get("/api/datasets/" + dataset + "/browser/variant/" + variant).then(function(data) {
+                return data.data;
+            });
+        }
+
+        function search(dataset, query) {
+            return $http.get("/api/datasets/" + dataset + "/browser/search/" + query).then(function(data) {
                 return data.data;
             });
         }

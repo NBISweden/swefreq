@@ -177,23 +177,21 @@ class GetVariant(handlers.UnsafeHandler):
 
 
 class Search(handlers.UnsafeHandler):
-    def get(self, dataset):
+    def get(self, dataset, query):
+        redirect_page = "/dataset/{}/browser/not_found".format(dataset)
         try:
             db = connect_db(dataset, False)
             db_shared = connect_db(dataset, True)
 
-            query = self.get_argument('query', "")
             datatype, identifier = lookups.get_awesomebar_result(db, db_shared, query)
 
-            if datatype in ["error", "not_found"]:
-                self.redirect("/dataset/{}/browser/not_found".format(dataset))
             if datatype == "dbsnp_variant_set":
                 datatype = "dbsnp"
-
-            self.redirect("/dataset/{}/browser/{}/{}".format(dataset,datatype,identifier))
+            if datatype not in ["error", "not_found"]:
+                redirect_page = "/dataset/{}/browser/{}/{}".format(dataset, datatype, identifier)
         except Exception as e:
             logging.error('{} when connecting to database for dataset {}.'.format(type(e), dataset))
-            self.redirect("/dataset/{}/browser/not_found".format(dataset))
+        self.finish( {'redirect':redirect_page} )
 
 
 class Autocomplete(handlers.UnsafeHandler):

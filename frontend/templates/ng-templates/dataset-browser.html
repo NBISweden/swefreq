@@ -8,7 +8,7 @@
             <div class="dataset-body">
                 <div>
                     <div class="dropdown">
-                        <form action="{{ ctrl.browserLink('search') }}">
+                        <form ng-submit="ctrl.search()">
                             <input type="submit"
                                    style="display: none;"/>
                             <input id="home-searchbox-input"
@@ -23,16 +23,16 @@
                             <input type="submit"
                                    style="position: absolute; left: -9999px"/>
                             <ul class="dropdown-menu" style="overflow:visible;">
-                              <li ng-repeat="term in search.autocomplete"><a href="{{ ctrl.browserLink('search?query=' + term) }}" target="_self">{{ term }}</a></li>
+                              <li ng-repeat="term in search.autocomplete"><a href="" ng-click="ctrl.search(term)">{{ term }}</a></li>
                             </ul>
                         </form>
                     </div>
                     <p class="text-muted">Examples - Gene:
-                    <a href="{{ ctrl.browserLink('search?query=PCSK9') }}" target="_self">PCSK9</a>, Transcript:
+                    <a href=""  ng-click="ctrl.search('PCSK9')" target="_self">PCSK9</a>, Transcript:
                     <a href="{{ ctrl.browserLink('transcript/ENST00000407236') }}">ENST00000407236</a>, Variant:
                     <a href="{{ ctrl.browserLink('variant/22-46615880-T-C') }}">22-46615880-T-C</a>, Multi-allelic
                     variant:
-                    <a href="{{ ctrl.browserLink('search?query=rs1800234') }}" target="_self">rs1800234</a>, Region:
+                    <a href="" ng-click="ctrl.search('rs1800234')" target="_self">rs1800234</a>, Region:
                     <a href="{{ ctrl.browserLink('region/22-46615715-46615880') }}">22:46615715-46615880</a></p>
                 </div>
                 <div class="row" style="font-size: 16px;">

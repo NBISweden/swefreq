@@ -83,7 +83,7 @@ class Application(tornado.web.Application):
             (r"/api/datasets/(?P<dataset>[^\/]+)/browser/transcript/(?P<transcript>[^\/]+)",   browser.GetTranscript),
             (r"/api/datasets/(?P<dataset>[^\/]+)/browser/variant/(?P<variant>[^\/]+)",         browser.GetVariant),
             (r"/api/datasets/(?P<dataset>[^\/]+)/browser/autocomplete/(?P<query>[^\/]+)",      browser.Autocomplete),
-            (r"/dataset/(?P<dataset>[^\/]+)/browser/search",                                   browser.Search),
+            (r"/api/datasets/(?P<dataset>[^\/]+)/browser/search/(?P<query>[^\/]+)",            browser.Search),
             ### Beacon API
             (r"/api/beacon/query",                                                    beacon.Query),
             (r"/api/beacon/info",                                                     beacon.Info),
