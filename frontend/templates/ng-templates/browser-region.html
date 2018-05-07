@@ -46,4 +46,14 @@
 <div ng-if="!ctrl.region">
     <h1>Loading Region</h1>
 </div>
+
+<div> <!-- Variant list -->
+    <div ng-if="ctrl.variants">
+        [% include "ng-templates/browser-variant_list.html" %]
+    </div>
+    <!-- Loading message -->
+    <div ng-if="!ctrl.variants">
+        <h1>Loading Variant List</h1>
+    </div>
+</div>
 [% endblock %]

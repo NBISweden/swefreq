@@ -15,7 +15,7 @@
                     <dt>{{ ctrl.gene.geneName }}</dt>
                         <dd>{{ ctrl.gene.fullGeneName }}</dd>
                     <dt>Number of variants</dt>
-                        <dd>{{ ctrl.variants.filtered }} (Including filtered: {{ ctrl.variants.total }})</dd>
+                        <dd>{{ ctrl.gene.variants.filtered }} (Including filtered: {{ ctrl.gene.variants.total }})</dd>
                     <dt class="hidden-xs">UCSC Browser</dt>
                         <dd class="hidden-xs">
                             <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=chr{{ ctrl.gene.chrom }}%3A{{ ctrl.gene.start - 1 }}-{{ ctrl.gene.stop - 1 }}&hgt.customText=http://personal.broadinstitute.org/ruderfer/exac/exac-final.autosome-1pct-sq60-qc-prot-coding.cnv.bed" target="_blank">
@@ -117,5 +117,15 @@
 <!-- LOADING MESSAGE -->
 <div ng-if="!ctrl.gene">
     <h1>Loading Gene</h1>
+</div>
+
+<div> <!-- Variant list -->
+    <div ng-if="ctrl.variants">
+        [% include "ng-templates/browser-variant_list.html" %]
+    </div>
+    <!-- Loading message -->
+    <div ng-if="!ctrl.variants">
+        <h1>Loading Variant List</h1>
+    </div>
 </div>
 [% endblock %]
