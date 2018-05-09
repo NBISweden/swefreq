@@ -163,11 +163,70 @@ class GetVariant(handlers.UnsafeHandler):
                         'ref': ref,
                         'alt': alt
                     }
+
                 # Just get the information we need
                 for item in ["variant_id", "chrom", "pos", "ref", "alt", "filter", "rsid", "allele_num",
-                             "allele_freq", "allele_count", "orig_alt_alleles", "site_quality", "quality_metrics"]:
+                             "allele_freq", "allele_count", "orig_alt_alleles", "site_quality", "quality_metrics",
+                             "transcripts", "genes"]:
                     ret['variant'][item] = variant[item]
-                consequences = OrderedDict()
+
+                # Variant Effect Predictor (VEP) annotations
+                # https://www.ensembl.org/info/docs/tools/vep/vep_formats.html
+                ret['variant']['consequences'] = []
+                if 'vep_annotations' in variant:
+                    add_consequence_to_variant(variant)
+                    variant['vep_annotations'] = remove_extraneous_vep_annotations(variant['vep_annotations'])
+                    # Adds major_consequence
+                    variant['vep_annotations'] = order_vep_by_csq(variant['vep_annotations'])
+                    ret['variant']['annotations'] = {}
+                    for annotation in variant['vep_annotations']:
+                        annotation['HGVS'] = get_proper_hgvs(annotation)
+
+                        # Add consequence type to the annotations if it doesn't exist
+                        consequence_type = annotation['Consequence'].split('&')[0]  \
+                                           .replace("_variant", "")                 \
+                                           .replace('_prime_', '\'')                \
+                                           .replace('_', ' ')
+                        if consequence_type not in ret['variant']['annotations']:
+                            ret['variant']['annotations'][consequence_type] = {'gene': {'name':annotation['SYMBOL'],
+                                                                                        'id':annotation['Gene']},
+                                                                               'transcripts':[]}
+
+                        modification = annotation['HGVSp'].split(":")[1] if ':' in annotation['HGVSp'] else None
+
+                        ret['variant']['annotations'][consequence_type]['transcripts'] += \
+                            [{'id':           annotation['Feature'],
+                              'sift':         annotation['SIFT'].rstrip("()0123456789"),
+                              'polyphen':     annotation['PolyPhen'].rstrip("()0123456789"),
+                              'canonical':    annotation['CANONICAL'],
+                              'modification': modification}]
+
+
+                # Dataset frequencies.
+                # This is reported per variable in the database data, with dataset
+                # information inside the variables,  so here we reorder to make the
+                # data easier to use in the template
+                frequencies = {'headers':[['Population','pop'],
+                                       ['Allele Count','acs'],
+                                       ['Allele Number', 'ans'],
+                                       ['Number of Homozygotes', 'homs'],
+                                       ['Allele Frequency', 'freq']],
+                            'datasets':{},
+                            'total':{}}
+                for var in ['pop_ans', 'pop_acs', 'pop_freq', 'pop_homs']:
+                    for dataset, value in variant[var].items():
+                        item = var.split('_')[1]
+                        if dataset not in frequencies['datasets']:
+                            frequencies['datasets'][dataset] = {'pop':dataset}
+                        frequencies['datasets'][dataset][item] = value
+                        if item not in frequencies['total']:
+                            frequencies['total'][item] = 0
+                        frequencies['total'][item] += value
+                if 'freq' in frequencies['total']:
+                    frequencies['total']['freq'] /= len(frequencies['datasets'].keys())
+                logging.error("datasets: {}".format(frequencies))
+                ret['variant']['pop_freq'] = frequencies
+
             except Exception as e:
                 logging.error("{}".format(e))
         except Exception as e:
