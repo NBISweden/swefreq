@@ -14,7 +14,6 @@
         localThis.autocomplete = autocomplete;
         // variant list functions
         localThis.filterVariantsBy = filterVariantsBy;
-        localThis.downloadCSV = downloadCSV;
         localThis.reorderVariants = reorderVariants;
         activate();
 
@@ -23,32 +22,30 @@
                 localThis.user = data;
             });
             if ($routeParams.transcript) {
+                localThis.itemType = "transcript";
+                localThis.item = $routeParams.transcript
                 Browser.getTranscript($routeParams.dataset, $routeParams.transcript).then( function(data) {
                     localThis.transcript = data.transcript;
                     localThis.gene       = data.gene;
                 });
-                Browser.getVariants($routeParams.dataset, "transcript", $routeParams.transcript).then( function(data) {
-                    localThis.variants = data.variants;
-                    localThis.filteredVariants = data.variants;
-                    localThis.headers = data.headers;
-                });
             }
             if ($routeParams.region) {
+                localThis.itemType = "region";
+                localThis.item = $routeParams.region;
                 Browser.getRegion($routeParams.dataset, $routeParams.region).then( function(data) {
                     localThis.region = data.region;
                 });
-                Browser.getVariants($routeParams.dataset, "region", $routeParams.region).then( function(data) {
-                    localThis.variants = data.variants;
-                    localThis.filteredVariants = data.variants;
-                    localThis.headers = data.headers;
-                });
             }
             if ($routeParams.gene) {
+                localThis.itemType = "gene";
+                localThis.item = $routeParams.gene;
                 Browser.getGene($routeParams.dataset, $routeParams.gene).then( function(data) {
                     localThis.gene = data.gene;
                     localThis.transcripts = data.transcripts;
                 });
-                Browser.getVariants($routeParams.dataset, "gene", $routeParams.gene).then( function(data) {
+            }
+            if (localThis.itemType) {
+                Browser.getVariants($routeParams.dataset, localThis.itemType, localThis.item).then( function(data) {
                     localThis.variants = data.variants;
                     localThis.filteredVariants = data.variants;
                     localThis.headers = data.headers;
@@ -124,10 +121,6 @@
                     }
                 }
             }
-        }
-
-        function downloadCSV() {
-            alert("Sorry - Downloading not implemented yet.");
         }
 
         function reorderVariants(field) {

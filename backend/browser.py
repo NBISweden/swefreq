@@ -310,3 +310,13 @@ class Autocomplete(handlers.UnsafeHandler):
         except Exception as e:
             logging.error('{} when fetching autocomplete for {} in dataset {}: {}'.format(type(e), query, dataset, e))
         self.finish( ret )
+
+
+class Download(handlers.UnsafeHandler):
+    def get(self, dataset, datatype, item):
+        filename = "{}_{}_{}.csv".format(dataset, datatype, item)
+        self.set_header('Content-Type','text/csv')
+        self.set_header('content-Disposition','attachement; filename={}'.format(filename))
+
+        # Write header
+        self.write('CSV generation has not been implemented yet.\n')
