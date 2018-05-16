@@ -83,6 +83,8 @@ class Application(tornado.web.Application):
             (r"/api/datasets/(?P<dataset>[^\/]+)/browser/transcript/(?P<transcript>[^\/]+)",                browser.GetTranscript),
             (r"/api/datasets/(?P<dataset>[^\/]+)/browser/variant/(?P<variant>[^\/]+)",                      browser.GetVariant),
             (r"/api/datasets/(?P<dataset>[^\/]+)/browser/variants/(?P<datatype>[^\/]+)/(?P<item>[^\/]+)",   browser.GetVariants),
+            (r"/api/datasets/(?P<dataset>[^\/]+)/browser/coverage/(?P<datatype>[^\/]+)/(?P<item>[^\/]+)",   browser.GetCoverage),
+            (r"/api/datasets/(?P<dataset>[^\/]+)/browser/coverage_pos/(?P<datatype>[^\/]+)/(?P<item>[^\/]+)",   browser.GetCoveragePos),
             (r"/api/datasets/(?P<dataset>[^\/]+)/browser/autocomplete/(?P<query>[^\/]+)",                   browser.Autocomplete),
             (r"/api/datasets/(?P<dataset>[^\/]+)/browser/search/(?P<query>[^\/]+)",                         browser.Search),
             (r"/api/datasets/(?P<dataset>[^\/]+)/browser/download/(?P<datatype>[^\/]+)/(?P<item>[^\/]+)",   browser.Download),

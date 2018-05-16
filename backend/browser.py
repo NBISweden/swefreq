@@ -250,6 +250,18 @@ class GetVariants(handlers.UnsafeHandler):
         self.finish( ret )
 
 
+class GetCoverage(handlers.UnsafeHandler):
+    def get(self, dataset, datatype, item):
+        ret = mongodb.get_coverage(dataset, datatype, item)
+        self.finish( ret )
+
+
+class GetCoveragePos(handlers.UnsafeHandler):
+    def get(self, dataset, datatype, item):
+        ret = mongodb.get_coverage_pos(dataset, datatype, item)
+        self.finish( ret )
+
+
 class Search(handlers.UnsafeHandler):
     def get(self, dataset, query):
         redirect_page = "/dataset/{}/browser/not_found".format(dataset)

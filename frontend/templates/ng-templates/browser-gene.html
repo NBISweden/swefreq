@@ -114,18 +114,22 @@
     </div>
 </div>
 
-<!-- LOADING MESSAGE -->
-<div ng-if="!ctrl.gene">
-    <h1>Loading Gene</h1>
+<!-- Coverage plot -->
+<div ng-if="ctrl.coverage" class="container">
+    [% include "ng-templates/browser-coverage_plot.html" %]
 </div>
 
-<div> <!-- Variant list -->
-    <div ng-if="ctrl.variants">
-        [% include "ng-templates/browser-variant_list.html" %]
-    </div>
-    <!-- Loading message -->
-    <div ng-if="!ctrl.variants">
-        <h1>Loading Variant List</h1>
-    </div>
+<!-- Loading message -->
+<div ng-if="!ctrl.coverage">
+    <h1>Loading Coverage</h1>
+</div>
+
+<!-- Variant list -->
+<div ng-if="ctrl.variants">
+    [% include "ng-templates/browser-variant_list.html" %]
+</div>
+<!-- Loading message -->
+<div ng-if="!ctrl.variants">
+    <h1>Loading Variant List</h1>
 </div>
 [% endblock %]

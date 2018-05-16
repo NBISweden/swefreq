@@ -8,8 +8,9 @@
             getVariant:    getVariant,
             search:        search,
             autocomplete:  autocomplete,
-            getCoverage:   getCoverage,
             getVariants:   getVariants,
+            getCoverage:   getCoverage,
+            getCoveragePos:getCoveragePos,
         };
 
         function getGene(dataset, gene) {
@@ -48,17 +49,22 @@
             });
         }
 
-        function getCoverage(dataset, region) {
-            return $http.get("api/datasets/" + dataset + "/browser/coverage/" + region),then(function(data) {
-                return data.data;
-            });
-        }
-
         function getVariants(dataset, datatype, item) {
             return $http.get("api/datasets/" + dataset + "/browser/variants/" + datatype + "/" + item).then(function(data) {
                 return data.data;
             });
         }
 
+        function getCoverage(dataset, datatype, item) {
+            return $http.get("api/datasets/" + dataset + "/browser/coverage/" + datatype + "/" + item).then(function(data) {
+                return data.data;
+            });
+        }
+
+        function getCoveragePos(dataset, datatype, item) {
+            return $http.get("api/datasets/" + dataset + "/browser/coverage_pos/" + datatype + "/" + item).then(function(data) {
+                return data.data;
+            });
+        }
     }]);
 })();

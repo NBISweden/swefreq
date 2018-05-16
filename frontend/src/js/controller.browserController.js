@@ -5,22 +5,37 @@
         $scope.search = {"query":"", "autocomplete":[]};
         $scope.orderByField = 'variantId';
         $scope.reverseSort = false;
+        $scope.coverage = {"function":"mean",
+                           "axis":[0,10,20,30,40,50,60,70,80,90,100],
+                           "individuals":30,
+                           "pos":{"start":null, "stop":null, "chrom":null},
+                           "data":[]
+                           };
+        $scope.item = null;
+        $scope.itemType = null;
 
         var localThis = this;
         localThis.browserLink = browserLink;
         localThis.dataset = {'shortName':$routeParams.dataset};
+
         // search functions
         localThis.search = search;
         localThis.autocomplete = autocomplete;
+
         // variant list functions
         localThis.filterVariantsBy = filterVariantsBy;
         localThis.reorderVariants = reorderVariants;
+
+        // coverage functions
+        localThis.updateCoverage = updateCoverage;
+
         activate();
 
         function activate() {
             User.getUser().then(function(data) {
                 localThis.user = data;
             });
+
             if ($routeParams.transcript) {
                 localThis.itemType = "transcript";
                 localThis.item = $routeParams.transcript
@@ -49,6 +64,13 @@
                     localThis.variants = data.variants;
                     localThis.filteredVariants = data.variants;
                     localThis.headers = data.headers;
+                });
+                Browser.getCoveragePos($routeParams.dataset, localThis.itemType, localThis.item).then( function(data) {
+                    $scope.coverage.pos = data;
+                    localThis.coverage = true;
+                    Browser.getCoverage($routeParams.dataset, localThis.itemType, localThis.item).then(function(data) {
+                        $scope.coverage.data = data.coverage;
+                    });
                 });
             }
             if ($routeParams.variant) {
@@ -121,6 +143,10 @@
                     }
                 }
             }
+        }
+
+        function updateCoverage() {
+            console.log("This function is currently not implemented");
         }
 
         function reorderVariants(field) {

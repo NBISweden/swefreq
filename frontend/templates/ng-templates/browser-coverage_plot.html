@@ -1,0 +1,54 @@
+<h3>Gene summary</h3>
+<p>(Coverage shown for <a href="http://www.ensembl.org/Help/Glossary?id=346" target="_blank">canonical transcript</a>: {{ ctrl.gene.canonicalTranscript }})</p>
+<p>Mean coverage: {{ ctrl.dataset.avgSeqDepth }} (entire dataset)</p>
+<div class="row">
+    <div class="col-md-4">
+        <label>Display:</label>
+        <span class="btn-group" data-toggle="buttons">
+            <button class="btn btn-primary active" data-tooltip="Shows all exons">
+                <input type="radio">Overview</input>
+            </button>
+            <button class="btn btn-primary" data-tooltip="Zoomed in view (can scroll horizontally if needed)">
+                <input type="radio">Detail</input>
+            </button>
+        </span>
+        <label>
+            <input type="checkbox" id="include_utrs_checkbox" value=""> Include UTRs in plot
+        </label>
+    </div>
+    <div class="col-md-4 offset-md-4">
+        <label>Coverage functions:</label>
+        <div>
+            <label>
+                <input type="radio" ng-click="ctrl.updateCoverage()" ng-model="coverage.function" value="mean">
+                Mean
+            </label>
+            <label>
+                <input type="radio" ng-click="ctrl.updateCoverage()" ng-model="coverage.function" value="median">
+                Median
+            </label>
+      </div>
+    </div>
+
+    <div class="col-md-4 offset-md-8">
+        <label>Individuals over X</label>
+        <div>
+            <select ng-model="coverage.individuals" ng-selected="coverage.individuals"
+                    ng-change="ctrl.updateCoverage()"
+                    ng-options="cov for cov in [1,5,10,15,20,25,30,50,100]">
+                    {{ cov }}
+            </select>
+        </div>
+    </div>
+    <div class="col-md-12">
+        <canvas id="canvas" width="1000" height="250" coverage></canvas>
+    </div>
+    <div class="col-md-6 offset-md-1">
+        <a class="btn btn-success" target="_blank" download="{{ plot_id }}_coverage">
+            Save coverage plot
+        </a>
+        <a class="btn btn-success" id="exon_plot_download" target="_blank" download="{{ plot_id }}_exon">
+            Save exon image
+        </a>
+    </div>
+</div>
