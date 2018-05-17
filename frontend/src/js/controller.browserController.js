@@ -5,12 +5,21 @@
         $scope.search = {"query":"", "autocomplete":[]};
         $scope.orderByField = 'variantId';
         $scope.reverseSort = false;
-        $scope.coverage = {"function":"mean",
-                           "axis":[0,10,20,30,40,50,60,70,80,90,100],
-                           "individuals":30,
-                           "pos":{"start":null, "stop":null, "chrom":null},
-                           "data":[]
-                           };
+        $scope.data = {};
+        $scope.data.region   = {"start":null,
+                                "stop":null,
+                                "chrom":null
+                               }
+        $scope.data.plot =     {"axis":[0,10,20,30,40,50,60,70,80,90,100],
+                                "margins":{'l':0, 'r':0, 't':0, 'b':0}
+                               }
+        $scope.data.coverage = {"function":"mean",
+                                "individuals":30,
+                                "data":[]
+                               };
+        $scope.data.variants = {"update":0,
+                                "data":[]
+                               };
         $scope.item = null;
         $scope.itemType = null;
 
@@ -61,15 +70,15 @@
             }
             if (localThis.itemType) {
                 Browser.getVariants($routeParams.dataset, localThis.itemType, localThis.item).then( function(data) {
-                    localThis.variants = data.variants;
+                    $scope.data.variants.data = data.variants;
                     localThis.filteredVariants = data.variants;
                     localThis.headers = data.headers;
                 });
                 Browser.getCoveragePos($routeParams.dataset, localThis.itemType, localThis.item).then( function(data) {
-                    $scope.coverage.pos = data;
+                    $scope.data.region = data;
                     localThis.coverage = true;
                     Browser.getCoverage($routeParams.dataset, localThis.itemType, localThis.item).then(function(data) {
-                        $scope.coverage.data = data.coverage;
+                        $scope.data.coverage.data = data.coverage;
                     });
                 });
             }
@@ -130,13 +139,13 @@
             }
             let filters = angular.fromJson(clickedElement.value);
             if (!Array.isArray(filters) || filters.length == 0) {
-                localThis.filteredVariants = localThis.variants;
+                localThis.filteredVariants = $scope.data.variants.data;
             } else {
                 localThis.filteredVariants = []
                 for (var i = 0; i < filters.length; i++) {
                     var filter = filters[i];
-                    for (var j = 0; j < localThis.variants.length; j++) {
-                        var variant = localThis.variants[j];
+                    for (var j = 0; j < $scope.data.variants.data.length; j++) {
+                        var variant = $scope.data.variants.data[j];
                         if (variant.majorConsequence == filter) {
                             localThis.filteredVariants.push(variant);
                         }

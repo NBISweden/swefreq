@@ -125,11 +125,11 @@
 </div>
 
 <!-- Variant list -->
-<div ng-if="ctrl.variants">
+<div ng-if="ctrl.filteredVariants">
     [% include "ng-templates/browser-variant_list.html" %]
 </div>
 <!-- Loading message -->
-<div ng-if="!ctrl.variants">
+<div ng-if="!ctrl.filteredVariants">
     <h1>Loading Variant List</h1>
 </div>
 [% endblock %]
