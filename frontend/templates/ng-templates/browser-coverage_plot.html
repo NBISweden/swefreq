@@ -20,11 +20,11 @@
         <label>Coverage functions:</label>
         <div>
             <label>
-                <input type="radio" ng-click="ctrl.updateCoverage()" ng-model="data.coverage.function" value="mean">
+                <input type="radio"" ng-model="ctrl.coverage.function" value="mean">
                 Mean
             </label>
             <label>
-                <input type="radio" ng-click="ctrl.updateCoverage()" ng-model="data.coverage.function" value="median">
+                <input type="radio" ng-model="ctrl.coverage.function" value="median">
                 Median
             </label>
       </div>
@@ -33,16 +33,14 @@
     <div class="col-md-4 offset-md-8">
         <label>Individuals over X</label>
         <div>
-            <select ng-model="data.coverage.individuals" ng-selected="data.coverage.individuals"
-                    ng-change="ctrl.updateCoverage()"
+            <select ng-model="ctrl.coverage.individuals" ng-selected="ctrl.coverage.individuals"
                     ng-options="cov for cov in [1,5,10,15,20,25,30,50,100]">
                     {{ cov }}
             </select>
         </div>
     </div>
     <div class="col-md-12">
-        <canvas id="canvas" width="1000" height="250" coverage></canvas>
-        <canvas id="canvas" width="1000" height="50" annotation></canvas>
+        <canvas id="canvas" width="1000" height="300" coverage></canvas>
     </div>
     <div class="col-md-6 offset-md-1">
         <a class="btn btn-success" target="_blank" download="{{ plot_id }}_coverage">

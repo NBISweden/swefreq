@@ -1,30 +1,26 @@
 (function() {
     angular.module("App")
-    .controller("browserController", ["$routeParams", "$scope", "$window", "User", "Dataset", "Browser",
-                             function( $routeParams,   $scope,   $window,   User,   Dataset,   Browser) {
-        $scope.search = {"query":"", "autocomplete":[]};
-        $scope.orderByField = 'variantId';
-        $scope.reverseSort = false;
-        $scope.data = {};
-        $scope.data.region   = {"start":null,
-                                "stop":null,
-                                "chrom":null,
-                                "exons":[],
-                               }
-        $scope.data.plot =     {"axis":[0,10,20,30,40,50,60,70,80,90,100],
-                                "margins":{'l':0, 'r':0, 't':0, 'b':0},
-                               }
-        $scope.data.coverage = {"function":"mean",
-                                "individuals":30,
-                                "data":[],
-                               };
-        $scope.data.variants = {"update":0,
-                                "data":[],
-                               };
-        $scope.item = null;
-        $scope.itemType = null;
-
+    .controller("browserController", ["$routeParams", "$window", "User", "Dataset", "Browser",
+                             function( $routeParams,   $window,   User,   Dataset,   Browser) {
         var localThis = this;
+        localThis.search = {"query":"", "autocomplete":[]};
+        localThis.orderByField = 'variantId';
+        localThis.reverseSort = false;
+        localThis.coverage = {};
+        localThis.coverage.region = {"start":null,
+                                     "stop":null,
+                                     "chrom":null,
+                                     "exons":[],
+                                    }
+        localThis.coverage.axis = [0,10,20,30,40,50,60,70,80,90,100]
+        localThis.coverage.function = "mean"
+        localThis.coverage.individuals = 30
+        localThis.coverage.data = []
+        localThis.variants = []
+
+        localThis.item = null;
+        localThis.itemType = null;
+
         localThis.browserLink = browserLink;
         localThis.dataset = {'shortName':$routeParams.dataset};
 
@@ -35,9 +31,6 @@
         // variant list functions
         localThis.filterVariantsBy = filterVariantsBy;
         localThis.reorderVariants = reorderVariants;
-
-        // coverage functions
-        localThis.updateCoverage = updateCoverage;
 
         activate();
 
@@ -67,21 +60,21 @@
                 Browser.getGene($routeParams.dataset, $routeParams.gene).then( function(data) {
                     localThis.gene = data.gene;
                     localThis.transcripts = data.transcripts;
-                    $scope.data.region.exons = data.exons;
-                    $scope.data.variants.update += 1;
+                    localThis.coverage.region.exons = data.exons;
                 });
             }
             if (localThis.itemType) {
                 Browser.getVariants($routeParams.dataset, localThis.itemType, localThis.item).then( function(data) {
-                    $scope.data.variants.data = data.variants;
+                    localThis.variants = data.variants;
                     localThis.filteredVariants = data.variants;
                     localThis.headers = data.headers;
-                });
-                Browser.getCoveragePos($routeParams.dataset, localThis.itemType, localThis.item).then( function(data) {
-                    $scope.data.region = data;
-                    localThis.coverage = true;
-                    Browser.getCoverage($routeParams.dataset, localThis.itemType, localThis.item).then(function(data) {
-                        $scope.data.coverage.data = data.coverage;
+                    Browser.getCoveragePos($routeParams.dataset, localThis.itemType, localThis.item).then( function(data) {
+                        localThis.coverage.region.start = data.start;
+                        localThis.coverage.region.stop  = data.stop;
+                        localThis.coverage.region.chrom = data.chrom;
+                        Browser.getCoverage($routeParams.dataset, localThis.itemType, localThis.item).then(function(data) {
+                            localThis.coverage.data = data.coverage;
+                        });
                     });
                 });
             }
@@ -105,10 +98,10 @@
 
         function search(query) {
             if (query) {
-                $scope.search.query = query;
+                localThis.search.query = query;
             }
-            if ($scope.search.query) {
-                Browser.search($routeParams.dataset, $scope.search.query).then( function(data) {
+            if (localThis.search.query) {
+                Browser.search($routeParams.dataset, localThis.search.query).then( function(data) {
                     if (data.redirect) {
                         $window.location.href = data.redirect;
                     }
@@ -117,13 +110,13 @@
         }
 
         function autocomplete() {
-            if ($scope.search.query) {
-                Browser.autocomplete($routeParams.dataset, $scope.search.query)
+            if (localThis.search.query) {
+                Browser.autocomplete($routeParams.dataset, localThis.search.query)
                        .then( function(data) {
-                            $scope.search.autocomplete = data.values;
+                            localThis.search.autocomplete = data.values;
                         });
             } else {
-                $scope.search.autocomplete = [];
+                localThis.search.autocomplete = [];
             }
         }
 
@@ -142,13 +135,13 @@
             }
             let filters = angular.fromJson(clickedElement.value);
             if (!Array.isArray(filters) || filters.length == 0) {
-                localThis.filteredVariants = $scope.data.variants.data;
+                localThis.filteredVariants = localThis.variants;
             } else {
                 localThis.filteredVariants = []
                 for (var i = 0; i < filters.length; i++) {
                     var filter = filters[i];
-                    for (var j = 0; j < $scope.data.variants.data.length; j++) {
-                        var variant = $scope.data.variants.data[j];
+                    for (var j = 0; j < localThis.variants.length; j++) {
+                        var variant = localThis.variants[j];
                         if (variant.majorConsequence == filter) {
                             localThis.filteredVariants.push(variant);
                         }
@@ -157,15 +150,11 @@
             }
         }
 
-        function updateCoverage() {
-            console.log("This function is currently not implemented");
-        }
-
         function reorderVariants(field) {
-            if (field == $scope.orderByField ) {
-                $scope.reverseSort = !$scope.reverseSort;
+            if (field == localThis.orderByField ) {
+                localThis.reverseSort = !localThis.reverseSort;
             }
-            $scope.orderByField = field;
+            localThis.orderByField = field;
         }
 
     }]);
