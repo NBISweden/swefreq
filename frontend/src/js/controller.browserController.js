@@ -8,17 +8,18 @@
         $scope.data = {};
         $scope.data.region   = {"start":null,
                                 "stop":null,
-                                "chrom":null
+                                "chrom":null,
+                                "exons":[],
                                }
         $scope.data.plot =     {"axis":[0,10,20,30,40,50,60,70,80,90,100],
-                                "margins":{'l':0, 'r':0, 't':0, 'b':0}
+                                "margins":{'l':0, 'r':0, 't':0, 'b':0},
                                }
         $scope.data.coverage = {"function":"mean",
                                 "individuals":30,
-                                "data":[]
+                                "data":[],
                                };
         $scope.data.variants = {"update":0,
-                                "data":[]
+                                "data":[],
                                };
         $scope.item = null;
         $scope.itemType = null;
@@ -66,6 +67,8 @@
                 Browser.getGene($routeParams.dataset, $routeParams.gene).then( function(data) {
                     localThis.gene = data.gene;
                     localThis.transcripts = data.transcripts;
+                    $scope.data.region.exons = data.exons;
+                    $scope.data.variants.update += 1;
                 });
             }
             if (localThis.itemType) {

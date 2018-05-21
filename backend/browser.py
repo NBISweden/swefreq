@@ -121,6 +121,12 @@ class GetGene(handlers.UnsafeHandler):
                 gene = lookups.get_gene(db_shared, gene_id)
                 ret['gene'] = gene
 
+                # Add exons from transcript
+                transcript = lookups.get_transcript(db_shared, gene['canonical_transcript'])
+                ret['exons'] = []
+                for exon in sorted(transcript['exons'], key=lambda k: k['start']):
+                    ret['exons'] += [{'start':exon['start'], 'stop':exon['stop'], 'type':exon['feature_type']}]
+
                 # Variants
                 variants_in_transcript = lookups.get_variants_in_transcript(db, gene['canonical_transcript'])
                 if (variants_in_transcript):

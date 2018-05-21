@@ -9,22 +9,151 @@
             plotData:       plotData,
         };
 
-        function drawAnnotation(ctx, variants, margins, region) {
-            var h = ctx.canvas.clientHeight/2.0;
-            var w = ctx.canvas.clientWidth - margins.l - margins.r;
-            var r = region.stop - region.start;
-            console.log("margins: ", margins)
+        function nextColor(num) {
+            const r = Math.round( num % 255 );
+            const g = Math.round((num / 255) % 255);
+            const b = Math.round((num / (255*255)) % 255);
+            return `rgb(${r},${g},${b})`;
+        }
 
-            ctx.globalAlpha = 0.2;
+        function drawAnnotation(ctx, hit, colorHash, variants, margins, region) {
+            var h = ctx.canvas.clientHeight/2.0;                    // half plot height
+            var w = ctx.canvas.clientWidth - margins.l - margins.r; // plot width
+            var r = region.stop - region.start;                     // region length
+            var s = 5;                                              // min size of variant blips
+            var connectExons = false;
+            var connectABitAnyway = true;
+
+            var colorNumber = 1;
+
+            hit.beginPath();
+            hit.fillStyle = "rgb(100,100,100)";
+            hit.fillRect(0, 0, ctx.canvas.clientWidth, ctx.canvas.clientHeight);
+            hit.closePath();
+
+
+            ctx.beginPath();
+            ctx.fillStyle = "#dddddd";
+            ctx.fillRect(0, 0, ctx.canvas.clientWidth, ctx.canvas.clientHeight);
+            ctx.closePath();
+
+            // Draw exons
+            if (region.exons) {
+                var lastX = 0
+                for (var i = 0; i < region.exons.length; i++) {
+                    if (region.exons[i].type == "exon") {
+                        continue
+                    }
+                    var x = margins.l + w * (region.exons[i].start - region.start)/r;
+                    var l = w * (region.exons[i].stop - region.exons[i].start)/r;
+                    var M = (connectExons ? h-s/2.0-2 : h);
+                    var H = h;
+                    ctx.fillStyle = "#a96500"
+                    if (region.exons[i].type == "UTR") {
+                        H = h*.5;
+                        ctx.fillStyle = "#0047b2"
+                    }
+
+                    // Add hit area for exon
+                    hit.beginPath();
+                    var hitColor = nextColor(colorNumber);
+                    hit.fillStyle = hitColor;
+                    hit.fillRect(x,h-H,l,H*2);
+                    // unique color
+                    colorHash[hitColor] = region.exons[i].type + ": " + region.exons[i].start + "-" + region.exons[i].stop;
+                    colorNumber++;
+                    hit.closePath();
+
+                    // draw exon rectangles
+                    ctx.globalAlpha = 0.1;
+                    ctx.beginPath();
+                    ctx.fillRect(x,h-H,l,H*2);
+                    ctx.closePath();
+
+                    // exon outline 
+                    ctx.globalAlpha = 0.4;
+                    // top part
+                    ctx.beginPath();
+
+                    if (connectExons) {
+                        ctx.moveTo(lastX,M); // start of plot, or last position
+                        ctx.lineTo(x,M);
+                    } else {
+                        ctx.moveTo(x,M);
+                    }
+                    ctx.lineTo(x,h-H);
+                    ctx.lineTo(x+l,h-H);
+                    ctx.lineTo(x+l,M);
+                    ctx.stroke();
+
+                    ctx.closePath();
+
+                    // bottom part
+                    ctx.beginPath();
+
+                    if (connectExons) {
+                        M = h+s/2.0+2;
+                        ctx.moveTo(lastX,M);
+                        ctx.lineTo(x,M);
+                    } else {
+                        ctx.moveTo(x,M);
+                    }
+
+                    ctx.lineTo(x,h+H);
+                    ctx.lineTo(x+l,h+H);
+                    ctx.lineTo(x+l,M);
+                    ctx.stroke();
+
+                    ctx.closePath();
+
+                    if (!connectExons && connectABitAnyway && lastX != 0) {
+                        ctx.beginPath();
+                        ctx.moveTo(lastX, M);
+                        ctx.lineTo(x, M);
+                        ctx.stroke();
+                        ctx.closePath();
+                    }
+
+                    lastX = x+l;
+                }
+            }
+
+            ctx.globalAlpha = 0.4;
             for (var i = 0; i < variants.length; i++) {
                 if ( variants[i].pos < region.start || variants[i].pos > region.stop)
                     continue;
                 var x = margins.l + w * (variants[i].pos - region.start)/r;
+                var height = Math.max(s, h*2.0*variants[i].alleleFreq)
 
                 ctx.beginPath();
-                ctx.fillStyle="#009900";
+                // Verbose just to be clear
+                switch (variants[i].majorConsequence) {
+                case "upstream gene":               ctx.fillStyle="#157e28"; break;
+                case "5'UTR":                       ctx.fillStyle="#0047b2"; break;
+                case "inframe insertion":           ctx.fillStyle="#a96500"; break;
+                case "inframe deletion":            ctx.fillStyle="#a96500"; break;
+                case "missense":                    ctx.fillStyle="#a96500"; break;
+                case "synonymous":                  ctx.fillStyle="#157e28"; break;
+                case "intron":                      ctx.fillStyle="#157e28"; break;
+                case "splice region":               ctx.fillStyle="#157e28"; break;
+                case "non coding transcript exon":  ctx.fillStyle="#157e28"; break;
+                case "3'UTR":                       ctx.fillStyle="#0047b2"; break;
+                default:                            ctx.fillStyle="#ababab";
+                }
 
-                ctx.ellipse(x, h, 3, h, 0, 0, 2 * Math.PI);
+                // Add hit area for variant
+                hit.beginPath();
+                var hitColor = nextColor(colorNumber);
+                hit.fillStyle = hitColor;
+                hit.ellipse(x, h, 1, height*0.5, 0, 0, 2 * Math.PI);
+                hit.fill();
+                // unique color
+                colorHash[hitColor] = variants[i].majorConsequence + "@" + variants[i].pos;
+                colorNumber++;
+                hit.closePath();
+
+                ctx.ellipse(x, h, 1, height*0.5, 0, 0, 2 * Math.PI);
+                // ctx.rect(x-2,h-height/2.0,5,height);
                 ctx.fill();
                 ctx.closePath();
             }
