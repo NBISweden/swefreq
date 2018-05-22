@@ -179,23 +179,6 @@
             // Clear entire canvas
             ctx.clearRect(0, 0, w,h);
 
-            // Figure out x-axis limits
-            axes.x.start = region.start;
-            axes.x.stop  = region.stop;
-            if (!includeUTR) {
-                var first = true;
-                for (var i = 0; i < region.exons.length; i++) {
-                    if (region.exons[i].type == "UTR") {
-                        if (first) {
-                            axes.x.start = region.exons[i].stop;
-                            first = false;
-                        } else {
-                            axes.x.stop  = region.exons[i].start;
-                        }
-                    }
-                }
-            }
-
             // Set header text
             if (region.chrom) {
                 ctx.fillStyle="#000000"
@@ -301,9 +284,9 @@
             return {"l":l + spacing, "r":r, "b":b, "t":t};
         }
 
-        function plotData(ctx, data, margins) {
-            var yMin = data.axes.y[0];
-            var yMax = data.axes.y[data.axes.y.length-1];
+        function plotData(ctx, data, axes, margins) {
+            var yMin = axes.y[0];
+            var yMax = axes.y[axes.y.length-1];
             var width = ctx.canvas.clientWidth - margins.l - margins.r;
             var height = ctx.canvas.clientHeight - margins.t - margins.b;
 
@@ -311,7 +294,7 @@
             ctx.beginPath();
             ctx.strokeStyle = "#006699"
             for (var i = 0; i < data.data.length; i++) {
-                var x = margins.l + width * (data.data[i].pos - data.axes.x.start) / (data.axes.x.stop - data.axes.x.start)
+                var x = margins.l + width * (data.data[i].pos - axes.x.start) / (axes.x.stop - axes.x.start)
                 var y = margins.t + height * (1-(Math.min(data.data[i][data.function], yMax) - yMin) / (yMax-yMin));
                 if (x < margins.l || y === undefined)
                     continue
@@ -331,7 +314,7 @@
             ctx.globalAlpha=0.3;
             ctx.fillStyle = "#6699cc"
             for (var i = 0; i < data.data.length; i++) {
-                var x = margins.l + width * (data.data[i].pos - data.axes.x.start) / (data.axes.x.stop - data.axes.x.start)
+                var x = margins.l + width * (data.data[i].pos - axes.x.start) / (axes.x.stop - axes.x.start)
                 var y = margins.t + height * (1-(Math.min(data.data[i][data.function], yMax) - yMin) / (yMax-yMin));
                 if (x < margins.l || y === undefined)
                     continue

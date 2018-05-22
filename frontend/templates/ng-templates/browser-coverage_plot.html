@@ -28,16 +28,20 @@
                 <input type="radio" ng-model="ctrl.coverage.function" value="median">
                 Median
             </label>
+            <label>
+                Individuals over
+                <select ng-model="ctrl.coverage.function" ng-selected="ctrl.coverage.function"
+                        ng-options="cov for cov in [1,5,10,15,20,25,30,50,100]">
+                        {{ cov }}
+                </select> X coverage
+            </label>
       </div>
     </div>
 
     <div class="col-md-4 offset-md-8">
-        <label>Individuals over X</label>
+        
         <div>
-            <select ng-model="ctrl.coverage.individuals" ng-selected="ctrl.coverage.individuals"
-                    ng-options="cov for cov in [1,5,10,15,20,25,30,50,100]">
-                    {{ cov }}
-            </select>
+            
         </div>
     </div>
     <div class="col-md-12">

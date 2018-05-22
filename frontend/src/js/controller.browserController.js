@@ -12,11 +12,10 @@
                                      "chrom":null,
                                      "exons":[],
                                     }
-        localThis.coverage.axes = {"y":[0,10,20,30,40,50,60,70,80,90,100], "x":{"start":0, "stop":0}}
         localThis.coverage.function = "mean"
         localThis.coverage.includeUTR = true
-        localThis.coverage.individuals = 30
         localThis.coverage.data = []
+        localThis.coverage.update = 0;
         localThis.variants = []
 
         localThis.item = null;
@@ -149,6 +148,7 @@
                     }
                 }
             }
+            localThis.coverage.update += 1;
         }
 
         function reorderVariants(field) {

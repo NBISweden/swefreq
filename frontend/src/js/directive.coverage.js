@@ -31,13 +31,41 @@
                 });
 
                 scope.$watch("ctrl.coverage", function(newValue, oldValue) {
+                    // Set axes
+                    var axes = {"x":{"start":0, "end":0},
+                                "y":[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}
+
+                    // Figure out x-axis limits
+                    axes.x.start = newValue.region.start;
+                    axes.x.stop  = newValue.region.stop;
+                    if (!newValue.includeUTR) {
+                        var first = true;
+                        for (var i = 0; i < newValue.region.exons.length; i++) {
+                            if (newValue.region.exons[i].type == "UTR") {
+                                if (first) {
+                                    axes.x.start = newValue.region.exons[i].stop;
+                                    first = false;
+                                } else {
+                                    axes.x.stop  = newValue.region.exons[i].start;
+                                }
+                            }
+                        }
+                    }
+
+                    // Figure out y-axis limits
+                    if (Number.isInteger(newValue.function)) {
+                        axes.y = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+                    } else {
+                        axes.y = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+                    }
+
                     if (newValue.data.length > 0) {
-                        var margins = CoveragePlot.drawGrid(ctx, newValue.axes, newValue.region, newValue.includeUTR);
+                        var margins = CoveragePlot.drawGrid(ctx, axes, newValue.region, newValue.includeUTR);
 
-                        CoveragePlot.plotData(ctx, newValue, margins);
+                        CoveragePlot.plotData(ctx, newValue, axes, margins);
 
-                        var variants = scope.$parent.$parent.ctrl.variants;
-                        CoveragePlot.drawAnnotation(ctx, hitCtx, colorHash, variants, margins, newValue.axes, newValue.region.exons);
+                        var variants = scope.$parent.$parent.ctrl.filteredVariants;
+                        CoveragePlot.drawAnnotation(ctx, hitCtx, colorHash, variants, margins, axes, newValue.region.exons);
                     }
                 }, true);
             }
