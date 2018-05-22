@@ -5,11 +5,11 @@
             restrict: "A",
             link: function(scope, element, attrs) {
                 var ctx = element[0].getContext('2d');
-                const hitCanvas = document.createElement('canvas');
 
+                // Create hit-canvas for mouseover annotations
+                const hitCanvas = document.createElement('canvas');
                 hitCanvas.width  = ctx.canvas.clientWidth;
                 hitCanvas.height = ctx.canvas.clientHeight;
-
                 const hitCtx = hitCanvas.getContext('2d');
                 const colorHash = {};
 
