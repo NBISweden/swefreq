@@ -13,14 +13,15 @@
             </button>
         </span>
         <label>
-            <input type="checkbox" id="include_utrs_checkbox" value=""> Include UTRs in plot
+            <input type="checkbox" ng-model="ctrl.coverage.includeUTR"
+                                   ng-selected="ctrl.coverage.includeUTR">Include UTRs in plot
         </label>
     </div>
     <div class="col-md-4 offset-md-4">
         <label>Coverage functions:</label>
         <div>
             <label>
-                <input type="radio"" ng-model="ctrl.coverage.function" value="mean">
+                <input type="radio" ng-model="ctrl.coverage.function" value="mean">
                 Mean
             </label>
             <label>

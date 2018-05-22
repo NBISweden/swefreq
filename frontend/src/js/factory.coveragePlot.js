@@ -16,13 +16,13 @@
             return `rgb(${r},${g},${b})`;
         }
 
-        function drawAnnotation(ctx, hit, colorHash, variants, margins, region) {
+        function drawAnnotation(ctx, hit, colorHash, variants, margins, axes, exons) {
             var plotHeight = 50;
             var spacing = 22; // spacing + fontSize from plotGrid
             var t = ctx.canvas.clientHeight - margins.t - plotHeight + spacing;
             var h = plotHeight / 2.0;                    // half plot height
             var w = ctx.canvas.clientWidth - margins.l - margins.r; // plot width
-            var r = region.stop - region.start;                     // region length
+            var r = axes.x.stop - axes.x.start;                     // region length
             var s = 5;                                              // min size of variant blips
             var connectExons = false;
             var connectABitAnyway = true;
@@ -30,21 +30,24 @@
             var colorNumber = 1;
 
             // Draw exons
-            if (region.exons) {
+            if (exons) {
                 var lastX = 0
-                for (var i = 0; i < region.exons.length; i++) {
-                    if (region.exons[i].type == "exon") {
+                for (var i = 0; i < exons.length; i++) {
+                    if (exons[i].type == "exon") {
                         continue
                     }
-                    var x = margins.l + w * (region.exons[i].start - region.start)/r;
-                    var l = w * (region.exons[i].stop - region.exons[i].start)/r;
+                    var x = margins.l + w * (exons[i].start - axes.x.start)/r;
+                    var l = w * (exons[i].stop - exons[i].start)/r;
                     var M = (connectExons ? h-s/2.0-2 : h);
                     var H = h;
                     ctx.fillStyle = "#a96500"
-                    if (region.exons[i].type == "UTR") {
+                    if (exons[i].type == "UTR") {
                         H = h*.5;
                         ctx.fillStyle = "#0047b2"
                     }
+
+                    if ( x < margins.l )
+                        continue;
 
                     // Add hit area for exon
                     hit.beginPath();
@@ -52,7 +55,7 @@
                     hit.fillStyle = hitColor;
                     hit.fillRect(x,t+h-H,l,H*2);
                     // unique color
-                    colorHash[hitColor] = region.exons[i].type + ": " + region.exons[i].start + "-" + region.exons[i].stop;
+                    colorHash[hitColor] = exons[i].type + ": " + exons[i].start + "-" + exons[i].stop;
                     colorNumber++;
                     hit.closePath();
 
@@ -112,10 +115,13 @@
 
             ctx.globalAlpha = 0.4;
             for (var i = 0; i < variants.length; i++) {
-                if ( variants[i].pos < region.start || variants[i].pos > region.stop)
+                if ( variants[i].pos < axes.x.start || variants[i].pos > axes.x.stop)
                     continue;
-                var x = margins.l + w * (variants[i].pos - region.start)/r;
+                var x = margins.l + w * (variants[i].pos - axes.x.start)/r;
                 var height = Math.max(s, h*2.0*variants[i].alleleFreq)
+
+                if ( x < margins.l )
+                    continue;
 
                 ctx.beginPath();
                 // Verbose just to be clear
@@ -156,22 +162,39 @@
             ctx.globalAlpha = 1.0;
         }
 
-        function drawGrid(ctx, axis, region) {
+        function drawGrid(ctx, axes, region, includeUTR) {
             // Set basic variables
             let h = ctx.canvas.clientHeight;
             let w = ctx.canvas.clientWidth;
             let fontSize = 16;
             let spacing =  6;
             let annotationSpace = 50;
-            var l = 0;  // left margin, calculated later from axis text size
+            var l = 0;  // left margin, calculated later from axes.y and text size
             var r = 0;  // right, margin, unused
             var b = fontSize + spacing + annotationSpace; // bottom margin
             var t = fontSize + spacing;
-            var step = (h-b-t)/(axis.length-1);
+            var step = (h-b-t)/(axes.y.length-1);
             ctx.font=`${fontSize}px Arial`;
 
             // Clear entire canvas
             ctx.clearRect(0, 0, w,h);
+
+            // Figure out x-axis limits
+            axes.x.start = region.start;
+            axes.x.stop  = region.stop;
+            if (!includeUTR) {
+                var first = true;
+                for (var i = 0; i < region.exons.length; i++) {
+                    if (region.exons[i].type == "UTR") {
+                        if (first) {
+                            axes.x.start = region.exons[i].stop;
+                            first = false;
+                        } else {
+                            axes.x.stop  = region.exons[i].start;
+                        }
+                    }
+                }
+            }
 
             // Set header text
             if (region.chrom) {
@@ -181,27 +204,27 @@
                 ctx.fillText(text, w/2.0-width/2.0, fontSize+spacing/2.0)
             }
 
-            // Draw coverage axis text
+            // Draw coverage axis (y) text
             ctx.fillStyle="#000000";
-            for (var i = 0; i < axis.length; i++) {
-                var width = ctx.measureText(axis[i]).width;
+            for (var i = 0; i < axes.y.length; i++) {
+                var width = ctx.measureText(axes.y[i]).width;
                 if (width > l)
                     l = width;
             }
-            for (var i = 0; i < axis.length; i++) {
-                var width = ctx.measureText(axis[i]).width;
-                ctx.fillText(axis[i], l - width, h-step*i+(fontSize/2.0-1) - b)
+            for (var i = 0; i < axes.y.length; i++) {
+                var width = ctx.measureText(axes.y[i]).width;
+                ctx.fillText(axes.y[i], l - width, h-step*i+(fontSize/2.0-1) - b)
             }
 
-            // Draw position axis text
+            // Draw position axis (x) text
             if (region.start) {
                 ctx.fillStyle="#000000"
-                ctx.fillText(region.start, l + spacing/2.0, h-b+spacing/2.0+fontSize)
+                ctx.fillText(axes.x.start, l + spacing/2.0, h-b+spacing/2.0+fontSize)
             }
             if (region.stop) {
                 ctx.fillStyle="#000000"
-                var width = ctx.measureText(region.stop).width;
-                ctx.fillText(region.stop, w-width-spacing/2.0, h-b+spacing/2.0+fontSize)
+                var width = ctx.measureText(axes.x.stop).width;
+                ctx.fillText(axes.x.stop, w-width-spacing/2.0, h-b+spacing/2.0+fontSize)
             }
 
             // Set convenience variables
@@ -213,14 +236,14 @@
             ctx.fillRect(l + spacing, t, pw, ph); 
             ctx.closePath();
 
-            // Draw axis grid
+            // Draw axes.y grid
             ctx.beginPath();
             ctx.moveTo(l + spacing, t);
             ctx.lineTo(l + spacing, h - b + spacing/2.0);
             ctx.stroke();
             ctx.closePath();
-            for (var i = 0; i < axis.length; i++) {
-                var width = ctx.measureText(axis[i]).width;
+            for (var i = 0; i < axes.y.length; i++) {
+                var width = ctx.measureText(axes.y[i]).width;
                 ctx.beginPath();
                 ctx.strokeStyle = "#000000";
                 ctx.lineWidth = 1;
@@ -234,7 +257,7 @@
                 if (i == 0) {
                     ctx.lineWidth = 1;
                     ctx.strokeStyle = "#000000";
-                } else if ( axis[i]%50 == 0 ) {
+                } else if ( axes.y[i]%50 == 0 ) {
                     ctx.lineWidth = .5;
                     ctx.strokeStyle = "#505050";
                 } else if ( i%2 == 0 ) {
@@ -279,8 +302,8 @@
         }
 
         function plotData(ctx, data, margins) {
-            var yMin = data.axis[0];
-            var yMax = data.axis[data.axis.length-1];
+            var yMin = data.axes.y[0];
+            var yMax = data.axes.y[data.axes.y.length-1];
             var width = ctx.canvas.clientWidth - margins.l - margins.r;
             var height = ctx.canvas.clientHeight - margins.t - margins.b;
 
@@ -288,9 +311,9 @@
             ctx.beginPath();
             ctx.strokeStyle = "#006699"
             for (var i = 0; i < data.data.length; i++) {
-                var x = margins.l + width * (data.data[i].pos - data.region.start) / (data.region.stop - data.region.start)
+                var x = margins.l + width * (data.data[i].pos - data.axes.x.start) / (data.axes.x.stop - data.axes.x.start)
                 var y = margins.t + height * (1-(Math.min(data.data[i][data.function], yMax) - yMin) / (yMax-yMin));
-                if (x < 0 || y === undefined)
+                if (x < margins.l || y === undefined)
                     continue
                 if (first) {
                     first = false;
@@ -308,9 +331,9 @@
             ctx.globalAlpha=0.3;
             ctx.fillStyle = "#6699cc"
             for (var i = 0; i < data.data.length; i++) {
-                var x = margins.l + width *(data.data[i].pos - data.region.start) / (data.region.stop - data.region.start)
+                var x = margins.l + width * (data.data[i].pos - data.axes.x.start) / (data.axes.x.stop - data.axes.x.start)
                 var y = margins.t + height * (1-(Math.min(data.data[i][data.function], yMax) - yMin) / (yMax-yMin));
-                if (x < 0 || y === undefined)
+                if (x < margins.l || y === undefined)
                     continue
                 ctx.fillRect(x,y,1, margins.t + height - y );
             }

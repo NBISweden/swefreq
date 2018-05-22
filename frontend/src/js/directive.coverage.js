@@ -32,12 +32,12 @@
 
                 scope.$watch("ctrl.coverage", function(newValue, oldValue) {
                     if (newValue.data.length > 0) {
-                        var margins = CoveragePlot.drawGrid(ctx, newValue.axis, newValue.region);
+                        var margins = CoveragePlot.drawGrid(ctx, newValue.axes, newValue.region, newValue.includeUTR);
 
                         CoveragePlot.plotData(ctx, newValue, margins);
 
                         var variants = scope.$parent.$parent.ctrl.variants;
-                        CoveragePlot.drawAnnotation(ctx, hitCtx, colorHash, variants, margins, newValue.region);
+                        CoveragePlot.drawAnnotation(ctx, hitCtx, colorHash, variants, margins, newValue.axes, newValue.region.exons);
                     }
                 }, true);
             }
