@@ -7,7 +7,7 @@
     <a ng-if="ctrl.item" class="btn btn-success" href="/api/datasets/{{ctrl.dataset.shortName}}/browser/download/{{ctrl.itemType}}/{{ctrl.item}}">Export table to CSV</a><br/>
     <span class="label label-info">&dagger; denotes a consequence that is for a non-canonical transcript</span>
 </div>
-<table class="table table-sm table-striped table-condensed small">
+<table class="table table-sm table-striped table-condensed small variant-table">
     <thead>
         <tr>
             <th ng-repeat="header in ctrl.headers">
@@ -46,16 +46,12 @@
                     </span>
                 </div>
                 <div ng-switch-when="alleleFreq">
-                    <span style="color: steelblue; white-space: nowrap">
-                        &#9632;
-                        {{ variant['alleleCount'] > 1 ? "&#9632;" : "&#9633;" }}
-                        {{ variant[header[0]] > 0.0001 && variant['alleleCount'] > 1 ? "&#9632;" : "&#9633;" }}
-                        {{ variant[header[0]] > 0.001  && variant['alleleCount'] > 1 ? "&#9632;" : "&#9633;" }}
-                        {{ variant[header[0]] > 0.01   && variant['alleleCount'] > 1 ? "&#9632;" : "&#9633;" }}
-                        {{ variant[header[0]] > 0.05   && variant['alleleCount'] > 1 ? "&#9632;" : "&#9633;" }}
-                        {{ variant[header[0]] > 0.5    && variant['alleleCount'] > 1 ? "&#9632;" : "&#9633;" }}
-                    </span><br/>
                     {{ variant[header[0]] | number : 4 }}
+                    <div class="alleleFreq">
+                        <img src="static/img/steel_blue.png">
+                        <img ng-repeat="threshold in ctrl.variantBoxThresholds"
+                             src="{{ variant['alleleFreq'] > threshold && variant['alleleCount'] > 1 ? 'static/img/steel_blue.png' : 'static/img/white.png' }}">
+                    </div>
                 </div>
                 <div ng-switch-default>
                     {{ variant[header[0]] }}
