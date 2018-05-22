@@ -10,7 +10,7 @@
 <table class="table table-sm table-striped table-condensed small variant-table">
     <thead>
         <tr>
-            <th ng-repeat="header in ctrl.headers">
+            <th ng-repeat="header in ctrl.headers" class="header-{{ header[0] }}">
                 <a href="#" ng-click="ctrl.reorderVariants(header[0]);">
                     <span ng-show="ctrl.orderByField == header[0]">
                         <span ng-show="!ctrl.reverseSort" class="glyphicon glyphicon-triangle-top"></span>
