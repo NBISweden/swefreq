@@ -4,19 +4,16 @@
 <div class="row">
     <div class="col-md-4">
         <label>Display:</label>
-        <span class="btn-group" data-toggle="buttons">
-            <button class="btn btn-primary active" data-tooltip="Shows all exons">
-                <input type="radio">Overview</input>
-            </button>
-            <button class="btn btn-primary" data-tooltip="Zoomed in view (can scroll horizontally if needed)">
-                <input type="radio">Detail</input>
-            </button>
-        </span>
+        <span class="btn-group" ng-click="ctrl.setCoverageZoom($event)">
+            <button class="btn btn-primary active" value="overview">Overview</button>
+            <button class="btn btn-primary" value="detail">Detail</button>
+        </span><br/>
         <label>
             <input type="checkbox" ng-model="ctrl.coverage.includeUTR"
                                    ng-selected="ctrl.coverage.includeUTR">Include UTRs in plot
         </label>
     </div>
+
     <div class="col-md-4 offset-md-4">
         <label>Coverage functions:</label>
         <div>

@@ -31,6 +31,13 @@
                 });
 
                 scope.$watch("ctrl.coverage", function(newValue, oldValue) {
+                    // set zoom level
+                    var width = element[0].parentElement.clientWidth;
+                    if (newValue.zoom == "detail")
+                        width = newValue.data.length + 50;
+                    element[0].width = width;
+                    hitCanvas.width  = width;
+
                     // Set axes
                     var axes = {"x":{"start":0, "end":0},
                                 "y":[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}
