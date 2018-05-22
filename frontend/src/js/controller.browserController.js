@@ -37,7 +37,7 @@
         localThis.reorderVariants = reorderVariants;
 
 		// variant list frequency box thresholds
-		localThis.variantBoxThresholds = [0, 1/10000, 1/1000, 1/100, 1/20, 1/2, 1];
+		localThis.variantBoxThresholds = [0, 1/10000, 1/1000, 1/100, 1/20, 1/2];
 
         activate();
 
