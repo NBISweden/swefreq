@@ -23,8 +23,10 @@
                     const color = `rgb(${pixel[0]},${pixel[1]},${pixel[2]})`;
                     const item = colorHash[color];
 
+                    var info = document.getElementById("infoPanelInfo");
+
                     if (item) {
-                        console.log(item)
+                        info.innerHTML = item;
                     }
                 });
 
