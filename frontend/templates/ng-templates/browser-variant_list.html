@@ -30,7 +30,7 @@
                            'missense':'bg-warning',
                            'inframe deletion':'bg-warning',
                            'inframe insertion':'bg-warning'}[variant[header[0]]]">
-                <div ng-switch-when="variantId">
+                <span ng-switch-when="variantId">
                     <a href="{{ ctrl.browserLink('variant/' + variant[header[0]] ) }}">
                         {{ variant[header[0]].split("-")[0] }}-{{ variant[header[0]].split("-")[1] }}
                         {{ variant[header[0]].split("-")[2] | shortSeq }}
@@ -38,24 +38,24 @@
                         {{ variant[header[0]].split("-")[3] | shortSeq }}
                         <span ng-if="variant['rsid']">({{ variant["rsid"] }})</span>
                     </a>
-                </div>
-                <div ng-switch-when="HGVS">
+                </span>
+                <span ng-switch-when="HGVS">
                     {{ variant[header[0]]}}
                     <span ng-if="variant[header[0]] && variant['CANONICAL'] != 'YES'" title="Non-canonical">
                         &dagger;
                     </span>
-                </div>
-                <div ng-switch-when="alleleFreq">
+                </span>
+                <span ng-switch-when="alleleFreq">
                     {{ variant[header[0]] | number : 4 }}
                     <div class="alleleFreq">
                         <img src="static/img/steel_blue.png">
                         <img ng-repeat="threshold in ctrl.variantBoxThresholds"
                              src="{{ variant['alleleFreq'] > threshold && variant['alleleCount'] > 1 ? 'static/img/steel_blue.png' : 'static/img/white.png' }}">
                     </div>
-                </div>
-                <div ng-switch-default>
+                </span>
+                <span ng-switch-default>
                     {{ variant[header[0]] }}
-                </div>
+                </span>
             </td>
         </tr>
     </tbody>
