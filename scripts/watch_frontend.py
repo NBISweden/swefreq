@@ -2,6 +2,8 @@ import inotify.adapters
 import re
 import subprocess
 import os
+import logging
+
 
 def files_to_watch():
     r = re.compile("^/code/frontend/(templates|src)")
@@ -31,12 +33,16 @@ def main():
     while True:
         changes = list( filter(grepper, i.event_gen(timeout_s=0.5, yield_nones=False)) )
         if changes:
-            print("Files updated rerunning")
+            logging.info("Files updated rerunning")
             for c in changes:
                 (_, type_names, path, filename) = c
-                print("    PATH=[{}] FILENAME=[{}] EVENT_TYPES={}".format(path, filename, type_names))
-            subprocess.call('make')
+                logging.info("    PATH=[{}] FILENAME=[{}] EVENT_TYPES={}".format(path, filename, type_names))
+            subprocess.call(['make', '-B'])
 
 
 if __name__ == '__main__':
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s %(name)s %(levelname)s: %(message)s',
+    )
     main()
