@@ -12,9 +12,9 @@
         <tr>
             <th ng-repeat="header in ctrl.headers">
                 <a href="#" ng-click="ctrl.reorderVariants(header[0]);">
-                    <span ng-show="orderByField == header[0]">
-                        <span ng-show="!reverseSort" class="glyphicon glyphicon-triangle-top"></span>
-                        <span ng-show="reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                    <span ng-show="ctrl.orderByField == header[0]">
+                        <span ng-show="!ctrl.reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+                        <span ng-show="ctrl.reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
                     </span>
                     {{ header[1] }}
                 </a>
@@ -22,7 +22,7 @@
         </tr>
     </thead>
     <tbody>
-        <tr ng-repeat="variant in ctrl.filteredVariants | orderBy:orderByField:reverseSort">
+        <tr ng-repeat="variant in ctrl.filteredVariants | orderBy:ctrl.orderByField:ctrl.reverseSort">
             <td ng-repeat="header in ctrl.headers"
                 ng-switch="header[0]"
                 ng-class="{'synonymous':'bg-success',
