@@ -29,13 +29,6 @@
 
             var colorNumber = 1;
 
-            // debug blob.
-            // The hit context is too small, but I haven't figured out how to enlarge it
-            hit.beginPath();
-            hit.fillStyle = "rgb(100,100,100)";
-            hit.fillRect(0, 0, ctx.canvas.clientWidth, ctx.canvas.clientHeight);
-            hit.closePath();
-
             // Draw exons
             if (region.exons) {
                 var lastX = 0
@@ -144,14 +137,14 @@
                 hit.beginPath();
                 var hitColor = nextColor(colorNumber);
                 hit.fillStyle = hitColor;
-                hit.ellipse(x, t+h, 1, height*0.5, 0, 0, 2 * Math.PI);
+                hit.ellipse(x, t+h, 2, height*0.5, 0, 0, 2 * Math.PI);
                 hit.fill();
                 // unique color
                 colorHash[hitColor] = variants[i].majorConsequence + "@" + variants[i].pos;
                 colorNumber++;
                 hit.closePath();
 
-                ctx.ellipse(x, t+h, 1, height*0.5, 0, 0, 2 * Math.PI);
+                ctx.ellipse(x, t+h, 2, height*0.5, 0, 0, 2 * Math.PI);
                 // ctx.rect(x-2,h-height/2.0,5,height);
                 ctx.fill();
                 ctx.closePath();
