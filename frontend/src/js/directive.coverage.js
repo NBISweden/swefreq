@@ -13,20 +13,30 @@
                 const hitCtx = hitCanvas.getContext('2d');
                 const colorHash = {};
 
-                element[0].addEventListener('mousemove', (event) => {
+                element[0].addEventListener('mousemove', (e) => {
                     var rect = element[0].getBoundingClientRect();
                     const pos = {
-                        x: event.clientX - rect.left,
-                        y: event.clientY - rect.top
+                        x: e.clientX - rect.left,
+                        y: e.clientY - rect.top
                     };
                     const pixel = hitCtx.getImageData(pos.x, pos.y, 1, 1).data;
                     const color = `rgb(${pixel[0]},${pixel[1]},${pixel[2]})`;
                     const item = colorHash[color];
 
-                    var info = document.getElementById("infoPanelInfo");
+                    var infoPanel = document.getElementById("annotationPanel");
+                    var info = document.getElementById("annotationInfo");
+                    var offset = {"x":-5, "y":20}
 
                     if (item) {
                         info.innerHTML = item;
+                        p = {"x":pos.x+offset.x, "y":pos.y+offset.y}
+
+                        infoPanel.style.top = `${p.y}px`;
+                        infoPanel.style.left = `${p.x}px`;
+                        infoPanel.style.zIndex = 10;
+                        infoPanel.style.visibility = "visible";
+                    } else {
+                        infoPanel.style.visibility = "hidden";
                     }
                 });
 
