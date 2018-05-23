@@ -4,6 +4,7 @@ import handlers
 
 import pymongo
 import lookups
+from utils import *
 
 EXON_PADDING = 50
 

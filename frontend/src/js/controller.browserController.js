@@ -49,6 +49,7 @@
                 Browser.getTranscript($routeParams.dataset, $routeParams.transcript).then( function(data) {
                     localThis.transcript = data.transcript;
                     localThis.gene       = data.gene;
+                    localThis.coverage.region.exons = data.exons;
                 });
             }
             if ($routeParams.region) {

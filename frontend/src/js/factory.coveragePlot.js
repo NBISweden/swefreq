@@ -290,36 +290,70 @@
             var width = ctx.canvas.clientWidth - margins.l - margins.r;
             var height = ctx.canvas.clientHeight - margins.t - margins.b;
 
-            var first = true;
+            // Fill the area under the graph
+            first = true;
+            var last = {"x":null, "y":null};
             ctx.beginPath();
+            ctx.globalAlpha=0.3;
+            ctx.fillStyle = "#6699cc"
+            for (var i = 0; i < data.data.length; i++) {
+                var x = margins.l + width * (data.data[i].pos - axes.x.start) / (axes.x.stop - axes.x.start)
+                var y = margins.t + height * (1-(Math.max(yMin, Math.min(data.data[i][data.function], yMax)) - yMin) / (yMax-yMin));
+                if (x < margins.l || y === undefined)
+                    continue
+
+                if (last.x != null && last.y != null) {
+                    ctx.beginPath();
+
+                    ctx.moveTo(last.x, last.y);
+                    ctx.lineTo(x,y);
+                    ctx.lineTo(x, margins.t + height);
+                    ctx.lineTo(last.x, margins.t + height);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                last.x = x;
+                last.y = y;
+            }
+            ctx.closePath();
+
+            // Draw main graph line
+            var first = true;
+            last = {"x":null, "y":null};
+            ctx.beginPath();
+            ctx.globalAlpha=0.8;
             ctx.strokeStyle = "#006699"
             for (var i = 0; i < data.data.length; i++) {
                 var x = margins.l + width * (data.data[i].pos - axes.x.start) / (axes.x.stop - axes.x.start)
-                var y = margins.t + height * (1-(Math.min(data.data[i][data.function], yMax) - yMin) / (yMax-yMin));
+                var y = margins.t + height * (1-(Math.max(yMin, Math.min(data.data[i][data.function], yMax)) - yMin) / (yMax-yMin));
                 if (x < margins.l || y === undefined)
                     continue
+
+                // add blips if there's distance between the graph points
+                if (last.x != null && Math.abs(last.x - x) > 4) {
+                    ctx.lineTo(last.x, last.y-2);
+                    ctx.lineTo(last.x, last.y+2);
+                    ctx.lineTo(last.x, last.y);
+                }
+
                 if (first) {
                     first = false;
                     ctx.moveTo(x, y);
                 } else {
                     ctx.lineTo(x, y);
                 }
+
+                // Add final blip if needed
+                if ( i+1 == data.data.length  &&Math.abs(last.x - x) > 4 ) {
+                    ctx.lineTo(x, y-2);
+                    ctx.lineTo(x, y+2);
+                }
+
+                last.x = x;
+                last.y = y;
             }
             ctx.stroke();
-            ctx.closePath();
-
-            first = true;
-            var lastX = 0;
-            ctx.beginPath();
-            ctx.globalAlpha=0.3;
-            ctx.fillStyle = "#6699cc"
-            for (var i = 0; i < data.data.length; i++) {
-                var x = margins.l + width * (data.data[i].pos - axes.x.start) / (axes.x.stop - axes.x.start)
-                var y = margins.t + height * (1-(Math.min(data.data[i][data.function], yMax) - yMin) / (yMax-yMin));
-                if (x < margins.l || y === undefined)
-                    continue
-                ctx.fillRect(x,y,1, margins.t + height - y );
-            }
             ctx.closePath();
 
             // Reset context values

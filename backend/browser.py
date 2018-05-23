@@ -47,6 +47,10 @@ class GetTranscript(handlers.UnsafeHandler):
             except Exception as e:
                 logging.error("{}".format(e))
 
+            ret['exons'] = []
+            for exon in sorted(transcript['exons'], key=lambda k: k['start']):
+                ret['exons'] += [{'start':exon['start'], 'stop':exon['stop'], 'type':exon['feature_type']}]
+
             gene                                = lookups.get_gene(db_shared, transcript['gene_id'])
             ret['gene']['id']                   = gene['gene_id']
             ret['gene']['name']                 = gene['gene_name']
