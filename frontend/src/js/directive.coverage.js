@@ -43,8 +43,12 @@
                 scope.$watch("ctrl.coverage", function(newValue, oldValue) {
                     // set zoom level
                     var width = element[0].parentElement.clientWidth;
-                    if (newValue.zoom == "detail")
-                        width = newValue.data.length + 50;
+                    console.log(CoveragePlot.settings);
+                    if (newValue.zoom == "detail") {
+                        //TODO: We should check if this is set, but for now I don't
+                        var margin = CoveragePlot.settings.margins.l;
+                        width = Math.max(width, newValue.data.length + margin);
+                    }
                     element[0].width = width;
                     hitCanvas.width  = width;
 
@@ -77,12 +81,12 @@
                     }
 
                     if (newValue.data.length > 0) {
-                        var margins = CoveragePlot.drawGrid(ctx, axes, newValue.region, newValue.includeUTR);
+                        CoveragePlot.drawGrid(ctx, axes, newValue.region, newValue.includeUTR);
 
-                        CoveragePlot.plotData(ctx, newValue, axes, margins);
+                        CoveragePlot.plotData(ctx, newValue, axes);
 
                         var variants = scope.$parent.$parent.ctrl.filteredVariants;
-                        CoveragePlot.drawAnnotation(ctx, hitCtx, colorHash, variants, margins, axes, newValue.region.exons);
+                        CoveragePlot.drawAnnotation(ctx, hitCtx, colorHash, variants, axes, newValue.region.exons);
                     }
                 }, true);
             }

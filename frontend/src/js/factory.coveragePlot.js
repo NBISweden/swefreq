@@ -2,11 +2,17 @@
     angular.module("App")
     .factory("CoveragePlot", [function() {
 
+        var settings = {"fontSize": 12,
+                        "spacing": 4,
+                        "annotationSpace": 50,
+                        "margins":{"t":0, "r":0, "b":0, "l":0},
+                        };
 
         return {
             drawAnnotation: drawAnnotation,
             drawGrid:       drawGrid,
             plotData:       plotData,
+            settings:       settings,
         };
 
         function nextColor(num) {
@@ -16,12 +22,11 @@
             return `rgb(${r},${g},${b})`;
         }
 
-        function drawAnnotation(ctx, hit, colorHash, variants, margins, axes, exons) {
-            var plotHeight = 50;
-            var spacing = 22; // spacing + fontSize from plotGrid
-            var t = ctx.canvas.clientHeight - margins.t - plotHeight + spacing;
+        function drawAnnotation(ctx, hit, colorHash, variants, axes, exons) {
+            var plotHeight = settings.annotationSpace;
+            var t = ctx.canvas.clientHeight - settings.margins.t - plotHeight + settings.spacing + settings.fontSize;
             var h = plotHeight / 2.0;                    // half plot height
-            var w = ctx.canvas.clientWidth - margins.l - margins.r; // plot width
+            var w = ctx.canvas.clientWidth - settings.margins.l - settings.margins.r; // plot width
             var r = axes.x.stop - axes.x.start;                     // region length
             var s = 5;                                              // min size of variant blips
             var connectExons = false;
@@ -36,7 +41,7 @@
                     if (exons[i].type == "exon") {
                         continue
                     }
-                    var x = margins.l + w * (exons[i].start - axes.x.start)/r;
+                    var x = settings.margins.l + w * (exons[i].start - axes.x.start)/r;
                     var l = w * (exons[i].stop - exons[i].start)/r;
                     var M = (connectExons ? h-s/2.0-2 : h);
                     var H = h;
@@ -46,7 +51,7 @@
                         ctx.fillStyle = "#0047b2"
                     }
 
-                    if ( x < margins.l )
+                    if ( x < settings.margins.l )
                         continue;
 
                     // Add hit area for exon
@@ -117,10 +122,10 @@
             for (var i = 0; i < variants.length; i++) {
                 if ( variants[i].pos < axes.x.start || variants[i].pos > axes.x.stop)
                     continue;
-                var x = margins.l + w * (variants[i].pos - axes.x.start)/r;
+                var x = settings.margins.l + w * (variants[i].pos - axes.x.start)/r;
                 var height = Math.max(s, h*2.0*variants[i].alleleFreq)
 
-                if ( x < margins.l )
+                if ( x < settings.margins.l )
                     continue;
 
                 ctx.beginPath();
@@ -163,66 +168,73 @@
         }
 
         function drawGrid(ctx, axes, region, includeUTR) {
-            // Set basic variables
+            // Set margins
+            var width = 0;
+            for (var i = 0; i < axes.y.length; i++) {
+                // 3 pixels extra for antialiasing
+                width = ctx.measureText(axes.y[i]).width+3;
+                if (width > settings.margins.l)
+                    settings.margins.l = width;
+            }
+            settings.margins.l += settings.spacing;
+            settings.margins.b = settings.fontSize + settings.spacing + settings.annotationSpace;
+            settings.margins.t = settings.fontSize + settings.spacing;
+
+            // Set convenience variables
             let h = ctx.canvas.clientHeight;
             let w = ctx.canvas.clientWidth;
-            let fontSize = 16;
-            let spacing =  6;
-            let annotationSpace = 50;
-            var l = 0;  // left margin, calculated later from axes.y and text size
-            var r = 0;  // right, margin, unused
-            var b = fontSize + spacing + annotationSpace; // bottom margin
-            var t = fontSize + spacing;
+            let t = settings.margins.t;
+            let r = settings.margins.r;
+            let b = settings.margins.b;
+            let l = settings.margins.l;
             var step = (h-b-t)/(axes.y.length-1);
-            ctx.font=`${fontSize}px Arial`;
 
             // Clear entire canvas
             ctx.clearRect(0, 0, w,h);
+
+            // Set context font
+            ctx.font=`${settings.fontSize}px Arial`;
 
             // Set header text
             if (region.chrom) {
                 ctx.fillStyle="#000000"
                 var text = `Chrom ${region.chrom}`;
                 var width = ctx.measureText(text).width;
-                ctx.fillText(text, w/2.0-width/2.0, fontSize+spacing/2.0)
+                ctx.fillText(text, w/2.0-width/2.0, settings.fontSize+settings.spacing/2.0)
             }
 
             // Draw coverage axis (y) text
             ctx.fillStyle="#000000";
             for (var i = 0; i < axes.y.length; i++) {
                 var width = ctx.measureText(axes.y[i]).width;
-                if (width > l)
-                    l = width;
-            }
-            for (var i = 0; i < axes.y.length; i++) {
-                var width = ctx.measureText(axes.y[i]).width;
-                ctx.fillText(axes.y[i], l - width, h-step*i+(fontSize/2.0-1) - b)
+                ctx.fillText(axes.y[i], l - width - settings.spacing, h-step*i+(settings.fontSize/2.0-1) - b)
             }
 
             // Draw position axis (x) text
             if (region.start) {
                 ctx.fillStyle="#000000"
-                ctx.fillText(axes.x.start, l + spacing/2.0, h-b+spacing/2.0+fontSize)
+                ctx.fillText(axes.x.start, l + settings.spacing/2.0, h-b+settings.spacing/2.0+settings.fontSize)
             }
             if (region.stop) {
                 ctx.fillStyle="#000000"
                 var width = ctx.measureText(axes.x.stop).width;
-                ctx.fillText(axes.x.stop, w-width-spacing/2.0, h-b+spacing/2.0+fontSize)
+                ctx.fillText(axes.x.stop, w-width-settings.spacing/2.0, h-b+settings.spacing/2.0+settings.fontSize)
             }
 
             // Set convenience variables
-            var pw = w-l-r-spacing; // plot width
+            var pw = w-l-r; // plot width
             var ph = h-b-t; // plot height - from text size
+
             // Draw plot background
             ctx.beginPath();
             ctx.fillStyle="#fafafa";
-            ctx.fillRect(l + spacing, t, pw, ph); 
+            ctx.fillRect(l, t, pw, ph); 
             ctx.closePath();
 
             // Draw axes.y grid
             ctx.beginPath();
-            ctx.moveTo(l + spacing, t);
-            ctx.lineTo(l + spacing, h - b + spacing/2.0);
+            ctx.moveTo(l, t);
+            ctx.lineTo(l, h - b + settings.spacing/2.0);
             ctx.stroke();
             ctx.closePath();
             for (var i = 0; i < axes.y.length; i++) {
@@ -231,8 +243,8 @@
                 ctx.strokeStyle = "#000000";
                 ctx.lineWidth = 1;
 
-                ctx.moveTo(l + spacing*1.5, h-step*i - b)
-                ctx.lineTo(l + spacing*0.5, h-step*i - b)
+                ctx.moveTo(l - settings.spacing*0.5, h-step*i - b)
+                ctx.lineTo(l + settings.spacing*0.5, h-step*i - b)
                 ctx.stroke();
                 ctx.closePath();
 
@@ -251,7 +263,7 @@
                     ctx.strokeStyle = "#e0e0e0";
                 }
 
-                ctx.moveTo(l + spacing*1.5, h-step*i - b)
+                ctx.moveTo(l + settings.spacing*0.5, h-step*i - b)
                 ctx.lineTo(w-r, h-step*i - b);
                 ctx.stroke();
                 ctx.closePath();
@@ -264,31 +276,29 @@
 
             for (var i = 1; i <= s; i++) {
                 var label = Math.floor(region.start + i*step);
-                var x = l + spacing + i*pw/s;
+                var x = l + settings.spacing + i*pw/s;
                 ctx.beginPath();
                 ctx.strokeStyle = "#b0b0b0";
                 ctx.lineWidth = .5;
 
                 ctx.moveTo(x, t)
-                ctx.lineTo(x, t+ph+spacing*.5)
+                ctx.lineTo(x, t+ph+settings.spacing*.5)
                 ctx.stroke();
                 ctx.closePath();
 
                 if (i != s) {
                     ctx.fillStyle="#000000"
                     var labelWidth = ctx.measureText(label).width;
-                    ctx.fillText(label, x-labelWidth/2.0, h-b+spacing/2.0+fontSize)
+                    ctx.fillText(label, x-labelWidth/2.0, h-b+settings.spacing/2.0+settings.fontSize)
                 }
             }
-
-            return {"l":l + spacing, "r":r, "b":b, "t":t};
         }
 
-        function plotData(ctx, data, axes, margins) {
+        function plotData(ctx, data, axes) {
             var yMin = axes.y[0];
             var yMax = axes.y[axes.y.length-1];
-            var width = ctx.canvas.clientWidth - margins.l - margins.r;
-            var height = ctx.canvas.clientHeight - margins.t - margins.b;
+            var width = ctx.canvas.clientWidth - settings.margins.l - settings.margins.r;
+            var height = ctx.canvas.clientHeight - settings.margins.t - settings.margins.b;
 
             // Fill the area under the graph
             first = true;
@@ -297,9 +307,9 @@
             ctx.globalAlpha=0.3;
             ctx.fillStyle = "#6699cc"
             for (var i = 0; i < data.data.length; i++) {
-                var x = margins.l + width * (data.data[i].pos - axes.x.start) / (axes.x.stop - axes.x.start)
-                var y = margins.t + height * (1-(Math.max(yMin, Math.min(data.data[i][data.function], yMax)) - yMin) / (yMax-yMin));
-                if (x < margins.l || y === undefined)
+                var x = settings.margins.l + width * (data.data[i].pos - axes.x.start) / (axes.x.stop - axes.x.start)
+                var y = settings.margins.t + height * (1-(Math.max(yMin, Math.min(data.data[i][data.function], yMax)) - yMin) / (yMax-yMin));
+                if (x < settings.margins.l || y === undefined)
                     continue
 
                 if (last.x != null && last.y != null) {
@@ -307,8 +317,8 @@
 
                     ctx.moveTo(last.x, last.y);
                     ctx.lineTo(x,y);
-                    ctx.lineTo(x, margins.t + height);
-                    ctx.lineTo(last.x, margins.t + height);
+                    ctx.lineTo(x, settings.margins.t + height);
+                    ctx.lineTo(last.x, settings.margins.t + height);
                     ctx.closePath();
                     ctx.fill();
                 }
@@ -325,9 +335,9 @@
             ctx.globalAlpha=0.8;
             ctx.strokeStyle = "#006699"
             for (var i = 0; i < data.data.length; i++) {
-                var x = margins.l + width * (data.data[i].pos - axes.x.start) / (axes.x.stop - axes.x.start)
-                var y = margins.t + height * (1-(Math.max(yMin, Math.min(data.data[i][data.function], yMax)) - yMin) / (yMax-yMin));
-                if (x < margins.l || y === undefined)
+                var x = settings.margins.l + width * (data.data[i].pos - axes.x.start) / (axes.x.stop - axes.x.start)
+                var y = settings.margins.t + height * (1-(Math.max(yMin, Math.min(data.data[i][data.function], yMax)) - yMin) / (yMax-yMin));
+                if (x < settings.margins.l || y === undefined)
                     continue
 
                 // add blips if there's distance between the graph points
@@ -345,7 +355,7 @@
                 }
 
                 // Add final blip if needed
-                if ( i+1 == data.data.length  &&Math.abs(last.x - x) > 4 ) {
+                if ( i+1 == data.data.length && Math.abs(last.x - x) > 4 ) {
                     ctx.lineTo(x, y-2);
                     ctx.lineTo(x, y+2);
                 }
