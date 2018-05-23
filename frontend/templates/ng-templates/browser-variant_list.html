@@ -10,7 +10,7 @@
 <table class="table table-sm table-striped table-condensed small variant-table">
     <thead>
         <tr>
-            <th ng-repeat="header in ctrl.headers" class="header-{{ header[0] }}">
+            <th ng-repeat="header in ctrl.headers" class="{{ header[0] }}">
                 <a href="#" ng-click="ctrl.reorderVariants(header[0]);">
                     <span ng-show="ctrl.orderByField == header[0]">
                         <span ng-show="!ctrl.reverseSort" class="glyphicon glyphicon-triangle-top"></span>
@@ -25,6 +25,7 @@
         <tr ng-repeat="variant in ctrl.filteredVariants | orderBy:ctrl.orderByField:ctrl.reverseSort">
             <td ng-repeat="header in ctrl.headers"
                 ng-switch="header[0]"
+                class="{{ header[0] }}"
                 ng-class="{'synonymous':'bg-success',
                            'splice region':'bg-success',
                            'missense':'bg-warning',
@@ -39,21 +40,21 @@
                         <span ng-if="variant['rsid']">({{ variant["rsid"] }})</span>
                     </a>
                 </span>
-                <span ng-switch-when="HGVS">
-                    {{ variant[header[0]]}}
-                    <span ng-if="variant[header[0]] && variant['CANONICAL'] != 'YES'" title="Non-canonical">
+                <span ng-switch-when="HGVS" title="{{variant['HGVS']}}">
+                    {{ variant['HGVS']}}
+                    <span ng-if="variant['HGVS'] && variant['CANONICAL'] != 'YES'" title="Non-canonical">
                         &dagger;
                     </span>
                 </span>
                 <span ng-switch-when="alleleFreq">
-                    {{ variant[header[0]] | number : 4 }}
                     <div class="alleleFreq">
+                        <div>{{ variant[header[0]] | number : 4 }}</div>
                         <img src="static/img/steel_blue.png">
                         <img ng-repeat="threshold in ctrl.variantBoxThresholds"
                              src="{{ variant['alleleFreq'] >= threshold && variant['alleleCount'] > 1 ? 'static/img/steel_blue.png' : 'static/img/white.png' }}">
                     </div>
                 </span>
-                <span ng-switch-default>
+                <span ng-switch-default title="{{variant[header[0]]}}">
                     {{ variant[header[0]] }}
                 </span>
             </td>

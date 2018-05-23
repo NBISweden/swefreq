@@ -248,22 +248,38 @@ input.btn-sm {
 
 
 table.variant-table {
-    div.alleleFreq {
-        white-space: norwap;
-
-        img {
-            border-right: 1px solid steelblue;
-            border-bottom: 1px solid steelblue;
-            border-top: 1px solid steelblue;
-            width: 7px;
-            height: 15px;
-            display: block;
-            float: left;
+    td.alleleFreq {
+        div {
+            div {
+                float: left;
+                margin-right: 0.5em;
+            }
+            img {
+                border-right: 1px solid steelblue;
+                border-bottom: 1px solid steelblue;
+                border-top: 1px solid steelblue;
+                width: 7px;
+                height: 15px;
+                display: block;
+                float: left;
+            }
         }
     }
 
-    .header-homCount {
-        width: 10em;
+    th.HGVS, td.HGVS, th.filter, td.filter {
+        max-width: 8em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    thead {
+        .alleleFreq {
+            max-width: 12em;
+        }
+
+        .homCount {
+            max-width: 8em;
+        }
     }
 }
 
