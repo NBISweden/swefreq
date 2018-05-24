@@ -1,59 +1,64 @@
 <div class="container">
-    <span class="btn-group" ng-click="ctrl.filterVariantsBy($event)">
-        <button class="btn btn-primary active" value="[]">All</button>
-        <button class="btn btn-primary" value='["missense", "lof"]'>Missense + LoF</button>
-        <button class="btn btn-primary" value='["lof"]'>LoF</button>
-    </span><br/>
-    <a ng-if="ctrl.item" class="btn btn-success" href="/api/datasets/{{ctrl.dataset.shortName}}/browser/download/{{ctrl.itemType}}/{{ctrl.item}}">Export table to CSV</a><br/>
-    <span class="label label-info">&dagger; denotes a consequence that is for a non-canonical transcript</span>
+    <div class="row">
+        <span class="btn-group" ng-click="ctrl.filterVariantsBy($event)">
+            <button class="btn btn-primary active" value="[]">All</button>
+            <button class="btn btn-primary" value='["missense", "lof"]'>Missense + LoF</button>
+            <button class="btn btn-primary" value='["lof"]'>LoF</button>
+        </span><br/>
+        <a ng-if="ctrl.item" class="btn btn-success" href="/api/datasets/{{ctrl.dataset.shortName}}/browser/download/{{ctrl.itemType}}/{{ctrl.item}}">Export table to CSV</a><br/>
+        <span class="label label-info">&dagger; denotes a consequence that is for a non-canonical transcript</span>
+    </div>
+
+    <div class="row">
+        <table class="table table-sm table-striped table-condensed small variant-table">
+            <thead>
+                <tr>
+                    <th ng-repeat="header in ctrl.headers" class="{{ header[0] }}">
+                        <a href="#" ng-click="ctrl.reorderVariants(header[0]);">
+                            <span ng-show="ctrl.orderByField == header[0]">
+                                <span ng-show="!ctrl.reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+                                <span ng-show="ctrl.reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                            </span>
+                            {{ header[1] }}
+                        </a>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="variant in ctrl.filteredVariants | orderBy:ctrl.orderByField:ctrl.reverseSort">
+                    <td ng-repeat="header in ctrl.headers"
+                        ng-switch="header[0]"
+                        class="{{ header[0] }}"
+                        ng-class="{'synonymous':'bg-success',
+                                   'splice region':'bg-success',
+                                   'missense':'bg-warning',
+                                   'inframe deletion':'bg-warning',
+                                   'inframe insertion':'bg-warning'}[variant[header[0]]]">
+                        <span ng-switch-when="variantId" title="{{variant | formatVariant:500}}">
+                            <a href="{{ ctrl.browserLink('variant/' + variant[header[0]] ) }}">
+                                {{ variant | formatVariant }}
+                            </a>
+                        </span>
+                        <span ng-switch-when="HGVS" title="{{variant['HGVS']}}">
+                            {{ variant['HGVS']}}
+                            <span ng-if="variant['HGVS'] && variant['CANONICAL'] != 'YES'" title="Non-canonical">
+                                &dagger;
+                            </span>
+                        </span>
+                        <span ng-switch-when="alleleFreq">
+                            <div class="alleleFreq">
+                                <div>{{ variant[header[0]] | number : 4 }}</div>
+                                <img src="static/img/steel_blue.png">
+                                <img ng-repeat="threshold in ctrl.variantBoxThresholds"
+                                     src="{{ variant['alleleFreq'] >= threshold && variant['alleleCount'] > 1 ? 'static/img/steel_blue.png' : 'static/img/white.png' }}">
+                            </div>
+                        </span>
+                        <span ng-switch-default title="{{variant[header[0]]}}">
+                            {{ variant[header[0]] }}
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
-<table class="table table-sm table-striped table-condensed small variant-table">
-    <thead>
-        <tr>
-            <th ng-repeat="header in ctrl.headers" class="{{ header[0] }}">
-                <a href="#" ng-click="ctrl.reorderVariants(header[0]);">
-                    <span ng-show="ctrl.orderByField == header[0]">
-                        <span ng-show="!ctrl.reverseSort" class="glyphicon glyphicon-triangle-top"></span>
-                        <span ng-show="ctrl.reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-                    </span>
-                    {{ header[1] }}
-                </a>
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr ng-repeat="variant in ctrl.filteredVariants | orderBy:ctrl.orderByField:ctrl.reverseSort">
-            <td ng-repeat="header in ctrl.headers"
-                ng-switch="header[0]"
-                class="{{ header[0] }}"
-                ng-class="{'synonymous':'bg-success',
-                           'splice region':'bg-success',
-                           'missense':'bg-warning',
-                           'inframe deletion':'bg-warning',
-                           'inframe insertion':'bg-warning'}[variant[header[0]]]">
-                <span ng-switch-when="variantId" title="{{variant | formatVariant:500}}">
-                    <a href="{{ ctrl.browserLink('variant/' + variant[header[0]] ) }}">
-                        {{ variant | formatVariant }}
-                    </a>
-                </span>
-                <span ng-switch-when="HGVS" title="{{variant['HGVS']}}">
-                    {{ variant['HGVS']}}
-                    <span ng-if="variant['HGVS'] && variant['CANONICAL'] != 'YES'" title="Non-canonical">
-                        &dagger;
-                    </span>
-                </span>
-                <span ng-switch-when="alleleFreq">
-                    <div class="alleleFreq">
-                        <div>{{ variant[header[0]] | number : 4 }}</div>
-                        <img src="static/img/steel_blue.png">
-                        <img ng-repeat="threshold in ctrl.variantBoxThresholds"
-                             src="{{ variant['alleleFreq'] >= threshold && variant['alleleCount'] > 1 ? 'static/img/steel_blue.png' : 'static/img/white.png' }}">
-                    </div>
-                </span>
-                <span ng-switch-default title="{{variant[header[0]]}}">
-                    {{ variant[header[0]] }}
-                </span>
-            </td>
-        </tr>
-    </tbody>
-</table>
