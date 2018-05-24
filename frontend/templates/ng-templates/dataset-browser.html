@@ -16,14 +16,14 @@
                                    class="form-control input-lg dropdown-toggle"
                                    type="text"
                                    placeholder="Search for a gene or variant or region"
-                                   ng-model="search.query"
+                                   ng-model="ctrl.query"
                                    ng-change="ctrl.autocomplete()"
                                    data-toggle="dropdown"
                                    autocomplete="off"/>
                             <input type="submit"
                                    style="position: absolute; left: -9999px"/>
                             <ul class="dropdown-menu" style="overflow:visible;">
-                              <li ng-repeat="term in search.autocomplete"><a href="" ng-click="ctrl.search(term)">{{ term }}</a></li>
+                              <li ng-repeat="term in autocomplete"><a href="" ng-click="ctrl.search(term)">{{ term }}</a></li>
                             </ul>
                         </form>
                     </div>

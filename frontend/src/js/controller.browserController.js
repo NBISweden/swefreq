@@ -3,7 +3,8 @@
     .controller("browserController", ["$routeParams", "$window", "User", "Dataset", "Browser",
                              function( $routeParams,   $window,   User,   Dataset,   Browser) {
         var localThis = this;
-        localThis.search = {"query":"", "autocomplete":[]};
+        localThis.query = "";
+        localThis.suggestions = "";
         localThis.orderByField = 'variantId';
         localThis.reverseSort = false;
         localThis.coverage = {};
@@ -106,10 +107,10 @@
 
         function search(query) {
             if (query) {
-                localThis.search.query = query;
+                localThis.query = query;
             }
-            if (localThis.search.query) {
-                Browser.search($routeParams.dataset, localThis.search.query).then( function(data) {
+            if (localThis.query) {
+                Browser.search($routeParams.dataset, localThis.query).then( function(data) {
                     if (data.redirect) {
                         $window.location.href = data.redirect;
                     }
@@ -118,13 +119,13 @@
         }
 
         function autocomplete() {
-            if (localThis.search.query) {
-                Browser.autocomplete($routeParams.dataset, localThis.search.query)
+            if (localThis.query) {
+                Browser.autocomplete($routeParams.dataset, localThis.query)
                        .then( function(data) {
-                            localThis.search.autocomplete = data.values;
+                            localThis.suggestions = data.values;
                         });
             } else {
-                localThis.search.autocomplete = [];
+                localThis.suggestions = [];
             }
         }
 

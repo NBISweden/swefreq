@@ -43,7 +43,6 @@
                 scope.$watch("ctrl.coverage", function(newValue, oldValue) {
                     // set zoom level
                     var width = element[0].parentElement.clientWidth;
-                    console.log(CoveragePlot.settings);
                     if (newValue.zoom == "detail") {
                         //TODO: We should check if this is set, but for now I don't
                         var margin = CoveragePlot.settings.margins.l;
