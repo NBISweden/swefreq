@@ -248,6 +248,7 @@ input.btn-sm {
 
 
 table.variant-table {
+    /* Allele frequency visualisation */
     td.alleleFreq {
         div {
             div {
@@ -266,20 +267,19 @@ table.variant-table {
         }
     }
 
-    th.HGVS, td.HGVS, th.filter, td.filter {
+    /* Shorten some of the table columns */
+    th, td {
         max-width: 8em;
         overflow: hidden;
         text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
-    thead {
-        .alleleFreq {
-            max-width: 12em;
-        }
-
-        .homCount {
-            max-width: 8em;
-        }
+    td.alleleFreq, thalleleFreq {
+        max-width: 12em;
+    }
+    td.variantId, th.variantId {
+        max-width: 20em;
     }
 }
 
