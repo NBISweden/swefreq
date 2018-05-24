@@ -31,13 +31,9 @@
                            'missense':'bg-warning',
                            'inframe deletion':'bg-warning',
                            'inframe insertion':'bg-warning'}[variant[header[0]]]">
-                <span ng-switch-when="variantId">
+                <span ng-switch-when="variantId" title="{{variant | formatVariant:500}}">
                     <a href="{{ ctrl.browserLink('variant/' + variant[header[0]] ) }}">
-                        {{ variant[header[0]].split("-")[0] }}-{{ variant[header[0]].split("-")[1] }}
-                        {{ variant[header[0]].split("-")[2] | shortSeq }}
-                        &rarr;
-                        {{ variant[header[0]].split("-")[3] | shortSeq }}
-                        <span ng-if="variant['rsid']">({{ variant["rsid"] }})</span>
+                        {{ variant | formatVariant }}
                     </a>
                 </span>
                 <span ng-switch-when="HGVS" title="{{variant['HGVS']}}">
