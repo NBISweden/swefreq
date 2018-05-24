@@ -4,10 +4,23 @@
 <div class="row">
     <div class="col-md-4">
         <label>Display:</label>
-        <span class="btn-group" ng-click="ctrl.setCoverageZoom($event)">
-            <button class="btn btn-primary active" value="overview">Overview</button>
-            <button class="btn btn-primary" value="detail">Detail</button>
-        </span><br/>
+        <span class="btn-group radio-button-group">
+            <input type="radio" id="display-overview" ng-model="ctrl.coverage.zoom" value="overview">
+                <button class="btn btn-primary first-button">
+                    <label for="display-overview">
+                        Overview
+                    </label>
+                </button>
+            </input>
+            <input type="radio" id="display-detail" ng-model="ctrl.coverage.zoom" value="detail">
+                <button class="btn btn-primary">
+                    <label for="display-detail">
+                        Detail
+                    </label>
+                </button>
+            </input>
+        </span>
+
         <label>
             <input type="checkbox" ng-model="ctrl.coverage.includeUTR"
                                    ng-selected="ctrl.coverage.includeUTR">Include UTRs in plot

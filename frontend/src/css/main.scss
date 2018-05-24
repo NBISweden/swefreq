@@ -283,6 +283,32 @@ table.variant-table {
     }
 }
 
+.radio-button-group {
+    .first-button {
+        // This is also a bootstrap workaround hack
+        border-top-left-radius: 4px !important;
+        border-bottom-left-radius: 4px !important;
+    }
+    label {
+        display: inherit;
+        max-width: inherit;
+        margin-bottom: inherit;
+        font-weight: inherit;
+    }
+    input[type=radio] {
+        display: none;
+    }
+    input[type=radio]:checked + .btn{
+        // This is the same as the bootstrap .btn-primary.active TODO fix this by using bootstrap properly ourselves
+        color: #fff;
+        background-color: #286090;
+        border-color: #204d74;
+        // And the shadow
+        box-shadow: inset 0 3px 5px rgba(0,0,0,.125);
+        -webkit-box-shadow: inset 0 3px 5px rgba(0,0,0,.125);
+    }
+}
+
 /* Affiliate footer */
 footer {
     padding-top: 30px;

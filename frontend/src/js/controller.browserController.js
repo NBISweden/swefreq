@@ -30,9 +30,6 @@
         localThis.search = search;
         localThis.autocomplete = autocomplete;
 
-        // coverage functions
-        localThis.setCoverageZoom = setCoverageZoom;
-
         // variant list functions
         localThis.filterVariantsBy = filterVariantsBy;
         localThis.reorderVariants = reorderVariants;
@@ -127,23 +124,6 @@
             } else {
                 localThis.suggestions = [];
             }
-        }
-
-        function setCoverageZoom($event) {
-            let clickedElement = $event.target || $event.srcElement;
-
-            if( clickedElement.nodeName === "BUTTON" ) {
-
-              let activeButton = clickedElement.parentElement.querySelector(".active");
-              // if a Button already has Class: .active
-              if( activeButton ) {
-                activeButton.classList.remove("active");
-              }
-
-              clickedElement.className += " active";
-            }
-            let zoomLevel = clickedElement.value;
-            localThis.coverage.zoom = zoomLevel;
         }
 
         function filterVariantsBy($event) {
