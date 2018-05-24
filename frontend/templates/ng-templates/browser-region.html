@@ -5,10 +5,14 @@
 <div class="container" ng-if="ctrl.region">
 
     <!-- HEADER -->
-    <h1 ng-if="ctrl.rsid">{{ ctrl.rsid }}</h1>
-    <h1 ng-if="!ctrl.rsid">Region: {{ ctrl.region.chrom }}
-        <span ng-if="ctrl.region.stop"> / {{ ctrl.region.start }} / {{ ctrl.region.stop }}</span>
-    </h1>
+    <div class="row">
+        <div class="col-md-12">
+            <h1 ng-if="ctrl.rsid">{{ ctrl.rsid }}</h1>
+            <h1 ng-if="!ctrl.rsid">Region: {{ ctrl.region.chrom }}
+                <span ng-if="ctrl.region.stop"> / {{ ctrl.region.start }} / {{ ctrl.region.stop }}</span>
+            </h1>
+        </div>
+    </div>
 
     <!-- WARNINGS -->
     <div ng-if="ctrl.region.stop">
@@ -31,15 +35,13 @@
     <!-- GENES -->
     <div ng-if="ctrl.region.genes">
         <div class="section_header">Genes</div>
-            <ul>
-                <li ng-repeat="gene in ctrl.region.genes">
-                    <a href="{{ ctrl.browserLink('gene/' + gene.geneId) }}">{{ gene.geneId }}</a>
-                    ({{ gene.fullGeneName }})
-                </li>
-            </ul>
-        </div>
+        <ul>
+            <li ng-repeat="gene in ctrl.region.genes">
+                <a href="{{ ctrl.browserLink('gene/' + gene.geneId) }}">{{ gene.geneId }}</a>
+                ({{ gene.fullGeneName }})
+            </li>
+        </ul>
     </div>
-
 </div>
 
 <!-- Coverage plot -->
@@ -56,6 +58,7 @@
 <div ng-if="ctrl.filteredVariants">
     [% include "ng-templates/browser-variant_list.html" %]
 </div>
+
 <!-- Loading message -->
 <div ng-if="!ctrl.filteredVariants">
     <h1>Loading Variant List</h1>

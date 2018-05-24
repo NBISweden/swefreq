@@ -1,15 +1,18 @@
 <div class="container">
     <div class="row">
-        <span class="btn-group" ng-click="ctrl.filterVariantsBy($event)">
-            <button class="btn btn-primary active" value="[]">All</button>
-            <button class="btn btn-primary" value='["missense", "lof"]'>Missense + LoF</button>
-            <button class="btn btn-primary" value='["lof"]'>LoF</button>
-        </span><br/>
-        <a ng-if="ctrl.item" class="btn btn-success" href="/api/datasets/{{ctrl.dataset.shortName}}/browser/download/{{ctrl.itemType}}/{{ctrl.item}}">Export table to CSV</a><br/>
-        <span class="label label-info">&dagger; denotes a consequence that is for a non-canonical transcript</span>
+        <div class="col-md-12">
+            <span class="btn-group" ng-click="ctrl.filterVariantsBy($event)">
+                <button class="btn btn-primary active" value="[]">All</button>
+                <button class="btn btn-primary" value='["missense", "lof"]'>Missense + LoF</button>
+                <button class="btn btn-primary" value='["lof"]'>LoF</button>
+            </span><br/>
+            <a ng-if="ctrl.item" class="btn btn-success" href="/api/datasets/{{ctrl.dataset.shortName}}/browser/download/{{ctrl.itemType}}/{{ctrl.item}}">Export table to CSV</a><br/>
+            <span class="label label-info">&dagger; denotes a consequence that is for a non-canonical transcript</span>
+        </div>
     </div>
 
     <div class="row">
+        <div class="col-md-12">
         <table class="table table-sm table-striped table-condensed small variant-table">
             <thead>
                 <tr>
@@ -60,5 +63,6 @@
                 </tr>
             </tbody>
         </table>
+        </div>
     </div>
 </div>
