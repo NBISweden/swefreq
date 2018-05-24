@@ -29,10 +29,11 @@ def connect_db(dataset, use_shared_data=False):
 
 
 def get_variant_list(dataset, datatype, item):
-    ret = {'variants':[], 'headers':[['variant_id','Variant'], ['chrom','Chrom'], ['pos','Position'],
+    headers = [['variant_id','Variant'], ['chrom','Chrom'], ['pos','Position'],
                                      ['HGVS','Consequence'], ['filter','Filter'], ['major_consequence','Annotation'],
                                      ['flags','Flags'], ['allele_count','Allele Count'], ['allele_num','Allele Number'],
-                                     ['hom_count','Number of Homozygous Alleles'], ['allele_freq','Allele Frequency']]}
+                                     ['hom_count','Number of Homozygous Alleles'], ['allele_freq','Allele Frequency']]
+
     try:
         db = connect_db(dataset, False)
         db_shared = connect_db(dataset, True)
@@ -46,26 +47,23 @@ def get_variant_list(dataset, datatype, item):
             variants = lookups.get_variants_in_transcript(db, item)
 
         # Format output
-        for variant in variants:
-            formatted_variant = {}
-            # Basic variables
-            for var in ['variant_id', 'chrom', 'pos', 'HGVS', 'CANONICAL', 'major_consequence', 'filter', 'flags',
-                        'allele_count', 'allele_num', 'hom_count', 'allele_freq', 'rsid']:
-                if var == 'major_consequence':
-                    v = variant[var][:-8] if variant[var].endswith("_variant") else variant[var]
-                    v = v.replace('_prime_', '\'')
-                    formatted_variant[var] = v.replace('_', ' ')
-                elif var == 'rsid':
-                    formatted_variant[var] = variant[var] if not variant[var] == "." else ""
-                elif type(variant[var]) == type([]):
-                    formatted_variant[var] = ", ".join(variant[var])
-                else:
-                    formatted_variant[var] = variant[var]
-            ret['variants'] += [formatted_variant]
+        def format_variant(variant):
+            if variant['rsid'] == '.':
+                variant['rsid'] = ''
+
+            variant['major_consequence'] = (variant['major_consequence'].replace('_variant','')
+                                                                        .replace('_prime_', '\'')
+                                                                        .replace('_', ' '))
+
+            # This is so an array values turns into a comma separated string instead
+            return {k: ", ".join(v) if type(v) == type([]) else v for k, v in variant.items()}
+        variants = list(map(format_variant, variants))
+        return {'variants': variants, 'headers': headers}
+
     except pymongo.errors.OperationFailure as e:
         logging.error("PyMongo OperationFailure: {}".format(e))
 
-    return ret
+    # TODO We should return a http error code here.
 
 
 def get_coverage(dataset, datatype, item):
