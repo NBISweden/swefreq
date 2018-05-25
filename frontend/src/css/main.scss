@@ -246,6 +246,13 @@ input.btn-sm {
     float:left;
 }
 
+table.mini-table {
+    th {
+        padding-right: 15px;
+        text-align: right;
+    }
+}
+
 
 table.variant-table {
     /* Allele frequency visualisation */

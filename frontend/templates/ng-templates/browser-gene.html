@@ -114,15 +114,19 @@
         </div>
     </div> <!-- END row -->
 </div>
+<!-- LOADING MESSAGE -->
+<div ng-if="!ctrl.gene" class="alert alert-info col-md-4 col-md-offset-4 text-center" >
+    <strong>Loading Gene</strong>
+</div>
 
 <!-- Coverage plot -->
-<div ng-if="ctrl.coverage" class="container">
+<div ng-if="ctrl.coverage.data.length" class="container">
     [% include "ng-templates/browser-coverage_plot.html" %]
 </div>
 
 <!-- Loading message -->
-<div ng-if="!ctrl.coverage">
-    <h1>Loading Coverage</h1>
+<div ng-if="!ctrl.coverage.data.length" class="alert alert-info col-md-4 col-md-offset-4 text-center" >
+    <strong>Loading Coverage</strong>
 </div>
 
 <!-- Variant list -->
@@ -130,7 +134,7 @@
     [% include "ng-templates/browser-variant_list.html" %]
 </div>
 <!-- Loading message -->
-<div ng-if="!ctrl.filteredVariants">
-    <h1>Loading Variant List</h1>
+<div ng-if="!ctrl.filteredVariants" class="alert alert-info col-md-4 col-md-offset-4 text-center" >
+    <strong>Loading Variant List</strong>
 </div>
 [% endblock %]

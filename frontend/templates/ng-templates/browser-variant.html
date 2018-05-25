@@ -3,252 +3,208 @@
 [% block controller %]browserController[% endblock %]
 [% block contents %]
 <div class="container" ng-if="ctrl.variant">
-    <div class="container">
 
-        <!-- HEADER -->
-        <div class="row">
-            <div class="col-md-6">
-                <h1><span class="hidden-xs">Variant: </span>{{ ctrl.variant.chrom }}:{{ ctrl.variant.pos }} {{ ctrl.variant.ref }} / {{ ctrl.variant.alt }}</h1>
+    <!-- HEADER -->
+    <div class="col-md-12">
+        <div class="col-md-8">
+            <h1><span class="hidden-xs">Variant: </span>
+                {{ ctrl.variant.chrom }}:{{ ctrl.variant.pos }} {{ ctrl.variant.ref }} / {{ ctrl.variant.alt }}
+            </h1>
+        </div>
+        <div ng-if="ctrl.variant.origAltAlleles.length > 1" class="col-md-4">
+            <h5>
+                <p>
+                    <span class="label label-info">Note:</span> This variant is multiallelic!
+                </p>
+                The other alt alleles are:
+            </h5>
+            <ul>
+                <li ng-repeat="allele in ctrl.variant.origAltAlleles">
+                    <a href="{{ ctrl.browserLink('variant/' + allele) }}">{{ allele }}</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <hr> <!-- END HEADER -->
+
+    <!-- TOP PANES -->
+    <!--  Left top pane -->
+    <div class="alert alert-warning" ng-if="ctrl.variant.alleleNum < ctrl.dataset.datasetSize * 1.6">
+        <h4>Warning!</h4>
+        <p>This variant is only covered in {{ (ctrl.variant.alleleNum/2) | number:0 }} individuals (adjusted allele number = {{ ctrl.variant.alleleNum }}).</p>
+        <p>This means that the site is covered in fewer than 80% of the individuals in {{ ctrl.dataset.shortName }}, which may indicate a low-quality site.</p>
+    </div>
+    <div class="col-md-6">
+        <dl class="dl-horizontal">
+            <dt><span ng-class="{'label label-danger':ctrl.variant.filter != 'PASS'}">Filter Status</span></dt>
+                <dd>{{ ctrl.variant.filter }}</dd>
+            <dt>dbSNP</dt>
+                <dd ng-if="ctrl.variant.rsid && ctrl.variant.rsid != '.'">
+                    <a href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?rs={{ ctrl.variant.rsid }}" target="_blank">
+                        {{ ctrl.variant.rsid }}
+                    </a>
+                </dd>
+                <dd ng-if="!ctrl.variant.rsid || ctrl.variant.rsid == '.'">Not found in dbSNP</dd>
+            <dt>Allele Frequency</dt>
+                <dd ng-if="ctrl.variant.alleleFreq">{{ ctrl.variant.alleleFreq | number : 4 }}</dd>
+                <dd ng-if="!ctrl.variant.alleleFreq">NA (Allele Number = 0)</dd>
+            <dt>Allele Count</dt>
+                <dd>{{ ctrl.variant.alleleCount }} / {{ ctrl.variant.alleleNum }}</dd>
+            <dt>UCSC</dt>
+                <dd>
+                    <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr{{ ctrl.variant.chrom }}%3A{{ ctrl.variant.pos }}-{{ ctrl.variant.pos + ctrl.variant.ref.length - 1 }}&position=chr{{ ctrl.variant.chrom }}%3A{{ ctrl.variant.pos - 25 }}-{{ ctrl.variant.pos + ctrl.variant.ref.length - 1 + 25 }}" target="_blank">
+                        {{ ctrl.variant.variantId }}
+                        <i class="fa fa-external-link"></i>
+                    </a>
+                </dd>
+            <dt>ClinVar</dt>
+                <dd ng-if="!ctrl.variant.rsid || ctrl.variant.rsid == '.'">
+                    <a href="http://www.ncbi.nlm.nih.gov/clinvar?term=({{ ctrl.variant.chrom }}%5BChromosome%5D)%20AND%20{{ ctrl.variant.pos }}%5BBase%20Position%20for%20Assembly%20GRCh37%5D" target="_blank">
+                </dd>
+                <dd ng-if="ctrl.variant.rsid && ctrl.variant.rsid != '.'">
+                    <a href="http://www.ncbi.nlm.nih.gov/clinvar?term={{ ctrl.variant.rsid }}%5BVariant%20ID%5D" target="_blank">
+                        Click to search for variant in Clinvar
+                        <i class="fa fa-external-link"></i>
+                    </a>
+                </dd>
+        </dl>
+    </div>
+
+    <!-- top right pane -->
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="text-center"><strong>Site Quality Metrics</strong></span>
             </div>
 
-            <div class="col-md-6" ng-if="ctrl.variant.origAltAlleles.length > 1">
-                <h5><span class="label label-info">Note:</span> This variant is multiallelic! The other alt alleles are:</h5>
-                <ul>
-                    <li ng-repeat="allele in ctrl.variant.origAltAlleles">
-                        <a href="{{ ctrl.browserLink('variant/' + allele) }}">{{ allele }}</a>
-                    </li>
-                </ul>
-            </div>
-        </div> <!-- END HEADER -->
-        <hr/>
-
-        <!--  Left top pane -->
-        <div ng-if="ctrl.variant.variantId">
-            <div class="alert alert-warning" ng-if="ctrl.variant.alleleNum < ctrl.dataset.datasetSize * 1.6">
-                <h4>Warning!</h4>
-                <p>This variant is only covered in {{ (ctrl.variant.alleleNum/2) | number:0 }} individuals (adjusted allele number = {{ ctrl.variant.alleleNum }}).</p>
-                <p>This means that the site is covered in fewer than 80% of the individuals in {{ ctrl.dataset.shortName }}, which may indicate a low-quality site.</p>
-            </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <dl class="dl-horizontal" style="margin-bottom: 0px;">
-                        <dt><span ng-class="{'label label-danger':ctrl.variant.filter != 'PASS'}">Filter Status</span></dt>
-                            <dd>{{ ctrl.variant.filter }}</dd>
-                        <dt>dbSNP</dt>
-                                <dd ng-if="ctrl.variant.rsid && ctrl.variant.rsid != '.'">
-                                    <a href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?rs={{ ctrl.variant.rsid }}" target="_blank">{{ ctrl.variant.rsid }}</a>
-                                </dd>
-                                <dd ng-if="!ctrl.variant.rsid || ctrl.variant.rsid == '.'">Not found in dbSNP</dd>
-                        <dt>Allele Frequency</dt>
-                            <dd ng-if="ctrl.variant.alleleFreq">{{ ctrl.variant.alleleFreq | number : 4 }}</dd>
-                            <dd ng-if="!ctrl.variant.alleleFreq">NA (Allele Number = 0)</dd>
-                        <dt>Allele Count</dt>
-                            <dd>{{ ctrl.variant.alleleCount }} / {{ ctrl.variant.alleleNum }}</dd>
-                        <dt>UCSC</dt>
-                            <dd>
-                                <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr{{ ctrl.variant.chrom }}%3A{{ ctrl.variant.pos }}-{{ ctrl.variant.pos + ctrl.variant.ref.length - 1 }}&position=chr{{ ctrl.variant.chrom }}%3A{{ ctrl.variant.pos - 25 }}-{{ ctrl.variant.pos + ctrl.variant.ref.length - 1 + 25 }}" target="_blank">
-                                    {{ ctrl.variant.variantId }}
-                                    <i class="fa fa-external-link"></i>
-                                </a>
-                            </dd>
-                        <dt>ClinVar</dt>
-                            <dd ng-if="!ctrl.variant.rsid || ctrl.variant.rsid == '.'">
-                                    <a href="http://www.ncbi.nlm.nih.gov/clinvar?term=({{ ctrl.variant.chrom }}%5BChromosome%5D)%20AND%20{{ ctrl.variant.pos }}%5BBase%20Position%20for%20Assembly%20GRCh37%5D" target="_blank">
-                            </dd>
-                            <dd ng-if="ctrl.variant.rsid && ctrl.variant.rsid != '.'">
-                                <a href="http://www.ncbi.nlm.nih.gov/clinvar?term={{ ctrl.variant.rsid }}%5BVariant%20ID%5D" target="_blank">
-                                    Click to search for variant in Clinvar
-                                    <i class="fa fa-external-link"></i>
-                                </a>
-                            </dd>
-                    </dl>
+            <div class="panel-body">
+                <div class="alert alert-info alert-dismissable"
+                     ng-if="ctrl.variant.origAltAlleles.length > 1" role="alert">
+                    <strong>Note:</strong>
+                    These are site-level quality metrics: they may be unpredictable for multi-allelic sites.
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-
-                    <!-- top right pane -->
+                <small>
                     <div class="col-md-6">
-                        <div class="row">
-                            <div class="col-md-8 col-md-offset-1">
-                                <div class="panel-group" id="metrics_outer_accordion" role="tablist" aria-multiselectable="true">
-
-                                    <!--  Genotype quality metrics -->
-                                    <div class="panel panel-default">
-                                        <div class="panel-heading" role="tab" id="gt_quality_collapse_heading" style="height: auto">
-                                            <div class="panel-title">
-                                                <a data-toggle="collapse" data-parent="#accordion" href="#gt_quality_collapse" aria-expanded="false" aria-controls="gt_quality_collapse">
-                                                    <small>Genotype Quality Metrics</small>
-                                                </a>
-                                            </div>
-                                        </div>
-
-                                        <div id="gt_quality_collapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="gt_quality_collapse_heading">
-                                            <div class="row">
-                                                <div class="col-md-10 col-md-offset-1">
-                                                    <div id="quality_metrics_container">
-                                                        <span class="btn-group" data-toggle="buttons" id="quality_full_site_button_group">
-                                                            <button class="btn btn-primary btn-sm active quality_full_site_buttons" id="variant_carriers_button"
-                                                                    data-tooltip="Show metric for only individuals with this allele.">
-                                                                <input type="radio"> Variant carriers
-                                                            </button>
-                                                            <button class="btn btn-primary btn-sm quality_full_site_buttons" id="variant_site_button"
-                                                                    data-tooltip="Show metric for all individuals (at this site, whether or not they have this allele).">
-                                                                <input type="radio" > All individuals
-                                                            </button>
-                                                        </span>
-                                                        <div id="quality_display_container" class="d3_graph"></div>
-                                                        <small><span class="label label-info">Note:</span>
-                                                            Plot may include low-quality genotypes that were excluded from allele counts in the table above
-                                                        </small>
-                                                        <span class="btn-group" data-toggle="buttons" id="quality_display_button_group" >
-                                                            <button class="btn btn-primary btn-sm active quality_display_buttons" id="genotype_depths_button"
-                                                                    data-tooltip="Per sample depth. Capped at 100X">
-                                                                <input type="radio"> Depth
-                                                            </button>
-                                                            <button class="btn btn-primary btn-sm quality_display_buttons" id="genotype_qualities_button"
-                                                                    data-tooltip="Per sample genotype quality.">
-                                                                <input type="radio" > Genotype Quality
-                                                            </button>
-                                                        </span>
-                                                    </div>
-                                                    <br/>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!--  Genotype quality metrics -->
-                                    <div class="panel panel-default">
-                                        <div class="panel-heading" role="tab" id="quality_collapse_heading"   style="height: auto">
-                                            <div class="panel-title">
-                                                <a data-toggle="collapse" data-parent="#accordion" href="#quality_collapse" aria-expanded="false" aria-controls="quality_collapse">
-                                                    <small>Site Quality Metrics</small>
-                                                </a>
-                                            </div>
-                                        </div>
-                                        <div id="quality_collapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="quality_collapse_heading">
-                                            <div class="row">
-                                                <div class="col-md-10 col-md-offset-1">
-                                                    <div id="quality_metric_container"></div>
-                                                    <small><div id="site_quality_note"></div></small>
-                                                    <small><span class="label label-info">Note:</span>
-                                                        These are site-level quality metrics: they may be unpredictable for multi-allelic sites.
-                                                    </small>
-                                                    <select id="quality_metric_select" class="form-control">
-                                                        <option><small>Site Quality: {{ ctrl.variant.siteQuality }}</small></option>
-                                                        <option ng-repeat="(metric, value) in ctrl.variant.qualityMetrics"><small>{{ metric }}: {{ value }}</small></option>
-                                                    </select>
-                                                    <br/>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
+                        <table class="mini-table">
+                            <tr><th>Site Quality</th><td>{{ ctrl.variant.siteQuality }}</td></tr>
+                            <tr ng-repeat="(metric, value) in ctrl.variant.qualityMetrics" ng-if="$odd">
+                                <th>{{ metric }}</th><td>{{ value }}</td>
+                            </tr>
+                        </table>
                     </div>
+                    <div class="col-md-6">
+                        <table class="mini-table">
+                            <tr ng-repeat="(metric, value) in ctrl.variant.qualityMetrics" ng-if="$even">
+                                <th>{{ metric }}</th><td>{{ value }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </small>
 
             </div>
-            <hr/>
-        </div> <!-- if variantId -->
+        </div>
+    </div>
+    <!-- TOP PANES -->
 
-        <div class="row">
-            <!-- Left middle pane -->
-            <div class="col-md-6">
-                <div ng-if="ctrl.variant.variantId">
-                    <h2>Annotations</h2>
-                    <div ng-if="ctrl.variant.annotations">
-                        <p>This variant falls on {{ ctrl.variant.transcripts.length }} transcripts in {{ ctrl.variant.genes.length }}</p>
-                        <div class="row">
-                            <div class="col-md-6" ng-repeat="(type, annotation) in ctrl.variant.annotations">
-                                <h5>{{ type }}</h5>
-                                <table class="table table-sm table-striped table-condensed small">
-                                    <tr>
-                                        <th>Gene</th>
-                                        <td><a href="{{ ctrl.browserLink('gene/' + annotation.gene.id) }}">
-                                            {{ annotation.gene.name }}
-                                            </a>
-                                        </td>
+    <!-- MIDDLE PANES -->
+    <!-- Left middle pane -->
+    <div class="col-md-6">
+        <div ng-if="ctrl.variant.variantId">
+            <h2>Annotations</h2>
+            <div ng-if="ctrl.variant.annotations">
+                <p>This variant falls on {{ ctrl.variant.transcripts.length }} transcripts in {{ ctrl.variant.genes.length }}</p>
+                <div class="col-md-6" ng-repeat="(type, annotation) in ctrl.variant.annotations">
+                    <h5>{{ type }}</h5>
 
-                                        <td>
-                                            <div class="dropdown">
-                                                <button class="btn btn-xs btn-info dropdown-toggle" type="button" data-toggle="dropdown">
-                                                    Transcripts<span class="caret"></span>
-                                                </button>
-                                                <ul class="dropdown-menu">
-                                                    <li ng-repeat="transcript in annotation.transcripts">
-                                                        <a href="{{ ctrl.browserLink('transcript/' + transcript.id) }}">
-                                                            {{ transcript.id }}
-                                                            <span ng-if="transcript.modification">({{ transcript.modification }})</span>
-                                                            <br/>
-                                                            <span ng-if="transcript.polyphen">
-                                                                Polyphen: <span>{{ transcript.polyphen }}</span>
-                                                            </span>
-                                                            <span ng-if="transcript.sift">
-                                                                , SIFT: <span>{{ transcript.sift }}</span>
-                                                            </span>
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div> <!-- row -->
-                        </div> <!-- variant.annotations -->
-                        <small><span class="label label-info">Note:</span> This list may not include additional transcripts in the same gene that the variant does not overlap.</small>
-                    </div>
-
-                    <div ng-if="!ctrl.variant.annotations">
-                        No annotations were found for this variant.
-                    </div>
-                </div> <!-- if variantId -->
-                <div ng-if="!ctrl.variant.variantId">
-                    <h3>This variant is not found in SweGen.</h3>
-                </div>
-            </div> <!-- col-md-6 -->
-
-
-
-            <!-- Right middle pane -->
-            <div class="col-md-6">
-
-                <h2>Population Frequencies</h2>
-                <div ng-if="ctrl.variant.popFreq">
                     <table class="table table-sm table-striped table-condensed small">
-                        <thead>
-                            <tr>
-                                <th ng-repeat="header in ctrl.variant.popFreq.headers">
-                                    {{ header[0] }}
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr ng-repeat="(dataset, value) in ctrl.variant.popFreq.datasets">
-                                <td ng-repeat="header in ctrl.variant.popFreq.headers">
-                                    {{ value[header[1]] }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Total</th>
-                                <th ng-repeat="header in ctrl.variant.popFreq.headers" ng-if="header[1] != 'pop'">
-                                    {{ ctrl.variant.popFreq.total[header[1]] }}
-                                </th>
-                            </tr>
-                        </tbody>
+                        <tr>
+                            <th>Gene</th>
+                            <td><a href="{{ ctrl.browserLink('gene/' + annotation.gene.id) }}">
+                                {{ annotation.gene.name }}
+                                </a>
+                            </td>
+
+                            <td>
+                                <div class="dropdown">
+                                    <button class="btn btn-xs btn-info dropdown-toggle" type="button" data-toggle="dropdown">
+                                        Transcripts<span class="caret"></span>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li ng-repeat="transcript in annotation.transcripts">
+                                            <a href="{{ ctrl.browserLink('transcript/' + transcript.id) }}">
+                                                {{ transcript.id }}
+                                                <span ng-if="transcript.modification">
+                                                    ({{ transcript.modification }})
+                                                </span>
+                                                <br/>
+                                                <span ng-if="transcript.polyphen">
+                                                    Polyphen: <span>{{ transcript.polyphen }}</span>
+                                                </span>
+                                                <span ng-if="transcript.sift">
+                                                    , SIFT: <span>{{ transcript.sift }}</span>
+                                                </span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
                     </table>
-                </div> <!-- if popFreq -->
+                </div>
 
-                <div ng-if="!ctrl.variant.popFreq">
-                    <p>No Population Frequencies available</p>
-                </div> <!-- if popFreq -->
+            </div> <!-- variant.annotations -->
+            <small><span class="label label-info">Note:</span> This list may not include additional transcripts in the same gene that the variant does not overlap.</small>
+
+            <div ng-if="!ctrl.variant.annotations">
+                No annotations were found for this variant.
             </div>
-        </div> <!-- row -->
+        </div> <!-- if variantId -->
+        <div ng-if="!ctrl.variant.variantId">
+            <h3>This variant is not found in SweGen.</h3>
+        </div>
+    </div> <!-- col-md-6 -->
 
-    </div> <!-- container -->
-</div>
+    <!-- Right middle pane -->
+    <div class="col-md-6">
+
+        <h2>Population Frequencies</h2>
+        <div ng-if="ctrl.variant.popFreq">
+            <table class="table table-sm table-striped table-condensed small">
+                <thead>
+                    <tr>
+                        <th ng-repeat="header in ctrl.variant.popFreq.headers">{{ header[0] }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="(dataset, value) in ctrl.variant.popFreq.datasets">
+                        <td ng-repeat="header in ctrl.variant.popFreq.headers">
+                            {{ value[header[1]] }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Total</th>
+                        <th ng-repeat="header in ctrl.variant.popFreq.headers" ng-if="header[1] != 'pop'">
+                            {{ ctrl.variant.popFreq.total[header[1]] }}
+                        </th>
+                    </tr>
+                </tbody>
+            </table>
+        </div> <!-- if popFreq -->
+
+        <div ng-if="!ctrl.variant.popFreq">
+            <p>No Population Frequencies available</p>
+        </div> <!-- if popFreq -->
+    </div>
+
+    <!-- MIDDLE PANES -->
+
+</div> <!-- container -->
 
 <!-- LOADING MESSAGE -->
-<div ng-if="!ctrl.variant">
-    <h1>Loading Variant</h1>
+<div ng-if="!ctrl.variant" class="alert alert-info col-md-4 col-md-offset-4 text-center" >
+    <strong>Loading Variant</strong>
 </div>
 [% endblock %]
