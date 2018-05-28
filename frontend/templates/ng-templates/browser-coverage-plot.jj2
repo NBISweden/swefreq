@@ -2,7 +2,7 @@
 <p>(Coverage shown for <a href="http://www.ensembl.org/Help/Glossary?id=346" target="_blank">canonical transcript</a>: {{ ctrl.gene.canonicalTranscript }})</p>
 <p>Mean coverage: {{ ctrl.dataset.avgSeqDepth }} (entire dataset)</p>
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-6">
         <label>Display:</label>
         <span class="btn-group radio-button-group">
             <input type="radio" id="display-overview" ng-model="ctrl.coverage.zoom" value="overview">
@@ -23,9 +23,9 @@
         </label>
     </div>
 
-    <div class="col-md-4 offset-md-4">
-        <label>Coverage functions:</label>
-        <div>
+    <div class="col-md-6">
+        <label>Coverage metrics:</label>
+        <span>
             <label>
                 <input type="radio" ng-model="ctrl.coverage.function" value="mean">
                 Mean
@@ -41,9 +41,11 @@
                         {{ cov }}
                 </select> X coverage
             </label>
-      </div>
+        </span>
     </div>
+</div>
 
+<div class="row">
     <div class="col-md-12">
         <canvas id="canvas" width="1000" height="300" coverage></canvas>
         <div id="annotationPanel" style="position: absolute; visibility: hidden" class="panel panel-default">
