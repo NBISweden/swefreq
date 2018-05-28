@@ -194,14 +194,6 @@
             // Set context font
             ctx.font=`${settings.fontSize}px Arial`;
 
-            // Set header text
-            if (region.chrom) {
-                ctx.fillStyle="#000000"
-                var text = `Chrom ${region.chrom}`;
-                var width = ctx.measureText(text).width;
-                ctx.fillText(text, w/2.0-width/2.0, settings.fontSize+settings.spacing/2.0)
-            }
-
             // Draw coverage axis (y) text
             ctx.fillStyle="#000000";
             for (var i = 0; i < axes.y.length; i++) {
