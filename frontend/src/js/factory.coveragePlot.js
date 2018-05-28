@@ -299,51 +299,59 @@
             var width = ctx.canvas.clientWidth - settings.margins.l - settings.margins.r;
             var height = ctx.canvas.clientHeight - settings.margins.t - settings.margins.b;
 
-            // Fill the area under the graph
-            first = true;
-            var last = {"x":null, "y":null};
-            ctx.beginPath();
-            ctx.globalAlpha=0.3;
-            ctx.fillStyle = "#6699cc"
-            for (var i = 0; i < data.data.length; i++) {
-                var x = settings.margins.l + width * (data.data[i].pos - axes.x.start) / (axes.x.stop - axes.x.start)
-                var y = settings.margins.t + height * (1-(Math.max(yMin, Math.min(data.data[i][data.function], yMax)) - yMin) / (yMax-yMin));
+            let xAxisLength = axes.x.stop - axes.x.start;
+            let yAxisLength = yMax - yMin;
+
+            var points = [];
+            for (var p of data.data) {
+                let x = settings.margins.l + width * (p.pos - axes.x.start) / xAxisLength;
+                let y = settings.margins.t + height * (1 - (Math.max(yMin, Math.min(p[data.function], yMax)) - yMin) / yAxisLength);
                 if (x < settings.margins.l || y === undefined)
                     continue
 
-                if (last.x != null && last.y != null) {
+                points.push([x,y]);
+            }
+
+            // Fill the area under the graph
+            first = true;
+            var prev = {"x":null, "y":null};
+            ctx.beginPath();
+            ctx.globalAlpha=0.3;
+            ctx.fillStyle = "#6699cc"
+            for (let p of points) {
+                let [x, y] = p
+                console.log(`X: ${x} Y: ${y}`);
+
+                if (prev.x != null && prev.y != null) {
                     ctx.beginPath();
 
-                    ctx.moveTo(last.x, last.y);
+                    ctx.moveTo(prev.x, prev.y);
                     ctx.lineTo(x,y);
                     ctx.lineTo(x, settings.margins.t + height);
-                    ctx.lineTo(last.x, settings.margins.t + height);
+                    ctx.lineTo(prev.x, settings.margins.t + height);
                     ctx.closePath();
                     ctx.fill();
                 }
 
-                last.x = x;
-                last.y = y;
+                prev.x = x;
+                prev.y = y;
             }
             ctx.closePath();
 
             // Draw main graph line
             var first = true;
-            last = {"x":null, "y":null};
+            prev = {"x":null, "y":null};
             ctx.beginPath();
             ctx.globalAlpha=0.8;
             ctx.strokeStyle = "#006699"
-            for (var i = 0; i < data.data.length; i++) {
-                var x = settings.margins.l + width * (data.data[i].pos - axes.x.start) / (axes.x.stop - axes.x.start)
-                var y = settings.margins.t + height * (1-(Math.max(yMin, Math.min(data.data[i][data.function], yMax)) - yMin) / (yMax-yMin));
-                if (x < settings.margins.l || y === undefined)
-                    continue
+            for (let p of points) {
+                let [x, y] = p
 
                 // add blips if there's distance between the graph points
-                if (last.x != null && Math.abs(last.x - x) > 4) {
-                    ctx.lineTo(last.x, last.y-2);
-                    ctx.lineTo(last.x, last.y+2);
-                    ctx.lineTo(last.x, last.y);
+                if (prev.x != null && Math.abs(prev.x - x) > 4) {
+                    ctx.lineTo(prev.x, prev.y-2);
+                    ctx.lineTo(prev.x, prev.y+2);
+                    ctx.lineTo(prev.x, prev.y);
                 }
 
                 if (first) {
@@ -354,13 +362,15 @@
                 }
 
                 // Add final blip if needed
-                if ( i+1 == data.data.length && Math.abs(last.x - x) > 4 ) {
+                /*
+                if ( i+1 == data.data.length && Math.abs(prev.x - x) > 4 ) {
                     ctx.lineTo(x, y-2);
                     ctx.lineTo(x, y+2);
                 }
+                */
 
-                last.x = x;
-                last.y = y;
+                prev.x = x;
+                prev.y = y;
             }
             ctx.stroke();
             ctx.closePath();
