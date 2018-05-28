@@ -69,6 +69,7 @@ def add_consequence_to_variants(variant_list):
 
 def add_consequence_to_variant(variant):
     worst_csq = worst_csq_with_vep(variant['vep_annotations'])
+    variant['major_consequence'] = ''
     if worst_csq is None: return
     variant['major_consequence'] = worst_csq['major_consequence']
     variant['HGVSp'] = get_protein_hgvs(worst_csq)
