@@ -313,30 +313,17 @@
             }
 
             // Fill the area under the graph
-            first = true;
-            var prev = {"x":null, "y":null};
             ctx.beginPath();
             ctx.globalAlpha=0.3;
             ctx.fillStyle = "#6699cc"
+
+            ctx.moveTo(points[0][0], settings.margins.t + height);
             for (let p of points) {
-                let [x, y] = p
-                console.log(`X: ${x} Y: ${y}`);
-
-                if (prev.x != null && prev.y != null) {
-                    ctx.beginPath();
-
-                    ctx.moveTo(prev.x, prev.y);
-                    ctx.lineTo(x,y);
-                    ctx.lineTo(x, settings.margins.t + height);
-                    ctx.lineTo(prev.x, settings.margins.t + height);
-                    ctx.closePath();
-                    ctx.fill();
-                }
-
-                prev.x = x;
-                prev.y = y;
+                ctx.lineTo(p[0],p[1]);
             }
+            ctx.lineTo(points[points.length-1][0], settings.margins.t + height);
             ctx.closePath();
+            ctx.fill();
 
             // Draw main graph line
             var first = true;
