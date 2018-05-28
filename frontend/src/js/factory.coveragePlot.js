@@ -172,11 +172,10 @@
             var width = 0;
             for (var i = 0; i < axes.y.length; i++) {
                 // 3 pixels extra for antialiasing
-                width = ctx.measureText(axes.y[i]).width+3;
+                width = ctx.measureText(axes.y[i]).width + 3 + settings.spacing;
                 if (width > settings.margins.l)
                     settings.margins.l = width;
             }
-            settings.margins.l += settings.spacing;
             settings.margins.b = settings.fontSize + settings.spacing + settings.annotationSpace;
             settings.margins.t = settings.fontSize + settings.spacing;
 
