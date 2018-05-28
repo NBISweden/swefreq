@@ -33,7 +33,8 @@
         // variant list functions
         localThis.filterVariants = filterVariants;
         localThis.reorderVariants = reorderVariants;
-        localThis.filterVariantsBy = "[]";
+        localThis.filterVariantsBy = "all";
+        localThis.filterIncludeNonPass = false;
 
 		// variant list frequency box thresholds
 		localThis.variantBoxThresholds = [0, 1/10000, 1/1000, 1/100, 1/20, 1/2];
@@ -73,8 +74,9 @@
             if (localThis.itemType) {
                 Browser.getVariants($routeParams.dataset, localThis.itemType, localThis.item).then( function(data) {
                     localThis.variants = data.variants;
-                    localThis.filteredVariants = data.variants;
                     localThis.headers = data.headers;
+                    localThis.filterVariants();
+
                     Browser.getCoveragePos($routeParams.dataset, localThis.itemType, localThis.item).then( function(data) {
                         localThis.coverage.region.start = data.start;
                         localThis.coverage.region.stop  = data.stop;
@@ -128,22 +130,31 @@
         }
 
         function filterVariants() {
-            let filters = angular.fromJson(localThis.filterVariantsBy);
-
-            if (!Array.isArray(filters) || filters.length == 0) {
-                localThis.filteredVariants = localThis.variants;
-            } else {
-                localThis.filteredVariants = []
-                for (var i = 0; i < filters.length; i++) {
-                    var filter = filters[i];
-                    for (var j = 0; j < localThis.variants.length; j++) {
-                        var variant = localThis.variants[j];
-                        if (variant.majorConsequence == filter) {
-                            localThis.filteredVariants.push(variant);
-                        }
-                    }
-                }
+            let filterAsText = localThis.filterVariantsBy + localThis.filterIncludeNonPass;
+            if (localThis.filterVariantsOld == filterAsText) {
+                return;
             }
+            localThis.filterVariantsOld = filterAsText;
+
+            filterFunction = function(variant) {
+                // Remove variants that didn't PASS QC
+                if (! localThis.filterIncludeNonPass && variant.filter != "PASS" ) {
+                    return false;
+                }
+                if ( localThis.filterVariantsBy == 'all' ) {
+                    return true;
+                }
+                if ( localThis.filterVariantsBy == 'lof' && variant.flags == "LC LoF" ) {
+                    return true;
+                }
+                if ( localThis.filterVariantsBy == 'mislof' &&
+                        (variant.flags == "LC LoF" || variant.majorConsequence == "missense") ) {
+                    return true;
+                }
+                return false;
+            }
+
+            localThis.filteredVariants = localThis.variants.filter( filterFunction );
             localThis.coverage.update += 1;
         }
 
