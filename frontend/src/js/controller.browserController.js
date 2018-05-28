@@ -31,8 +31,9 @@
         localThis.autocomplete = autocomplete;
 
         // variant list functions
-        localThis.filterVariantsBy = filterVariantsBy;
+        localThis.filterVariants = filterVariants;
         localThis.reorderVariants = reorderVariants;
+        localThis.filterVariantsBy = "[]";
 
 		// variant list frequency box thresholds
 		localThis.variantBoxThresholds = [0, 1/10000, 1/1000, 1/100, 1/20, 1/2];
@@ -126,20 +127,9 @@
             }
         }
 
-        function filterVariantsBy($event) {
-            let clickedElement = $event.target || $event.srcElement;
+        function filterVariants() {
+            let filters = angular.fromJson(localThis.filterVariantsBy);
 
-            if( clickedElement.nodeName === "BUTTON" ) {
-
-              let activeButton = clickedElement.parentElement.querySelector(".active");
-              // if a Button already has Class: .active
-              if( activeButton ) {
-                activeButton.classList.remove("active");
-              }
-
-              clickedElement.className += " active";
-            }
-            let filters = angular.fromJson(clickedElement.value);
             if (!Array.isArray(filters) || filters.length == 0) {
                 localThis.filteredVariants = localThis.variants;
             } else {

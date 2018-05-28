@@ -1,11 +1,24 @@
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <span class="btn-group" ng-click="ctrl.filterVariantsBy($event)">
-                <button class="btn btn-primary active" value="[]">All</button>
-                <button class="btn btn-primary" value='["missense", "lof"]'>Missense + LoF</button>
-                <button class="btn btn-primary" value='["lof"]'>LoF</button>
-            </span><br/>
+            <span class="btn-group radio-button-group" ng-click="ctrl.filterVariants()">
+                <input type="radio" id="variants-filter-all" ng-model="ctrl.filterVariantsBy" value="[]">
+                    <label class="btn btn-primary first-button" for="variants-filter-all">
+                        All
+                    </label>
+                </input>
+                <input type="radio" id="variants-filter-mislof" ng-model="ctrl.filterVariantsBy" value='["missense", "lof"]'>
+                    <label class="btn btn-primary" for="variants-filter-mislof">
+                        Missense + LoF
+                    </label>
+                </input>
+                <input type="radio" id="variants-filter-lof" ng-model="ctrl.filterVariantsBy" value='["lof"]'>
+                    <label class="btn btn-primary" for="variants-filter-lof">
+                        LoF
+                    </label>
+                </input>
+            </span>
+            <br />
             <a ng-if="ctrl.item" class="btn btn-success" href="/api/datasets/{{ctrl.dataset.shortName}}/browser/download/{{ctrl.itemType}}/{{ctrl.item}}">Export table to CSV</a><br/>
             <span class="label label-info">&dagger; denotes a consequence that is for a non-canonical transcript</span>
         </div>
