@@ -304,29 +304,18 @@
                 points.push([x,y]);
             }
 
-            // Fill the area under the graph
+            // Draw the line and AUC
             ctx.beginPath();
-            ctx.globalAlpha=0.3;
-            ctx.fillStyle = "#6699cc"
+            ctx.fillStyle = "rgba(102, 153, 204, 0.3)";
+            ctx.strokeStyle = "rgba(0, 102, 153, 0.8)";
 
             ctx.moveTo(points[0][0], settings.margins.t + height);
             for (let p of points) {
                 ctx.lineTo(p[0],p[1]);
             }
             ctx.lineTo(points[points.length-1][0], settings.margins.t + height);
-            ctx.closePath();
-            ctx.fill();
-
-            // Draw main graph line
-            ctx.beginPath();
-            ctx.globalAlpha=0.8;
-            ctx.strokeStyle = "#006699"
-
-            ctx.moveTo(points[0][0], points[0][1]);
-            for (let p of points) {
-                ctx.lineTo(p[0], p[1]);
-            }
             ctx.stroke();
+            ctx.fill();
             ctx.closePath();
 
             // Add graph line blips
@@ -344,7 +333,6 @@
             // Reset context values
             ctx.strokeStyle = "#000000"
             ctx.fillStyle = "#000000"
-            ctx.globalAlpha = 1.0;
         }
 
     }]);
