@@ -48,7 +48,7 @@
 
 <!-- Coverage plot -->
 <div ng-if="ctrl.coverage.data.length" class="container">
-    [% include "ng-templates/browser-coverage_plot.html" %]
+    [% include "ng-templates/browser-coverage-plot.jj2" %]
 </div>
 
 <!-- Loading message -->
@@ -58,7 +58,7 @@
 
 <!-- Variant list -->
 <div ng-if="ctrl.filteredVariants">
-    [% include "ng-templates/browser-variant_list.html" %]
+    [% include "ng-templates/browser-variant-list.jj2" %]
 </div>
 
 <!-- Loading message -->
