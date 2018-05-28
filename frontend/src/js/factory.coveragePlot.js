@@ -318,41 +318,28 @@
             ctx.fill();
 
             // Draw main graph line
-            var first = true;
-            prev = {"x":null, "y":null};
             ctx.beginPath();
             ctx.globalAlpha=0.8;
             ctx.strokeStyle = "#006699"
+
+            ctx.moveTo(points[0][0], points[0][1]);
             for (let p of points) {
-                let [x, y] = p
-
-                // add blips if there's distance between the graph points
-                if (prev.x != null && Math.abs(prev.x - x) > 4) {
-                    ctx.lineTo(prev.x, prev.y-2);
-                    ctx.lineTo(prev.x, prev.y+2);
-                    ctx.lineTo(prev.x, prev.y);
-                }
-
-                if (first) {
-                    first = false;
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
-
-                // Add final blip if needed
-                /*
-                if ( i+1 == data.data.length && Math.abs(prev.x - x) > 4 ) {
-                    ctx.lineTo(x, y-2);
-                    ctx.lineTo(x, y+2);
-                }
-                */
-
-                prev.x = x;
-                prev.y = y;
+                ctx.lineTo(p[0], p[1]);
             }
             ctx.stroke();
             ctx.closePath();
+
+            // Add graph line blips
+            if (Math.abs(points[0][0] - points[1][0]) > 4) {
+                ctx.beginPath();
+                for (p of points) {
+                    let [x, y] = p;
+                    ctx.moveTo(x, y-2);
+                    ctx.lineTo(x, y+2);
+                }
+                ctx.stroke();
+                ctx.closePath();
+            }
 
             // Reset context values
             ctx.strokeStyle = "#000000"
