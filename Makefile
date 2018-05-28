@@ -42,6 +42,10 @@ static/js/app.js: $(JAVASCRIPT_FILES)
 	mkdir -p $$( dirname $@ )
 	cat $^ >$@
 
+static/templates/ng-templates/browser%.html: frontend/templates/ng-templates/browser%.html $(wildcard frontend/templates/ng-templates/*.jj2)
+	mkdir -p $$( dirname $@ ) 2>/dev/null || true
+	python3 scripts/compile_template.py ${COMPILE_TEMPLATE_OPTS} -b frontend/templates -s $< >$@
+
 static/templates/%.html: frontend/templates/%.html frontend/templates/ng-templates/dataset-base.jj2
 	mkdir -p $$( dirname $@ ) 2>/dev/null || true
 	python3 scripts/compile_template.py ${COMPILE_TEMPLATE_OPTS} -b frontend/templates -s $< >$@

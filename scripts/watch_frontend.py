@@ -37,7 +37,7 @@ def main():
             for c in changes:
                 (_, type_names, path, filename) = c
                 logging.info("    PATH=[{}] FILENAME=[{}] EVENT_TYPES={}".format(path, filename, type_names))
-            subprocess.call(['make', '-B'])
+            subprocess.call(['make'])
 
 
 if __name__ == '__main__':
