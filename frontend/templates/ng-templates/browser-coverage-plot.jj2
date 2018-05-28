@@ -48,7 +48,7 @@
 <div class="row">
     <div class="col-md-12">
         <canvas id="canvas" width="1000" height="300" coverage></canvas>
-        <div id="annotationPanel" style="position: absolute; visibility: hidden" class="panel panel-default">
+        <div id="annotationPanel" class="panel panel-default">
             <div id="annotationInfo" class="panel-body"></div>
         </div>
     </div>

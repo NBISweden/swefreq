@@ -290,6 +290,11 @@ table.variant-table {
     }
 }
 
+#annotationPanel {
+    position: absolute;
+    visibility: hidden;
+}
+
 .radio-button-group {
     .first-button {
         // This is also a bootstrap workaround hack
