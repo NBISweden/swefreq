@@ -46,7 +46,11 @@
                 </tr>
             </thead>
             <tbody>
-                <tr ng-repeat="variant in ctrl.filteredVariants | orderBy:ctrl.orderByField:ctrl.reverseSort">
+                <tr ng-repeat="variant in ctrl.variants | orderBy:ctrl.orderByField:ctrl.reverseSort"
+                    ng-show="(ctrl.filterIncludeNonPass || variant.is_pass)
+                          && ((ctrl.filterVariantsBy=='lof' && variant.is_lof)
+                             || (ctrl.filterVariantsBy=='mislof' && (variant.is_lof || variant.is_missense))
+                             || (ctrl.filterVariantsBy=='all'))">
                     <td ng-repeat="header in ctrl.headers"
                         ng-switch="header[0]"
                         class="{{ header[0] }}"

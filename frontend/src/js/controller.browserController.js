@@ -75,6 +75,15 @@
                 Browser.getVariants($routeParams.dataset, localThis.itemType, localThis.item).then( function(data) {
                     localThis.variants = data.variants;
                     localThis.headers = data.headers;
+
+                    // TODO Move to function later
+                    mapFunction = function(variant) {
+                        variant.is_pass     = variant.filter == "PASS";
+                        variant.is_lof      = variant.flags == "LC LoF";
+                        variant.is_missense = variant.majorConsequence == "missense";
+                    }
+                    localThis.variants.map(mapFunction);
+
                     localThis.filterVariants();
 
                     Browser.getCoveragePos($routeParams.dataset, localThis.itemType, localThis.item).then( function(data) {
@@ -138,20 +147,19 @@
 
             filterFunction = function(variant) {
                 // Remove variants that didn't PASS QC
-                if (! localThis.filterIncludeNonPass && variant.filter != "PASS" ) {
+                if (! (localThis.filterIncludeNonPass || variant.is_pass )) {
                     return false;
                 }
-                if ( localThis.filterVariantsBy == 'all' ) {
-                    return true;
+                switch(localThis.filterVariantsBy) {
+                    case "all":
+                        return true;
+                    case "lof":
+                        return variant.is_lof;
+                    case "mislof":
+                        return variant.is_lof || variant.is_missense;
+                    default:
+                        return false;
                 }
-                if ( localThis.filterVariantsBy == 'lof' && variant.flags == "LC LoF" ) {
-                    return true;
-                }
-                if ( localThis.filterVariantsBy == 'mislof' &&
-                        (variant.flags == "LC LoF" || variant.majorConsequence == "missense") ) {
-                    return true;
-                }
-                return false;
             }
 
             localThis.filteredVariants = localThis.variants.filter( filterFunction );
