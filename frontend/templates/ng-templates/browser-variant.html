@@ -180,14 +180,16 @@
                 </thead>
                 <tbody>
                     <tr ng-repeat="(dataset, value) in ctrl.variant.popFreq.datasets">
-                        <td ng-repeat="header in ctrl.variant.popFreq.headers">
-                            {{ value[header[1]] }}
+                        <td ng-repeat="header in ctrl.variant.popFreq.headers" ng-switch="header[1]">
+                            <span ng-switch-when="freq">{{ value[header[1]] | number: 4}}</span>
+                            <span ng-switch-default>{{ value[header[1]] }}</span>
                         </td>
                     </tr>
                     <tr>
-                        <th>Total</th>
-                        <th ng-repeat="header in ctrl.variant.popFreq.headers" ng-if="header[1] != 'pop'">
-                            {{ ctrl.variant.popFreq.total[header[1]] }}
+                        <th ng-repeat="header in ctrl.variant.popFreq.headers" ng-switch="header[1]">
+                            <span ng-switch-when="pop">Total</span>
+                            <span ng-switch-when="freq">{{ ctrl.variant.popFreq.total[header[1]] | number: 4}}</span>
+                            <span ng-switch-default>{{ ctrl.variant.popFreq.total[header[1]] }}</span>
                         </th>
                     </tr>
                 </tbody>
