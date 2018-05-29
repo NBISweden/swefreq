@@ -255,6 +255,8 @@ table.mini-table {
 
 
 table.variant-table {
+    table-layout: fixed;
+
     /* Allele frequency visualisation */
     td.alleleFreq {
         div {
@@ -276,17 +278,19 @@ table.variant-table {
 
     /* Shorten some of the table columns */
     th, td {
-        max-width: 8em;
+        width: 8em;
+    }
+    td {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 
-    td.alleleFreq, thalleleFreq {
-        max-width: 12em;
+    td.alleleFreq, th.alleleFreq {
+        width: 12em;
     }
     td.variantId, th.variantId {
-        max-width: 20em;
+        width: 20em;
     }
 }
 
