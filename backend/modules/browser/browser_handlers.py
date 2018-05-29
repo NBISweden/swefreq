@@ -1,13 +1,13 @@
 import os
 import logging
-import settings
+import pymongo
+
 import handlers
 
-import pymongo
-import lookups
-from utils import *
-
-import mongodb
+from . import settings
+from . import lookups
+from .utils import *
+from . import mongodb
 
 
 

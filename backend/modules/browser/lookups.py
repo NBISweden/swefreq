@@ -1,5 +1,6 @@
 import re
-from utils import *
+
+from .utils import *
 
 SEARCH_LIMIT = 10000
 

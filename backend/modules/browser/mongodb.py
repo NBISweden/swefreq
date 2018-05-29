@@ -1,10 +1,10 @@
 import logging
 import settings
 import handlers
-
 import pymongo
-import lookups
-from utils import *
+
+from . import lookups
+from .utils import *
 
 EXON_PADDING = 50
 
