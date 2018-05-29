@@ -126,18 +126,6 @@ def get_exons_cnvs(db, transcript_name):
 def get_cnvs(db, gene_name):
     return list(db.cnvgenes.find({'gene': gene_name}, projection={'_id': False}))
 
-
-def get_awesomebar_suggestions(g, query):
-    """
-    This generates autocomplete suggestions when user
-    query is the string that user types
-    If it is the prefix for a gene, return list of gene names
-    """
-    regex = re.compile('^' + re.escape(query), re.IGNORECASE)
-    results = [r for r in g.autocomplete_strings if regex.match(r)][:20]
-    return results
-
-
 # 1:1-1000
 R1 = re.compile(r'^(\d+|X|Y|M|MT)\s*:\s*(\d+)-(\d+)$')
 R2 = re.compile(r'^(\d+|X|Y|M|MT)\s*:\s*(\d+)$')
@@ -302,10 +290,12 @@ def get_variants_in_gene(db, gene_id):
         variants.append(variant)
     return variants
 
+
 def get_transcripts_in_gene(sdb, gene_id):
     """
     """
     return list(sdb.transcripts.find({'gene_id': gene_id}, projection={'_id': False}))
+
 
 def get_variants_in_transcript(db, transcript_id):
     """
@@ -317,6 +307,7 @@ def get_variants_in_transcript(db, transcript_id):
         remove_extraneous_information(variant)
         variants.append(variant)
     return variants
+
 
 def get_exons_in_transcript(sdb, transcript_id):
     # return sorted(
