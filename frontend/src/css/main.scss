@@ -155,6 +155,10 @@ input.ng-dirty.ng-invalid, select.ng-dirty.ng-invalid {
     }
 }
 
+.overflowing {
+    overflow: visible !important;
+}
+
 .alert-future {
     font-size: 200%;
 }

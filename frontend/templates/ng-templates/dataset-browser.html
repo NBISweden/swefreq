@@ -2,8 +2,8 @@
 [% extends "ng-templates/dataset-base.jj2" %]
 [% block controller %]browserController[% endblock %]
 [% block contents %]
-<div class="dataset-panel">
-    <div class="dataset-body">
+<div class="dataset-panel overflowing">
+    <div class="dataset-body overflowing">
         <div class="dropdown">
             <form ng-submit="ctrl.search()">
                 <input id="home-searchbox-input"
@@ -15,7 +15,7 @@
                        ng-change="ctrl.autocomplete()"
                        data-toggle="dropdown"
                        autocomplete="off"/>
-                <ul class="dropdown-menu">
+                <ul class="dropdown-menu" ng-if="ctrl.suggestions.length">
                   <li ng-repeat="term in ctrl.suggestions">
                       <a href="" ng-click="ctrl.search(term)">{{ term }}</a>
                   </li>
