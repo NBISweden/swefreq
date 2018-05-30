@@ -264,19 +264,17 @@ table.variant-table {
     /* Allele frequency visualisation */
     td.alleleFreq {
         div {
-            div {
-                float: left;
-                margin-right: 0.5em;
-            }
-            img {
-                border-right: 1px solid steelblue;
-                border-bottom: 1px solid steelblue;
-                border-top: 1px solid steelblue;
-                width: 7px;
-                height: 15px;
-                display: block;
-                float: left;
-            }
+            float: left;
+            margin-right: 0.5em;
+        }
+        img {
+            border-right: 1px solid steelblue;
+            border-bottom: 1px solid steelblue;
+            border-top: 1px solid steelblue;
+            width: 7px;
+            height: 15px;
+            display: block;
+            float: left;
         }
     }
 
@@ -289,7 +287,6 @@ table.variant-table {
         text-overflow: ellipsis;
         white-space: nowrap;
     }
-
     td.alleleFreq, th.alleleFreq {
         width: 12em;
     }
