@@ -30,13 +30,8 @@ def connect_db(dataset, use_shared_data=False):
 
 def get_autocomplete(dataset, query):
     try:
-        db = connect_db(dataset, False)
         db_shared = connect_db(dataset, True)
-
-        results = []
-        for result in db_shared.genes.find({"gene_name": {'$regex': '^{}.*'.format(query), '$options': 'i'}}):
-            results += [result["gene_name"]]
-
+        results = db_shared.genes.distinct("gene_name", {"gene_name": {'$regex': '^{}.*'.format(query), '$options': 'i'}})
         return results
     except pymongo.errors.OperationFailure as e:
         logging.error("PyMongo OperationFailure: {}".format(e))
