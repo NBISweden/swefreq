@@ -51,26 +51,26 @@
                           && ((ctrl.filterVariantsBy=='lof' && variant.is_lof)
                              || (ctrl.filterVariantsBy=='mislof' && (variant.is_lof || variant.is_missense))
                              || (ctrl.filterVariantsBy=='all'))">
-                    <td title="{{ variant['variantId'] }}" class="variantId">
+                    <td title="{{:: variant['variantId'] }}" class="variantId">
                         <a href="{{ctrl.browserLink('variant/' + variant['variantId'] ) }}">
                             {{ variant | formatVariant }}
                         </a>
                     </td>
-                    <td title="{{ variant['chrom'] }}" class="chrom" >{{ variant['chrom'] }}</td>
-                    <td title="{{ variant['pos'] }}" class="pos" >{{ variant['pos'] }}</td>
-                    <td title="{{ variant['HGVS'] }}" class="HGVS" >
-                        {{ variant['HGVS'] }}
+                    <td title="{{:: variant['chrom'] }}" class="chrom" >{{:: variant['chrom'] }}</td>
+                    <td title="{{:: variant['pos'] }}" class="pos" >{{:: variant['pos'] }}</td>
+                    <td title="{{:: variant['HGVS'] }}" class="HGVS" >
+                        {{:: variant['HGVS'] }}
                         <span ng-if="variant['HGVS'] && variant['CANONICAL'] != 'YES'" title="Non-canonical">
                             &dagger;
                         </span>
                     </td>
-                    <td title="{{ variant['filter'] }}" class="filter">{{ variant['filter'] }}</td>
-                    <td title="{{ variant['majorConsequence'] }}" class="majorConsequence">{{ variant['majorConsequence'] }}</td>
-                    <td title="{{ variant['flags'] }}" class="flags">{{ variant['flags'] }}</td>
-                    <td title="{{ variant['alleleCount'] }}" class="alleleCount">{{ variant['alleleCount'] }}</td>
-                    <td title="{{ variant['alleleNum'] }}" class="alleleNum">{{ variant['alleleNum'] }}</td>
-                    <td title="{{ variant['homCount'] }}" class="homCount">{{ variant['homCount'] }}</td>
-                    <td title="{{ variant['alleleFreq'] }}" class="alleleFreq">
+                    <td title="{{:: variant['filter'] }}" class="filter">{{:: variant['filter'] }}</td>
+                    <td title="{{:: variant['majorConsequence'] }}" class="majorConsequence">{{:: variant['majorConsequence'] }}</td>
+                    <td title="{{:: variant['flags'] }}" class="flags">{{:: variant['flags'] }}</td>
+                    <td title="{{:: variant['alleleCount'] }}" class="alleleCount">{{:: variant['alleleCount'] }}</td>
+                    <td title="{{:: variant['alleleNum'] }}" class="alleleNum">{{:: variant['alleleNum'] }}</td>
+                    <td title="{{:: variant['homCount'] }}" class="homCount">{{:: variant['homCount'] }}</td>
+                    <td title="{{:: variant['alleleFreq'] }}" class="alleleFreq">
                         <div>{{ variant['alleleFreq'] | number : 4 }}</div>
                         <img src="static/img/steel_blue.png">
                         <img ng-repeat="threshold in ctrl.variantBoxThresholds"
