@@ -279,7 +279,7 @@ table.variant-table {
     }
 
     /* Shorten some of the table columns */
-    th, td {
+    th {
         width: 8em;
     }
     td {
@@ -287,10 +287,10 @@ table.variant-table {
         text-overflow: ellipsis;
         white-space: nowrap;
     }
-    td.alleleFreq, th.alleleFreq {
+    th.alleleFreq {
         width: 12em;
     }
-    td.variantId, th.variantId {
+    th.variantId {
         width: 20em;
     }
 }
