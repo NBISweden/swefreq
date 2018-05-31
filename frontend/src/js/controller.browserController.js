@@ -86,14 +86,14 @@
 
                     localThis.filterVariants();
 
-                    Browser.getCoveragePos($routeParams.dataset, localThis.itemType, localThis.item).then( function(data) {
-                        localThis.coverage.region.start = data.start;
-                        localThis.coverage.region.stop  = data.stop;
-                        localThis.coverage.region.chrom = data.chrom;
-                        Browser.getCoverage($routeParams.dataset, localThis.itemType, localThis.item).then(function(data) {
-                            localThis.coverage.data = data.coverage;
-                        });
-                    });
+                });
+                Browser.getCoveragePos($routeParams.dataset, localThis.itemType, localThis.item).then( function(data) {
+                    localThis.coverage.region.start = data.start;
+                    localThis.coverage.region.stop  = data.stop;
+                    localThis.coverage.region.chrom = data.chrom;
+                });
+                Browser.getCoverage($routeParams.dataset, localThis.itemType, localThis.item).then(function(data) {
+                    localThis.coverage.data = data.coverage;
                 });
             }
             if ($routeParams.variant) {
