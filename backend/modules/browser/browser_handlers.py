@@ -132,10 +132,7 @@ class GetGene(handlers.UnsafeHandler):
                     ret['exons'] += [{'start':exon['start'], 'stop':exon['stop'], 'type':exon['feature_type']}]
 
                 # Variants
-                variants_in_transcript = lookups.get_variants_in_transcript(db, gene['canonical_transcript'])
-                if (variants_in_transcript):
-                    ret['gene']['variants'] = {'filtered':len([v for v in variants_in_transcript if v['filter'] == 'PASS']),
-                                               'total':   len( variants_in_transcript )}
+                ret['gene']['variants'] = lookups.get_number_of_variants_in_transcript(db, gene['canonical_transcript'])
 
                 # Transcripts
                 transcripts_in_gene = lookups.get_transcripts_in_gene(db_shared, gene_id)

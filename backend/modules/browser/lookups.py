@@ -297,6 +297,12 @@ def get_transcripts_in_gene(sdb, gene_id):
     return list(sdb.transcripts.find({'gene_id': gene_id}, projection={'_id': False}))
 
 
+def get_number_of_variants_in_transcript(db, transcript_id):
+    total = db.variants.count({'transcripts': transcript_id})
+    filtered = db.variants.count({'transcripts': transcript_id, 'filter': 'PASS'})
+    return {'filtered': filtered, 'total': total}
+
+
 def get_variants_in_transcript(db, transcript_id):
     """
     """
