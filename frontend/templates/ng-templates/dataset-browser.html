@@ -5,10 +5,11 @@
 <div class="dataset-panel overflowing">
     <div class="dataset-body overflowing">
         <div class="dropdown">
-            <form ng-submit="ctrl.search()">
-                <input id="home-searchbox-input"
-                       name="query"
-                       class="form-control input-lg dropdown-toggle"
+            <form ng-submit="ctrl.search()" arrow-select
+                                            items="ctrl.suggestions"
+                                            selection="ctrl.activeSuggestion"
+                                            target="ctrl.query">
+                <input class="form-control input-lg"
                        type="text"
                        placeholder="Search for a gene or variant or region"
                        ng-model="ctrl.query"
@@ -16,7 +17,8 @@
                        data-toggle="dropdown"
                        autocomplete="off"/>
                 <ul class="dropdown-menu" ng-if="ctrl.suggestions.length">
-                  <li ng-repeat="term in ctrl.suggestions">
+                  <li ng-repeat="term in ctrl.suggestions"
+                      ng-class="{'active':$index == ctrl.activeSuggestion}">
                       <a href="" ng-click="ctrl.search(term)">{{ term }}</a>
                   </li>
                 </ul>

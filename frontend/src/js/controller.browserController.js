@@ -5,6 +5,7 @@
         var localThis = this;
         localThis.query = "";
         localThis.suggestions = "";
+        localThis.activeSuggestion = -1;
         localThis.orderByField = 'variantId';
         localThis.reverseSort = false;
         localThis.coverage = {};
@@ -108,6 +109,7 @@
                 function(error) {
                     localThis.error = error;
             });
+
         }
 
         function browserLink(link) {
@@ -128,6 +130,7 @@
         }
 
         function autocomplete() {
+            localThis.activeSuggestion = -1;
             if (localThis.query) {
                 Browser.autocomplete($routeParams.dataset, localThis.query)
                        .then( function(data) {
