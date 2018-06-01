@@ -1,6 +1,5 @@
 import logging
 import settings
-import handlers
 import pymongo
 
 from . import lookups
@@ -23,7 +22,7 @@ def connect_db(dataset, use_shared_data=False):
         db = client[settings.mongo_databases[dataset][database]]
 
         return db
-    except Exception as e:
+    except Exception:
         logging.error("Failed to connect to database '{}' for dataset '{}'".format(database, dataset))
     return None
 
@@ -45,7 +44,6 @@ def get_variant_list(dataset, datatype, item):
 
     try:
         db = connect_db(dataset, False)
-        db_shared = connect_db(dataset, True)
 
         if datatype == 'gene':
             variants = lookups.get_variants_in_gene(db, item)
@@ -65,7 +63,7 @@ def get_variant_list(dataset, datatype, item):
                                                                         .replace('_', ' '))
 
             # This is so an array values turns into a comma separated string instead
-            return {k: ", ".join(v) if type(v) == type([]) else v for k, v in variant.items()}
+            return {k: ", ".join(v) if isinstance(v,list) else v for k, v in variant.items()}
         variants = list(map(format_variant, variants))
         return {'variants': variants, 'headers': headers}
 
@@ -107,7 +105,6 @@ def get_coverage(dataset, datatype, item):
 def get_coverage_pos(dataset, datatype, item):
     ret = {'start':None, 'stop':None, 'chrom':None}
 
-    db = connect_db(dataset, False)
     db_shared = connect_db(dataset, True)
     try:
         if datatype == 'gene':

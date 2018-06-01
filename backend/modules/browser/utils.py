@@ -71,12 +71,15 @@ def add_consequence_to_variants(variant_list):
 def add_consequence_to_variant(variant):
     worst_csq = worst_csq_with_vep(variant['vep_annotations'])
     variant['major_consequence'] = ''
-    if worst_csq is None: return
+    if worst_csq is None:
+        return
+
     variant['major_consequence'] = worst_csq['major_consequence']
     variant['HGVSp'] = get_protein_hgvs(worst_csq)
     variant['HGVSc'] = get_transcript_hgvs(worst_csq)
     variant['HGVS'] = get_proper_hgvs(worst_csq)
     variant['CANONICAL'] = worst_csq['CANONICAL']
+
     if csq_order_dict[variant['major_consequence']] <= csq_order_dict["frameshift_variant"]:
         variant['category'] = 'lof_variant'
         for annotation in variant['vep_annotations']:
@@ -98,7 +101,8 @@ def get_flags_from_variant(variant):
     if 'mnps' in variant:
         flags.append('MNP')
     lof_annotations = [x for x in variant['vep_annotations'] if x['LoF'] != '']
-    if not len(lof_annotations): return flags
+    if lof_annotations:
+        return flags
     if all([x['LoF'] != 'HC' for x in lof_annotations]):
         flags.append('LC LoF')
     if all([x['LoF_flags'] != '' for x in lof_annotations]):
@@ -120,8 +124,8 @@ def get_proper_hgvs(csq):
     # Needs major_consequence
     if csq['major_consequence'] in ('splice_donor_variant', 'splice_acceptor_variant', 'splice_region_variant'):
         return get_transcript_hgvs(csq)
-    else:
-        return get_protein_hgvs(csq)
+
+    return get_protein_hgvs(csq)
 
 
 def get_transcript_hgvs(csq):
@@ -136,7 +140,7 @@ def get_protein_hgvs(annotation):
         try:
             amino_acids = ''.join([protein_letters_1to3[x] for x in annotation['Amino_acids']])
             return "p." + amino_acids + annotation['Protein_position'] + amino_acids
-        except Exception as e:
+        except Exception:
             print('Could not create HGVS for: %s' % annotation)
     return annotation['HGVSp'].split(':')[-1]
 
@@ -233,7 +237,7 @@ def worst_csq_with_vep(annotation_list):
     Returns most severe annotation (as full VEP annotation [{'Consequence': 'frameshift', Feature: 'ENST'}])
     Also tacks on "major_consequence" for that annotation (i.e. worst_csq_from_csq)
     """
-    if len(annotation_list) == 0:
+    if annotation_list:
         return None
     worst = max(annotation_list, key=annotation_severity)
     worst['major_consequence'] = worst_csq_from_csq(worst['Consequence'])
@@ -289,14 +293,14 @@ def get_minimal_representation(pos, ref, alt):
     # If it's a simple SNV, don't remap anything
     if len(ref) == 1 and len(alt) == 1:
         return pos, ref, alt
-    else:
-        # strip off identical suffixes
-        while(alt[-1] == ref[-1] and min(len(alt),len(ref)) > 1):
-            alt = alt[:-1]
-            ref = ref[:-1]
-        # strip off identical prefixes and increment position
-        while(alt[0] == ref[0] and min(len(alt),len(ref)) > 1):
-            alt = alt[1:]
-            ref = ref[1:]
-            pos += 1
-        return pos, ref, alt
+
+    # strip off identical suffixes
+    while(alt[-1] == ref[-1] and min(len(alt),len(ref)) > 1):
+        alt = alt[:-1]
+        ref = ref[:-1]
+    # strip off identical prefixes and increment position
+    while(alt[0] == ref[0] and min(len(alt),len(ref)) > 1):
+        alt = alt[1:]
+        ref = ref[1:]
+        pos += 1
+    return pos, ref, alt

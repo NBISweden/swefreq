@@ -45,7 +45,7 @@ def get_variants_by_rsid(db, rsid):
         return None
     try:
         int(rsid.lstrip('rs'))
-    except Exception as e:
+    except ValueError:
         return None
     variants = list(db.variants.find({'rsid': rsid}, projection={'_id': False}))
     add_consequence_to_variants(variants)
@@ -163,8 +163,8 @@ def get_awesomebar_result(db,sdb, query):
     if variant:
         if len(variant) == 1:
             return 'variant', variant[0]['variant_id']
-        else:
-            return 'dbsnp_variant_set', variant[0]['rsid']
+        return 'dbsnp_variant_set', variant[0]['rsid']
+
     variant = get_variants_from_dbsnp(db,sdb, query.lower())
     if variant:
         return 'variant', variant[0]['variant_id']
@@ -280,8 +280,6 @@ def remove_extraneous_information(variant):
 
 
 def get_variants_in_gene(db, gene_id):
-    """
-    """
     variants = []
     for variant in db.variants.find({'genes': gene_id}, projection={'_id': False}):
         variant['vep_annotations'] = [x for x in variant['vep_annotations'] if x['Gene'] == gene_id]
@@ -292,8 +290,6 @@ def get_variants_in_gene(db, gene_id):
 
 
 def get_transcripts_in_gene(sdb, gene_id):
-    """
-    """
     return list(sdb.transcripts.find({'gene_id': gene_id}, projection={'_id': False}))
 
 
@@ -304,8 +300,6 @@ def get_number_of_variants_in_transcript(db, transcript_id):
 
 
 def get_variants_in_transcript(db, transcript_id):
-    """
-    """
     variants = []
     for variant in db.variants.find({'transcripts': transcript_id}, projection={'_id': False}):
         variant['vep_annotations'] = [x for x in variant['vep_annotations'] if x['Feature'] == transcript_id]

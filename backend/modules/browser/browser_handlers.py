@@ -1,4 +1,3 @@
-import os
 import logging
 import pymongo
 
@@ -38,7 +37,6 @@ class GetTranscript(handlers.UnsafeHandler):
                'gene':{},
               }
         try:
-            db = connect_db(dataset, False)
             db_shared = connect_db(dataset, True)
             try:
                 transcript = lookups.get_transcript(db_shared, transcript_id)
@@ -58,7 +56,7 @@ class GetTranscript(handlers.UnsafeHandler):
             ret['gene']['canonical_transcript'] = gene['canonical_transcript']
 
             gene_transcripts            = lookups.get_transcripts_in_gene(db_shared, transcript['gene_id'])
-            ret['gene']['transcripts']  = [g['transcript_id'] for g in gene_transcripts] 
+            ret['gene']['transcripts']  = [g['transcript_id'] for g in gene_transcripts]
 
         except Exception as e:
             logging.error('{} when loading transcript {}: {}'.format(type(e), transcript_id, e))
@@ -97,7 +95,7 @@ class GetRegion(handlers.UnsafeHandler):
             db_shared = connect_db(dataset, True)
             try:
                 genes_in_region = lookups.get_genes_in_region(db_shared, chrom, start, stop)
-                if (genes_in_region):
+                if genes_in_region:
                     ret['region']['genes'] = []
                     for gene in genes_in_region:
                         ret['region']['genes'] += [{'gene_id':gene['gene_id'],
@@ -136,7 +134,7 @@ class GetGene(handlers.UnsafeHandler):
 
                 # Transcripts
                 transcripts_in_gene = lookups.get_transcripts_in_gene(db_shared, gene_id)
-                if (transcripts_in_gene):
+                if transcripts_in_gene:
                     ret['transcripts'] = []
                     for transcript in transcripts_in_gene:
                         ret['transcripts'] += [{'transcript_id':transcript['transcript_id']}]
