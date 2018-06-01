@@ -205,8 +205,8 @@
             // Draw coverage axis (y) text
             ctx.fillStyle="#000000";
             for (let i = 0; i < axes.y.length; i++) {
-                let width = ctx.measureText(axes.y[i]).width;
-                ctx.fillText(axes.y[i], l - width - settings.spacing, h-step*i+(settings.fontSize/2.0-1) - b);
+                let textWidth = ctx.measureText(axes.y[i]).width;
+                ctx.fillText(axes.y[i], l - textWidth - settings.spacing, h-step*i+(settings.fontSize/2.0-1) - b);
             }
 
             // Draw position axis (x) text
@@ -216,8 +216,8 @@
             }
             if (region.stop) {
                 ctx.fillStyle="#000000"
-                let width = ctx.measureText(axes.x.stop).width;
-                ctx.fillText(axes.x.stop, w-width-settings.spacing/2.0, h-b+settings.spacing/2.0+settings.fontSize);
+                let textWidth = ctx.measureText(axes.x.stop).width;
+                ctx.fillText(axes.x.stop, w-textWidth-settings.spacing/2.0, h-b+settings.spacing/2.0+settings.fontSize);
             }
 
             // Set convenience variables
@@ -237,7 +237,7 @@
             ctx.stroke();
             ctx.closePath();
             for (let i = 0; i < axes.y.length; i++) {
-                let width = ctx.measureText(axes.y[i]).width;
+                let textWidth = ctx.measureText(axes.y[i]).width;
                 ctx.beginPath();
                 ctx.strokeStyle = "#000000";
                 ctx.lineWidth = 1;
@@ -269,8 +269,8 @@
             }
 
             // Guess a good number of horizontal splits
-            let width = ctx.measureText(region.stop).width;
-            let s = Math.floor( (pw / width) / 2.0) - 1;
+            let textWidth = ctx.measureText(region.stop).width;
+            let s = Math.floor( (pw / textWidth) / 2.0) - 1;
             step = (region.stop-region.start) / s;
 
             for (let i = 1; i <= s; i++) {
