@@ -7,7 +7,7 @@
                      items: "=",
                      target: "=",
                     },
-            link: function(scope, element, attrs) {
+            link: function(scope, element) {
                 element.bind("keydown keypress", function (event) {
                     if (event.which === 38 || event.which === 40) {
                         event.preventDefault();

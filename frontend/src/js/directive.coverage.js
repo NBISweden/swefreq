@@ -3,17 +3,17 @@
     .directive("coverage", ["CoveragePlot", function (CoveragePlot) {
         return {
             restrict: "A",
-            link: function(scope, element, attrs) {
-                var ctx = element[0].getContext('2d');
+            link: function(scope, element) {
+                var ctx = element[0].getContext("2d");
 
                 // Create hit-canvas for mouseover annotations
-                const hitCanvas = document.createElement('canvas');
+                const hitCanvas = document.createElement("canvas");
                 hitCanvas.width  = ctx.canvas.clientWidth;
                 hitCanvas.height = ctx.canvas.clientHeight;
-                const hitCtx = hitCanvas.getContext('2d');
+                const hitCtx = hitCanvas.getContext("2d");
                 const colorHash = {};
 
-                element[0].addEventListener('mousemove', (e) => {
+                element[0].addEventListener("mousemove", (e) => {
                     var rect = element[0].getBoundingClientRect();
                     const pos = {
                         x: e.clientX - rect.left,
@@ -25,11 +25,11 @@
 
                     var infoPanel = document.getElementById("annotationPanel");
                     var info = document.getElementById("annotationInfo");
-                    var offset = {"x":-5, "y":20}
+                    var offset = {"x":-5, "y":20};
 
                     if (item) {
                         info.innerHTML = item;
-                        p = {"x":pos.x+offset.x, "y":pos.y+offset.y}
+                        let p = {"x":pos.x+offset.x, "y":pos.y+offset.y};
 
                         infoPanel.style.top = `${p.y}px`;
                         infoPanel.style.left = `${p.x}px`;
@@ -40,7 +40,7 @@
                     }
                 });
 
-                scope.$watch("ctrl.coverage", function(newValue, oldValue) {
+                scope.$watch("ctrl.coverage", function(newValue) {
                     // set zoom level
                     var width = element[0].parentElement.clientWidth;
                     if (newValue.zoom == "detail") {
@@ -53,7 +53,7 @@
 
                     // Set axes
                     var axes = {"x":{"start":0, "end":0},
-                                "y":[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}
+                                "y":[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]};
 
                     // Figure out x-axis limits
                     axes.x.start = newValue.region.start;
@@ -74,9 +74,9 @@
 
                     // Figure out y-axis limits
                     if (Number.isInteger(newValue.function)) {
-                        axes.y = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+                        axes.y = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
                     } else {
-                        axes.y = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+                        axes.y = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
                     }
 
                     if (newValue.data.length > 0) {

@@ -47,9 +47,9 @@
             </thead>
             <tbody>
                 <tr ng-repeat="variant in ctrl.variants | orderBy:ctrl.orderByField:ctrl.reverseSort track by variant['variantId']"
-                    ng-show="(ctrl.filterIncludeNonPass || variant.is_pass)
-                          && ((ctrl.filterVariantsBy=='lof' && variant.is_lof)
-                             || (ctrl.filterVariantsBy=='mislof' && (variant.is_lof || variant.is_missense))
+                    ng-show="(ctrl.filterIncludeNonPass || variant.isPass)
+                          && ((ctrl.filterVariantsBy=='lof' && variant.isLof)
+                             || (ctrl.filterVariantsBy=='mislof' && (variant.isLof || variant.isMissense))
                              || (ctrl.filterVariantsBy=='all'))">
                     <td title="{{::variant['variantId'] }}" class="variantId">
                         <a href="{{:: ctrl.browserLink('variant/' + variant['variantId'] ) }}">

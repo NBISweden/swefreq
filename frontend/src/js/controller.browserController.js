@@ -6,7 +6,7 @@
         localThis.query = "";
         localThis.suggestions = "";
         localThis.activeSuggestion = -1;
-        localThis.orderByField = 'variantId';
+        localThis.orderByField = "variantId";
         localThis.reverseSort = false;
         localThis.coverage = {};
         localThis.coverage.region = {"start":null,
@@ -19,13 +19,13 @@
         localThis.coverage.includeUTR = true;
         localThis.coverage.data = [];
         localThis.coverage.update = 0;
-        localThis.variants = []
+        localThis.variants = [];
 
         localThis.item = null;
         localThis.itemType = null;
 
         localThis.browserLink = browserLink;
-        localThis.dataset = {'shortName':$routeParams.dataset};
+        localThis.dataset = {"shortName": $routeParams.dataset};
 
         // search functions
         localThis.search = search;
@@ -49,7 +49,7 @@
 
             if ($routeParams.transcript) {
                 localThis.itemType = "transcript";
-                localThis.item = $routeParams.transcript
+                localThis.item = $routeParams.transcript;
                 Browser.getTranscript($routeParams.dataset, $routeParams.transcript).then( function(data) {
                     localThis.transcript = data.transcript;
                     localThis.gene       = data.gene;
@@ -78,11 +78,11 @@
                     localThis.headers = data.headers;
 
                     // TODO Move to function later
-                    mapFunction = function(variant) {
-                        variant.is_pass     = variant.filter == "PASS";
-                        variant.is_lof      = variant.flags == "LC LoF";
-                        variant.is_missense = variant.majorConsequence == "missense";
-                    }
+                    let mapFunction = function(variant) {
+                        variant.isPass     = variant.filter == "PASS";
+                        variant.isLof      = variant.flags == "LC LoF";
+                        variant.isMissense = variant.majorConsequence == "missense";
+                    };
                     localThis.variants.map(mapFunction);
 
                     localThis.filterVariants();
@@ -125,7 +125,7 @@
                     if (data.redirect) {
                         $window.location.href = data.redirect;
                     }
-                })
+                });
             }
         }
 
@@ -148,7 +148,7 @@
             }
             localThis.filterVariantsOld = filterAsText;
 
-            filterFunction = function(variant) {
+            let filterFunction = function(variant) {
                 // Remove variants that didn't PASS QC
                 if (! (localThis.filterIncludeNonPass || variant.is_pass )) {
                     return false;
@@ -157,9 +157,9 @@
                     case "all":
                         return true;
                     case "lof":
-                        return variant.is_lof;
+                        return variant.isLof;
                     case "mislof":
-                        return variant.is_lof || variant.is_missense;
+                        return variant.isLof || variant.isMissense;
                     default:
                         return false;
                 }

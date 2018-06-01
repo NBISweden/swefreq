@@ -23,32 +23,32 @@
         }
 
         function drawAnnotation(ctx, hit, colorHash, variants, axes, exons) {
-            var plotHeight = settings.annotationSpace;
-            var t = ctx.canvas.clientHeight - settings.margins.t - plotHeight + settings.spacing + settings.fontSize;
-            var h = plotHeight / 2.0;                    // half plot height
-            var w = ctx.canvas.clientWidth - settings.margins.l - settings.margins.r; // plot width
-            var r = axes.x.stop - axes.x.start;                     // region length
-            var s = 5;                                              // min size of variant blips
-            var connectExons = false;
-            var connectABitAnyway = true;
+            let plotHeight = settings.annotationSpace;
+            let t = ctx.canvas.clientHeight - settings.margins.t - plotHeight + settings.spacing + settings.fontSize;
+            let h = plotHeight / 2.0;                    // half plot height
+            let w = ctx.canvas.clientWidth - settings.margins.l - settings.margins.r; // plot width
+            let r = axes.x.stop - axes.x.start;                     // region length
+            let s = 5;                                              // min size of variant blips
+            let connectExons = false;
+            let connectABitAnyway = true;
 
-            var colorNumber = 1;
+            let colorNumber = 1;
 
             // Draw exons
             if (exons) {
-                var lastX = 0
-                for (var i = 0; i < exons.length; i++) {
+                let lastX = 0;
+                for (let i = 0; i < exons.length; i++) {
                     if (exons[i].type == "exon") {
-                        continue
+                        continue;
                     }
-                    var x = settings.margins.l + w * (exons[i].start - axes.x.start)/r;
-                    var l = w * (exons[i].stop - exons[i].start)/r;
-                    var M = (connectExons ? h-s/2.0-2 : h);
-                    var H = h;
-                    ctx.fillStyle = "#a96500"
+                    let x = settings.margins.l + w * (exons[i].start - axes.x.start)/r;
+                    let l = w * (exons[i].stop - exons[i].start)/r;
+                    let M = (connectExons ? h-s/2.0-2 : h);
+                    let H = h;
+                    ctx.fillStyle = "#a96500";
                     if (exons[i].type == "UTR") {
                         H = h*.5;
-                        ctx.fillStyle = "#0047b2"
+                        ctx.fillStyle = "#0047b2";
                     }
 
                     if ( x < settings.margins.l )
@@ -56,7 +56,7 @@
 
                     // Add hit area for exon
                     hit.beginPath();
-                    var hitColor = nextColor(colorNumber);  // unique color
+                    let hitColor = nextColor(colorNumber);  // unique color
                     hit.fillStyle = hitColor;
                     hit.fillRect(x,t+h-H,l,H*2);
                     colorHash[hitColor] = exons[i].type + ": " + exons[i].start + "-" + exons[i].stop;
@@ -121,11 +121,11 @@
             if (variants == undefined) {
                 variants = [];
             }
-            for (var i = 0; i < variants.length; i++) {
+            for (let i = 0; i < variants.length; i++) {
                 if ( variants[i].pos < axes.x.start || variants[i].pos > axes.x.stop)
                     continue;
-                var x = settings.margins.l + w * (variants[i].pos - axes.x.start)/r;
-                var height = Math.max(s, h*2.0*variants[i].alleleFreq)
+                let x = settings.margins.l + w * (variants[i].pos - axes.x.start)/r;
+                let height = Math.max(s, h*2.0*variants[i].alleleFreq);
 
                 if ( x < settings.margins.l )
                     continue;
@@ -148,7 +148,7 @@
 
                 // Add hit area for variant
                 hit.beginPath();
-                var hitColor = nextColor(colorNumber);  // unique color
+                let hitColor = nextColor(colorNumber);  // unique color
                 hit.fillStyle = hitColor;
                 hit.ellipse(x, t+h, 2, height*0.5, 0, 0, 2 * Math.PI);
                 hit.fill();
@@ -170,15 +170,15 @@
             }
 
             // Reset context values
-            ctx.strokeStyle = "#000000"
-            ctx.fillStyle = "#000000"
-            ctx.globalAlpha = 1.0;
+            ctx.strokeStyle = "#000000";
+            ctx.fillStyle = "#000000";
+            ctx.globalAlpha = 1.0;;
         }
 
-        function drawGrid(ctx, axes, region, includeUTR) {
+        function drawGrid(ctx, axes, region) {
             // Set margins
-            var width = 0;
-            for (var i = 0; i < axes.y.length; i++) {
+            let width = 0;
+            for (let i = 0; i < axes.y.length; i++) {
                 // 3 pixels extra for antialiasing
                 width = ctx.measureText(axes.y[i]).width + 3 + settings.spacing;
                 if (width > settings.margins.l)
@@ -194,7 +194,7 @@
             let r = settings.margins.r;
             let b = settings.margins.b;
             let l = settings.margins.l;
-            var step = (h-b-t)/(axes.y.length-1);
+            let step = (h-b-t)/(axes.y.length-1);
 
             // Clear entire canvas
             ctx.clearRect(0, 0, w,h);
@@ -204,25 +204,25 @@
 
             // Draw coverage axis (y) text
             ctx.fillStyle="#000000";
-            for (var i = 0; i < axes.y.length; i++) {
-                var width = ctx.measureText(axes.y[i]).width;
-                ctx.fillText(axes.y[i], l - width - settings.spacing, h-step*i+(settings.fontSize/2.0-1) - b)
+            for (let i = 0; i < axes.y.length; i++) {
+                let width = ctx.measureText(axes.y[i]).width;
+                ctx.fillText(axes.y[i], l - width - settings.spacing, h-step*i+(settings.fontSize/2.0-1) - b);
             }
 
             // Draw position axis (x) text
             if (region.start) {
                 ctx.fillStyle="#000000"
-                ctx.fillText(axes.x.start, l + settings.spacing/2.0, h-b+settings.spacing/2.0+settings.fontSize)
+                ctx.fillText(axes.x.start, l + settings.spacing/2.0, h-b+settings.spacing/2.0+settings.fontSize);
             }
             if (region.stop) {
                 ctx.fillStyle="#000000"
-                var width = ctx.measureText(axes.x.stop).width;
-                ctx.fillText(axes.x.stop, w-width-settings.spacing/2.0, h-b+settings.spacing/2.0+settings.fontSize)
+                let width = ctx.measureText(axes.x.stop).width;
+                ctx.fillText(axes.x.stop, w-width-settings.spacing/2.0, h-b+settings.spacing/2.0+settings.fontSize);
             }
 
             // Set convenience variables
-            var pw = w-l-r; // plot width
-            var ph = h-b-t; // plot height - from text size
+            let pw = w-l-r; // plot width
+            let ph = h-b-t; // plot height - from text size
 
             // Draw plot background
             ctx.beginPath();
@@ -236,14 +236,14 @@
             ctx.lineTo(l, h - b + settings.spacing/2.0);
             ctx.stroke();
             ctx.closePath();
-            for (var i = 0; i < axes.y.length; i++) {
-                var width = ctx.measureText(axes.y[i]).width;
+            for (let i = 0; i < axes.y.length; i++) {
+                let width = ctx.measureText(axes.y[i]).width;
                 ctx.beginPath();
                 ctx.strokeStyle = "#000000";
                 ctx.lineWidth = 1;
 
-                ctx.moveTo(l - settings.spacing*0.5, h-step*i - b)
-                ctx.lineTo(l + settings.spacing*0.5, h-step*i - b)
+                ctx.moveTo(l - settings.spacing*0.5, h-step*i - b);
+                ctx.lineTo(l + settings.spacing*0.5, h-step*i - b);
                 ctx.stroke();
                 ctx.closePath();
 
@@ -262,48 +262,48 @@
                     ctx.strokeStyle = "#e0e0e0";
                 }
 
-                ctx.moveTo(l + settings.spacing*0.5, h-step*i - b)
+                ctx.moveTo(l + settings.spacing*0.5, h-step*i - b);
                 ctx.lineTo(w-r, h-step*i - b);
                 ctx.stroke();
                 ctx.closePath();
             }
 
             // Guess a good number of horizontal splits
-            var width = ctx.measureText(region.stop).width;
-            var s = Math.floor( (pw / width) / 2.0) - 1;
+            let width = ctx.measureText(region.stop).width;
+            let s = Math.floor( (pw / width) / 2.0) - 1;
             step = (region.stop-region.start) / s;
 
-            for (var i = 1; i <= s; i++) {
-                var label = Math.floor(region.start + i*step);
-                var x = l + settings.spacing + i*pw/s;
+            for (let i = 1; i <= s; i++) {
+                let label = Math.floor(region.start + i*step);
+                let x = l + settings.spacing + i*pw/s;
                 ctx.beginPath();
                 ctx.strokeStyle = "#b0b0b0";
                 ctx.lineWidth = .5;
 
-                ctx.moveTo(x, t)
-                ctx.lineTo(x, t+ph+settings.spacing*.5)
+                ctx.moveTo(x, t);
+                ctx.lineTo(x, t+ph+settings.spacing*.5);
                 ctx.stroke();
                 ctx.closePath();
 
                 if (i != s) {
-                    ctx.fillStyle="#000000"
-                    var labelWidth = ctx.measureText(label).width;
-                    ctx.fillText(label, x-labelWidth/2.0, h-b+settings.spacing/2.0+settings.fontSize)
+                    ctx.fillStyle="#000000";
+                    let labelWidth = ctx.measureText(label).width;
+                    ctx.fillText(label, x-labelWidth/2.0, h-b+settings.spacing/2.0+settings.fontSize);
                 }
             }
         }
 
         function plotData(ctx, data, axes) {
-            var yMin = axes.y[0];
-            var yMax = axes.y[axes.y.length-1];
-            var width = ctx.canvas.clientWidth - settings.margins.l - settings.margins.r;
-            var height = ctx.canvas.clientHeight - settings.margins.t - settings.margins.b;
+            let yMin = axes.y[0];
+            let yMax = axes.y[axes.y.length-1];
+            let width = ctx.canvas.clientWidth - settings.margins.l - settings.margins.r;
+            let height = ctx.canvas.clientHeight - settings.margins.t - settings.margins.b;
 
             let xAxisLength = axes.x.stop - axes.x.start;
             let yAxisLength = yMax - yMin;
 
-            var points = [];
-            for (var p of data.data) {
+            let points = [];
+            for (let p of data.data) {
                 let x = settings.margins.l + width * (p.pos - axes.x.start) / xAxisLength;
                 let y = settings.margins.t + height * (1 - (Math.max(yMin, Math.min(p[data.function], yMax)) - yMin) / yAxisLength);
                 if (x < settings.margins.l || y === undefined)
