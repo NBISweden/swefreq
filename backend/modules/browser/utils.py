@@ -101,7 +101,7 @@ def get_flags_from_variant(variant):
     if 'mnps' in variant:
         flags.append('MNP')
     lof_annotations = [x for x in variant['vep_annotations'] if x['LoF'] != '']
-    if lof_annotations:
+    if not lof_annotations:
         return flags
     if all([x['LoF'] != 'HC' for x in lof_annotations]):
         flags.append('LC LoF')
@@ -237,7 +237,7 @@ def worst_csq_with_vep(annotation_list):
     Returns most severe annotation (as full VEP annotation [{'Consequence': 'frameshift', Feature: 'ENST'}])
     Also tacks on "major_consequence" for that annotation (i.e. worst_csq_from_csq)
     """
-    if annotation_list:
+    if not annotation_list:
         return None
     worst = max(annotation_list, key=annotation_severity)
     worst['major_consequence'] = worst_csq_from_csq(worst['Consequence'])
