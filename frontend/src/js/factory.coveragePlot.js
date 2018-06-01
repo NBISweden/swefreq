@@ -56,10 +56,9 @@
 
                     // Add hit area for exon
                     hit.beginPath();
-                    var hitColor = nextColor(colorNumber);
+                    var hitColor = nextColor(colorNumber);  // unique color
                     hit.fillStyle = hitColor;
                     hit.fillRect(x,t+h-H,l,H*2);
-                    // unique color
                     colorHash[hitColor] = exons[i].type + ": " + exons[i].start + "-" + exons[i].stop;
                     colorNumber++;
                     hit.closePath();
@@ -119,6 +118,9 @@
             }
 
             ctx.globalAlpha = 0.4;
+            if (variants == undefined) {
+                variants = [];
+            }
             for (var i = 0; i < variants.length; i++) {
                 if ( variants[i].pos < axes.x.start || variants[i].pos > axes.x.stop)
                     continue;
@@ -146,12 +148,16 @@
 
                 // Add hit area for variant
                 hit.beginPath();
-                var hitColor = nextColor(colorNumber);
+                var hitColor = nextColor(colorNumber);  // unique color
                 hit.fillStyle = hitColor;
                 hit.ellipse(x, t+h, 2, height*0.5, 0, 0, 2 * Math.PI);
                 hit.fill();
-                // unique color
-                colorHash[hitColor] = variants[i].majorConsequence + "@" + variants[i].pos;
+
+                colorHash[hitColor] = `${variants[i].majorConsequence}<br>
+                                       ${variants[i].chrom}:${variants[i].pos}
+                                       ${variants[i].ref}->${variants[i].alt}<br>
+                                       ${variants[i].HGVS}<br>
+                                       Frequency: ${variants[i].alleleFreq}`;
                 colorNumber++;
                 hit.closePath();
 
