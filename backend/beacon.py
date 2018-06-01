@@ -7,8 +7,10 @@ class Query(handlers.UnsafeHandler):
     def make_error_response(self):
         ret_str = ""
 
+        datasets = ['SweGen', 'ACpop']
+
         checks = {
-                'dataset': lambda x: "" if x == 'SweGen' else "dataset has to be SweGen\n",
+                'dataset': lambda x: "" if x in datasets else "dataset has to be one of {}\n".format(", ".join(datasets)),
                 'ref': lambda x: "" if x == 'hg19' else "ref has to be hg19\n",
                 'pos': lambda x: "" if x.isdigit() else "pos has to be digit\n",
         }
@@ -78,6 +80,10 @@ class Info(handlers.UnsafeHandler):
                     # 'description': 'Description',
                     # 'size': { 'variants': 1234, 'samples': 12 },
                     # 'data_uses': [] # Data use limitations
+                    'reference': 'hg19'
+                },
+                {
+                    'id': 'ACpop',
                     'reference': 'hg19'
                 },
             ],
