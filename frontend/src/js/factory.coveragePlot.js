@@ -155,9 +155,11 @@
 
                 colorHash[hitColor] = `${variants[i].majorConsequence}<br>
                                        ${variants[i].chrom}:${variants[i].pos}
-                                       ${variants[i].ref}->${variants[i].alt}<br>
-                                       ${variants[i].HGVS}<br>
-                                       Frequency: ${variants[i].alleleFreq}`;
+                                       ${variants[i].ref}->${variants[i].alt}<br>`;
+                if (variants[i].HGVS) {
+                    colorHash[hitColor] += `${variants[i].HGVS}<br>`;
+                }
+                colorHash[hitColor] += `Frequency: ${variants[i].alleleFreq.toFixed(4)}`;
                 colorNumber++;
                 hit.closePath();
 
