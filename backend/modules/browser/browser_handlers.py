@@ -5,9 +5,9 @@ import handlers
 
 from . import settings
 from . import lookups
-from .utils import *
 from . import mongodb
-
+from .utils import get_xpos, add_consequence_to_variant, remove_extraneous_vep_annotations, \
+                   order_vep_by_csq, get_proper_hgvs
 
 
 def connect_db(dataset, use_shared_data=False):
@@ -25,8 +25,8 @@ def connect_db(dataset, use_shared_data=False):
         db = client[settings.mongo_databases[dataset][database]]
 
         return db
-    except Exception as e:
-        logging.error("Failed to connect to database '{}' for dataset '{}'".format(database, dataset))
+    except pymongo.errors.ServerSelectionTimeoutError as e:
+        logging.error("Connection timeout to database '{}': {}".format(database, e))
     return None
 
 
@@ -36,37 +36,38 @@ class GetTranscript(handlers.UnsafeHandler):
         ret = {'transcript':{},
                'gene':{},
               }
-        try:
-            db_shared = connect_db(dataset, True)
-            try:
-                transcript = lookups.get_transcript(db_shared, transcript_id)
-                ret['transcript']['id'] = transcript['transcript_id']
-                ret['transcript']['number_of_CDS'] = len([t for t in transcript['exons'] if t['feature_type'] == 'CDS'])
-            except Exception as e:
-                logging.error("{}".format(e))
 
-            ret['exons'] = []
-            for exon in sorted(transcript['exons'], key=lambda k: k['start']):
-                ret['exons'] += [{'start':exon['start'], 'stop':exon['stop'], 'type':exon['feature_type']}]
+        db_shared = connect_db(dataset, True)
+        if not db_shared:
+            self.set_user_msg("Could not connect to database.", "error")
+            self.finish( ret )
+            return
 
-            gene                                = lookups.get_gene(db_shared, transcript['gene_id'])
-            ret['gene']['id']                   = gene['gene_id']
-            ret['gene']['name']                 = gene['gene_name']
-            ret['gene']['full_name']            = gene['full_gene_name']
-            ret['gene']['canonical_transcript'] = gene['canonical_transcript']
+        # Add transcript information
+        transcript = lookups.get_transcript(db_shared, transcript_id)
+        ret['transcript']['id'] = transcript['transcript_id']
+        ret['transcript']['number_of_CDS'] = len([t for t in transcript['exons'] if t['feature_type'] == 'CDS'])
 
-            gene_transcripts            = lookups.get_transcripts_in_gene(db_shared, transcript['gene_id'])
-            ret['gene']['transcripts']  = [g['transcript_id'] for g in gene_transcripts]
+        # Add exon information
+        ret['exons'] = []
+        for exon in sorted(transcript['exons'], key=lambda k: k['start']):
+            ret['exons'] += [{'start':exon['start'], 'stop':exon['stop'], 'type':exon['feature_type']}]
 
-        except Exception as e:
-            logging.error('{} when loading transcript {}: {}'.format(type(e), transcript_id, e))
+        # Add gene information
+        gene                                = lookups.get_gene(db_shared, transcript['gene_id'])
+        ret['gene']['id']                   = gene['gene_id']
+        ret['gene']['name']                 = gene['gene_name']
+        ret['gene']['full_name']            = gene['full_gene_name']
+        ret['gene']['canonical_transcript'] = gene['canonical_transcript']
+
+        gene_transcripts            = lookups.get_transcripts_in_gene(db_shared, transcript['gene_id'])
+        ret['gene']['transcripts']  = [g['transcript_id'] for g in gene_transcripts]
 
         self.finish( ret )
 
 
 class GetRegion(handlers.UnsafeHandler):
     def get(self, dataset, region):
-        region_id = region
         region = region.split('-')
         REGION_LIMIT = 100000
 
@@ -90,22 +91,21 @@ class GetRegion(handlers.UnsafeHandler):
                          'limit': REGION_LIMIT,
                         },
               }
-        try:
-            db = connect_db(dataset, False)
-            db_shared = connect_db(dataset, True)
-            try:
-                genes_in_region = lookups.get_genes_in_region(db_shared, chrom, start, stop)
-                if genes_in_region:
-                    ret['region']['genes'] = []
-                    for gene in genes_in_region:
-                        ret['region']['genes'] += [{'gene_id':gene['gene_id'],
-                                                    'gene_name':gene['gene_name'],
-                                                    'full_gene_name':gene['full_gene_name'],
-                                                   }]
-            except Exception as e:
-                logging.error("{}".format(e))
-        except Exception as e:
-            logging.error('{} when loading region {}: {}'.format(type(e), region_id, e))
+
+        db_shared = connect_db(dataset, True)
+        if not db_shared:
+            self.set_user_msg("Could not connect to database.", "error")
+            self.finish( ret )
+            return
+
+        genes_in_region = lookups.get_genes_in_region(db_shared, chrom, start, stop)
+        if genes_in_region:
+            ret['region']['genes'] = []
+            for gene in genes_in_region:
+                ret['region']['genes'] += [{'gene_id':gene['gene_id'],
+                                            'gene_name':gene['gene_name'],
+                                            'full_gene_name':gene['full_gene_name'],
+                                           }]
 
         self.finish( ret )
 
@@ -115,130 +115,121 @@ class GetGene(handlers.UnsafeHandler):
         gene_id = gene
 
         ret = {'gene':{'gene_id': gene_id}}
-        try:
-            db = connect_db(dataset, False)
-            db_shared = connect_db(dataset, True)
-            try:
-                # Gene
-                gene = lookups.get_gene(db_shared, gene_id)
-                ret['gene'] = gene
+        db = connect_db(dataset, False)
+        db_shared = connect_db(dataset, True)
+        if not db_shared or not db:
+            self.set_user_msg("Could not connect to database.", "error")
+            self.finish( ret )
+            return
 
-                # Add exons from transcript
-                transcript = lookups.get_transcript(db_shared, gene['canonical_transcript'])
-                ret['exons'] = []
-                for exon in sorted(transcript['exons'], key=lambda k: k['start']):
-                    ret['exons'] += [{'start':exon['start'], 'stop':exon['stop'], 'type':exon['feature_type']}]
+        # Gene
+        gene = lookups.get_gene(db_shared, gene_id)
+        ret['gene'] = gene
 
-                # Variants
-                ret['gene']['variants'] = lookups.get_number_of_variants_in_transcript(db, gene['canonical_transcript'])
+        # Add exons from transcript
+        transcript = lookups.get_transcript(db_shared, gene['canonical_transcript'])
+        ret['exons'] = []
+        for exon in sorted(transcript['exons'], key=lambda k: k['start']):
+            ret['exons'] += [{'start':exon['start'], 'stop':exon['stop'], 'type':exon['feature_type']}]
 
-                # Transcripts
-                transcripts_in_gene = lookups.get_transcripts_in_gene(db_shared, gene_id)
-                if transcripts_in_gene:
-                    ret['transcripts'] = []
-                    for transcript in transcripts_in_gene:
-                        ret['transcripts'] += [{'transcript_id':transcript['transcript_id']}]
+        # Variants
+        ret['gene']['variants'] = lookups.get_number_of_variants_in_transcript(db, gene['canonical_transcript'])
 
-            except Exception as e:
-                logging.error("{}".format(e))
-        except Exception as e:
-            logging.error('{} when loading gene {}: {}'.format(type(e), gene_id, e))
+        # Transcripts
+        transcripts_in_gene = lookups.get_transcripts_in_gene(db_shared, gene_id)
+        if transcripts_in_gene:
+            ret['transcripts'] = []
+            for transcript in transcripts_in_gene:
+                ret['transcripts'] += [{'transcript_id':transcript['transcript_id']}]
 
         self.finish( ret )
 
 
 class GetVariant(handlers.UnsafeHandler):
     def get(self, dataset, variant):
-        variant_id = variant
 
         ret = {'variant':{}}
-        try:
-            db = connect_db(dataset, False)
-            db_shared = connect_db(dataset, True)
-            try:
-                # Variant
-                chrom, pos, ref, alt = variant_id.split('-')
-                pos = int(pos)
 
-                xpos = get_xpos(chrom, pos)
-                variant = lookups.get_variant(db, db_shared, xpos, ref, alt)
+        db = connect_db(dataset, False)
+        db_shared = connect_db(dataset, True)
 
-                if variant is None:
-                    variant = {
-                        'chrom': chrom,
-                        'pos': pos,
-                        'xpos': xpos,
-                        'ref': ref,
-                        'alt': alt
-                    }
+        if not db_shared or not db:
+            self.set_user_msg("Could not connect to database.", "error")
+            self.finish( ret )
+            return
 
-                # Just get the information we need
-                for item in ["variant_id", "chrom", "pos", "ref", "alt", "filter", "rsid", "allele_num",
-                             "allele_freq", "allele_count", "orig_alt_alleles", "site_quality", "quality_metrics",
-                             "transcripts", "genes"]:
-                    ret['variant'][item] = variant[item]
+        # Variant
+        v = variant.split('-')
+        variant = lookups.get_variant(db, db_shared, get_xpos(v[0], int(v[1])), v[2], v[3])
 
-                # Variant Effect Predictor (VEP) annotations
-                # https://www.ensembl.org/info/docs/tools/vep/vep_formats.html
-                ret['variant']['consequences'] = []
-                if 'vep_annotations' in variant:
-                    add_consequence_to_variant(variant)
-                    variant['vep_annotations'] = remove_extraneous_vep_annotations(variant['vep_annotations'])
-                    # Adds major_consequence
-                    variant['vep_annotations'] = order_vep_by_csq(variant['vep_annotations'])
-                    ret['variant']['annotations'] = {}
-                    for annotation in variant['vep_annotations']:
-                        annotation['HGVS'] = get_proper_hgvs(annotation)
+        if variant is None:
+            variant = {
+                'chrom': v[0],
+                'pos': int(v[1]),
+                'xpos': get_xpos(v[0], int(v[1])),
+                'ref': v[2],
+                'alt': v[3]
+            }
 
-                        # Add consequence type to the annotations if it doesn't exist
-                        consequence_type = annotation['Consequence'].split('&')[0]  \
-                                           .replace("_variant", "")                 \
-                                           .replace('_prime_', '\'')                \
-                                           .replace('_', ' ')
-                        if consequence_type not in ret['variant']['annotations']:
-                            ret['variant']['annotations'][consequence_type] = {'gene': {'name':annotation['SYMBOL'],
-                                                                                        'id':annotation['Gene']},
-                                                                               'transcripts':[]}
+        # Just get the information we need
+        for item in ["variant_id", "chrom", "pos", "ref", "alt", "filter", "rsid", "allele_num",
+                     "allele_freq", "allele_count", "orig_alt_alleles", "site_quality", "quality_metrics",
+                     "transcripts", "genes"]:
+            ret['variant'][item] = variant[item]
 
-                        modification = annotation['HGVSp'].split(":")[1] if ':' in annotation['HGVSp'] else None
+        # Variant Effect Predictor (VEP) annotations
+        # https://www.ensembl.org/info/docs/tools/vep/vep_formats.html
+        ret['variant']['consequences'] = []
+        if 'vep_annotations' in variant:
+            add_consequence_to_variant(variant)
+            variant['vep_annotations'] = remove_extraneous_vep_annotations(variant['vep_annotations'])
+            # Adds major_consequence
+            variant['vep_annotations'] = order_vep_by_csq(variant['vep_annotations'])
+            ret['variant']['annotations'] = {}
+            for annotation in variant['vep_annotations']:
+                annotation['HGVS'] = get_proper_hgvs(annotation)
 
-                        ret['variant']['annotations'][consequence_type]['transcripts'] += \
-                            [{'id':           annotation['Feature'],
-                              'sift':         annotation['SIFT'].rstrip("()0123456789"),
-                              'polyphen':     annotation['PolyPhen'].rstrip("()0123456789"),
-                              'canonical':    annotation['CANONICAL'],
-                              'modification': modification}]
+                # Add consequence type to the annotations if it doesn't exist
+                consequence_type = annotation['Consequence'].split('&')[0]  \
+                                   .replace("_variant", "")                 \
+                                   .replace('_prime_', '\'')                \
+                                   .replace('_', ' ')
+                if consequence_type not in ret['variant']['annotations']:
+                    ret['variant']['annotations'][consequence_type] = {'gene': {'name':annotation['SYMBOL'],
+                                                                                'id':annotation['Gene']},
+                                                                       'transcripts':[]}
+
+                ret['variant']['annotations'][consequence_type]['transcripts'] += \
+                    [{'id':           annotation['Feature'],
+                      'sift':         annotation['SIFT'].rstrip("()0123456789"),
+                      'polyphen':     annotation['PolyPhen'].rstrip("()0123456789"),
+                      'canonical':    annotation['CANONICAL'],
+                      'modification': annotation['HGVSp'].split(":")[1] if ':' in annotation['HGVSp'] else None}]
 
 
-                # Dataset frequencies.
-                # This is reported per variable in the database data, with dataset
-                # information inside the variables,  so here we reorder to make the
-                # data easier to use in the template
-                frequencies = {'headers':[['Population','pop'],
-                                       ['Allele Count','acs'],
-                                       ['Allele Number', 'ans'],
-                                       ['Number of Homozygotes', 'homs'],
-                                       ['Allele Frequency', 'freq']],
-                            'datasets':{},
-                            'total':{}}
-                for var in ['pop_ans', 'pop_acs', 'pop_freq', 'pop_homs']:
-                    for dataset, value in variant[var].items():
-                        item = var.split('_')[1]
-                        if dataset not in frequencies['datasets']:
-                            frequencies['datasets'][dataset] = {'pop':dataset}
-                        frequencies['datasets'][dataset][item] = value
-                        if item not in frequencies['total']:
-                            frequencies['total'][item] = 0
-                        frequencies['total'][item] += value
-                if 'freq' in frequencies['total']:
-                    frequencies['total']['freq'] /= len(frequencies['datasets'].keys())
-                logging.error("datasets: {}".format(frequencies))
-                ret['variant']['pop_freq'] = frequencies
+        # Dataset frequencies.
+        # This is reported per variable in the database data, with dataset
+        # information inside the variables,  so here we reorder to make the
+        # data easier to use in the template
+        frequencies = {'headers':[['Population','pop'],
+                               ['Allele Count','acs'],
+                               ['Allele Number', 'ans'],
+                               ['Number of Homozygotes', 'homs'],
+                               ['Allele Frequency', 'freq']],
+                    'datasets':{},
+                    'total':{}}
+        for item in ['ans', 'acs', 'freq', 'homs']:
+            for _dataset, value in variant['pop_' + item].items():
+                if _dataset not in frequencies['datasets']:
+                    frequencies['datasets'][dataset] = {'pop':_dataset}
+                frequencies['datasets'][_dataset][item] = value
+                if item not in frequencies['total']:
+                    frequencies['total'][item] = 0
+                frequencies['total'][item] += value
+        if 'freq' in frequencies['total']:
+            frequencies['total']['freq'] /= len(frequencies['datasets'].keys())
 
-            except Exception as e:
-                logging.error("{}".format(e))
-        except Exception as e:
-            logging.error('{} when loading variant {}: {}'.format(type(e), variant_id, e))
+        ret['variant']['pop_freq'] = frequencies
 
         self.finish( ret )
 
@@ -270,18 +261,22 @@ class GetCoveragePos(handlers.UnsafeHandler):
 class Search(handlers.UnsafeHandler):
     def get(self, dataset, query):
         redirect_page = "/dataset/{}/browser/not_found".format(dataset)
-        try:
-            db = connect_db(dataset, False)
-            db_shared = connect_db(dataset, True)
 
-            datatype, identifier = lookups.get_awesomebar_result(db, db_shared, query)
+        db = connect_db(dataset, False)
+        db_shared = connect_db(dataset, True)
 
-            if datatype == "dbsnp_variant_set":
-                datatype = "dbsnp"
-            if datatype not in ["error", "not_found"]:
-                redirect_page = "/dataset/{}/browser/{}/{}".format(dataset, datatype, identifier)
-        except Exception as e:
-            logging.error('{} when connecting to database for dataset {}.'.format(type(e), dataset))
+        if not db_shared or not db:
+            self.set_user_msg("Could not connect to database.", "error")
+            self.finish( {'redirect':redirect_page} )
+            return
+
+        datatype, identifier = lookups.get_awesomebar_result(db, db_shared, query)
+
+        if datatype == "dbsnp_variant_set":
+            datatype = "dbsnp"
+        if datatype not in ["error", "not_found"]:
+            redirect_page = "/dataset/{}/browser/{}/{}".format(dataset, datatype, identifier)
+
         self.finish( {'redirect':redirect_page} )
 
 
@@ -289,11 +284,9 @@ class Autocomplete(handlers.UnsafeHandler):
     def get(self, dataset, query):
         ret = {}
 
-        try:
-            results = mongodb.get_autocomplete(dataset, query)
-            ret = {'values': sorted(list(set(results)))[:20]}
-        except Exception as e:
-            logging.error('{} when fetching autocomplete for {} in dataset {}: {}'.format(type(e), query, dataset, e))
+        results = mongodb.get_autocomplete(dataset, query)
+        ret = {'values': sorted(list(set(results)))[:20]}
+
         self.finish( ret )
 
 
