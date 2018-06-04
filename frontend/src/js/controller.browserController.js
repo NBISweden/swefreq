@@ -163,7 +163,7 @@
                     default:
                         return false;
                 }
-            }
+            };
 
             localThis.filteredVariants = localThis.variants.filter( filterFunction );
             localThis.coverage.update += 1;

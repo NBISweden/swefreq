@@ -172,7 +172,7 @@
             // Reset context values
             ctx.strokeStyle = "#000000";
             ctx.fillStyle = "#000000";
-            ctx.globalAlpha = 1.0;;
+            ctx.globalAlpha = 1.0;
         }
 
         function drawGrid(ctx, axes, region) {
@@ -211,11 +211,11 @@
 
             // Draw position axis (x) text
             if (region.start) {
-                ctx.fillStyle="#000000"
+                ctx.fillStyle="#000000";
                 ctx.fillText(axes.x.start, l + settings.spacing/2.0, h-b+settings.spacing/2.0+settings.fontSize);
             }
             if (region.stop) {
-                ctx.fillStyle="#000000"
+                ctx.fillStyle="#000000";
                 let textWidth = ctx.measureText(axes.x.stop).width;
                 ctx.fillText(axes.x.stop, w-textWidth-settings.spacing/2.0, h-b+settings.spacing/2.0+settings.fontSize);
             }
@@ -237,7 +237,6 @@
             ctx.stroke();
             ctx.closePath();
             for (let i = 0; i < axes.y.length; i++) {
-                let textWidth = ctx.measureText(axes.y[i]).width;
                 ctx.beginPath();
                 ctx.strokeStyle = "#000000";
                 ctx.lineWidth = 1;
@@ -307,7 +306,7 @@
                 let x = settings.margins.l + width * (p.pos - axes.x.start) / xAxisLength;
                 let y = settings.margins.t + height * (1 - (Math.max(yMin, Math.min(p[data.function], yMax)) - yMin) / yAxisLength);
                 if (x < settings.margins.l || y === undefined)
-                    continue
+                    continue;
 
                 points.push([x,y]);
             }
@@ -329,7 +328,7 @@
             // Add graph line blips
             if (Math.abs(points[0][0] - points[1][0]) > 4) {
                 ctx.beginPath();
-                for (p of points) {
+                for (var p of points) {
                     let [x, y] = p;
                     ctx.moveTo(x, y-2);
                     ctx.lineTo(x, y+2);
@@ -339,8 +338,8 @@
             }
 
             // Reset context values
-            ctx.strokeStyle = "#000000"
-            ctx.fillStyle = "#000000"
+            ctx.strokeStyle = "#000000";
+            ctx.fillStyle = "#000000";
         }
 
     }]);
