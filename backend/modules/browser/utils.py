@@ -1,3 +1,4 @@
+import logging
 from operator import itemgetter
 
 AF_BUCKETS = [0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1]
@@ -140,8 +141,8 @@ def get_protein_hgvs(annotation):
         try:
             amino_acids = ''.join([protein_letters_1to3[x] for x in annotation['Amino_acids']])
             return "p." + amino_acids + annotation['Protein_position'] + amino_acids
-        except Exception:
-            print('Could not create HGVS for: %s' % annotation)
+        except KeyError:
+            logging.error("Could not fetch protein hgvs - unknown amino acid")
     return annotation['HGVSp'].split(':')[-1]
 
 # Note that this is the current as of v81 with some included for backwards compatibility (VEP <= 75)

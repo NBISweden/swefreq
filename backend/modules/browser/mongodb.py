@@ -1,9 +1,9 @@
 import logging
-import settings
 import pymongo
 
+from . import settings
 from . import lookups
-from .utils import *
+from .utils import get_xpos
 
 EXON_PADDING = 50
 
@@ -22,7 +22,7 @@ def connect_db(dataset, use_shared_data=False):
         db = client[settings.mongo_databases[dataset][database]]
 
         return db
-    except Exception:
+    except pymongo.errors.ServerSelectionTimeoutError:
         logging.error("Failed to connect to database '{}' for dataset '{}'".format(database, dataset))
     return None
 

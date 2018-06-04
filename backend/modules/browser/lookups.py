@@ -1,6 +1,6 @@
 import re
 
-from .utils import *
+from .utils import METRICS, AF_BUCKETS, get_xpos, xpos_to_pos, add_consequence_to_variants, add_consequence_to_variant
 
 SEARCH_LIMIT = 10000
 
@@ -57,7 +57,7 @@ def get_variants_from_dbsnp(db,sdb, rsid):
         return None
     try:
         rsid = int(rsid.lstrip('rs'))
-    except Exception as e:
+    except ValueError:
         return None
     position = sdb.dbsnp.find_one({'rsid': rsid})
     if position:

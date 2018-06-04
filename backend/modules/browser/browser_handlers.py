@@ -1,33 +1,9 @@
-import logging
-import pymongo
-
 import handlers
 
-from . import settings
 from . import lookups
 from . import mongodb
 from .utils import get_xpos, add_consequence_to_variant, remove_extraneous_vep_annotations, \
                    order_vep_by_csq, get_proper_hgvs
-
-
-def connect_db(dataset, use_shared_data=False):
-    """
-    Connects to a specific database based on the values stored in settings for
-    a given dataset, and whether to use shared data or not.
-    """
-    database = 'shared' if use_shared_data else 'db'
-    try:
-        client = pymongo.MongoClient(connect=False, host=settings.mongo_host, port=settings.mongo_port)
-
-        auth_db = client['exac-user']
-        auth_db.authenticate(settings.mongo_user, settings.mongo_password)
-
-        db = client[settings.mongo_databases[dataset][database]]
-
-        return db
-    except pymongo.errors.ServerSelectionTimeoutError as e:
-        logging.error("Connection timeout to database '{}': {}".format(database, e))
-    return None
 
 
 class GetTranscript(handlers.UnsafeHandler):
@@ -37,7 +13,7 @@ class GetTranscript(handlers.UnsafeHandler):
                'gene':{},
               }
 
-        db_shared = connect_db(dataset, True)
+        db_shared = mongodb.connect_db(dataset, True)
         if not db_shared:
             self.set_user_msg("Could not connect to database.", "error")
             self.finish( ret )
@@ -92,7 +68,7 @@ class GetRegion(handlers.UnsafeHandler):
                         },
               }
 
-        db_shared = connect_db(dataset, True)
+        db_shared = mongodb.connect_db(dataset, True)
         if not db_shared:
             self.set_user_msg("Could not connect to database.", "error")
             self.finish( ret )
@@ -115,8 +91,8 @@ class GetGene(handlers.UnsafeHandler):
         gene_id = gene
 
         ret = {'gene':{'gene_id': gene_id}}
-        db = connect_db(dataset, False)
-        db_shared = connect_db(dataset, True)
+        db = mongodb.connect_db(dataset, False)
+        db_shared = mongodb.connect_db(dataset, True)
         if not db_shared or not db:
             self.set_user_msg("Could not connect to database.", "error")
             self.finish( ret )
@@ -150,8 +126,8 @@ class GetVariant(handlers.UnsafeHandler):
 
         ret = {'variant':{}}
 
-        db = connect_db(dataset, False)
-        db_shared = connect_db(dataset, True)
+        db = mongodb.connect_db(dataset, False)
+        db_shared = mongodb.connect_db(dataset, True)
 
         if not db_shared or not db:
             self.set_user_msg("Could not connect to database.", "error")
@@ -262,8 +238,8 @@ class Search(handlers.UnsafeHandler):
     def get(self, dataset, query):
         redirect_page = "/dataset/{}/browser/not_found".format(dataset)
 
-        db = connect_db(dataset, False)
-        db_shared = connect_db(dataset, True)
+        db = mongodb.connect_db(dataset, False)
+        db_shared = mongodb.connect_db(dataset, True)
 
         if not db_shared or not db:
             self.set_user_msg("Could not connect to database.", "error")
