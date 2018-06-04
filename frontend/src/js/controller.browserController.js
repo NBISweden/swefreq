@@ -150,7 +150,7 @@
 
             let filterFunction = function(variant) {
                 // Remove variants that didn't PASS QC
-                if (! (localThis.filterIncludeNonPass || variant.is_pass )) {
+                if (! (localThis.filterIncludeNonPass || variant.isPass )) {
                     return false;
                 }
                 switch(localThis.filterVariantsBy) {
