@@ -126,12 +126,7 @@ def get_exons_cnvs(db, transcript_name):
 def get_cnvs(db, gene_name):
     return list(db.cnvgenes.find({'gene': gene_name}, projection={'_id': False}))
 
-# 1:1-1000
-R1 = re.compile(r'^(\d+|X|Y|M|MT)\s*:\s*(\d+)-(\d+)$')
-R2 = re.compile(r'^(\d+|X|Y|M|MT)\s*:\s*(\d+)$')
-R3 = re.compile(r'^(\d+|X|Y|M|MT)$')
-# R4 = re.compile(r'^(\d+|X|Y|M|MT)\s*[-:]\s*(\d+)-([ATCG]+)-([ATCG]+)$')
-R4 = re.compile(r'^\s*(\d+|X|Y|M|MT)\s*[-:]\s*(\d+)[-:\s]*([ATCG]+)\s*[-:/]\s*([ATCG]+)\s*$')
+REGION_REGEX = re.compile(r'^\s*(\d+|X|Y|M|MT)\s*([-:]?)\s*(\d*)-?([\dACTG]*)-?([ACTG]*)')
 
 def get_awesomebar_result(db,sdb, query):
     """
@@ -156,28 +151,24 @@ def get_awesomebar_result(db,sdb, query):
 
     """
     query = query.strip()
-    # print 'Query: %s' % query
 
-    # Variant
+    # Parse Variant types
     variant = get_variants_by_rsid(db, query.lower())
+    if not variant:
+        variant = get_variants_from_dbsnp(db,sdb, query.lower())
+
     if variant:
         if len(variant) == 1:
-            return 'variant', variant[0]['variant_id']
-        return 'dbsnp_variant_set', variant[0]['rsid']
-
-    variant = get_variants_from_dbsnp(db,sdb, query.lower())
-    if variant:
-        return 'variant', variant[0]['variant_id']
-    # variant = get_variant(db, )
-    # TODO - https://github.com/brettpthomas/exac_browser/issues/14
+            retval = ('variant', variant[0]['variant_id'])
+        else:
+            retval = ('dbsnp_variant_set', variant[0]['rsid'])
+        return retval
 
     gene = get_gene_by_name(sdb, query)
-    if gene:
-        return 'gene', gene['gene_id']
-
     # From here out, all should be uppercase (gene, tx, region, variant_id)
     query = query.upper()
-    gene = get_gene_by_name(sdb, query)
+    if not gene:
+        gene = get_gene_by_name(sdb, query)
     if gene:
         return 'gene', gene['gene_id']
 
@@ -193,24 +184,19 @@ def get_awesomebar_result(db,sdb, query):
         if transcript:
             return 'transcript', transcript['transcript_id']
 
-    # From here on out, only region queries
-    if query.startswith('CHR'):
-        query = query.lstrip('CHR')
-    # Region
-    m = R1.match(query)
-    if m:
-        if int(m.group(3)) < int(m.group(2)):
-            return 'region', 'invalid'
-        return 'region', '{}-{}-{}'.format(m.group(1), m.group(2), m.group(3))
-    m = R2.match(query)
-    if m:
-        return 'region', '{}-{}-{}'.format(m.group(1), m.group(2), m.group(2))
-    m = R3.match(query)
-    if m:
-        return 'region', '{}'.format(m.group(1))
-    m = R4.match(query)
-    if m:
-        return 'variant', '{}-{}-{}-{}'.format(m.group(1), m.group(2), m.group(3), m.group(4))
+    # Region and variant queries
+    query = query[3:] if query.startswith('CHR') else query
+
+    match = REGION_REGEX.match(query)
+    if match:
+        target = match.group(0)
+        target_type = 'region'
+        if match.group(2) == ":":
+            target = target.replace(":","-")
+        if match.group(5) and set(match.group(4)).issubset(set("ACGT")):
+            target_type = 'variant'
+
+        return target_type, target
 
     return 'not_found', query
 
