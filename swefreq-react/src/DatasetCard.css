@@ -1,0 +1,86 @@
+.dataset-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.future-blurb {
+    font-style: italic;
+    font-size: 90%;
+    color: #900;
+}
+
+.future-title {
+    background-color: #BE8542;
+}
+
+.dataset-links {
+    display: flex;
+}
+
+    li {
+        display: block;
+        text-align: center;
+        font-size: 21px;
+        font-weight: 200;
+        flex-grow: 1;
+        background-color: #e8e8e8; /*$dark-grey;*/
+
+        a {
+            color: #000;
+        }
+    }
+
+    li:hover {
+        background-color: #F47D20; /* $elixir-orange; */
+    }
+
+    .glyphicon {
+        font-size: 75%;
+    }
+
+    li:first-child {
+        border-radius: 0 0 0 5px;
+    }
+
+    li:last-child {
+        border-radius: 0 0 5px 0;
+    }
+
+.dataset-heading {
+    background-color: #85BE42; /* $scilife-green; */
+    border-radius: 5px 5px 0 0;
+    color: #fff;
+    font-size: 18pt;
+    padding: 2px 0 2px 7px;
+}
+
+.dataset-body {
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+    padding: 15px 15px 7px 15px;
+    font-size: 14pt;
+    background-color: #f8f8f8; /* $grey-background-color; */
+}
+
+    img.dataset-logo {
+        max-width: 150px;
+        max-height: 300px;
+        float: right;
+        margin: 15px;
+    }
+
+    .ethnicity {
+        font-style: italic;
+        font-size: 80%;
+    }
+
+    ul.samples {
+        margin-left: 20px;
+
+        li:first-child {
+            list-style-type: disc;
+        }
+    }
