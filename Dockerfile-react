@@ -1,0 +1,8 @@
+FROM node:8
+
+ADD . /code
+WORKDIR /code/swefreq-react
+
+RUN npm install -g create-react-app
+
+CMD ["npm", "start"]

@@ -1,5 +1,18 @@
 version: "3.2"
 services:
+  react:
+    build:
+      context: ./
+      dockerfile: Dockerfile-react
+    depends_on:
+      - web
+    ports:
+      - 3000:3000
+    restart: on-failure
+    volumes:
+      - type: bind
+        source: .
+        target: /code
   web:
     build:
       context: ./
