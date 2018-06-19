@@ -164,10 +164,6 @@ class GetDataset(handlers.UnsafeHandler):
         version = db.get_dataset_version(dataset, version)
 
         if version.available_from > datetime.now():
-            # If it's not available yet, only return if user is admin.
-            if not (user and user.is_admin(version.dataset)):
-                self.send_error(status_code=403)
-                return
             future_version = True
 
         ret = build_dataset_structure(version, user)
