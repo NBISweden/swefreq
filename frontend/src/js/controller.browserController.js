@@ -113,6 +113,9 @@
         }
 
         function browserLink(link) {
+            if ( $routeParams.version ) {
+                return "/dataset/" + $routeParams.dataset + "/version/" + $routeParams.version + "/browser/" + link;
+            }
             return "/dataset/" + $routeParams.dataset + "/browser/" + link;
         }
 

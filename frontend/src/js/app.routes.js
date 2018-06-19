@@ -24,6 +24,14 @@
             .when("/dataset/:dataset/browser/region/:region",           { templateUrl: "static/templates/ng-templates/browser-region.html"      })
             .when("/dataset/:dataset/browser/transcript/:transcript",   { templateUrl: "static/templates/ng-templates/browser-transcript.html"  })
             .when("/dataset/:dataset/browser/variant/:variant",         { templateUrl: "static/templates/ng-templates/browser-variant.html"     })
+
+            .when("/dataset/:dataset/version/:version/browser",                          { templateUrl: "static/templates/ng-templates/dataset-browser.html"     })
+            .when("/dataset/:dataset/version/:version/browser/not_found",                { templateUrl: "static/templates/ng-templates/browser-not-found.html"   })
+            .when("/dataset/:dataset/version/:version/browser/gene/:gene",               { templateUrl: "static/templates/ng-templates/browser-gene.html"        })
+            .when("/dataset/:dataset/version/:version/browser/region/:region",           { templateUrl: "static/templates/ng-templates/browser-region.html"      })
+            .when("/dataset/:dataset/version/:version/browser/transcript/:transcript",   { templateUrl: "static/templates/ng-templates/browser-transcript.html"  })
+            .when("/dataset/:dataset/version/:version/browser/variant/:variant",         { templateUrl: "static/templates/ng-templates/browser-variant.html"     })
+
             .otherwise(                                                 { templateUrl: "static/templates/ng-templates/404.html"                 });
 
         // Use the HTML5 History API
