@@ -1,5 +1,6 @@
 import jinja2
 import argparse
+import datetime
 from pathlib import Path
 
 class Jinja2Renderer(object):
@@ -30,7 +31,7 @@ def main():
     src = Path(args.src).relative_to( args.basedir )
 
     renderer = Jinja2Renderer(args.basedir)
-    res = renderer.render( src, develop = args.develop )
+    res = renderer.render( src, develop = args.develop, version=datetime.datetime.now().strftime("%Y%m%d%H%M%S.%f") )
     print(res)
 
 

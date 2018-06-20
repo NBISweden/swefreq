@@ -72,9 +72,9 @@
                     <td title="{{::variant['homCount'] }}" class="homCount">{{::variant['homCount'] }}</td>
                     <td title="{{::variant['alleleFreq'] }}" class="alleleFreq">
                         <div>{{::variant['alleleFreq'] | number : 4 }}</div>
-                        <img src="static/img/steel_blue.png">
+                        <img src="static/img/steel_blue.png?v=[[version]]">
                         <img ng-repeat="threshold in ctrl.variantBoxThresholds"
-                             src="{{:: variant['alleleFreq'] >= threshold && variant['alleleCount'] > 1 ? 'static/img/steel_blue.png' : 'static/img/white.png' }}">
+                             src="{{:: variant['alleleFreq'] >= threshold && variant['alleleCount'] > 1 ? 'static/img/steel_blue.png' : 'static/img/white.png' }}?v=[[version]]">
                     </td>
                 </tr>
             </tbody>
