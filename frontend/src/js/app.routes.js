@@ -3,16 +3,16 @@
     // configure routes
     angular.module("App")
     // Stolen from https://medium.com/angularjs-tricks/prevent-annoying-template-caching-in-angularjs-1-x-b706bf9c4056
-    .factory("intelligentTemplateCache", ["$injector", function($injector) {
+    .factory("intelligentTemplateCache", [function() {
         return {
             "request": function(config) {
                 if (config.url.indexOf("views") !== -1) {
-                    config.url = config.url + '?v=SED_MAKEFILE_CACHE_VERSION';
+                    config.url = config.url + "?v=SED_MAKEFILE_CACHE_VERSION";
                 }
 
                 return config;
             }
-        }
+        };
     }])
     .config(["$routeProvider", "$locationProvider", "$httpProvider", function($routeProvider, $locationProvider, $httpProvider) {
         $routeProvider
@@ -50,6 +50,6 @@
         $locationProvider.html5Mode(true);
 
         // More intelligent template caching
-        $httpProvider.interceptors.push('intelligentTemplateCache');
+        $httpProvider.interceptors.push("intelligentTemplateCache");
     }]);
 })();
