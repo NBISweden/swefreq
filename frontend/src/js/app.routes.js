@@ -2,7 +2,19 @@
     ////////////////////////////////////////////////////////////////////////////
     // configure routes
     angular.module("App")
-    .config(["$routeProvider", "$locationProvider", function($routeProvider, $locationProvider) {
+    // Stolen from https://medium.com/angularjs-tricks/prevent-annoying-template-caching-in-angularjs-1-x-b706bf9c4056
+    .factory("intelligentTemplateCache", ["$injector", function($injector) {
+        return {
+            "request": function(config) {
+                if (config.url.indexOf("views") !== -1) {
+                    config.url = config.url + '?v=SED_MAKEFILE_CACHE_VERSION';
+                }
+
+                return config;
+            }
+        }
+    }])
+    .config(["$routeProvider", "$locationProvider", "$httpProvider", function($routeProvider, $locationProvider, $httpProvider) {
         $routeProvider
             .when("/",                                                  { templateUrl: "static/templates/ng-templates/home.html"                })
             .when("/login",                                             { templateUrl: "static/templates/ng-templates/login.html"               })
@@ -36,5 +48,8 @@
 
         // Use the HTML5 History API
         $locationProvider.html5Mode(true);
+
+        // More intelligent template caching
+        $httpProvider.interceptors.push('intelligentTemplateCache');
     }]);
 })();

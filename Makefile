@@ -40,7 +40,7 @@ static/js/vendor.js: $(JAVASCRIPT_VENDOR)
 
 static/js/app.js: $(JAVASCRIPT_FILES)
 	mkdir -p $$( dirname $@ )
-	cat $^ >$@
+	sed "s/SED_MAKEFILE_CACHE_VERSION/$$(date +%Y%m%d%H%M%S.%N)/g" $^ >$@
 
 static/templates/ng-templates/browser%.html: frontend/templates/ng-templates/browser%.html $(wildcard frontend/templates/ng-templates/*.jj2)
 	mkdir -p $$( dirname $@ ) 2>/dev/null || true
