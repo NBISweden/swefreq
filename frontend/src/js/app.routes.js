@@ -6,7 +6,7 @@
     .factory("intelligentTemplateCache", [function() {
         return {
             "request": function(config) {
-                if (config.url.indexOf("views") !== -1) {
+                if (config.url.indexOf("templates") !== -1) {
                     config.url = config.url + "?v=SED_MAKEFILE_CACHE_VERSION";
                 }
 
