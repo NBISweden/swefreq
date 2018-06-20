@@ -125,9 +125,12 @@
             }
             if (localThis.query) {
                 Browser.search($routeParams.dataset, localThis.query).then( function(data) {
-                    if (data.redirect) {
-                        $window.location.href = data.redirect;
+
+                    var url = browserLink(`${data.type}/${data.value}`);
+                    if ( data.type == "error" || data.type == "not_found" ) {
+                        url = browserLink("not_found");
                     }
+                    $window.location.href = url;
                 });
             }
         }

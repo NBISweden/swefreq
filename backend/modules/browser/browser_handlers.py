@@ -236,24 +236,25 @@ class GetCoveragePos(handlers.UnsafeHandler):
 
 class Search(handlers.UnsafeHandler):
     def get(self, dataset, query):
-        redirect_page = "/dataset/{}/browser/not_found".format(dataset)
+        ret = {"dataset": dataset, "value": None, "type": None}
 
         db = mongodb.connect_db(dataset, False)
         db_shared = mongodb.connect_db(dataset, True)
 
         if not db_shared or not db:
             self.set_user_msg("Could not connect to database.", "error")
-            self.finish( {'redirect':redirect_page} )
+            self.finish( ret )
             return
 
         datatype, identifier = lookups.get_awesomebar_result(db, db_shared, query)
 
         if datatype == "dbsnp_variant_set":
             datatype = "dbsnp"
-        if datatype not in ["error", "not_found"]:
-            redirect_page = "/dataset/{}/browser/{}/{}".format(dataset, datatype, identifier)
 
-        self.finish( {'redirect':redirect_page} )
+        ret["type"] = datatype
+        ret["value"] = identifier
+
+        self.finish( ret )
 
 
 class Autocomplete(handlers.UnsafeHandler):
