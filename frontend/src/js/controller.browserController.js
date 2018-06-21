@@ -95,6 +95,9 @@
                 });
                 Browser.getCoverage($routeParams.dataset, localThis.itemType, localThis.item).then(function(data) {
                     localThis.coverage.data = data.coverage;
+                    localThis.coverage.loaded = true;
+                }, function() {
+                    localThis.coverage.loaded = true;
                 });
             }
             if ($routeParams.variant) {
