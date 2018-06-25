@@ -11,6 +11,7 @@ import settings as swefreq_settings
 import beacon
 #import template
 
+from modules.browser.route import routes as browser_routes
 
 define("port", default=4000, help="run on the given port", type=int)
 define("develop", default=False, help="Run in develop environment", type=bool)
@@ -83,12 +84,19 @@ class Application(tornado.web.Application):
             (r"/query",                                                               beacon.Query),
             (r"/info",                                                                tornado.web.RedirectHandler,
                                                                                          {"url": "/api/beacon/info"}),
-            ## Catch all
+        ]
+
+        ## Adding module handlers
+        self.declared_handlers += browser_routes
+
+        ## Adding Catch all handlers
+        self.declared_handlers += [
             (r"/api/.*",                                                              tornado.web.ErrorHandler,
                                                                                          {"status_code": 404} ),
             (r'().*',                                                                 tornado.web.StaticFileHandler,
                                                                                          {"path": "static/templates/",  "default_filename": "index.html"}),
-        ]
+            ]
+
         ## Adding developer login handler
         if settings.get('develop', False):
             self.declared_handlers.insert(-1, ("/developer/login", auth.DeveloperLoginHandler))

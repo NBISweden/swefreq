@@ -25,10 +25,11 @@ mysql_passwd = json_settings["mysqlPasswd"]
 mysql_port = json_settings["mysqlPort"]
 
 # Mongodb settings
-mongo_host = json_settings["mongoHost"]
-mongo_port = json_settings["mongoPort"]
-mongo_user = json_settings["mongoUser"]
-mongo_password = json_settings["mongoPassword"]
+mongo_host      = json_settings["mongoHost"]
+mongo_port      = json_settings["mongoPort"]
+mongo_user      = json_settings["mongoUser"]
+mongo_password  = json_settings["mongoPassword"]
+mongo_databases = json_settings["mongoDatabases"]
 
 # e-mail config
 mail_server = json_settings["mailServer"]
