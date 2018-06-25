@@ -8,6 +8,7 @@
         localThis.activeSuggestion = -1;
         localThis.orderByField = "variantId";
         localThis.reverseSort = false;
+
         localThis.coverage = {};
         localThis.coverage.region = {"start":null,
                                      "stop":null,
@@ -16,10 +17,13 @@
                                     };
         localThis.coverage.zoom = "overview";
         localThis.coverage.function = "mean";
+        localThis.coverage.coverageMetric = "mean";
+        localThis.coverage.overValue = 50;
         localThis.coverage.includeUTR = true;
         localThis.coverage.data = [];
         localThis.coverage.update = 0;
         localThis.variants = [];
+        localThis.updatedOverValue = updatedOverValue;
 
         localThis.item = null;
         localThis.itemType = null;
@@ -185,5 +189,8 @@
             localThis.orderByField = field;
         }
 
+        function updatedOverValue() {
+            localThis.coverage.coverageMetric = "over";
+        }
     }]);
 })();

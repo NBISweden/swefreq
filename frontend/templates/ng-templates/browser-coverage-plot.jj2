@@ -27,17 +27,19 @@
         <label>Coverage metrics:</label>
         <span>
             <label>
-                <input type="radio" ng-model="ctrl.coverage.function" value="mean">
+                <input type="radio" ng-model="ctrl.coverage.coverageMetric" value="mean">
                 Mean
             </label>
             <label>
-                <input type="radio" ng-model="ctrl.coverage.function" value="median">
+                <input type="radio" ng-model="ctrl.coverage.coverageMetric" value="median">
                 Median
             </label>
             <label>
+                <input type="radio" ng-model="ctrl.coverage.coverageMetric" value="over">
                 Individuals over
-                <select ng-model="ctrl.coverage.function" ng-selected="ctrl.coverage.function"
-                        ng-options="cov for cov in [1,5,10,15,20,25,30,50,100]">
+                <select ng-model="ctrl.coverage.overValue" ng-selected="ctrl.coverage.overValue"
+                        ng-options="cov for cov in [1,5,10,15,20,25,30,50,100]"
+                        ng-change="ctrl.updatedOverValue()">
                         {{ cov }}
                 </select> X coverage
             </label>

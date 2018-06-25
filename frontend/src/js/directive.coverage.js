@@ -41,6 +41,14 @@
                 });
 
                 scope.$watch("ctrl.coverage", function(newValue) {
+                    // Update the coverage function
+                    if ( newValue.coverageMetric == "over" ) {
+                        newValue.function = newValue.overValue;
+                    }
+                    else {
+                        newValue.function = newValue.coverageMetric;
+                    }
+
                     // set zoom level
                     var width = element[0].parentElement.clientWidth;
                     if (newValue.zoom == "detail") {
