@@ -21,7 +21,7 @@
                         <li class="[[ 'active' if active=='terms'    ]]"><a href="{{navbarCtrl.createUrl('terms')}}">Terms</a></li>
                         <li class="[[ 'active' if active=='download' ]]"><a href="{{navbarCtrl.createUrl('download')}}">Dataset Access</a></li>
                         <li class="[[ 'active' if active=='beacon'   ]]"><a href="{{navbarCtrl.createUrl('beacon')}}">Beacon</a></li>
-                        <li class="[[ 'active' if active=='browser'  ]]"><a href="{{navbarCtrl.browserUri}}" target="_blank">Graphical Browser <span class="glyphicon glyphicon-new-window" aria-hidden="true"></span></a></li>
+                        <li class="[[ 'active' if active=='browser'  ]]"><a href="{{navbarCtrl.createUrl('browser')}}">Browser</a></li>
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Version <span class="caret"></span></a>
                             <ul class="dropdown-menu">

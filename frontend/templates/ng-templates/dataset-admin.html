@@ -1,5 +1,5 @@
 [% set active='admin' %]
-[% extends "ng-templates/dataset-base.html" %]
+[% extends "ng-templates/dataset-base.jj2" %]
 [% block controller %]datasetAdminController[% endblock %]
 [% block contents %]
 <div ng-if="ctrl.dataset.isAdmin == false">

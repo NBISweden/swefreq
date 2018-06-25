@@ -1,0 +1,84 @@
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <span class="btn-group radio-button-group" ng-click="ctrl.filterVariants()">
+                <input type="radio" id="variants-filter-all" ng-model="ctrl.filterVariantsBy" value="all">
+                    <label class="btn btn-primary first-button" for="variants-filter-all">
+                        All
+                    </label>
+                </input>
+                <input type="radio" id="variants-filter-mislof" ng-model="ctrl.filterVariantsBy" value='mislof'>
+                    <label class="btn btn-primary" for="variants-filter-mislof">
+                        Missense + LoF
+                    </label>
+                </input>
+                <input type="radio" id="variants-filter-lof" ng-model="ctrl.filterVariantsBy" value='lof'>
+                    <label class="btn btn-primary" for="variants-filter-lof">
+                        LoF
+                    </label>
+                </input>
+            </span>
+            <label>
+                <input type="checkbox" id="variants-filter-non-pass" ng-model="ctrl.filterIncludeNonPass" ng-click="ctrl.filterVariants()">
+                    Include filtered (non-PASS) variants
+                </input>
+            </label>
+            <br />
+            <a ng-if="ctrl.item" class="btn btn-success" href="/api/datasets/{{ctrl.dataset.shortName}}/browser/download/{{ctrl.itemType}}/{{ctrl.item}}">Export table to CSV</a><br/>
+            <span class="label label-info">&dagger; denotes a consequence that is for a non-canonical transcript</span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+        <table class="table table-sm table-condensed small variant-table">
+            <thead>
+                <tr>
+                    <th ng-repeat="header in ctrl.headers" class="{{ header[0] }}">
+                        <a href="#" ng-click="ctrl.reorderVariants(header[0]);">
+                            <span ng-show="ctrl.orderByField == header[0]">
+                                <span ng-show="!ctrl.reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+                                <span ng-show="ctrl.reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                            </span>
+                            {{ header[1] }}
+                        </a>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="variant in ctrl.variants | orderBy:ctrl.orderByField:ctrl.reverseSort track by variant['variantId']"
+                    ng-show="(ctrl.filterIncludeNonPass || variant.isPass)
+                          && ((ctrl.filterVariantsBy=='lof' && variant.isLof)
+                             || (ctrl.filterVariantsBy=='mislof' && (variant.isLof || variant.isMissense))
+                             || (ctrl.filterVariantsBy=='all'))">
+                    <td title="{{::variant['variantId'] }}" class="variantId">
+                        <a href="{{:: ctrl.browserLink('variant/' + variant['variantId'] ) }}">
+                            {{:: variant | formatVariant }}
+                        </a>
+                    </td>
+                    <td title="{{::variant['chrom'] }}" class="chrom" >{{::variant['chrom'] }}</td>
+                    <td title="{{::variant['pos'] }}" class="pos" >{{::variant['pos'] }}</td>
+                    <td title="{{::variant['HGVS'] }}" class="HGVS" >
+                        {{::variant['HGVS'] }}
+                        <span ng-if="::variant['HGVS'] && variant['CANONICAL'] != 'YES'" title="Non-canonical">
+                            &dagger;
+                        </span>
+                    </td>
+                    <td title="{{::variant['filter'] }}" class="filter">{{::variant['filter'] }}</td>
+                    <td title="{{::variant['majorConsequence'] }}" class="majorConsequence">{{::variant['majorConsequence'] }}</td>
+                    <td title="{{::variant['flags'] }}" class="flags">{{::variant['flags'] }}</td>
+                    <td title="{{::variant['alleleCount'] }}" class="alleleCount">{{::variant['alleleCount'] }}</td>
+                    <td title="{{::variant['alleleNum'] }}" class="alleleNum">{{::variant['alleleNum'] }}</td>
+                    <td title="{{::variant['homCount'] }}" class="homCount">{{::variant['homCount'] }}</td>
+                    <td title="{{::variant['alleleFreq'] }}" class="alleleFreq">
+                        <div>{{::variant['alleleFreq'] | number : 4 }}</div>
+                        <img src="static/img/steel_blue.png?v=[[version]]">
+                        <img ng-repeat="threshold in ctrl.variantBoxThresholds"
+                             src="{{:: variant['alleleFreq'] >= threshold && variant['alleleCount'] > 1 ? 'static/img/steel_blue.png' : 'static/img/white.png' }}?v=[[version]]">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
