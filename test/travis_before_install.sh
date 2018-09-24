@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-set -x
+#!/bin/sh -x
 
 docker pull mysql:5.7
 docker pull ubuntu:16.04

@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-set -xe
+#!/bin/sh -ex
 
 ## SETUP SETTINGS
 cp settings_sample.json settings.json
