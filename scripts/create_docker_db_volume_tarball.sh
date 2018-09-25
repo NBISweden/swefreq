@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#unused# MYSQL_HOST=127.0.0.1
+MYSQL_HOST=127.0.0.1
 MYSQL_PASS=rootpw
 
 if [ -d mysql-data ]; then
