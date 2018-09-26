@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # After this script has run you can run the container like this for example
 #
@@ -7,14 +7,14 @@
 
 VOLUME='mysql-data-volume'
 
-echo "Downloading data"
+echo 'Downloading data'
 curl -O https://swefreq.nbis.se/static/testing/mysql-data.tar.bz2
 tar xjf mysql-data.tar.bz2
 
-echo "Creating datavolume and filling it with data"
-docker volume create $VOLUME > /dev/null
-docker run -v $VOLUME:/var/lib/mysql --rm -d --name loader ubuntu:16.04 sleep infinity
-cd mysql-data
-docker cp . loader:/var/lib/mysql/
-cd ..
+echo 'Creating datavolume and filling it with data'
+docker volume create "$VOLUME" >/dev/null
+docker run -v "$VOLUME:/var/lib/mysql" \
+    --rm -d --name loader ubuntu:16.04 sleep infinity
+
+( cd mysql-data && docker cp . loader:/var/lib/mysql/ )
 docker stop loader

@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/bin/sh
 echo
-echo "Starting time:"
+echo 'Starting time:'
 date
-source /opt/swefreq/venv/bin/activate
+. /opt/swefreq/venv/bin/activate
 export PYTHONPATH=/opt/swefreq/tornado
 python /opt/swefreq/scripts/checkRequests.py
 echo
-echo "#####################################################################"
+echo '#####################################################################'
