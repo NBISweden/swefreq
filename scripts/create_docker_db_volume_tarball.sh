@@ -1,5 +1,6 @@
 #!/bin/sh
 
+VOLUME=mysql-data-volume
 MYSQL_HOST=127.0.0.1
 MYSQL_PASS=rootpw
 
@@ -9,8 +10,8 @@ if [ -d mysql-data ]; then
 fi
 
 echo 'Creating data volume and starting mysql:5.7 docker container'
-docker volume create swefreq-mysql-data >/dev/null
-docker run -v swefreq-mysql-data:/var/lib/mysql \
+docker volume create "$VOLUME" > /dev/null
+docker run -v "$VOLUME":/var/lib/mysql \
     --rm --name mysql \
     -e MYSQL_ROOT_PASSWORD="$MYSQL_PASS" -d mysql:5.7 >/dev/null
 
