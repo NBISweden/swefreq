@@ -64,11 +64,12 @@ Quick development mode
   `./scripts/download_and_create_docker_db_volume.sh`
   2.2. Load mysql dummy data by running `./scripts/load_mysql_dummy_data.sh`
 3. Copy `settings_sample.json` into `settings.json` and
-    - Change mysqlSchema into `swefreq_test`.
     - Update the credentials for elixir and google oauth.
         - Elixir/redirectUri: http://localhost:4000/elixir/login
         - redirectUri: http://localhost:4000/login
     - Set `mysqlHost` to `db`
+    - Set `mysqlSchema` to `swefreq_test`
+    - Clear `mysqlPasswd` (set it to empty `""`)
 4. Make a symbolic link from `backend/static` to `static`.
 5. Run the server:
 ```bash
