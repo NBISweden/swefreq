@@ -60,7 +60,8 @@ Quick development mode
 
 1. Install docker (and docker-compose in case it's not included in the installation)
 2. Create test database
-  2.1. Initiate a mysql data volume by running `./scripts/download_and_create_docker_db_volume.sh`
+  2.1. Initiate a mysql data volume by running `./scripts/create_docker_db_volume_tarball.sh` and 
+  `./scripts/download_and_create_docker_db_volume.sh`
   2.2. Load mysql dummy data by running `./scripts/load_mysql_dummy_data.sh`
 3. Copy `settings_sample.json` into `settings.json` and
     - Change mysqlSchema into `swefreq_test`.
