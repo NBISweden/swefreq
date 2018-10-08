@@ -17,8 +17,7 @@ RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - && \
 ADD . /code
 WORKDIR /code
 
-RUN pip3 install --upgrade pip && \
-    pip3 install -r backend/requirements.txt && \
+RUN pip3 install -r backend/requirements.txt && \
     pip3 install inotify
 
 CMD ["python", "scripts/watch_frontend.py"]
