@@ -576,7 +576,7 @@ class ServeLogo(handlers.UnsafeHandler):
             return
 
         self.set_header("Content-Type", logo_entry.mimetype)
-        self.write(logo_entry.data)
+        self.write(logo_entry.data.tobytes())
         self.finish()
 
 
