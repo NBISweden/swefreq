@@ -119,10 +119,7 @@ if __name__ == '__main__':
 
     # Instantiate Application
     application = Application(tornado_settings)
-    application.listen(options.port)
-
-    # Start HTTP Server
-    http_server = tornado.httpserver.HTTPServer(application)
+    application.listen(options.port, xheaders=True)
 
     # Get a handle to the instance of IOLoop
     ioloop = tornado.ioloop.IOLoop.instance()
