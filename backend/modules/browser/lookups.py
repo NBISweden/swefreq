@@ -40,6 +40,13 @@ def get_variant(db, sdb, xpos, ref, alt):
     return variant
 
 
+def add_rsid_to_variant(sdb, variant):
+    if variant['rsid'] == '.' or variant['rsid'] is None:
+        rsid = sdb.dbsnp.find_one({'xpos': variant['xpos']})
+        if rsid:
+            variant['rsid'] = 'rs%s' % rsid['rsid']
+
+
 def get_variants_by_rsid(db, rsid):
     if not rsid.startswith('rs'):
         return None
@@ -214,7 +221,7 @@ def get_genes_in_region(sdb, chrom, start, stop):
     return list(genes)
 
 
-def get_variants_in_region(db, chrom, start, stop):
+def get_variants_in_region(db, sdb, chrom, start, stop):
     """
     Variants that overlap a region
     Unclear if this will include CNVs
@@ -226,6 +233,7 @@ def get_variants_in_region(db, chrom, start, stop):
     }, projection={'_id': False}, limit=SEARCH_LIMIT))
     add_consequence_to_variants(variants)
     for variant in variants:
+        add_rsid_to_variant(sdb, variant)
         remove_extraneous_information(variant)
     return list(variants)
 
@@ -265,10 +273,11 @@ def remove_extraneous_information(variant):
     del variant['vep_annotations']
 
 
-def get_variants_in_gene(db, gene_id):
+def get_variants_in_gene(db, sdb, gene_id):
     variants = []
     for variant in db.variants.find({'genes': gene_id}, projection={'_id': False}):
         variant['vep_annotations'] = [x for x in variant['vep_annotations'] if x['Gene'] == gene_id]
+        add_rsid_to_variant(sdb, variant)
         add_consequence_to_variant(variant)
         remove_extraneous_information(variant)
         variants.append(variant)
@@ -285,10 +294,11 @@ def get_number_of_variants_in_transcript(db, transcript_id):
     return {'filtered': filtered, 'total': total}
 
 
-def get_variants_in_transcript(db, transcript_id):
+def get_variants_in_transcript(db, sdb, transcript_id):
     variants = []
     for variant in db.variants.find({'transcripts': transcript_id}, projection={'_id': False}):
         variant['vep_annotations'] = [x for x in variant['vep_annotations'] if x['Feature'] == transcript_id]
+        add_rsid_to_variant(sdb, variant)
         add_consequence_to_variant(variant)
         remove_extraneous_information(variant)
         variants.append(variant)
