@@ -195,9 +195,12 @@ class GetVariant(handlers.UnsafeHandler):
                     'datasets':{},
                     'total':{}}
         for item in ['ans', 'acs', 'freq', 'homs']:
-            for _dataset, value in variant['pop_' + item].items():
+            key = 'pop_' + item
+            if key not in variant:
+                continue
+            for _dataset, value in variant[key].items():
                 if _dataset not in frequencies['datasets']:
-                    frequencies['datasets'][dataset] = {'pop':_dataset}
+                    frequencies['datasets'][_dataset] = {'pop':_dataset}
                 frequencies['datasets'][_dataset][item] = value
                 if item not in frequencies['total']:
                     frequencies['total'][item] = 0

@@ -44,14 +44,15 @@ def get_variant_list(dataset, datatype, item):
 
     try:
         db = connect_db(dataset, False)
+        db_shared = connect_db(dataset, True)
 
         if datatype == 'gene':
-            variants = lookups.get_variants_in_gene(db, item)
+            variants = lookups.get_variants_in_gene(db, db_shared, item)
         elif datatype == 'region':
             chrom, start, stop = item.split('-')
-            variants = lookups.get_variants_in_region(db, chrom, start, stop)
+            variants = lookups.get_variants_in_region(db, db_shared, chrom, start, stop)
         elif datatype == 'transcript':
-            variants = lookups.get_variants_in_transcript(db, item)
+            variants = lookups.get_variants_in_transcript(db, db_shared, item)
 
         # Format output
         def format_variant(variant):
