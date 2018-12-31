@@ -575,6 +575,7 @@ class SFTPAccess(handlers.SafeHandler):
         """
         if db.get_admin_datasets(self.current_user).count() <= 0:
             self.finish({'user':None, 'expires':None, 'password':None})
+            return
 
         password = None
         username = None
@@ -600,6 +601,7 @@ class SFTPAccess(handlers.SafeHandler):
         """
         if db.get_admin_datasets(self.current_user).count() <= 0:
             self.finish({'user':None, 'expires':None, 'password':None})
+            return
 
         # Create a new password
         username = "_".join(self.current_user.name.split()) + "_sftp"
