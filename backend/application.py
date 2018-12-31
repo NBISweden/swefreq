@@ -105,6 +105,7 @@ class GetSchema(handlers.UnsafeHandler):
                     # If it's not available yet, only return if user is admin.
                     if not (self.current_user and self.current_user.is_admin(dataset_version.dataset)):
                         self.send_error(status_code=403)
+                        return
 
                 base_url = "%s://%s" % (self.request.protocol, self.request.host)
                 dataset_schema['url']         = base_url + "/dataset/" + dataset_version.dataset.short_name
