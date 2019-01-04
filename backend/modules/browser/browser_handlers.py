@@ -2,6 +2,7 @@ import handlers
 
 from . import lookups
 from . import mongodb
+from . import pgsql
 from .utils import get_xpos, add_consequence_to_variant, remove_extraneous_vep_annotations, \
                    order_vep_by_csq, get_proper_hgvs
 
@@ -264,7 +265,7 @@ class Autocomplete(handlers.UnsafeHandler):
     def get(self, dataset, query):
         ret = {}
 
-        results = mongodb.get_autocomplete(dataset, query)
+        results = pgsql.get_autocomplete(dataset, query)
         ret = {'values': sorted(list(set(results)))[:20]}
 
         self.finish( ret )
