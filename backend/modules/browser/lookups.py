@@ -1,15 +1,27 @@
 import re
 
-from .utils import METRICS, AF_BUCKETS, get_xpos, xpos_to_pos, add_consequence_to_variants, add_consequence_to_variant
+import db
+
+#from .utils import METRICS, AF_BUCKETS, get_xpos, xpos_to_pos, add_consequence_to_variants, add_consequence_to_variant
 
 SEARCH_LIMIT = 10000
 
-def get_gene(sdb, gene_id):
-    return sdb.genes.find_one({'gene_id': gene_id}, projection={'_id': False})
+def get_gene(gene_id):
+    """
+    Retrieve gene by gene_id
+    Args:
+        gene_id: the id of the gene
+    
+    """
+    try:
+        return db.Gene.select().where(db.Gene.gene_id==gene_id).dicts().get()
+    except db.Gene.DoesNotExist:
+        return {}
 
 
-def get_gene_by_name(sdb, gene_name):
+def get_gene_by_name(gene_name):
     # try gene_name field first
+    gene = db.Gene.select().where(db.Gene.gene_id==gene_id).dicts().get()
     gene = sdb.genes.find_one({'gene_name': gene_name}, projection={'_id': False})
     if gene:
         return gene
