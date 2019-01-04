@@ -8,10 +8,11 @@ SEARCH_LIMIT = 10000
 
 def get_gene(gene_id):
     """
-    Retrieve gene by gene_id
+    Retrieve gene by gene id
     Args:
         gene_id: the id of the gene
-    
+    Returns:
+        dict: values for the gene; empty if not found
     """
     try:
         return db.Gene.select().where(db.Gene.gene_id==gene_id).dicts().get()
@@ -20,16 +21,41 @@ def get_gene(gene_id):
 
 
 def get_gene_by_name(gene_name):
+    """
+    Retrieve gene by gene_name.
+    First checks gene_name, then other_names.
+    Args:
+        gene_name: the id of the gene
+    Returns:
+        dict: values for the gene; empty if not found
+    """
     # try gene_name field first
-    gene = db.Gene.select().where(db.Gene.gene_id==gene_id).dicts().get()
-    gene = sdb.genes.find_one({'gene_name': gene_name}, projection={'_id': False})
-    if gene:
-        return gene
-    # if not, try gene['other_names']
-    return sdb.genes.find_one({'other_names': gene_name}, projection={'_id': False})
+    try:
+        return db.Gene.select().where(db.Gene.name==gene_name).dicts().get()
+    except db.Gene.DoesNotExist:
+        try:
+            # troubles with KeyError
+            return db.Gene.select().where(db.Gene.other_names.contains(gene_name)).dicts().get()
+        except db.Gene.DoesNotExist:
+            return {}
 
 
-def get_transcript(sdb, transcript_id):
+def get_transcript(transcript_id):
+    """
+    Retrieve transcript by transcript id
+    Also includes exons as ['exons']
+    Args:
+        transcript_id: the id of the transcript
+    Returns:
+        dict: values for the transcript, including exons; empty if not found
+    """
+    try:
+        transcript = db.Transcript.select().where(db.Transcript.transcript_id==transcript_id).dicts().get()
+        transcript['exons'] = get_exons_in_transcript(transcript['id'])
+        return transcript
+    except db.Transcript.DoesNotExist:
+        return {}
+
     transcript = sdb.transcripts.find_one({'transcript_id': transcript_id}, projection={'_id': False})
     if not transcript:
         return None
@@ -317,10 +343,12 @@ def get_variants_in_transcript(db, sdb, transcript_id):
     return variants
 
 
-def get_exons_in_transcript(sdb, transcript_id):
-    # return sorted(
-    #     [x for x in
-    #      db.exons.find({'transcript_id': transcript_id}, projection={'_id': False})
-    #      if x['feature_type'] != 'exon'],
-    #     key=lambda k: k['start'])
-    return sorted(list(sdb.exons.find({'transcript_id': transcript_id, 'feature_type': { "$in": ['CDS', 'UTR', 'exon'] }}, projection={'_id': False})), key=lambda k: k['start'])
+def get_exons_in_transcript(transcript_dbid):
+    """
+    Retrieve exons associated with the given transcript id
+    Args:
+        transcript_dbid: the id of the transcript in the database (Transcript.id; not transcript_id)
+    Returns:
+        list: dicts with values for each exon sorted by start position
+    """
+    return sorted(list(db.Feature.select().where(db.Feature.transcript==transcript_dbid).dicts()), key=lambda k: k['start'])
