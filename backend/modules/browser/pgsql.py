@@ -23,3 +23,7 @@ def get_autocomplete(dataset, query):
     gene_names = [str(gene.name) for gene in genes]
     logging.error('Autocomplete: {}'.format(gene_names))
     return gene_names
+
+
+def get_variant_list:
+    pass
