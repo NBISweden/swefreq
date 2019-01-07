@@ -36,11 +36,22 @@ def get_coverage_for_transcript(chrom, start_pos, stop_pos=None):
     """
     # Is this function no longer relevant with postgres?
     # Only entries with reported cov are in database
-    coverage_array = get_coverage_for_bases(db, xstart, xstop)
+    coverage_array = get_coverage_for_bases(chrom, start_pos, stop_pos)
     # only return coverages that have coverage (if that makes any sense?)
     # return coverage_array
     covered = [c for c in coverage_array if c['mean']]
     return covered
+
+
+def get_exons_in_transcript(transcript_dbid):
+    """
+    Retrieve exons associated with the given transcript id
+    Args:
+        transcript_dbid: the id of the transcript in the database (Transcript.id; not transcript_id)
+    Returns:
+        list: dicts with values for each exon sorted by start position
+    """
+    return sorted(list(db.Feature.select().where(db.Feature.transcript==transcript_dbid).dicts()), key=lambda k: k['start'])
 
 
 def get_gene(gene_id):
@@ -93,12 +104,6 @@ def get_transcript(transcript_id):
     except db.Transcript.DoesNotExist:
         return {}
 
-    transcript = sdb.transcripts.find_one({'transcript_id': transcript_id}, projection={'_id': False})
-    if not transcript:
-        return None
-    transcript['exons'] = get_exons_in_transcript(sdb, transcript_id)
-    return transcript
-
 
 def get_raw_variant(pos, chrom, ref, alt):
     """
@@ -132,13 +137,13 @@ def get_variant(pos, chrom, ref, alt):
     Returns:
         dict: values for the variant; empty if not found
     """
-    try: 
+    try:
         variant = get_raw_variant(pos, chrom, ref, alt)
         if not variant or 'rsid' not in variant:
             return variant
         if variant['rsid'] == '.' or variant['rsid'] is None:
-            rsid = db.dbsnp.select().where((db.snp.pos==pos) & 
-                                           (db.snp.chrom==chrom)).dicts().get()
+            rsid = db.DbSNP.select().where((db.DbSNP.pos==pos) &
+                                           (db.DbSNP.chrom==chrom)).dicts().get()
             if rsid:
                 variant['rsid'] = 'rs{}'.format(rsid['rsid'])
         return variant
@@ -146,16 +151,27 @@ def get_variant(pos, chrom, ref, alt):
         return {}
 
 
-def get_constraint_for_transcript(db, transcript):
-    return db.constraint.find_one({'transcript': transcript}, projection={'_id': False})
+def get_variants_in_transcript(transcript_id):
+    """
+    Retrieve variants inside a transcript
+    Args:
+        pos (int): position of the variant
+        chrom (str): name of the chromosome
+        ref (str): reference sequence
+        ref (str): variant sequence
+    Returns:
+        dict: values for the variant; empty if not found
+    """
+    variants = []
+    for variant in db.Variant.select().where(db.Variant.transcripts.contains(transcript_id)).dicts():
+        variants.append(variant)
+    return variants
+    variant['vep_annotations'] = [x for x in variant['vep_annotations'] if x['Feature'] == transcript_id]
+    add_consequence_to_variant(variant)
+    remove_extraneous_information(variant)
+    variants.append(variant)
+    return variants
 
-
-def get_exons_cnvs(db, transcript_name):
-    return list(db.cnvs.find({'transcript': transcript_name}, projection={'_id': False}))
-
-
-def get_cnvs(db, gene_name):
-    return list(db.cnvgenes.find({'gene': gene_name}, projection={'_id': False}))
 
 REGION_REGEX = re.compile(r'^\s*(\d+|X|Y|M|MT)\s*([-:]?)\s*(\d*)-?([\dACTG]*)-?([ACTG]*)')
 
@@ -316,25 +332,3 @@ def get_number_of_variants_in_transcript(db, transcript_id):
     total = db.variants.count({'transcripts': transcript_id})
     filtered = db.variants.count({'transcripts': transcript_id, 'filter': 'PASS'})
     return {'filtered': filtered, 'total': total}
-
-
-def get_variants_in_transcript(db, sdb, transcript_id):
-    variants = []
-    for variant in db.variants.find({'transcripts': transcript_id}, projection={'_id': False}):
-        variant['vep_annotations'] = [x for x in variant['vep_annotations'] if x['Feature'] == transcript_id]
-        add_rsid_to_variant(sdb, variant)
-        add_consequence_to_variant(variant)
-        remove_extraneous_information(variant)
-        variants.append(variant)
-    return variants
-
-
-def get_exons_in_transcript(transcript_dbid):
-    """
-    Retrieve exons associated with the given transcript id
-    Args:
-        transcript_dbid: the id of the transcript in the database (Transcript.id; not transcript_id)
-    Returns:
-        list: dicts with values for each exon sorted by start position
-    """
-    return sorted(list(db.Feature.select().where(db.Feature.transcript==transcript_dbid).dicts()), key=lambda k: k['start'])
