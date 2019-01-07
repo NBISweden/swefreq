@@ -1,5 +1,4 @@
 import re
-
 import db
 
 #from .utils import METRICS, AF_BUCKETS, get_xpos, xpos_to_pos, add_consequence_to_variants, add_consequence_to_variant
@@ -10,7 +9,7 @@ def get_gene(gene_id):
     """
     Retrieve gene by gene id
     Args:
-        gene_id: the id of the gene
+        gene_id (str): the id of the gene
     Returns:
         dict: values for the gene; empty if not found
     """
@@ -25,7 +24,7 @@ def get_gene_by_name(gene_name):
     Retrieve gene by gene_name.
     First checks gene_name, then other_names.
     Args:
-        gene_name: the id of the gene
+        gene_name (str): the id of the gene
     Returns:
         dict: values for the gene; empty if not found
     """
@@ -45,7 +44,7 @@ def get_transcript(transcript_id):
     Retrieve transcript by transcript id
     Also includes exons as ['exons']
     Args:
-        transcript_id: the id of the transcript
+        transcript_id (str): the id of the transcript
     Returns:
         dict: values for the transcript, including exons; empty if not found
     """
@@ -63,54 +62,50 @@ def get_transcript(transcript_id):
     return transcript
 
 
-def get_raw_variant(db, xpos, ref, alt, get_id=False):
-    return db.variants.find_one({'xpos': xpos, 'ref': ref, 'alt': alt}, projection={'_id': get_id})
+def get_raw_variant(pos, chrom, ref, alt):
+    """
+    Retrieve variant by position and change
+    Args:
+        pos (int): position of the variant
+        chrom (str): name of the chromosome
+        ref (str): reference sequence
+        ref (str): variant sequence
+    Returns:
+        dict: values for the variant; empty if not found
+    """
+    try:
+        return db.Variant.select().where(db.Variant.pos == pos,
+                                         db.Variant.ref == ref,
+                                         db.Variant.alt == alt,
+                                         db.Variant.chrom == chrom).dicts().get()
+    except db.Variant.DoesNotExist:
+        return {}
 
 
-def get_variant(db, sdb, xpos, ref, alt):
-    variant = get_raw_variant(db, xpos, ref, alt, False)
-    if variant is None or 'rsid' not in variant:
+def get_variant(pos, chrom, ref, alt):
+    """
+    Retrieve variant by position and change
+    Retrieves rsid from db (if available) if not present in variant
+    Args:
+        pos (int): position of the variant
+        chrom (str): name of the chromosome
+        ref (str): reference sequence
+        ref (str): variant sequence
+    Returns:
+        dict: values for the variant; empty if not found
+    """
+    try: 
+        variant = get_raw_variant(pos, chrom, ref, alt)
+        if not variant or 'rsid' not in variant:
+            return variant
+        if variant['rsid'] == '.' or variant['rsid'] is None:
+            rsid = db.dbsnp.select().where(db.snp.pos==pos,
+                                           db.snp.chrom==chrom).dicts().get()
+            if rsid:
+                variant['rsid'] = 'rs{}'.format(rsid['rsid'])
         return variant
-    if variant['rsid'] == '.' or variant['rsid'] is None:
-        rsid = sdb.dbsnp.find_one({'xpos': xpos})
-        if rsid:
-            variant['rsid'] = 'rs%s' % rsid['rsid']
-    return variant
-
-
-def add_rsid_to_variant(sdb, variant):
-    if variant['rsid'] == '.' or variant['rsid'] is None:
-        rsid = sdb.dbsnp.find_one({'xpos': variant['xpos']})
-        if rsid:
-            variant['rsid'] = 'rs%s' % rsid['rsid']
-
-
-def get_variants_by_rsid(db, rsid):
-    if not rsid.startswith('rs'):
-        return None
-    try:
-        int(rsid.lstrip('rs'))
-    except ValueError:
-        return None
-    variants = list(db.variants.find({'rsid': rsid}, projection={'_id': False}))
-    add_consequence_to_variants(variants)
-    return variants
-
-
-def get_variants_from_dbsnp(db,sdb, rsid):
-    if not rsid.startswith('rs'):
-        return None
-    try:
-        rsid = int(rsid.lstrip('rs'))
-    except ValueError:
-        return None
-    position = sdb.dbsnp.find_one({'rsid': rsid})
-    if position:
-        variants = list(db.variants.find({'xpos': {'$lte': position['xpos'], '$gte': position['xpos']}}, projection={'_id': False}))
-        if variants:
-            add_consequence_to_variants(variants)
-            return variants
-    return []
+    except db.Variant.DoesNotExist:
+        return {}
 
 
 def get_coverage_for_bases(db, xstart, xstop=None):

@@ -1,6 +1,14 @@
+'''
+Tests for the functions available in lookups.py
+'''
+
 import lookups
 
 def test_get_gene():
+    '''
+    Test get_gene()
+    '''
+    # normal entry
     expected = {'id': 1,
                 'reference_set': 1,
                 'gene_id': 'ENSG00000223972',
@@ -21,12 +29,17 @@ def test_get_gene():
     assert result['chrom'] == expected['chrom']
     assert result['start'] == expected['start_pos']
     assert result['strand'] == expected['strand']
-    
+
+    # non-existing
     result = lookups.get_gene('NOT_A_GENE')
     assert not result
 
 
 def test_get_gene_by_name():
+    '''
+    Test get_gene_by_name()
+    '''
+    # normal entry
     expected = {'id': 1,
                 'reference_set': 1,
                 'gene_id': 'ENSG00000223972',
@@ -51,14 +64,21 @@ def test_get_gene_by_name():
 #    result = lookups.get_gene_by_name('NOT_A_GENE')
 #    assert not result
     # NOC2L
-#    result = lookups.get_gene_by_name('NOC2L')
-#    result = lookups.get_gene_by_name('NIR')
-#    print(result)
-#    assert False
-#    result = lookups.get_gene_by_name('Z')
+    result = lookups.get_gene_by_name('NOC2L')
+    assert result['gene_id'] == 'ENSG00000188976'
+    result = lookups.get_gene_by_name('NIR')
+    result = lookups.get_gene_by_name('Z')
 
+    # non-existing
+    assert not lookups.get_gene_by_name('INCORRECT')
+
+    
 
 def test_get_transcript():
+    '''
+    Test get_transcript()
+    '''
+    # normal entry
     expected = {'id': 5,
                 'transcript_id': 'ENST00000438504',
                 'gene': '2',
@@ -92,10 +112,37 @@ def test_get_transcript():
     assert result['strand'] == expected['strand']
     assert result['exons'] == exp_exon
 
+    # non-existing
     assert not lookups.get_transcript('INCORRECT')
 
 
+def test_get_raw_variant():
+    '''
+    Test get_raw_variant
+    '''
+    result = lookups.get_raw_variant(55500283, '1', 'A', 'T')
+    assert result['genes'] == ['ENSG00000169174']
+    assert result['transcripts'] == ['ENST00000302118']
+    assert not lookups.get_raw_variant(55500281, '1', 'A', 'T')
+    
+
+def test_get_variant():
+    '''
+    Test get_variant()
+    '''
+    result = lookups.get_variant(55500283, '1', 'A', 'T')
+    assert result['genes'] == ['ENSG00000169174']
+    assert result['transcripts'] == ['ENST00000302118']
+    assert result['rsid'] == [75050571]
+    # need to add test for entry with missing rsid
+    # too slow query atm
+    assert not lookups.get_variant(55500281, '1', 'A', 'T')
+
+    
 def test_get_exons_in_transcript():
+    '''
+    Test get_exons_in_transcript()
+    '''
     result = lookups.get_exons_in_transcript(5)
     expected = [{'id': 28, 'gene': 2, 'transcript': 5, 'chrom': '1', 'start': 14364, 'stop': 14830, 'strand': '-', 'feature_type': 'exon'},
                 {'id': 27, 'gene': 2, 'transcript': 5, 'chrom': '1', 'start': 14971, 'stop': 15039, 'strand': '-', 'feature_type': 'exon'},
