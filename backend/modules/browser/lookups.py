@@ -5,6 +5,44 @@ import db
 
 SEARCH_LIMIT = 10000
 
+
+def get_coverage_for_bases(chrom, start_pos, stop_pos=None):
+    """
+    Get the coverage for the list of bases given by start_pos->xstop_pos, inclusive
+    Args:
+        chrom (str): chromosome
+        start_pos (int): first position of interest
+        end_pos (int): last position of interest; if None it will be set to start_pos
+    Returns:
+        list: coverage dicts for the region of interest
+    """
+    if stop_pos is None:
+        stop_pos = start_pos
+
+    return [values for values in db.Coverage.select().where((db.Coverage.pos >= start_pos) &
+                                                            (db.Coverage.pos <= stop_pos) &
+                                                            (db.Coverage.chrom == chrom)).dicts()]
+
+
+def get_coverage_for_transcript(chrom, start_pos, stop_pos=None):
+    """
+    Get the coverage for the list of bases given by start_pos->xstop_pos, inclusive
+    Args:
+        chrom (str): chromosome
+        start_pos (int): first position of interest
+        end_pos (int): last position of interest; if None it will be set to start_pos
+    Returns:
+        list: coverage dicts for the region of interest
+    """
+    coverage_array = get_coverage_for_bases(db, xstart, xstop)
+    # only return coverages that have coverage (if that makes any sense?)
+    # return coverage_array
+    covered = [c for c in coverage_array if c['has_coverage']]
+    for c in covered:
+        del c['has_coverage']
+    return covered
+
+
 def get_gene(gene_id):
     """
     Retrieve gene by gene id
@@ -74,10 +112,10 @@ def get_raw_variant(pos, chrom, ref, alt):
         dict: values for the variant; empty if not found
     """
     try:
-        return db.Variant.select().where(db.Variant.pos == pos,
-                                         db.Variant.ref == ref,
-                                         db.Variant.alt == alt,
-                                         db.Variant.chrom == chrom).dicts().get()
+        return db.Variant.select().where((db.Variant.pos == pos) &
+                                         (db.Variant.ref == ref) &
+                                         (db.Variant.alt == alt) &
+                                         (db.Variant.chrom == chrom)).dicts().get()
     except db.Variant.DoesNotExist:
         return {}
 
@@ -99,60 +137,13 @@ def get_variant(pos, chrom, ref, alt):
         if not variant or 'rsid' not in variant:
             return variant
         if variant['rsid'] == '.' or variant['rsid'] is None:
-            rsid = db.dbsnp.select().where(db.snp.pos==pos,
-                                           db.snp.chrom==chrom).dicts().get()
+            rsid = db.dbsnp.select().where((db.snp.pos==pos) & 
+                                           (db.snp.chrom==chrom)).dicts().get()
             if rsid:
                 variant['rsid'] = 'rs{}'.format(rsid['rsid'])
         return variant
     except db.Variant.DoesNotExist:
         return {}
-
-
-def get_coverage_for_bases(db, xstart, xstop=None):
-    """
-    Get the coverage for the list of bases given by xstart->xstop, inclusive
-    Returns list of coverage dicts
-    xstop can be None if just one base, but you'll still get back a list
-    """
-    if xstop is None:
-        xstop = xstart
-
-    coverages = {
-        doc['xpos']: doc for doc in db.base_coverage.find(
-            {'xpos': {'$gte': xstart, '$lte': xstop}},
-            projection={'_id': False}
-        )
-    }
-    ret = []
-    # We only store every 10'th base in the db, so we have to make the checks
-    # only then.
-    for i in range(xstart-xstart%10, xstop+1, 10):
-        if i in coverages:
-            ret.append(coverages[i])
-        else:
-            ret.append({'xpos': i, 'pos': xpos_to_pos(i)})
-    for item in ret:
-        item['has_coverage'] = 'mean' in item
-        del item['xpos']
-    return ret
-
-
-def get_coverage_for_transcript(db, xstart, xstop=None):
-    """
-
-    :param db:
-    :param genomic_coord_to_exon:
-    :param xstart:
-    :param xstop:
-    :return:
-    """
-    coverage_array = get_coverage_for_bases(db, xstart, xstop)
-    # only return coverages that have coverage (if that makes any sense?)
-    # return coverage_array
-    covered = [c for c in coverage_array if c['has_coverage']]
-    for c in covered:
-        del c['has_coverage']
-    return covered
 
 
 def get_constraint_for_transcript(db, transcript):

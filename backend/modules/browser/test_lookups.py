@@ -4,6 +4,27 @@ Tests for the functions available in lookups.py
 
 import lookups
 
+
+def test_get_coverage_for_bases():
+    '''
+    Test get_coverage_for_bases()
+    '''
+    coverage = lookups.get_coverage_for_bases('1', 55500283, 55500320)
+    expected = [{'id': 5474062, 'dataset_version': 4, 'chrom': '1',
+                 'pos': 55500290, 'mean': 40.66, 'median': 39.0,
+                 'coverage': [1.0, 1.0, 1.0, 1.0, 0.996, 0.97, 0.867, 0.127, 0.001]},
+                {'id': 5474063, 'dataset_version': 4, 'chrom': '1',
+                 'pos': 55500300, 'mean': 40.7, 'median': 39.0,
+                 'coverage': [1.0, 1.0, 1.0, 1.0, 0.996, 0.971, 0.878, 0.132, 0.001]},
+                {'id': 5474064, 'dataset_version': 4, 'chrom': '1',
+                 'pos': 55500310, 'mean': 40.35, 'median': 39.0,
+                 'coverage': [1.0, 1.0, 1.0, 1.0, 0.995, 0.974, 0.859, 0.138, 0.001]},
+                {'id': 5474065, 'dataset_version': 4, 'chrom': '1',
+                 'pos': 55500320, 'mean': 39.69, 'median': 38.0,
+                 'coverage': [1.0, 1.0, 1.0, 1.0, 0.996, 0.961, 0.856, 0.117, 0.001]}]
+    assert coverage == expected
+
+
 def test_get_gene():
     '''
     Test get_gene()
@@ -133,11 +154,11 @@ def test_get_variant():
     result = lookups.get_variant(55500283, '1', 'A', 'T')
     assert result['genes'] == ['ENSG00000169174']
     assert result['transcripts'] == ['ENST00000302118']
-    assert result['rsid'] == [75050571]
+    assert result['rsid'] == 75050571
     # need to add test for entry with missing rsid
     # too slow query atm
     assert not lookups.get_variant(55500281, '1', 'A', 'T')
-
+    
     
 def test_get_exons_in_transcript():
     '''
