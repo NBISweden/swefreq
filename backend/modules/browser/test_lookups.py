@@ -9,7 +9,7 @@ def test_get_coverage_for_bases():
     '''
     Test get_coverage_for_bases()
     '''
-    coverage = lookups.get_coverage_for_bases('1', 55500283, 55500320)
+    # coverage = lookups.get_coverage_for_bases('1', 55500283, 55500320)
     expected = [{'id': 5474062, 'dataset_version': 4, 'chrom': '1',
                  'pos': 55500290, 'mean': 40.66, 'median': 39.0,
                  'coverage': [1.0, 1.0, 1.0, 1.0, 0.996, 0.97, 0.867, 0.127, 0.001]},

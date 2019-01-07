@@ -34,12 +34,12 @@ def get_coverage_for_transcript(chrom, start_pos, stop_pos=None):
     Returns:
         list: coverage dicts for the region of interest
     """
+    # Is this function no longer relevant with postgres?
+    # Only entries with reported cov are in database
     coverage_array = get_coverage_for_bases(db, xstart, xstop)
     # only return coverages that have coverage (if that makes any sense?)
     # return coverage_array
-    covered = [c for c in coverage_array if c['has_coverage']]
-    for c in covered:
-        del c['has_coverage']
+    covered = [c for c in coverage_array if c['mean']]
     return covered
 
 
