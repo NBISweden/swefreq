@@ -5,11 +5,19 @@ Tests for the functions available in lookups.py
 import lookups
 
 
+def test_add_rsid_to_variant():
+    """
+    Test add_rsid_to_variant()
+    """
+    variant = ''
+    assert False
+
+
 def test_get_awesomebar_result():
     """
     Test get_awesomebar_result()
     """
-    pass
+    assert False
 
 
 def test_get_coverage_for_bases():
@@ -231,8 +239,24 @@ def test_get_variant():
     assert result['genes'] == ['ENSG00000169174']
     assert result['transcripts'] == ['ENST00000302118']
     assert result['rsid'] == 75050571
+
+    # missing rsid in result, multiple transcripts
+    # slow, need to fix db
+    # result = lookups.get_variant(47730411, '21', 'TA', 'T')
+    assert result['genes'] == ['ENSG00000160298']
+    assert result['transcripts'] == ['ENST00000417060', 'ENST00000397682',
+                                     'ENST00000397683', 'ENST00000397680',
+                                     'ENST00000397685', 'ENST00000397679',
+                                     'ENST00000291691', 'ENST00000445935',
+                                     'ENST00000491666', 'ENST00000472607',
+                                     'ENST00000475776']
+    assert result['rsid'] == 75050571
+    
+    
     # need to add test for entry with missing rsid
     # too slow query atm
+
+    # incorrect position
     assert not lookups.get_variant(-1, '1', 'A', 'T')
 
 

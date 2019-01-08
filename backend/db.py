@@ -464,26 +464,51 @@ def get_next_free_uid():
 
     return next_uid
 
+
 def get_admin_datasets(user):
     return DatasetAccess.select().where( DatasetAccess.user == user, DatasetAccess.is_admin)
+
 
 def get_dataset(dataset):
     dataset = Dataset.select().where( Dataset.short_name == dataset).get()
     return dataset
 
+
 def get_dataset_version(dataset, version=None):
+    """
+    Given dataset get DatasetVersion
+    Args:
+        dataset (str): short name of the dataset
+    Returns:
+        DatasetVersionCurrent: the corresponding DatasetVersion entry
+    """
     if version:
         dataset_version = (DatasetVersion
-                            .select(DatasetVersion, Dataset)
-                            .join(Dataset)
-                            .where(DatasetVersion.version == version,
-                                   Dataset.short_name == dataset)).get()
+                           .select(DatasetVersion, Dataset)
+                           .join(Dataset)
+                           .where(DatasetVersion.version == version,
+                                  Dataset.short_name == dataset)).get()
     else:
         dataset_version = (DatasetVersionCurrent
                             .select(DatasetVersionCurrent, Dataset)
                             .join(Dataset)
                             .where(Dataset.short_name == dataset)).get()
     return dataset_version
+
+
+def get_reference_dbid_dataset(dataset):
+    """
+    Get the database id of the associated reference set for a dataset
+    Args:
+        dataset (str): short name of the dataset
+    Returns:
+        int: id of the associated reference set; returns None if not available
+    """
+    try:
+        return Dataset.select().where(Dataset.short_name==dataset).dicts().get()['reference_set']
+    except Dataset.DoesNotExist:
+        return None
+
 
 def build_dict_from_row(row):
     d = {}

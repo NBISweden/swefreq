@@ -7,6 +7,18 @@ import logging
 SEARCH_LIMIT = 10000
 
 
+def add_rsid_to_variant(variant):
+    """
+    Add rsid to a variant in the database
+    Args:
+        variant (dict): values for a variant
+    """
+    if variant['rsid'] == '.' or variant['rsid'] is None:
+        rsid = db.DbSNP.select().where(db.DbSNP.pos == variant['pos']).dicts().get()
+        if rsid:
+            variant['rsid'] = 'rs{}'.format(rsid['rsid'])
+
+
 REGION_REGEX = re.compile(r'^\s*(\d+|X|Y|M|MT)\s*([-:]?)\s*(\d*)-?([\dACTG]*)-?([ACTG]*)')
 
 def get_awesomebar_result(dataset, query):
@@ -272,13 +284,22 @@ def get_variant(pos, chrom, ref, alt):
         if not variant or 'rsid' not in variant:
             return variant
         if variant['rsid'] == '.' or variant['rsid'] is None:
-            rsid = db.DbSNP.select().where((db.DbSNP.pos==pos) &
-                                           (db.DbSNP.chrom==chrom)).dicts().get()
-            if rsid:
-                variant['rsid'] = 'rs{}'.format(rsid['rsid'])
+            add_rsid_to_variant(variant)
         return variant
     except db.Variant.DoesNotExist:
         return {}
+
+
+def get_variants_by_rsid(db, rsid):
+    if not rsid.startswith('rs'):
+        return None
+    try:
+        int(rsid.lstrip('rs'))
+    except ValueError:
+        return None
+    variants = list(db.variants.find({'rsid': rsid}, projection={'_id': False}))
+    add_consequence_to_variants(variants)
+    return variants
 
 
 def get_variants_in_gene(dataset, gene_id):
