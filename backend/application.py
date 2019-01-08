@@ -103,8 +103,9 @@ class GetSchema(handlers.UnsafeHandler):
 
                 if dataset_version.available_from > datetime.now():
                     # If it's not available yet, only return if user is admin.
-                    if not (self.current_user and self.current_user.is_admin(version.dataset)):
+                    if not (self.current_user and self.current_user.is_admin(dataset_version.dataset)):
                         self.send_error(status_code=403)
+                        return
 
                 base_url = "%s://%s" % (self.request.protocol, self.request.host)
                 dataset_schema['url']         = base_url + "/dataset/" + dataset_version.dataset.short_name
@@ -574,6 +575,7 @@ class SFTPAccess(handlers.SafeHandler):
         """
         if db.get_admin_datasets(self.current_user).count() <= 0:
             self.finish({'user':None, 'expires':None, 'password':None})
+            return
 
         password = None
         username = None
@@ -599,6 +601,7 @@ class SFTPAccess(handlers.SafeHandler):
         """
         if db.get_admin_datasets(self.current_user).count() <= 0:
             self.finish({'user':None, 'expires':None, 'password':None})
+            return
 
         # Create a new password
         username = "_".join(self.current_user.name.split()) + "_sftp"
