@@ -119,17 +119,15 @@ def test_get_gene_by_name():
     assert result['start'] == expected['start_pos']
     assert result['strand'] == expected['strand']
 
-    # crashing with other_names.contains()
-#    result = lookups.get_gene_by_name('NOT_A_GENE')
-#    assert not result
-    # NOC2L
+    # non-exist
+    result = lookups.get_gene_by_name('NOT_A_GENE')
+    assert not result
+
+    # waiting for fixed db
     result = lookups.get_gene_by_name('NOC2L')
     assert result['gene_id'] == 'ENSG00000188976'
     result = lookups.get_gene_by_name('NIR')
     result = lookups.get_gene_by_name('Z')
-
-    # non-existing
-    assert not lookups.get_gene_by_name('INCORRECT')
 
 
 def test_get_transcript():
@@ -202,5 +200,4 @@ def test_get_variants_in_transcript():
     Test get_variants_in_transcript()
     '''
     res = lookups.get_variants_in_transcript('ENST00000302118')
-    
-    assert False
+    assert len(res) == 426
