@@ -9,8 +9,16 @@ def test_add_rsid_to_variant():
     """
     Test add_rsid_to_variant()
     """
-    variant = ''
-    assert False
+    # "with ."
+    variant = lookups.get_variant('SweGen', 55500283, '1', 'A', 'T')
+    rsid = variant['rsid']
+    variant['rsid'] = '.'
+    # lookups.add_rsid_to_variant('SweGen', variant)
+    assert variant['rsid'] == rsid
+    # "non-existing"
+    del variant['rsid']
+    # lookups.add_rsid_to_variant(variant)
+    assert variant['rsid'] == rsid
 
 
 def test_get_awesomebar_result():
@@ -24,8 +32,7 @@ def test_get_coverage_for_bases():
     """
     Test get_coverage_for_bases()
     """
-    coverage = lookups.get_coverage_for_bases('SweGen', '1', 55500283, 55500320)
-    print(type(coverage))
+    # coverage = lookups.get_coverage_for_bases('SweGen', '1', 55500283, 55500320)
     expected = [{'id': 5474062, 'dataset_version': 4, 'chrom': '1',
                  'pos': 55500290, 'mean': 40.66, 'median': 39.0,
                  'coverage': [1.0, 1.0, 1.0, 1.0, 0.996, 0.97, 0.867, 0.127, 0.001]},
@@ -42,7 +49,7 @@ def test_get_coverage_for_bases():
 
 
 def test_get_coverage_for_transcript():
-    # coverage = lookups.get_coverage_for_transcript('1', 55500283, 55500320)
+    coverage = lookups.get_coverage_for_transcript('1', 55500283, 55500320)
     expected = [{'id': 5474062, 'dataset_version': 4, 'chrom': '1',
                  'pos': 55500290, 'mean': 40.66, 'median': 39.0,
                  'coverage': [1.0, 1.0, 1.0, 1.0, 0.996, 0.97, 0.867, 0.127, 0.001]},
@@ -225,20 +232,20 @@ def test_get_raw_variant():
     """
     Test get_raw_variant
     """
-    result = lookups.get_raw_variant(55500283, '1', 'A', 'T')
+    result = lookups.get_raw_variant('SweGen', 55500283, '1', 'A', 'T')
     assert result['genes'] == ['ENSG00000169174']
     assert result['transcripts'] == ['ENST00000302118']
-    assert not lookups.get_raw_variant(55500281, '1', 'A', 'T')
+    assert not lookups.get_raw_variant('SweGen', 55500281, '1', 'A', 'T')
 
 
 def test_get_variant():
     """
     Test get_variant()
     """
-    result = lookups.get_variant(55500283, '1', 'A', 'T')
+    result = lookups.get_variant('SweGen', 55500283, '1', 'A', 'T')
     assert result['genes'] == ['ENSG00000169174']
     assert result['transcripts'] == ['ENST00000302118']
-    assert result['rsid'] == 75050571
+    assert result['rsid'] == 'rs75050571'
 
     # missing rsid in result, multiple transcripts
     # slow, need to fix db

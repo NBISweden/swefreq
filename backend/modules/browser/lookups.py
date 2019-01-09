@@ -7,16 +7,32 @@ import logging
 SEARCH_LIMIT = 10000
 
 
-def add_rsid_to_variant(variant):
+def add_rsid_to_variant(dataset, variant):
     """
     Add rsid to a variant in the database
     Args:
+        dataset (str): short name of the dataset
         variant (dict): values for a variant
     """
+    refset = (db.Dataset
+              .select(db.ReferenceSet)
+              .join(db.ReferenceSet)
+              .where(db.Dataset.short_name == dataset)
+              .dicts()
+              .get())
+    dbsnp_version = refset['dbsnp_version']
+
     if variant['rsid'] == '.' or variant['rsid'] is None:
-        rsid = db.DbSNP.select().where(db.DbSNP.pos == variant['pos']).dicts().get()
+        rsid = (db.DbSNP
+                .select()
+                .where((db.DbSNP.pos == variant['pos']) &
+                (db.DbSNP.version == dbsnp_version))
+                .dicts()
+                .get())
         if rsid:
             variant['rsid'] = 'rs{}'.format(rsid['rsid'])
+        else:
+            logging.error('add_rsid_to_variant({}, {}): unable to retrieve rsid'.format(dataset, variant))
 
 
 REGION_REGEX = re.compile(r'^\s*(\d+|X|Y|M|MT)\s*([-:]?)\s*(\d*)-?([\dACTG]*)-?([ACTG]*)')
@@ -97,26 +113,35 @@ def get_awesomebar_result(dataset, query):
     return 'not_found', query
 
 
-def get_coverage_for_bases(dataset, chrom, start_pos, stop_pos=None):
+def get_coverage_for_bases(dataset, chrom, start_pos, end_pos=None, ds_version=None):
     """
-    Get the coverage for the list of bases given by start_pos->xstop_pos, inclusive
+    Get the coverage for the list of bases given by start_pos->end_pos, inclusive
     Args:
+        dataset (str): short name for the dataset
         chrom (str): chromosome
         start_pos (int): first position of interest
         end_pos (int): last position of interest; if None it will be set to start_pos
+        ds_version (str): version of the dataset
     Returns:
-        list: coverage dicts for the region of interest
+        list: coverage dicts for the region of interest: None if unable to retrieve
     """
-    dataset_version = db.get_dataset_version(dataset)
-    print(dataset_version)
-    return dict(dataset_version)
-#    if stop_pos is None:
-#        stop_pos = start_pos
+    dataset_version = db.get_dataset_version(dataset, ds_version)
+    if not dataset_version:
+        return
 
-#    return [values for values in db.Coverage.select().where((db.Coverage.pos >= start_pos) &
-#                                                            (db.Coverage.pos <= stop_pos) &
-#                                                            (db.Coverage.chrom == chrom) &
-#                                                            (db.Coverage.data)).dicts()]
+    if end_pos is None:
+        end_pos = start_pos
+    try:
+        return [values for values in (db.Coverage
+                                      .select()
+                                      .where((db.Coverage.pos >= start_pos) &
+                                             (db.Coverage.pos <= end_pos) &
+                                             (db.Coverage.chrom == chrom) &
+                                             (db.Coverage.dataset_version == dataset_version.id))
+                                      .dicts())]
+    except db.Coverage.DoesNotExist:
+        logging.error('get_coverage_for_bases({}, {}, {}, {}): '.format(dataset, chrom, start_pos, end_pos))
+        return
 
 
 def get_coverage_for_transcript(chrom, start_pos, stop_pos=None):
@@ -188,6 +213,7 @@ def get_gene_by_name(dataset, gene_name):
         try:
             return db.Gene.select().where(db.Gene.other_names.contains(gene_name)).dicts().get()
         except db.Gene.DoesNotExist:
+            logging.error('get_gene_by_name({}, {}): unable to retrieve gene'.format(dataset, gene_name))
             return {}
 
 
@@ -201,12 +227,15 @@ def get_genes_in_region(chrom, start_pos, stop_pos):
     Returns:
         dict: values for the gene; empty if not found
     """
-    gene_query = db.Gene.select().where((((db.Gene.start >= start_pos) &
-                                          (db.Gene.start <= stop_pos)) |
-                                         ((db.Gene.stop >= start_pos) &
-                                          (db.Gene.stop <= stop_pos))) &
-                                        (db.Gene.chrom == chrom)).dicts()
-    return [gene for gene in gene_query]
+    try:
+        gene_query = db.Gene.select().where((((db.Gene.start >= start_pos) &
+                                              (db.Gene.start <= stop_pos)) |
+                                             ((db.Gene.stop >= start_pos) &
+                                              (db.Gene.stop <= stop_pos))) &
+                                            (db.Gene.chrom == chrom)).dicts()
+        return [gene for gene in gene_query]
+    except db.Gene.DoesNotExist:
+        logging.error('get_genes_in_region({}, {}, {}): no genes found'.format(chrom, start_pos, stop_pos))
 
 
 def get_number_of_variants_in_transcript(db, transcript_id):
@@ -232,23 +261,36 @@ def get_transcript(transcript_id):
         return {}
 
 
-def get_raw_variant(pos, chrom, ref, alt):
+def get_raw_variant(dataset, pos, chrom, ref, alt, ds_version=None):
     """
     Retrieve variant by position and change
     Args:
+        dataset (str): short name of the reference set
         pos (int): position of the variant
         chrom (str): name of the chromosome
         ref (str): reference sequence
-        ref (str): variant sequence
+        alt (str): variant sequence
+        ds_version (str): dataset version
     Returns:
         dict: values for the variant; empty if not found
     """
+    dataset_version = db.get_dataset_version(dataset, ds_version)
+    if not dataset_version:
+        return
+    
     try:
-        return db.Variant.select().where((db.Variant.pos == pos) &
-                                         (db.Variant.ref == ref) &
-                                         (db.Variant.alt == alt) &
-                                         (db.Variant.chrom == chrom)).dicts().get()
+        return (db.Variant
+                .select()
+                .where((db.Variant.pos == pos) &
+                       (db.Variant.ref == ref) &
+                       (db.Variant.alt == alt) &
+                       (db.Variant.chrom == chrom) &
+                       (db.Variant.dataset_version == dataset_version.id))
+                .dicts()
+                .get())
     except db.Variant.DoesNotExist:
+        logging.error(('get_raw_variant({}, {}, {}, {}, {}, {})'.format(dataset, pos, chrom, ref, alt, ds_version) +
+                       ': unable to retrieve variant'))
         return {}
 
 
@@ -259,19 +301,27 @@ def get_transcripts_in_gene(dataset, gene_id):
         dataset (str): short name of the reference set
         gene_id (str): id of the gene
     Returns:
-        list: transcripts (dict) associated with the gene
+        list: transcripts (dict) associated with the gene; empty if no hits
     """
     ref_dbid = db.get_reference_dbid_dataset(dataset)
-    gene = db.Gene.select().where((db.Gene.reference_set == ref_dbid) &
-                                  (db.Gene.gene_id == gene_id)).dicts().get()
-    return [transcript for transcript in db.Transcript.select().where(db.Transcript.gene == gene['id']).dicts()]
+    if not ref_dbid:
+        logging.error('get_transcripts_in_gene({}, {}): unable to get referenceset dbid'.format(dataset, gene_id))
+        return []
+    try:
+        gene = db.Gene.select().where((db.Gene.reference_set == ref_dbid) &
+                                      (db.Gene.gene_id == gene_id)).dicts().get()
+        return [transcript for transcript in db.Transcript.select().where(db.Transcript.gene == gene['id']).dicts()]
+    except db.Gene.DoesNotExist or db.Transcript.DoesNotExist:
+        logging.error('get_transcripts_in_gene({}, {}): unable to retrieve gene or transcript'.format(dataset, gene_id))
+        return []
 
 
-def get_variant(pos, chrom, ref, alt):
+def get_variant(dataset, pos, chrom, ref, alt):
     """
     Retrieve variant by position and change
     Retrieves rsid from db (if available) if not present in variant
     Args:
+        dataset (str): short name of the dataset
         pos (int): position of the variant
         chrom (str): name of the chromosome
         ref (str): reference sequence
@@ -280,11 +330,14 @@ def get_variant(pos, chrom, ref, alt):
         dict: values for the variant; empty if not found
     """
     try:
-        variant = get_raw_variant(pos, chrom, ref, alt)
+        variant = get_raw_variant(dataset, pos, chrom, ref, alt)
         if not variant or 'rsid' not in variant:
             return variant
         if variant['rsid'] == '.' or variant['rsid'] is None:
             add_rsid_to_variant(variant)
+        else:
+            if str(variant['rsid'])[:2] != 'rs':
+                variant['rsid'] = 'rs{}'.format(variant['rsid'])
         return variant
     except db.Variant.DoesNotExist:
         return {}
