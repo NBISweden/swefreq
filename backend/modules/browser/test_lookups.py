@@ -25,7 +25,20 @@ def test_get_awesomebar_result():
     """
     Test get_awesomebar_result()
     """
-    assert False
+    result = lookups.get_awesomebar_result('SweGen', 'rs373706802')
+    assert result == ('dbsnp_variant_set', 373706802)
+    result = lookups.get_awesomebar_result('SweGen', 'rs783')
+    assert result == ('variant', '22-29461622-G-A')
+    result = lookups.get_awesomebar_result('SweGen', 'ADH6')
+    assert result == ('gene', 'ENSG00000172955')
+    result = lookups.get_awesomebar_result('SweGen', 'ENSG00000172955')
+    assert result == ('gene', 'ENSG00000172955')
+    result = lookups.get_awesomebar_result('SweGen', 'ENST00000237653')
+    assert result == ('transcript', 'ENST00000237653')
+    result = lookups.get_awesomebar_result('SweGen', '22-46615715-46615880')
+    assert result == ('region', '22-46615715-46615880')
+    result = lookups.get_awesomebar_result('SweGen', 'CHR22:46615715-46615880')
+    assert result == ('region', '22-46615715-46615880')
 
 
 def test_get_coverage_for_bases():

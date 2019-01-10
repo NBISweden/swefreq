@@ -46,7 +46,13 @@ def get_awesomebar_result(dataset, query, ds_version=None):
     """
     Parse the search input
 
-    Datatype is one of 'gene', 'variant', or 'region'
+    Datatype is one of:
+    - 'gene'
+    - 'transcript'
+    - 'variant'
+    - 'dbsnp_variant_set'
+    - 'region'
+
     Identifier is one of:
     - ensembl ID for gene
     - variant ID string for variant (eg. 1-1000-A-T)
@@ -56,9 +62,6 @@ def get_awesomebar_result(dataset, query, ds_version=None):
     - if query is an ensembl ID, return it
     - if a gene symbol, return that gene's ensembl ID
     - if an RSID, return that variant's string
-
-    Finally, note that we don't return the whole object here - only it's identifier.
-    This could be important for performance later
 
     Args:
         dataset (str): short name of dataset
@@ -73,7 +76,6 @@ def get_awesomebar_result(dataset, query, ds_version=None):
     variant = get_variants_by_rsid(dataset, query.lower(), ds_version=ds_version)
     if not variant:
         variant = get_variants_by_rsid(dataset, query.lower(), check_position=True, ds_version=ds_version)
-        variant = get_variants_from_dbsnp(db,sdb, query.lower())
 
     if variant:
         if len(variant) == 1:
@@ -82,23 +84,23 @@ def get_awesomebar_result(dataset, query, ds_version=None):
             retval = ('dbsnp_variant_set', variant[0]['rsid'])
         return retval
 
-    gene = get_gene_by_name(sdb, query)
+    gene = get_gene_by_name(dataset, query)
     # From here out, all should be uppercase (gene, tx, region, variant_id)
     query = query.upper()
     if not gene:
-        gene = get_gene_by_name(sdb, query)
+        gene = get_gene_by_name(dataset, query)
     if gene:
         return 'gene', gene['gene_id']
 
     # Ensembl formatted queries
     if query.startswith('ENS'):
         # Gene
-        gene = get_gene(sdb, query)
+        gene = get_gene(dataset, query)
         if gene:
             return 'gene', gene['gene_id']
 
         # Transcript
-        transcript = get_transcript(sdb, query)
+        transcript = get_transcript(dataset, query)
         if transcript:
             return 'transcript', transcript['transcript_id']
 
