@@ -278,6 +278,13 @@ def test_get_variants_by_rsid(caplog):
     '''
     # normal
     result = lookups.get_variants_by_rsid('SweGen', 'rs373706802')
+    assert result[0]['pos'] == 16080482
+    assert result[0]['genes'] == ['ENSG00000229286', 'ENSG00000235265']
+    assert result[0]['transcripts'] == ['ENST00000448070','ENST00000413156']
+
+    # by position
+    result = lookups.get_variants_by_rsid('SweGen', 'rs373706802', check_position=True)
+    assert result[0]['pos'] == 16080482
     assert result[0]['genes'] == ['ENSG00000229286', 'ENSG00000235265']
     assert result[0]['transcripts'] == ['ENST00000448070','ENST00000413156']
 

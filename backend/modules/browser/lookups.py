@@ -42,7 +42,7 @@ def add_rsid_to_variant(dataset, variant):
 
 REGION_REGEX = re.compile(r'^\s*(\d+|X|Y|M|MT)\s*([-:]?)\s*(\d*)-?([\dACTG]*)-?([ACTG]*)')
 
-def get_awesomebar_result(dataset, query):
+def get_awesomebar_result(dataset, query, ds_version=None):
     """
     Parse the search input
 
@@ -63,14 +63,16 @@ def get_awesomebar_result(dataset, query):
     Args:
         dataset (str): short name of dataset
         query (str): the search query
+        ds_version (str): the dataset version
     Returns:
         tuple: (datatype, identifier)
     """
     query = query.strip()
 
     # Parse Variant types
-    variant = get_variants_by_rsid(db, query.lower())
+    variant = get_variants_by_rsid(dataset, query.lower(), ds_version=ds_version)
     if not variant:
+        variant = get_variants_by_rsid(dataset, query.lower(), check_position=True, ds_version=ds_version)
         variant = get_variants_from_dbsnp(db,sdb, query.lower())
 
     if variant:
@@ -388,12 +390,14 @@ def get_variant(dataset, pos, chrom, ref, alt, ds_version=None):
         return {}
 
 
-def get_variants_by_rsid(dataset, rsid, ds_version=None):
+def get_variants_by_rsid(dataset, rsid, check_position=False, ds_version=None):
     """
     Retrieve variants by their associated rsid
+    May also look up rsid and search for variants at the position
     Args:
         dataset (str): short name of dataset
         rsid (str): rsid of the variant (starting with rs)
+        check_position (bool): check for variants at the position of the rsid instead of by rsid
         ds_version (str): version of the dataset
     Returns:
         list: variant dicts; no hits
@@ -411,11 +415,34 @@ def get_variants_by_rsid(dataset, rsid, ds_version=None):
     except ValueError:
         logging.error('get_variants_by_rsid({}, {}): not an integer after rs'.format(dataset, rsid))
         return
-    query = (db.Variant
-             .select()
-             .where((db.Variant.rsid == rsid) &
-                    (db.Variant.dataset_version == dataset_version))
-             .dicts())
+    if check_position:
+        refset = (db.Dataset
+                  .select(db.ReferenceSet)
+                  .join(db.ReferenceSet)
+                  .where(db.Dataset.short_name == dataset)
+                  .dicts()
+                  .get())
+        dbsnp_version = refset['dbsnp_version']
+
+        rsid_dbsnp = (db.DbSNP
+                     .select()
+                     .where((db.DbSNP.rsid == rsid) &
+                            (db.DbSNP.version_id == dbsnp_version) )
+                     .dicts()
+                     .get())
+        query = (db.Variant
+                 .select()
+                 .where((db.Variant.pos == rsid_dbsnp['pos']) &
+                        (db.Variant.chrom == rsid_dbsnp['chrom']) &
+                        (db.Variant.dataset_version == dataset_version))
+                 .dicts())
+    else:
+        query = (db.Variant
+                 .select()
+                 .where((db.Variant.rsid == rsid) &
+                        (db.Variant.dataset_version == dataset_version))
+                 .dicts())
+
     variants = [variant for variant in query]
     # add_consequence_to_variants(variants)
     return variants
