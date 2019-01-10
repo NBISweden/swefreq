@@ -100,6 +100,10 @@ class GetSchema(handlers.UnsafeHandler):
 
             try:
                 dataset_version = db.get_dataset_version(dataset, version)
+                if dataset_version is None:
+                    self.send_error(status_code=404)
+                    return
+
 
                 if dataset_version.available_from > datetime.now():
                     # If it's not available yet, only return if user is admin.
@@ -163,6 +167,9 @@ class GetDataset(handlers.UnsafeHandler):
         future_version = False
 
         version = db.get_dataset_version(dataset, version)
+        if version is None:
+            self.send_error(status_code=404)
+            return
 
         if version.available_from > datetime.now():
             future_version = True
@@ -216,6 +223,10 @@ class GenerateTemporaryLink(handlers.AuthorizedHandler):
     def post(self, dataset, version=None):
         user = self.current_user
         dataset_version = db.get_dataset_version(dataset, version)
+        if dataset_version is None:
+            self.send_error(status_code=404)
+            return
+
         lh = db.Linkhash.create(
                 user            = user,
                 dataset_version = dataset_version,
@@ -240,6 +251,10 @@ class GenerateTemporaryLink(handlers.AuthorizedHandler):
 class DatasetFiles(handlers.AuthorizedHandler):
     def get(self, dataset, version=None):
         dataset_version = db.get_dataset_version(dataset, version)
+        if dataset_version is None:
+            self.send_error(status_code=404)
+            return
+
         ret = []
         for f in dataset_version.files:
             d = db.build_dict_from_row(f)
