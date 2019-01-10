@@ -2,7 +2,7 @@ import re
 import db
 import logging
 
-#from .utils import METRICS, AF_BUCKETS, get_xpos, xpos_to_pos, add_consequence_to_variants, add_consequence_to_variant
+from .utils import METRICS, AF_BUCKETS, get_xpos, xpos_to_pos, add_consequence_to_variants, add_consequence_to_variant
 
 SEARCH_LIMIT = 10000
 
@@ -39,11 +39,10 @@ REGION_REGEX = re.compile(r'^\s*(\d+|X|Y|M|MT)\s*([-:]?)\s*(\d*)-?([\dACTG]*)-?(
 
 def get_awesomebar_result(dataset, query):
     """
-    Similar to the above, but this is after a user types enter
-    We need to figure out what they meant - could be gene, variant, region
+    Parse the search input
 
-    Where datatype is one of 'gene', 'variant', or 'region'
-    And identifier is one of:
+    Datatype is one of 'gene', 'variant', or 'region'
+    Identifier is one of:
     - ensembl ID for gene
     - variant ID string for variant (eg. 1-1000-A-T)
     - region ID string for region (eg. 1-1000-2000)
@@ -336,22 +335,43 @@ def get_variant(dataset, pos, chrom, ref, alt):
         if variant['rsid'] == '.' or variant['rsid'] is None:
             add_rsid_to_variant(variant)
         else:
-            if str(variant['rsid'])[:2] != 'rs':
+            if not str(variant['rsid']).startswith('rs'):
                 variant['rsid'] = 'rs{}'.format(variant['rsid'])
         return variant
     except db.Variant.DoesNotExist:
         return {}
 
 
-def get_variants_by_rsid(db, rsid):
+def get_variants_by_rsid(dataset, rsid, ds_version=None):
+    """
+    Retrieve variants by their associated rsid
+    Args:
+        dataset (str): short name of dataset
+        rsid (str): rsid of the variant (starting with rs)
+        ds_version (str): version of the dataset
+    Returns:
+        list: variant dicts; no hits
+    """
+    dataset_version = db.get_dataset_version(dataset, ds_version)
+    if not dataset_version:
+        return
+
     if not rsid.startswith('rs'):
-        return None
+        logging.error('get_variants_by_rsid({}, {}): rsid not starting with rs'.format(dataset, rsid))
+        return
+
     try:
-        int(rsid.lstrip('rs'))
+        rsid = int(rsid.lstrip('rs'))
     except ValueError:
-        return None
-    variants = list(db.variants.find({'rsid': rsid}, projection={'_id': False}))
-    add_consequence_to_variants(variants)
+        logging.error('get_variants_by_rsid({}, {}): not an integer after rs'.format(dataset, rsid))
+        return
+    query = (db.Variant
+             .select()
+             .where((db.Variant.rsid == rsid) &
+                    (db.Variant.dataset_version == dataset_version))
+             .dicts())
+    variants = [variant for variant in query]
+    # add_consequence_to_variants(variants)
     return variants
 
 

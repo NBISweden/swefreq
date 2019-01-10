@@ -259,12 +259,34 @@ def test_get_variant():
                                      'ENST00000475776']
     assert result['rsid'] == 75050571
     
-    
     # need to add test for entry with missing rsid
     # too slow query atm
 
     # incorrect position
     assert not lookups.get_variant(-1, '1', 'A', 'T')
+
+
+def test_get_variants_by_rsid(caplog):
+    '''
+    Test get_variants_by_rsid()
+    '''
+    # normal
+    result = lookups.get_variants_by_rsid('SweGen', 'rs373706802')
+    assert result[0]['genes'] == ['ENSG00000229286', 'ENSG00000235265']
+    assert result[0]['transcripts'] == ['ENST00000448070','ENST00000413156']
+
+    # errors
+    assert lookups.get_variants_by_rsid('incorrect_name', 'rs373706802') is None
+    assert lookups.get_variants_by_rsid('SweGen', '373706802') is None
+    assert lookups.get_variants_by_rsid('SweGen', 'rs3737o68o2') is None
+    expected = ('get_dataset_version(incorrect_name, version=None): cannot retrieve dataset version',
+                'get_variants_by_rsid(SweGen, 373706802): rsid not starting with rs',
+                'get_variants_by_rsid(SweGen, rs3737o68o2): not an integer after rs')
+    for comparison in zip(caplog.messages, expected):
+        assert comparison[0] == comparison[1]
+
+    # no variants with rsid available
+    assert not lookups.get_variants_by_rsid('SweGen', 'rs1')
 
 
 def test_get_variants_in_transcript():
