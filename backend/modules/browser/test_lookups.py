@@ -13,11 +13,11 @@ def test_add_rsid_to_variant():
     variant = lookups.get_variant('SweGen', 55500283, '1', 'A', 'T')
     rsid = variant['rsid']
     variant['rsid'] = '.'
-    # lookups.add_rsid_to_variant('SweGen', variant)
+    lookups.add_rsid_to_variant('SweGen', variant)
     assert variant['rsid'] == rsid
     # "non-existing"
     del variant['rsid']
-    # lookups.add_rsid_to_variant(variant)
+    lookups.add_rsid_to_variant(variant)
     assert variant['rsid'] == rsid
 
 
@@ -32,7 +32,7 @@ def test_get_coverage_for_bases():
     """
     Test get_coverage_for_bases()
     """
-    # coverage = lookups.get_coverage_for_bases('SweGen', '1', 55500283, 55500320)
+    coverage = lookups.get_coverage_for_bases('SweGen', '1', 55500283, 55500320)
     expected = [{'id': 5474062, 'dataset_version': 4, 'chrom': '1',
                  'pos': 55500290, 'mean': 40.66, 'median': 39.0,
                  'coverage': [1.0, 1.0, 1.0, 1.0, 0.996, 0.97, 0.867, 0.127, 0.001]},
@@ -49,7 +49,7 @@ def test_get_coverage_for_bases():
 
 
 def test_get_coverage_for_transcript():
-    coverage = lookups.get_coverage_for_transcript('1', 55500283, 55500320)
+    coverage = lookups.get_coverage_for_transcript('SweGen', '1', 55500283, 55500320)
     expected = [{'id': 5474062, 'dataset_version': 4, 'chrom': '1',
                  'pos': 55500290, 'mean': 40.66, 'median': 39.0,
                  'coverage': [1.0, 1.0, 1.0, 1.0, 0.996, 0.97, 0.867, 0.127, 0.001]},
@@ -69,7 +69,7 @@ def test_get_exons_in_transcript():
     """
     Test get_exons_in_transcript()
     """
-    result = lookups.get_exons_in_transcript(28186)
+    result = lookups.get_exons_in_transcript('SweGen', 'ENST00000346817')
     expected = [{'id': 326403, 'gene': 8600, 'transcript': 28186, 'chrom': '2',
                  'start': 202047893, 'stop': 202048032, 'strand': '+', 'feature_type': 'exon'},
                 {'id': 326404, 'gene': 8600, 'transcript': 28186, 'chrom': '2',
@@ -172,6 +172,14 @@ def test_get_genes_in_region():
     assert False
 
 
+def test_get_number_of_variants_in_transcript():
+    """
+    Test get_number_of_variants_in_transcripts()
+    """
+    assert False
+    lookups.get_number_of_variants_in_transcripts()
+
+
 def test_get_transcript():
     """
     Test get_transcript()
@@ -199,7 +207,7 @@ def test_get_transcript():
                 {'id': 18, 'gene': 2, 'transcript': 5, 'chrom': '1', 'start': 24739, 'stop': 24892, 'strand': '-', 'feature_type': 'exon'},
                 {'id': 17, 'gene': 2, 'transcript': 5, 'chrom': '1', 'start': 29322, 'stop': 29371, 'strand': '-', 'feature_type': 'exon'}]
 
-    result = lookups.get_transcript('ENST00000438504')
+    result = lookups.get_transcript('SweGen', 'ENST00000438504')
     assert result['id'] == expected['id']
     assert result['mim_annotation'] == expected['mim_annotation']
     assert result['transcript_id'] == expected['transcript_id']
@@ -211,7 +219,7 @@ def test_get_transcript():
     assert result['exons'] == exp_exon
 
     # non-existing
-    assert not lookups.get_transcript('INCORRECT')
+    assert not lookups.get_transcript('SweGen', 'INCORRECT')
 
 
 def test_get_transcripts_in_gene():
@@ -249,7 +257,7 @@ def test_get_variant():
 
     # missing rsid in result, multiple transcripts
     # slow, need to fix db
-    # result = lookups.get_variant(47730411, '21', 'TA', 'T')
+    result = lookups.get_variant('SweGen', 47730411, '21', 'TA', 'T')
     assert result['genes'] == ['ENSG00000160298']
     assert result['transcripts'] == ['ENST00000417060', 'ENST00000397682',
                                      'ENST00000397683', 'ENST00000397680',
@@ -257,10 +265,8 @@ def test_get_variant():
                                      'ENST00000291691', 'ENST00000445935',
                                      'ENST00000491666', 'ENST00000472607',
                                      'ENST00000475776']
-    assert result['rsid'] == 75050571
-    
-    # need to add test for entry with missing rsid
-    # too slow query atm
+    assert result['rsid'] == 'rs75050571'
+    # TODO: add test for entry with missing rsid
 
     # incorrect position
     assert not lookups.get_variant(-1, '1', 'A', 'T')
@@ -287,6 +293,24 @@ def test_get_variants_by_rsid(caplog):
 
     # no variants with rsid available
     assert not lookups.get_variants_by_rsid('SweGen', 'rs1')
+
+
+def test_get_variants_in_region():
+    """
+    Test get_variants_in_region()
+    """
+    # normal
+    result = lookups.get_variants_in_region('SweGen', '22', 16079200, 16079400)
+    expected_pos = [16079227, 16079234, 16079289, 16079350]
+    assert [res['pos'] for res in result] == expected_pos
+
+    # no positions covered
+    result = lookups.get_variants_in_region('SweGen', '22', 16079200, 16079000)
+    assert not result
+
+    # incorrect dataset
+    result = lookups.get_variants_in_region('Incorrect_dataset', '22', 16079200, 16079400)
+    assert not result
 
 
 def test_get_variants_in_transcript():
