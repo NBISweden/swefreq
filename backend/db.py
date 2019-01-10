@@ -12,6 +12,7 @@ from peewee import (
         TextField,
         fn,
     )
+import logging
 import settings
 
 database = MySQLDatabase(
