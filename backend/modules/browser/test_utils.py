@@ -52,14 +52,20 @@ def test_get_flags_from_variant():
     """
     Test get_flags_from_variant()
     """
-    assert False
+    fake_variant = {'vep_annotations':[{'LoF': 'LC', 'LoF_flags': 'something'},
+                                       {'LoF': '', 'LoF_flags': ''},
+                                       {'LoF': 'LC', 'LoF_flags': 'something'}]}
+    flags = utils.get_flags_from_variant(fake_variant)
+    assert flags == ['LC LoF', 'LoF flag']
 
+    fake_variant = {'vep_annotations':[{'LoF': 'LC', 'LoF_flags': 'something'},
+                                       {'LoF': 'HC', 'LoF_flags': 'something'}]}
+    flags = utils.get_flags_from_variant(fake_variant)
+    assert flags == ['LoF flag']
 
-def test_get_minimal_representation():
-    """
-    Test get_minimal_representation()
-    """
-    assert False
+    fake_variant = {'mnps': 'no idea', 'vep_annotations':[]}
+    flags = utils.get_flags_from_variant(fake_variant)
+    assert flags == ['MNP']
 
 
 def test_get_proper_hgvs():
@@ -113,7 +119,8 @@ def test_worst_csq_from_list():
     """
     Test worst_csq_from_list()
     """
-    assert False
+    csqs = ['frameshift_variant', 'missense_variant']
+    assert utils.worst_csq_from_list(csqs) == 'frameshift_variant'
 
 
 def test_worst_csq_index():
