@@ -39,12 +39,17 @@ def test_get_awesomebar_result():
     assert result == ('region', '22-46615715-46615880')
     result = lookups.get_awesomebar_result('SweGen', 'CHR22:46615715-46615880')
     assert result == ('region', '22-46615715-46615880')
+    result = lookups.get_awesomebar_result('SweGen', 'CHR22-29461622-G-A')
+    assert result == ('variant', '22-29461622-G-A')
+    result = lookups.get_awesomebar_result('SweGen', 'DOES_NOT_EXIST')
+    assert result == ('not_found', 'DOES_NOT_EXIST')
 
 
-def test_get_coverage_for_bases():
+def test_get_coverage_for_bases(caplog):
     """
     Test get_coverage_for_bases()
     """
+    # normal
     coverage = lookups.get_coverage_for_bases('SweGen', '1', 55500283, 55500320)
     expected = [{'id': 5474062, 'dataset_version': 4, 'chrom': '1',
                  'pos': 55500290, 'mean': 40.66, 'median': 39.0,
@@ -60,8 +65,24 @@ def test_get_coverage_for_bases():
                  'coverage': [1.0, 1.0, 1.0, 1.0, 0.996, 0.961, 0.856, 0.117, 0.001]}]
     assert coverage == expected
 
+    # no end_pos
+    coverage = lookups.get_coverage_for_bases('SweGen', '1', 55500290)
+    expected = [{'id': 5474062, 'dataset_version': 4, 'chrom': '1',
+                 'pos': 55500290, 'mean': 40.66, 'median': 39.0,
+                 'coverage': [1.0, 1.0, 1.0, 1.0, 0.996, 0.97, 0.867, 0.127, 0.001]}]
+
+    # no hits
+    coverage = lookups.get_coverage_for_bases('SweGen', '1', 55500283, 55500285)
+    assert not coverage
+
+    # incorrect dataset
+    assert not lookups.get_coverage_for_bases('BAD_DATASET', '1', 55500283, 55500320)
+
 
 def test_get_coverage_for_transcript():
+    """
+    Test get_coverage_for_transcript()
+    """
     coverage = lookups.get_coverage_for_transcript('SweGen', '1', 55500283, 55500320)
     expected = [{'id': 5474062, 'dataset_version': 4, 'chrom': '1',
                  'pos': 55500290, 'mean': 40.66, 'median': 39.0,
@@ -76,9 +97,10 @@ def test_get_coverage_for_transcript():
                  'pos': 55500320, 'mean': 39.69, 'median': 38.0,
                  'coverage': [1.0, 1.0, 1.0, 1.0, 0.996, 0.961, 0.856, 0.117, 0.001]}]
     assert coverage == expected
+    assert not lookups.get_coverage_for_transcript('BAD_DATASET', '1', 55500283, 55500320)
 
 
-def test_get_exons_in_transcript():
+def test_get_exons_in_transcript(caplog):
     """
     Test get_exons_in_transcript()
     """
@@ -100,6 +122,16 @@ def test_get_exons_in_transcript():
                 {'id': 326416, 'gene': 8600, 'transcript': 28186, 'chrom': '2',
                  'start': 202082312, 'stop': 202084804, 'strand': '+', 'feature_type': 'exon'}]
     assert result == expected
+
+    # bad dataset
+    result = lookups.get_exons_in_transcript('NO_DATASET', 'ENST00000346817')
+    assert not result
+    assert caplog.messages[0] == 'get_exons_in_transcript(NO_DATASET, ENST00000346817): unable to find dataset dbid'
+
+    # bad transcript
+    result = lookups.get_exons_in_transcript('SweGen', 'BAD_TRANSCRIPT')
+    assert not result
+    assert caplog.messages[1] == 'get_exons_in_transcript(SweGen, BAD_TRANSCRIPT): unable to retrieve transcript'
 
 
 def test_get_gene():
@@ -131,13 +163,13 @@ def test_get_gene():
     # non-existing gene
     result = lookups.get_gene('SweGen', 'NOT_A_GENE')
     assert not result
-    
+
     # non-existing dataset
     result = lookups.get_gene('NoDataset', 'ENSG00000223972')
     assert not result
 
 
-def test_get_gene_by_name():
+def test_get_gene_by_name(caplog):
     """
     Test get_gene_by_name()
     """
@@ -165,7 +197,8 @@ def test_get_gene_by_name():
     # non-existing gene
     result = lookups.get_gene_by_name('SweGen', 'NOT_A_GENE')
     assert not result
-    
+    assert caplog.messages[0] == 'get_gene_by_name(SweGen, NOT_A_GENE): unable to retrieve gene'
+
     # non-existing dataset
     result = lookups.get_gene_by_name('NoDataset', 'ENSG00000223972')
     assert not result
@@ -294,6 +327,9 @@ def test_get_variants_by_rsid(caplog):
     assert result[0]['pos'] == 16080482
     assert result[0]['genes'] == ['ENSG00000229286', 'ENSG00000235265']
     assert result[0]['transcripts'] == ['ENST00000448070','ENST00000413156']
+    print(type(result[0]['vep_annotations']))
+    print(result[0]['vep_annotations'])
+    assert False
 
     # by position
     result = lookups.get_variants_by_rsid('SweGen', 'rs373706802', check_position=True)
@@ -305,6 +341,7 @@ def test_get_variants_by_rsid(caplog):
     assert lookups.get_variants_by_rsid('incorrect_name', 'rs373706802') is None
     assert lookups.get_variants_by_rsid('SweGen', '373706802') is None
     assert lookups.get_variants_by_rsid('SweGen', 'rs3737o68o2') is None
+
     expected = ('get_dataset_version(incorrect_name, version=None): cannot retrieve dataset version',
                 'get_variants_by_rsid(SweGen, 373706802): rsid not starting with rs',
                 'get_variants_by_rsid(SweGen, rs3737o68o2): not an integer after rs')

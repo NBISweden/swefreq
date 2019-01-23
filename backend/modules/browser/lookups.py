@@ -33,10 +33,7 @@ def add_rsid_to_variant(dataset, variant):
                            (db.DbSNP.version == dbsnp_version))
                     .dicts()
                     .get())
-            if rsid:
-                variant['rsid'] = 'rs{}'.format(rsid['rsid'])
-            else:
-                logging.error('add_rsid_to_variant({}, variant[dbid: {}]): unable to retrieve rsid'.format(dataset, variant['id']))
+            variant['rsid'] = 'rs{}'.format(rsid['rsid'])
         except db.DbSNP.DoesNotExist:
             logging.error('add_rsid_to_variant({}, variant[dbid: {}]): unable to retrieve rsid'.format(dataset, variant['id']))
 
@@ -143,17 +140,13 @@ def get_coverage_for_bases(dataset, chrom, start_pos, end_pos=None, ds_version=N
 
     if end_pos is None:
         end_pos = start_pos
-    try:
-        return [values for values in (db.Coverage
-                                      .select()
-                                      .where((db.Coverage.pos >= start_pos) &
-                                             (db.Coverage.pos <= end_pos) &
-                                             (db.Coverage.chrom == chrom) &
-                                             (db.Coverage.dataset_version == dataset_version.id))
-                                      .dicts())]
-    except db.Coverage.DoesNotExist:
-        logging.error('get_coverage_for_bases({}, {}, {}, {}): '.format(dataset, chrom, start_pos, end_pos))
-        return
+    return [values for values in (db.Coverage
+                                  .select()
+                                  .where((db.Coverage.pos >= start_pos) &
+                                         (db.Coverage.pos <= end_pos) &
+                                         (db.Coverage.chrom == chrom) &
+                                         (db.Coverage.dataset_version == dataset_version.id))
+                                  .dicts())]
 
 
 def get_coverage_for_transcript(dataset, chrom, start_pos, end_pos=None, ds_version=None):
@@ -175,6 +168,8 @@ def get_coverage_for_transcript(dataset, chrom, start_pos, end_pos=None, ds_vers
     coverage_array = get_coverage_for_bases(dataset, chrom, start_pos, end_pos, ds_version)
     # only return coverages that have coverage (if that makes any sense?)
     # return coverage_array
+    if not coverage_array:
+        return
     covered = [c for c in coverage_array if c['mean']]
     return covered
 
@@ -191,7 +186,9 @@ def get_exons_in_transcript(dataset, transcript_id):
         list: dicts with values for each exon sorted by start position
     """
     ref_dbid = db.get_reference_dbid_dataset(dataset)
-    
+    if not ref_dbid:
+        logging.error('get_exons_in_transcript({}, {}): unable to find dataset dbid'.format(dataset, transcript_id))
+        return
     try:
         transcript = (db.Transcript
                       .select()
@@ -200,7 +197,7 @@ def get_exons_in_transcript(dataset, transcript_id):
                              (db.Gene.reference_set == ref_dbid))
                       .get())
     except db.Transcript.DoesNotExist:
-        logging.error('get_exons_in_transcript({}, {}): unable to retrueve transcript'.format(dataset, transcript_id))
+        logging.error('get_exons_in_transcript({}, {}): unable to retrieve transcript'.format(dataset, transcript_id))
         return
     return sorted(list(db.Feature.select().where((db.Feature.transcript == transcript) &
                                                  (db.Feature.feature_type == 'exon')).dicts()),
