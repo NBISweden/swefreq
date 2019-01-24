@@ -1,27 +1,38 @@
+import logging
+
+import db
 import handlers
 
 from . import lookups
-from . import mongodb
 from . import pgsql
-from .utils import get_xpos, add_consequence_to_variant, remove_extraneous_vep_annotations, \
-                   order_vep_by_csq, get_proper_hgvs
+#from .utils import get_xpos, add_consequence_to_variant, remove_extraneous_vep_annotations, \
+#                   order_vep_by_csq, get_proper_hgvs
 
+# maximum length of requested region (GetRegion)
+REGION_LIMIT = 100000
 
 class GetTranscript(handlers.UnsafeHandler):
+    """
+    Request information about a transcript
+    """
     def get(self, dataset, transcript):
+        """
+        Request information about a transcript
+
+        Args:
+            dataset (str): short name of the dataset
+            transcript (str): the transcript id
+
+        Returns:
+            dict: transcript (transcript and exons), gene (gene information)
+        """
         transcript_id = transcript
         ret = {'transcript':{},
                'gene':{},
               }
 
-        db_shared = mongodb.connect_db(dataset, True)
-        if not db_shared:
-            self.set_user_msg("Could not connect to database.", "error")
-            self.finish( ret )
-            return
-
         # Add transcript information
-        transcript = lookups.get_transcript(db_shared, transcript_id)
+        transcript = lookups.get_transcript(dataset, transcript_id)
         ret['transcript']['id'] = transcript['transcript_id']
         ret['transcript']['number_of_CDS'] = len([t for t in transcript['exons'] if t['feature_type'] == 'CDS'])
 
@@ -31,30 +42,50 @@ class GetTranscript(handlers.UnsafeHandler):
             ret['exons'] += [{'start':exon['start'], 'stop':exon['stop'], 'type':exon['feature_type']}]
 
         # Add gene information
-        gene                                = lookups.get_gene(db_shared, transcript['gene_id'])
+        gene                                = lookups.get_gene(dataset, transcript['gene_id'])
         ret['gene']['id']                   = gene['gene_id']
         ret['gene']['name']                 = gene['gene_name']
         ret['gene']['full_name']            = gene['full_gene_name']
         ret['gene']['canonical_transcript'] = gene['canonical_transcript']
 
-        gene_transcripts            = lookups.get_transcripts_in_gene(db_shared, transcript['gene_id'])
+        gene_transcripts            = lookups.get_transcripts_in_gene(dataset, transcript['gene_id'])
         ret['gene']['transcripts']  = [g['transcript_id'] for g in gene_transcripts]
 
-        self.finish( ret )
+        self.finish(ret)
 
 
 class GetRegion(handlers.UnsafeHandler):
+    """
+    Request information about genes in a region
+    """
     def get(self, dataset, region):
+        """
+        Request information about genes in a region
+        
+        Args:
+            dataset (str): short name of the dataset
+            region (str): the region in the format chr-startpos-endpos
+
+        Returns:
+            dict: information about the region and the genes found there
+        """
         region = region.split('-')
-        REGION_LIMIT = 100000
 
         chrom = region[0]
         start = None
         stop = None
-        if len(region) > 1:
-            start = int(region[1])
-        if len(region) > 2:
-            stop = int(region[2])
+
+        try:
+            if len(region) > 1:
+                start = int(region[1])
+            if len(region) > 2:
+                stop = int(region[2])
+        except ValueError:
+            logging.error('GetRegion: unable to parse region ({})'.format(region))
+            self.send_error(status_code=400)
+            self.set_user_msg('Unable to parse region', 'error')
+            return
+        
         if not start:
             start = 0
         if not stop and start:
@@ -69,13 +100,7 @@ class GetRegion(handlers.UnsafeHandler):
                         },
               }
 
-        db_shared = mongodb.connect_db(dataset, True)
-        if not db_shared:
-            self.set_user_msg("Could not connect to database.", "error")
-            self.finish( ret )
-            return
-
-        genes_in_region = lookups.get_genes_in_region(db_shared, chrom, start, stop)
+        genes_in_region = lookups.get_genes_in_region(dataset, chrom, start, stop)
         if genes_in_region:
             ret['region']['genes'] = []
             for gene in genes_in_region:
@@ -84,69 +109,78 @@ class GetRegion(handlers.UnsafeHandler):
                                             'full_gene_name':gene['full_gene_name'],
                                            }]
 
-        self.finish( ret )
+        self.finish(ret)
 
 
 class GetGene(handlers.UnsafeHandler):
-    def get(self, dataset, gene):
+    """
+    Request information about a gene
+    """
+    def get(self, dataset, gene, ds_version=None):
+        """
+        Request information about a gene
+
+        Args:
+            dataset (str): short name of the dataset
+            gene (str): the gene id
+        """
         gene_id = gene
 
         ret = {'gene':{'gene_id': gene_id}}
-        db = mongodb.connect_db(dataset, False)
-        db_shared = mongodb.connect_db(dataset, True)
-        if not db_shared or not db:
-            self.set_user_msg("Could not connect to database.", "error")
-            self.finish( ret )
-            return
 
         # Gene
-        gene = lookups.get_gene(db_shared, gene_id)
-        ret['gene'] = gene
+        gene = lookups.get_gene(dataset, gene_id)
+        if gene:
+            ret['gene'] = gene
 
         # Add exons from transcript
-        transcript = lookups.get_transcript(db_shared, gene['canonical_transcript'])
+        transcript = lookups.get_transcript(dataset, gene['canonical_transcript'])
         ret['exons'] = []
         for exon in sorted(transcript['exons'], key=lambda k: k['start']):
             ret['exons'] += [{'start':exon['start'], 'stop':exon['stop'], 'type':exon['feature_type']}]
 
         # Variants
-        ret['gene']['variants'] = lookups.get_number_of_variants_in_transcript(db, gene['canonical_transcript'])
+        ret['gene']['variants'] = lookups.get_number_of_variants_in_transcript(dataset, gene['canonical_transcript'], ds_version)
 
         # Transcripts
-        transcripts_in_gene = lookups.get_transcripts_in_gene(db_shared, gene_id)
+        transcripts_in_gene = lookups.get_transcripts_in_gene(dataset, gene_id)
         if transcripts_in_gene:
             ret['transcripts'] = []
             for transcript in transcripts_in_gene:
                 ret['transcripts'] += [{'transcript_id':transcript['transcript_id']}]
 
-        self.finish( ret )
+        self.finish(ret)
 
 
 class GetVariant(handlers.UnsafeHandler):
+    """
+    Request information about a gene
+    """    
     def get(self, dataset, variant):
+        """
+        Request information about a gene
 
+        Args:
+            dataset (str): short name of the dataset
+            variant (str): variant in the format chrom-pos-ref-alt
+        """
         ret = {'variant':{}}
-
-        db = mongodb.connect_db(dataset, False)
-        db_shared = mongodb.connect_db(dataset, True)
-
-        if not db_shared or not db:
-            self.set_user_msg("Could not connect to database.", "error")
-            self.finish( ret )
-            return
 
         # Variant
         v = variant.split('-')
-        variant = lookups.get_variant(db, db_shared, get_xpos(v[0], int(v[1])), v[2], v[3])
-
-        if variant is None:
-            variant = {
-                'chrom': v[0],
-                'pos': int(v[1]),
-                'xpos': get_xpos(v[0], int(v[1])),
-                'ref': v[2],
-                'alt': v[3]
-            }
+        try:
+            v[1] = int(v[1])
+        except ValueError:
+            logging.error('GetVariant: unable to parse variant ({})'.format(variant))
+            self.send_error(status_code=400)
+            self.set_user_msg('Unable to parse variant', 'error')
+            return
+        variant = lookups.get_variant(dataset, v[0], v[1], v[2], v[3])
+        
+        if not variant:
+            self.send_error(status_code=404)
+            self.set_user_msg('Variant not found', 'error')
+            return
 
         # Just get the information we need
         for item in ["variant_id", "chrom", "pos", "ref", "alt", "filter", "rsid", "allele_num",
