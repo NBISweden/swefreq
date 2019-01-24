@@ -4,9 +4,9 @@ Replaces mongodb.py
 
 import logging
 
-from . import db
+import db
+
 from . import lookups
-from .utils import get_xpos
 
 
 def get_autocomplete(dataset, query):
@@ -25,5 +25,5 @@ def get_autocomplete(dataset, query):
     return gene_names
 
 
-def get_variant_list:
+def get_variant_list():
     pass

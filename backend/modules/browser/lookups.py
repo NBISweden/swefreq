@@ -2,7 +2,7 @@ import re
 import db
 import logging
 
-import utils
+from . import utils
 
 SEARCH_LIMIT = 10000
 
