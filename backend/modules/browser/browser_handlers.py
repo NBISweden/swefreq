@@ -1,3 +1,4 @@
+import json # remove when db is fixed
 import logging
 
 import db
@@ -5,8 +6,9 @@ import handlers
 
 from . import lookups
 from . import pgsql
-#from .utils import get_xpos, add_consequence_to_variant, remove_extraneous_vep_annotations, \
-#                   order_vep_by_csq, get_proper_hgvs
+
+from .utils import add_consequence_to_variant, remove_extraneous_vep_annotations, \
+                   order_vep_by_csq, get_proper_hgvs
 
 # maximum length of requested region (GetRegion)
 REGION_LIMIT = 100000
@@ -175,19 +177,22 @@ class GetVariant(handlers.UnsafeHandler):
             self.send_error(status_code=400)
             self.set_user_msg('Unable to parse variant', 'error')
             return
-        variant = lookups.get_variant(dataset, v[0], v[1], v[2], v[3])
+        orig_variant = variant
+        variant = lookups.get_variant(dataset, v[1], v[0], v[2], v[3])
         
         if not variant:
+            logging.error('Variant not found ({})'.format(orig_variant))
             self.send_error(status_code=404)
             self.set_user_msg('Variant not found', 'error')
             return
 
         # Just get the information we need
-        for item in ["variant_id", "chrom", "pos", "ref", "alt", "filter", "rsid", "allele_num",
+        for item in ["variant_id", "chrom", "pos", "ref", "alt", "filter_string", "rsid", "allele_num",
                      "allele_freq", "allele_count", "orig_alt_alleles", "site_quality", "quality_metrics",
                      "transcripts", "genes"]:
             ret['variant'][item] = variant[item]
 
+        variant['vep_annotations'] = json.loads(variant['vep_annotations'])  # remove when db is fixed
         # Variant Effect Predictor (VEP) annotations
         # https://www.ensembl.org/info/docs/tools/vep/vep_formats.html
         ret['variant']['consequences'] = []
@@ -229,11 +234,8 @@ class GetVariant(handlers.UnsafeHandler):
                                ['Allele Frequency', 'freq']],
                     'datasets':{},
                     'total':{}}
-        for item in ['ans', 'acs', 'freq', 'homs']:
-            key = 'pop_' + item
-            if key not in variant:
-                continue
-            for _dataset, value in variant[key].items():
+        for item in ['ans', 'allele_count', 'allelle_freq', 'hom_count']:
+            for _dataset, value in variant['pop_' + item].items():
                 if _dataset not in frequencies['datasets']:
                     frequencies['datasets'][_dataset] = {'pop':_dataset}
                 frequencies['datasets'][_dataset][item] = value
@@ -249,7 +251,13 @@ class GetVariant(handlers.UnsafeHandler):
 
 
 class GetVariants(handlers.UnsafeHandler):
+    """
+    Retrieve variants
+    """
     def get(self, dataset, datatype, item):
+        """
+        Retrieve variants
+        """
         ret = mongodb.get_variant_list(dataset, datatype, item)
         # inconvenient way of doing humpBack-conversion
         headers = []
@@ -273,18 +281,20 @@ class GetCoveragePos(handlers.UnsafeHandler):
 
 
 class Search(handlers.UnsafeHandler):
+    """
+    Perform a search for the wanted object
+    """
     def get(self, dataset, query):
+        """
+        Perform a search for the wanted object
+
+        Args:
+            dataset (str): short name of the dataset
+            query (str): search query
+        """
         ret = {"dataset": dataset, "value": None, "type": None}
 
-        db = mongodb.connect_db(dataset, False)
-        db_shared = mongodb.connect_db(dataset, True)
-
-        if not db_shared or not db:
-            self.set_user_msg("Could not connect to database.", "error")
-            self.finish( ret )
-            return
-
-        datatype, identifier = lookups.get_awesomebar_result(db, db_shared, query)
+        datatype, identifier = lookups.get_awesomebar_result(dataset, query)
 
         if datatype == "dbsnp_variant_set":
             datatype = "dbsnp"
@@ -292,7 +302,7 @@ class Search(handlers.UnsafeHandler):
         ret["type"] = datatype
         ret["value"] = identifier
 
-        self.finish( ret )
+        self.finish(ret)
 
 
 class Autocomplete(handlers.UnsafeHandler):
