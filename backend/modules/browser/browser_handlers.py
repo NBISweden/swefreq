@@ -187,10 +187,12 @@ class GetVariant(handlers.UnsafeHandler):
             return
 
         # Just get the information we need
-        for item in ["variant_id", "chrom", "pos", "ref", "alt", "filter_string", "rsid", "allele_num",
+        variant['quality_metrics'] = json.loads(variant['quality_metrics'])  # remove when db is fixed
+        for item in ["variant_id", "chrom", "pos", "ref", "alt", "rsid", "allele_num",
                      "allele_freq", "allele_count", "orig_alt_alleles", "site_quality", "quality_metrics",
                      "transcripts", "genes"]:
             ret['variant'][item] = variant[item]
+        ret['variant']['filter'] = variant['filter_string']
 
         variant['vep_annotations'] = json.loads(variant['vep_annotations'])  # remove when db is fixed
         # Variant Effect Predictor (VEP) annotations
@@ -234,18 +236,23 @@ class GetVariant(handlers.UnsafeHandler):
                                ['Allele Frequency', 'freq']],
                     'datasets':{},
                     'total':{}}
-        for item in ['ans', 'allele_count', 'allelle_freq', 'hom_count']:
-            for _dataset, value in variant['pop_' + item].items():
-                if _dataset not in frequencies['datasets']:
-                    frequencies['datasets'][_dataset] = {'pop':_dataset}
-                frequencies['datasets'][_dataset][item] = value
-                if item not in frequencies['total']:
-                    frequencies['total'][item] = 0
-                frequencies['total'][item] += value
+        term_map = {'allele_num':'ans', 'allele_count':'acs', 'allele_freq':'freq', 'hom_count':'homs'}
+        if dataset not in frequencies['datasets']:
+            frequencies['datasets'][dataset] = {'pop':dataset}
+        for item in term_map:
+            if item not in frequencies['total']:
+                frequencies['total'][term_map[item]] = 0
+            if variant[item] is None:
+                frequencies['datasets'][dataset][term_map[item]] = 0
+                frequencies['total'][term_map[item]] += 0
+            else:
+                frequencies['datasets'][dataset][term_map[item]] = variant[item]
+                frequencies['total'][term_map[item]] += variant[item]
         if 'freq' in frequencies['total']:
             frequencies['total']['freq'] /= len(frequencies['datasets'].keys())
 
         ret['variant']['pop_freq'] = frequencies
+        logging.error(ret)
 
         self.finish( ret )
 
