@@ -240,20 +240,23 @@ def get_gene_by_name(dataset, gene_name):
     if not ref_dbid:
         return {}
     try:
-        return db.Gene.select().where(db.Gene.name==gene_name).dicts().get()
+        return db.Gene.select().where((db.Gene.reference_set == ref_dbid) &
+                                      (db.Gene.name==gene_name)).dicts().get()
     except db.Gene.DoesNotExist:
         try:
-            return db.Gene.select().where(db.Gene.other_names.contains(gene_name)).dicts().get()
+            return db.Gene.select().where((db.Gene.reference_set == ref_dbid) &
+                                          (db.Gene.other_names.contains(gene_name))).dicts().get()
         except db.Gene.DoesNotExist:
             logging.error('get_gene_by_name({}, {}): unable to retrieve gene'.format(dataset, gene_name))
             return {}
 
 
-def get_genes_in_region(chrom, start_pos, stop_pos):
+def get_genes_in_region(dataset, chrom, start_pos, stop_pos):
     """
     Retrieve genes located within a region
 
     Args:
+        dataset (str): short name of the dataset
         chrom (str): chromosome name
         start_pos (int): start of region
         stop_pos (int): end of region
@@ -261,12 +264,17 @@ def get_genes_in_region(chrom, start_pos, stop_pos):
     Returns:
         dict: values for the gene; empty if not found
     """
+    ref_dbid = db.get_reference_dbid_dataset(dataset)
+    if not ref_dbid:
+        return {}
+
     try:
-        gene_query = db.Gene.select().where((((db.Gene.start >= start_pos) &
-                                              (db.Gene.start <= stop_pos)) |
-                                             ((db.Gene.stop >= start_pos) &
-                                              (db.Gene.stop <= stop_pos))) &
-                                            (db.Gene.chrom == chrom)).dicts()
+        gene_query = db.Gene.select().where((db.Gene.reference_set == ref_dbid) &
+                                            ((((db.Gene.start >= start_pos) &
+                                               (db.Gene.start <= stop_pos)) |
+                                              ((db.Gene.stop >= start_pos) &
+                                               (db.Gene.stop <= stop_pos))) &
+                                             (db.Gene.chrom == chrom))).dicts()
         return [gene for gene in gene_query]
     except db.Gene.DoesNotExist:
         logging.error('get_genes_in_region({}, {}, {}): no genes found'.format(chrom, start_pos, stop_pos))
@@ -395,7 +403,7 @@ def get_variant(dataset, pos, chrom, ref, alt, ds_version=None):
         ds_version (str): version of the dataset
 
     Returns:
-        dict: values for the variant; empty if not found
+        dict: values for the variant; None if not found
     """
     try:
         variant = get_raw_variant(dataset, pos, chrom, ref, alt, ds_version)
@@ -408,7 +416,7 @@ def get_variant(dataset, pos, chrom, ref, alt, ds_version=None):
                 variant['rsid'] = 'rs{}'.format(variant['rsid'])
         return variant
     except db.Variant.DoesNotExist:
-        return {}
+        return
 
 
 def get_variants_by_rsid(dataset, rsid, check_position=False, ds_version=None):

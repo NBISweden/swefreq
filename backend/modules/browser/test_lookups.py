@@ -212,7 +212,7 @@ def test_get_genes_in_region():
     """
     Test get_genes_in_region()
     """
-    res = lookups.get_genes_in_region('4', 99080000, 99210000)
+    res = lookups.get_genes_in_region('SweGen', '4', 99080000, 99210000)
     # stop_pos missing in db, so needs to be updated when available
     # exp_names = 
     assert False
