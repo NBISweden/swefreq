@@ -46,13 +46,14 @@ class GetTranscript(handlers.UnsafeHandler):
         # Add gene information
         gene                                = lookups.get_gene_by_dbid(dataset, transcript['gene'])
         ret['gene']['id']                   = gene['gene_id']
-        ret['gene']['name']                 = gene['gene_name']
-        ret['gene']['full_name']            = gene['full_gene_name']
+        ret['gene']['name']                 = gene['name']
+        ret['gene']['full_name']            = gene['full_name']
         ret['gene']['canonical_transcript'] = gene['canonical_transcript']
 
-        gene_transcripts            = lookups.get_transcripts_in_gene(dataset, transcript['gene_id'])
+        gene_transcripts            = lookups.get_transcripts_in_gene_by_dbid(transcript['gene'])
         ret['gene']['transcripts']  = [g['transcript_id'] for g in gene_transcripts]
 
+        logging.error('Transcript with data {}'.format(ret))
         self.finish(ret)
 
 
@@ -251,7 +252,6 @@ class GetVariant(handlers.UnsafeHandler):
             frequencies['total']['freq'] /= len(frequencies['datasets'].keys())
 
         ret['variant']['pop_freq'] = frequencies
-        logging.error(ret)
 
         self.finish( ret )
 

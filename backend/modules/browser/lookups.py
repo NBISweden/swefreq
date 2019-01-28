@@ -202,8 +202,9 @@ def get_exons_in_transcript(dataset, transcript_id):
     except db.Transcript.DoesNotExist:
         logging.error('get_exons_in_transcript({}, {}): unable to retrieve transcript'.format(dataset, transcript_id))
         return
+    wanted_types = ('CDS', 'UTR', 'exon')
     return sorted(list(db.Feature.select().where((db.Feature.transcript == transcript) &
-                                                 (db.Feature.feature_type == 'exon')).dicts()),
+                                                 (db.Feature.feature_type in wanted_types)).dicts()),
                   key=lambda k: k['start'])
 
 
@@ -243,7 +244,7 @@ def get_gene_by_dbid(dataset, gene_dbid):
     if not ref_dbid:
         return {}
     try:
-        return db.Gene.select().where(db.Gene.id == id)
+        return db.Gene.select().where(db.Gene.id == gene_dbid).dicts().get()
     except db.Gene.DoesNotExist:
         return {}
 
@@ -409,6 +410,21 @@ def get_transcripts_in_gene(dataset, gene_id):
         return []
 
 
+def get_transcripts_in_gene_by_dbid(gene_dbid):
+    """
+    Get the transcripts associated with a gene
+    Args:
+        gene_dbid (str): database id of the gene
+    Returns:
+        list: transcripts (dict) associated with the gene; empty if no hits
+    """
+    try: 
+        return [transcript for transcript in db.Transcript.select().where(db.Transcript.gene == gene_dbid).dicts()]
+    except db.Gene.DoesNotExist or db.Transcript.DoesNotExist:
+        logging.error('get_transcripts_in_gene({}): no matching transcripts'.format(gene_dbid))
+        return []
+
+
 def get_variant(dataset, pos, chrom, ref, alt, ds_version=None):
     """
     Retrieve variant by position and change
@@ -511,19 +527,16 @@ def get_variants_in_gene(dataset, gene_id):
         list: values for the variants
     """
     ref_dbid = db.get_reference_dbid_dataset(dataset)
-    variants = [variant for variant in db.Variant.select().where(db.Variant.genes.contains(transcript_id)).dicts()]
-#    db.Variant.select().where(db.Variant.gene.contains(re
-    variants = []
-    ##### remove when db is fixed
-    for variant in variants:
-        variant['vep_annotations'] = json.loads(variant['vep_annotations'])
-    #####
+    gene = get_gene(dataset, gene_id)
+    # temporary while waiting for db fix
+    variants = get_variants_in_region(dataset, gene['chrom'], gene['start'], gene['stop'])    
+    # variants = [variant for variant in db.Variant.select().where(db.Variant.genes.contains(transcript_id)).dicts()]
 
-    for variant in db.variants.find({'genes': gene_id}, projection={'_id': False}):
-        variant['vep_annotations'] = [x for x in variant['vep_annotations'] if x['Gene'] == gene_id]
-        add_consequence_to_variant(variant)
-        remove_extraneous_information(variant)
-        variants.append(variant)
+#    for variant in variants:
+#        variant['vep_annotations'] = [anno for anno in variant['vep_annotations'] if anno['Gene'] == gene_id]
+#        add_consequence_to_variant(variant)
+#        remove_extraneous_information(variant)
+#        variants.append(variant)
     return variants
 
 
@@ -555,11 +568,17 @@ def get_variants_in_region(dataset, chrom, start_pos, end_pos, ds_version=None):
 
     ##### remove when db is fixed
     for variant in variants:
+        variant['quality_metrics'] = json.loads(variant['quality_metrics'])
         variant['vep_annotations'] = json.loads(variant['vep_annotations'])
+        variant['hom_count'] = 0
+        variant['filter'] = variant['filter_string']
     #####
         
     utils.add_consequence_to_variants(variants)
     for variant in variants:
+        if variant['rsid']:
+            variant['rsid'] = 'rs{}'.format(variant['rsid'])
+        # add_rsid_to_variant(dataset, variant)
         remove_extraneous_information(variant)
     return variants
 
@@ -569,24 +588,21 @@ def get_variants_in_transcript(dataset, transcript_id):
     Retrieve variants inside a transcript
 
     Args:
-        pos (int): position of the variant
-        chrom (str): name of the chromosome
-        ref (str): reference sequence
-        ref (str): variant sequence
+        dataset (str): short name of the dataset
+        transcript_id (str): id of the transcript (ENST)
 
     Returns:
         dict: values for the variant; empty if not found
     """
-    variants = [variant for variant in db.Variant.select().where(db.Variant.transcripts.contains(transcript_id)).dicts()]
-    ##### remove when db is fixed
-    for variant in variants:
-        variant['vep_annotations'] = json.loads(variant['vep_annotations'])
-    #####
+    transcript = get_transcript(dataset, transcript_id)
+    # temporary while waiting for db fix
+    variants = get_variants_in_region(dataset, transcript['chrom'], transcript['start'], transcript['stop'])
+    #    variants = [variant for variant in db.Variant.select().where(db.Variant.transcripts.contains(transcript_id)).dicts()]
 
-    for variant in variants:
-        variant['vep_annotations'] = [anno for anno in variant['vep_annotations'] if anno['Feature'] == transcript_id]
-        add_consequence_to_variant(variant)
-        remove_extraneous_information(variant)
+#    for variant in variants:
+#        variant['vep_annotations'] = [anno for anno in variant['vep_annotations'] if anno['Feature'] == transcript_id]
+#        add_consequence_to_variant(variant)
+#        remove_extraneous_information(variant)
     return variants
 
 

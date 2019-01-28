@@ -52,7 +52,6 @@ def get_variant_list(dataset, datatype, item):
         return {k: ", ".join(v) if isinstance(v,list) else v for k, v in variant.items()}
         
     variants = list(map(format_variant, variants))
-    logging.error('VARIANTS_POST : ' + str(variants) + str(len(variants)))
     return {'variants': variants, 'headers': headers}
 
 
@@ -83,7 +82,7 @@ def get_coverage(dataset, datatype, item, ds_version=None):
         transcript = lookups.get_transcript(dataset, item)
         start = transcript['start'] - EXON_PADDING
         stop  = transcript['stop'] + EXON_PADDING
-        ret['coverage'] = lookups.get_coverage_for_transcript(dataset, start, stop, ds_version)
+        ret['coverage'] = lookups.get_coverage_for_transcript(dataset, transcript['chrom'], start, stop, ds_version)
 
     return ret
 
@@ -120,3 +119,4 @@ def get_coverage_pos(dataset, datatype, item):
     ret['chrom'] = chrom
 
     return ret
+    
