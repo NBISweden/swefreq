@@ -44,7 +44,7 @@ class GetTranscript(handlers.UnsafeHandler):
             ret['exons'] += [{'start':exon['start'], 'stop':exon['stop'], 'type':exon['feature_type']}]
 
         # Add gene information
-        gene                                = lookups.get_gene(dataset, transcript['gene_id'])
+        gene                                = lookups.get_gene_by_dbid(dataset, transcript['gene'])
         ret['gene']['id']                   = gene['gene_id']
         ret['gene']['name']                 = gene['gene_name']
         ret['gene']['full_name']            = gene['full_gene_name']
@@ -283,20 +283,18 @@ class GetCoverage(handlers.UnsafeHandler):
     """
     Retrieve coverage
     """
-    def get(self, dataset, datatype, item):
-        # ret = mongodb.get_coverage(dataset, datatype, item)
-        ret = None
-        self.finish( ret )
+    def get(self, dataset, datatype, item, ds_version=None):
+        ret = pgsql.get_coverage(dataset, datatype, item, ds_version)
+        self.finish(ret)
 
 
 class GetCoveragePos(handlers.UnsafeHandler):
     """
-    Retrieve coverage
+    Retrieve coverage range
     """
     def get(self, dataset, datatype, item):
-        # ret = mongodb.get_coverage_pos(dataset, datatype, item)
-        ret = None
-        self.finish( ret )
+        ret = pgsql.get_coverage_pos(dataset, datatype, item)
+        self.finish(ret)
 
 
 class Search(handlers.UnsafeHandler):
