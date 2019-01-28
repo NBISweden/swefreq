@@ -13,47 +13,86 @@ from .utils import add_consequence_to_variant, remove_extraneous_vep_annotations
 # maximum length of requested region (GetRegion)
 REGION_LIMIT = 100000
 
-class GetTranscript(handlers.UnsafeHandler):
+class Autocomplete(handlers.UnsafeHandler):
+    def get(self, dataset, query):
+        ret = {}
+
+        results = pgsql.get_autocomplete(dataset, query)
+        ret = {'values': sorted(list(set(results)))[:20]}
+
+        self.finish( ret )
+
+
+class GetCoverage(handlers.UnsafeHandler):
     """
-    Request information about a transcript
+    Retrieve coverage
     """
-    def get(self, dataset, transcript):
+    def get(self, dataset, datatype, item, ds_version=None):
+        ret = pgsql.get_coverage(dataset, datatype, item, ds_version)
+        self.finish(ret)
+
+
+class GetCoveragePos(handlers.UnsafeHandler):
+    """
+    Retrieve coverage range
+    """
+    def get(self, dataset, datatype, item):
+        ret = pgsql.get_coverage_pos(dataset, datatype, item)
+        self.finish(ret)
+
+
+class Download(handlers.UnsafeHandler):
+    def get(self, dataset, datatype, item):
+        filename = "{}_{}_{}.csv".format(dataset, datatype, item)
+        self.set_header('Content-Type','text/csv')
+        self.set_header('content-Disposition','attachement; filename={}'.format(filename))
+
+        data = mongodb.get_variant_list(dataset, datatype, item)
+        # Write header
+        self.write(','.join([h[1] for h in data['headers']]) + '\n')
+
+        for variant in data['variants']:
+            headers = [h[0] for h in data['headers']]
+            self.write(','.join(map(str, [variant[h] for h in headers])) + '\n')
+
+
+class GetGene(handlers.UnsafeHandler):
+    """
+    Request information about a gene
+    """
+    def get(self, dataset, gene, ds_version=None):
         """
-        Request information about a transcript
+        Request information about a gene
 
         Args:
             dataset (str): short name of the dataset
-            transcript (str): the transcript id
-
-        Returns:
-            dict: transcript (transcript and exons), gene (gene information)
+            gene (str): the gene id
         """
-        transcript_id = transcript
-        ret = {'transcript':{},
-               'gene':{},
-              }
+        gene_id = gene
 
-        # Add transcript information
-        transcript = lookups.get_transcript(dataset, transcript_id)
-        ret['transcript']['id'] = transcript['transcript_id']
-        ret['transcript']['number_of_CDS'] = len([t for t in transcript['exons'] if t['feature_type'] == 'CDS'])
+        ret = {'gene':{'gene_id': gene_id}}
 
-        # Add exon information
+        # Gene
+        gene = lookups.get_gene(dataset, gene_id)
+        if gene:
+            ret['gene'] = gene
+
+        # Add exons from transcript
+        transcript = lookups.get_transcript(dataset, gene['canonical_transcript'])
         ret['exons'] = []
         for exon in sorted(transcript['exons'], key=lambda k: k['start']):
             ret['exons'] += [{'start':exon['start'], 'stop':exon['stop'], 'type':exon['feature_type']}]
 
-        # Add gene information
-        gene                                = lookups.get_gene_by_dbid(dataset, transcript['gene'])
-        ret['gene']['id']                   = gene['gene_id']
-        ret['gene']['name']                 = gene['name']
-        ret['gene']['full_name']            = gene['full_name']
-        ret['gene']['canonical_transcript'] = gene['canonical_transcript']
+        # Variants
+        ret['gene']['variants'] = lookups.get_number_of_variants_in_transcript(dataset, gene['canonical_transcript'], ds_version)
 
-        gene_transcripts            = lookups.get_transcripts_in_gene_by_dbid(transcript['gene'])
-        ret['gene']['transcripts']  = [g['transcript_id'] for g in gene_transcripts]
+        # Transcripts
+        transcripts_in_gene = lookups.get_transcripts_in_gene(dataset, gene_id)
+        if transcripts_in_gene:
+            ret['transcripts'] = []
+            for transcript in transcripts_in_gene:
+                ret['transcripts'] += [{'transcript_id':transcript['transcript_id']}]
 
-        logging.error('Transcript with data {}'.format(ret))
         self.finish(ret)
 
 
@@ -114,42 +153,45 @@ class GetRegion(handlers.UnsafeHandler):
         self.finish(ret)
 
 
-class GetGene(handlers.UnsafeHandler):
+class GetTranscript(handlers.UnsafeHandler):
     """
-    Request information about a gene
+    Request information about a transcript
     """
-    def get(self, dataset, gene, ds_version=None):
+    def get(self, dataset, transcript):
         """
-        Request information about a gene
+        Request information about a transcript
 
         Args:
             dataset (str): short name of the dataset
-            gene (str): the gene id
+            transcript (str): the transcript id
+
+        Returns:
+            dict: transcript (transcript and exons), gene (gene information)
         """
-        gene_id = gene
+        transcript_id = transcript
+        ret = {'transcript':{},
+               'gene':{},
+              }
 
-        ret = {'gene':{'gene_id': gene_id}}
+        # Add transcript information
+        transcript = lookups.get_transcript(dataset, transcript_id)
+        ret['transcript']['id'] = transcript['transcript_id']
+        ret['transcript']['number_of_CDS'] = len([t for t in transcript['exons'] if t['feature_type'] == 'CDS'])
 
-        # Gene
-        gene = lookups.get_gene(dataset, gene_id)
-        if gene:
-            ret['gene'] = gene
-
-        # Add exons from transcript
-        transcript = lookups.get_transcript(dataset, gene['canonical_transcript'])
+        # Add exon information
         ret['exons'] = []
         for exon in sorted(transcript['exons'], key=lambda k: k['start']):
             ret['exons'] += [{'start':exon['start'], 'stop':exon['stop'], 'type':exon['feature_type']}]
 
-        # Variants
-        ret['gene']['variants'] = lookups.get_number_of_variants_in_transcript(dataset, gene['canonical_transcript'], ds_version)
+        # Add gene information
+        gene                                = lookups.get_gene_by_dbid(dataset, transcript['gene'])
+        ret['gene']['id']                   = gene['gene_id']
+        ret['gene']['name']                 = gene['name']
+        ret['gene']['full_name']            = gene['full_name']
+        ret['gene']['canonical_transcript'] = gene['canonical_transcript']
 
-        # Transcripts
-        transcripts_in_gene = lookups.get_transcripts_in_gene(dataset, gene_id)
-        if transcripts_in_gene:
-            ret['transcripts'] = []
-            for transcript in transcripts_in_gene:
-                ret['transcripts'] += [{'transcript_id':transcript['transcript_id']}]
+        gene_transcripts            = lookups.get_transcripts_in_gene_by_dbid(transcript['gene'])
+        ret['gene']['transcripts']  = [g['transcript_id'] for g in gene_transcripts]
 
         self.finish(ret)
 
@@ -279,24 +321,6 @@ class GetVariants(handlers.UnsafeHandler):
         self.finish( ret )
 
 
-class GetCoverage(handlers.UnsafeHandler):
-    """
-    Retrieve coverage
-    """
-    def get(self, dataset, datatype, item, ds_version=None):
-        ret = pgsql.get_coverage(dataset, datatype, item, ds_version)
-        self.finish(ret)
-
-
-class GetCoveragePos(handlers.UnsafeHandler):
-    """
-    Retrieve coverage range
-    """
-    def get(self, dataset, datatype, item):
-        ret = pgsql.get_coverage_pos(dataset, datatype, item)
-        self.finish(ret)
-
-
 class Search(handlers.UnsafeHandler):
     """
     Perform a search for the wanted object
@@ -320,28 +344,3 @@ class Search(handlers.UnsafeHandler):
         ret["value"] = identifier
 
         self.finish(ret)
-
-
-class Autocomplete(handlers.UnsafeHandler):
-    def get(self, dataset, query):
-        ret = {}
-
-        results = pgsql.get_autocomplete(dataset, query)
-        ret = {'values': sorted(list(set(results)))[:20]}
-
-        self.finish( ret )
-
-
-class Download(handlers.UnsafeHandler):
-    def get(self, dataset, datatype, item):
-        filename = "{}_{}_{}.csv".format(dataset, datatype, item)
-        self.set_header('Content-Type','text/csv')
-        self.set_header('content-Disposition','attachement; filename={}'.format(filename))
-
-        data = mongodb.get_variant_list(dataset, datatype, item)
-        # Write header
-        self.write(','.join([h[1] for h in data['headers']]) + '\n')
-
-        for variant in data['variants']:
-            headers = [h[0] for h in data['headers']]
-            self.write(','.join(map(str, [variant[h] for h in headers])) + '\n')
