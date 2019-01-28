@@ -74,6 +74,9 @@ class GetGene(handlers.UnsafeHandler):
 
         # Gene
         gene = lookups.get_gene(dataset, gene_id)
+        #### Remove when db is fixed
+        gene['stop'] = gene['start'] + 20000
+        ####
         if gene:
             ret['gene'] = gene
 
@@ -92,6 +95,11 @@ class GetGene(handlers.UnsafeHandler):
             ret['transcripts'] = []
             for transcript in transcripts_in_gene:
                 ret['transcripts'] += [{'transcript_id':transcript['transcript_id']}]
+
+
+        # temporary fix for names
+        gene['gene_name'] = gene['name']
+        gene['full_gene_name'] = gene['full_name']
 
         self.finish(ret)
 
@@ -318,6 +326,8 @@ class GetVariants(handlers.UnsafeHandler):
             n = a[0] + "".join([b[0].upper() + b[1:] for b in a.split("_")])[1:]
             headers += [[n, h]]
         ret['headers'] = headers
+        logging.error('Variant request {} items'.format(len(ret)))
+        logging.error('Variant request {} items'.format(ret))
         self.finish( ret )
 
 

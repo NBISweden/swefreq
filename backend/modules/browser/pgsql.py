@@ -26,35 +26,6 @@ def get_autocomplete(dataset, query):
     return gene_names
 
 
-def get_variant_list(dataset, datatype, item):
-    headers = [['variant_id','Variant'], ['chrom','Chrom'], ['pos','Position'],
-               ['HGVS','Consequence'], ['filter','Filter'], ['major_consequence','Annotation'],
-               ['flags','Flags'], ['allele_count','Allele Count'], ['allele_num','Allele Number'],
-               ['hom_count','Number of Homozygous Alleles'], ['allele_freq','Allele Frequency']]
-
-    if datatype == 'gene':
-        variants = lookups.get_variants_in_gene(dataset, item)
-    elif datatype == 'region':
-        chrom, start, stop = item.split('-')
-        variants = lookups.get_variants_in_region(dataset, chrom, start, stop)
-    elif datatype == 'transcript':
-        variants = lookups.get_variants_in_transcript(dataset, item)
-
-    # Format output
-    def format_variant(variant):
-        if variant['rsid'] == '.':
-            variant['rsid'] = ''
-        variant['major_consequence'] = (variant['major_consequence'].replace('_variant','')
-                                        .replace('_prime_', '\'')
-                                        .replace('_', ' '))
-
-        # This is so an array values turns into a comma separated string instead
-        return {k: ", ".join(v) if isinstance(v,list) else v for k, v in variant.items()}
-        
-    variants = list(map(format_variant, variants))
-    return {'variants': variants, 'headers': headers}
-
-
 def get_coverage(dataset, datatype, item, ds_version=None):
     """
     Retrieve coverage for a gene/region/transcript
@@ -120,3 +91,31 @@ def get_coverage_pos(dataset, datatype, item):
 
     return ret
     
+
+def get_variant_list(dataset, datatype, item):
+    headers = [['variant_id','Variant'], ['chrom','Chrom'], ['pos','Position'],
+               ['HGVS','Consequence'], ['filter','Filter'], ['major_consequence','Annotation'],
+               ['flags','Flags'], ['allele_count','Allele Count'], ['allele_num','Allele Number'],
+               ['hom_count','Number of Homozygous Alleles'], ['allele_freq','Allele Frequency']]
+
+    if datatype == 'gene':
+        variants = lookups.get_variants_in_gene(dataset, item)
+    elif datatype == 'region':
+        chrom, start, stop = item.split('-')
+        variants = lookups.get_variants_in_region(dataset, chrom, start, stop)
+    elif datatype == 'transcript':
+        variants = lookups.get_variants_in_transcript(dataset, item)
+
+    # Format output
+    def format_variant(variant):
+        if variant['rsid'] == '.':
+            variant['rsid'] = ''
+        variant['major_consequence'] = (variant['major_consequence'].replace('_variant','')
+                                        .replace('_prime_', '\'')
+                                        .replace('_', ' '))
+
+        # This is so an array values turns into a comma separated string instead
+        return {k: ", ".join(v) if isinstance(v,list) else v for k, v in variant.items()}
+        
+    variants = list(map(format_variant, variants))
+    return {'variants': variants, 'headers': headers}

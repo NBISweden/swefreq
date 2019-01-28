@@ -529,7 +529,13 @@ def get_variants_in_gene(dataset, gene_id):
     ref_dbid = db.get_reference_dbid_dataset(dataset)
     gene = get_gene(dataset, gene_id)
     # temporary while waiting for db fix
-    variants = get_variants_in_region(dataset, gene['chrom'], gene['start'], gene['stop'])    
+    logging.error('Found gene  {}'.format(gene))
+    #### remove when db is fixed
+    gene['stop'] = gene['start'] + 20000
+    ####
+
+    variants = get_variants_in_region(dataset, gene['chrom'], gene['start'], gene['stop'])
+    
     # variants = [variant for variant in db.Variant.select().where(db.Variant.genes.contains(transcript_id)).dicts()]
 
 #    for variant in variants:
