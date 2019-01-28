@@ -2,8 +2,8 @@
 Tests for utils.py
 """
 
-import lookups
-import utils
+from .. import lookups
+from .. import utils
 
 import json
 
@@ -79,6 +79,8 @@ def test_get_protein_hgvs():
     """
     Test get_protein_hgvs()
     """
+    annotation = {'MAX_AF_POPS': 'AA&gnomAD_AMR&gnomAD_ASJ&gnomAD_EAS&gnomAD_OTH&gnomAD_SAS&AFR&AMR&EAS&EUR&SAS', 'TSL': '', 'APPRIS': '', 'gnomAD_ASJ_AF': '1', 'AMR_AF': '1', 'SYMBOL': 'ADH6', 'AFR_AF': '1', 'Feature': 'ENST00000237653', 'Codons': 'Tgt/Agt', 'MOTIF_NAME': '', 'DOMAINS': 'hmmpanther:PTHR11695:SF307&hmmpanther:PTHR11695&Gene3D:3.90.180.10', 'SIFT': 'tolerated(1)', 'VARIANT_CLASS': 'SNV', 'EA_AF': '0.9995', 'CDS_position': '4', 'CCDS': 'CCDS3647.1', 'Allele': 'T', 'PolyPhen': 'benign(0)', 'AA_AF': '1', 'gnomAD_EAS_AF': '1', 'IMPACT': 'MODERATE', 'HGVSp': '', 'ENSP': 'ENSP00000237653', 'MAX_AF': '1', 'LoF': '', 'INTRON': '', 'gnomAD_FIN_AF': '0.9999', 'Existing_variation': 'rs4699735', 'HGVSc': '', 'SOURCE': 'Ensembl', 'LoF_filter': '', 'gnomAD_AF': '0.9998', 'gnomAD_AMR_AF': '1', 'GENE_PHENO': '', 'gnomAD_OTH_AF': '1', 'LoF_flags': '', 'MOTIF_SCORE_CHANGE': '', 'UNIPARC': 'UPI00001AE69C', 'cDNA_position': '389', 'ALLELE_NUM': '1', 'EAS_AF': '1', 'Feature_type': 'Transcript', 'AF': '1', 'gnomAD_AFR_AF': '0.9999', 'HGNC_ID': '255', 'SAS_AF': '1', 'LoF_info': '', 'SWISSPROT': 'P28332', 'FLAGS': '', 'miRNA': '', 'Consequence': 'missense_variant', 'Protein_position': '2', 'Gene': 'ENSG00000172955', 'HIGH_INF_POS': '', 'STRAND': '-1', 'gnomAD_NFE_AF': '0.9995', 'EUR_AF': '1', 'DISTANCE': '', 'CLIN_SIG': '', 'PHENO': '', 'SYMBOL_SOURCE': 'HGNC', 'Amino_acids': 'C/S', 'TREMBL': '', 'gnomAD_SAS_AF': '1', 'REFSEQ_MATCH': '', 'PUBMED': '', 'BIOTYPE': 'protein_coding', 'EXON': '1/8', 'SOMATIC': '', 'MOTIF_POS': '', 'CANONICAL': ''}
+    print(utils.get_protein_hgvs(annotation))
     assert False
 
 

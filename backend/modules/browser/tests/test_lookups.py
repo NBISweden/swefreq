@@ -2,7 +2,7 @@
 Tests for the functions available in lookups.py
 """
 
-import lookups
+from .. import lookups
 
 
 def test_add_rsid_to_variant():
