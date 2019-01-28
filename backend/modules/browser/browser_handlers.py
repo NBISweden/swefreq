@@ -8,7 +8,7 @@ from . import lookups
 from . import pgsql
 
 from .utils import add_consequence_to_variant, remove_extraneous_vep_annotations, \
-                   order_vep_by_csq, get_proper_hgvs
+    order_vep_by_csq, get_proper_hgvs
 
 # maximum length of requested region (GetRegion)
 REGION_LIMIT = 100000
@@ -110,7 +110,6 @@ class GetRegion(handlers.UnsafeHandler):
                                             'gene_name':gene['gene_name'],
                                             'full_gene_name':gene['full_gene_name'],
                                            }]
-
         self.finish(ret)
 
 
@@ -264,8 +263,13 @@ class GetVariants(handlers.UnsafeHandler):
     def get(self, dataset, datatype, item):
         """
         Retrieve variants
+
+        Args:
+            dataset (str): short name of the dataset
+            datatype (str): gene, region, or transcript
+            item (str): item to query
         """
-        ret = mongodb.get_variant_list(dataset, datatype, item)
+        ret = pgsql.get_variant_list(dataset, datatype, item)
         # inconvenient way of doing humpBack-conversion
         headers = []
         for a, h in ret['headers']:
@@ -276,14 +280,22 @@ class GetVariants(handlers.UnsafeHandler):
 
 
 class GetCoverage(handlers.UnsafeHandler):
+    """
+    Retrieve coverage
+    """
     def get(self, dataset, datatype, item):
-        ret = mongodb.get_coverage(dataset, datatype, item)
+        # ret = mongodb.get_coverage(dataset, datatype, item)
+        ret = None
         self.finish( ret )
 
 
 class GetCoveragePos(handlers.UnsafeHandler):
+    """
+    Retrieve coverage
+    """
     def get(self, dataset, datatype, item):
-        ret = mongodb.get_coverage_pos(dataset, datatype, item)
+        # ret = mongodb.get_coverage_pos(dataset, datatype, item)
+        ret = None
         self.finish( ret )
 
 

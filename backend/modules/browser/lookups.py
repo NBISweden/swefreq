@@ -1,6 +1,9 @@
-import re
-import db
+
+import json # remove when db is fixed
 import logging
+import re
+
+import db
 
 from . import utils
 
@@ -225,6 +228,26 @@ def get_gene(dataset, gene_id):
         return {}
 
 
+def get_gene_by_dbid(dataset, gene_dbid):
+    """
+    Retrieve gene by gene database id
+
+    Args:
+        dataset (str): short name of the dataset
+        gene_dbid (str): the database id of the gene
+
+    Returns:
+        dict: values for the gene; empty if not found
+    """
+    ref_dbid = db.get_reference_dbid_dataset(dataset)
+    if not ref_dbid:
+        return {}
+    try:
+        return db.Gene.select().where(db.Gene.id == id)
+    except db.Gene.DoesNotExist:
+        return {}
+
+
 def get_gene_by_name(dataset, gene_name):
     """
     Retrieve gene by gene_name.
@@ -292,16 +315,13 @@ def get_number_of_variants_in_transcript(dataset, transcript_id, ds_version=None
     Returns:
         dict: {filtered: nr_filtered, total: nr_total}
     """
-    # will be implemented after database is updated
-    raise NotImplementedError
-
-    dataset_version = db.get_dataset_version()
+    dataset_version = db.get_dataset_version(dataset, ds_version)
     if not dataset_version:
         return
 
-    transcript = db.Transcript.select().where(db.Transcript.transcript_id)
-    total = db.variants.count({'transcripts': transcript_id})
-    filtered = db.variants.count({'transcripts': transcript_id, 'filter': 'PASS'})
+    variants = get_variants_in_transcript(dataset, transcript_id)
+    total = len(variants)
+    filtered = len(tuple(variant for variant in variants if variant['filter_string'] == 'PASS'))
     return {'filtered': filtered, 'total': total}
 
 
@@ -335,7 +355,7 @@ def get_raw_variant(dataset, pos, chrom, ref, alt, ds_version=None):
                 .dicts()
                 .get())
     except db.Variant.DoesNotExist:
-        logging.error(('get_raw_variant({}, {}, {}, {}, {}, {})'.format(dataset, pos, chrom, ref, alt, ds_version) +
+        logging.error(('get_raw_variant({}, {}, {}, {}, {}, {})'.format(dataset, pos, chrom, ref, alt, dataset_version.id) +
                        ': unable to retrieve variant'))
         return {}
 
@@ -491,8 +511,14 @@ def get_variants_in_gene(dataset, gene_id):
         list: values for the variants
     """
     ref_dbid = db.get_reference_dbid_dataset(dataset)
+    variants = [variant for variant in db.Variant.select().where(db.Variant.genes.contains(transcript_id)).dicts()]
 #    db.Variant.select().where(db.Variant.gene.contains(re
     variants = []
+    ##### remove when db is fixed
+    for variant in variants:
+        variant['vep_annotations'] = json.loads(variant['vep_annotations'])
+    #####
+
     for variant in db.variants.find({'genes': gene_id}, projection={'_id': False}):
         variant['vep_annotations'] = [x for x in variant['vep_annotations'] if x['Gene'] == gene_id]
         add_consequence_to_variant(variant)
@@ -526,13 +552,19 @@ def get_variants_in_region(dataset, chrom, start_pos, end_pos, ds_version=None):
                     (db.Variant.dataset_version == dataset_version))
              .dicts())
     variants = [variant for variant in query]
-    # add_consequence_to_variants(variants)
-    #for variant in variants:
-        # remove_extraneous_information(variant)
+
+    ##### remove when db is fixed
+    for variant in variants:
+        variant['vep_annotations'] = json.loads(variant['vep_annotations'])
+    #####
+        
+    utils.add_consequence_to_variants(variants)
+    for variant in variants:
+        remove_extraneous_information(variant)
     return variants
 
 
-def get_variants_in_transcript(transcript_id):
+def get_variants_in_transcript(dataset, transcript_id):
     """
     Retrieve variants inside a transcript
 
@@ -546,8 +578,13 @@ def get_variants_in_transcript(transcript_id):
         dict: values for the variant; empty if not found
     """
     variants = [variant for variant in db.Variant.select().where(db.Variant.transcripts.contains(transcript_id)).dicts()]
+    ##### remove when db is fixed
     for variant in variants:
-        variant['vep_annotations'] = [annotation for annotation in variant['vep_annotations'] if x['Feature'] == transcript_id]
+        variant['vep_annotations'] = json.loads(variant['vep_annotations'])
+    #####
+
+    for variant in variants:
+        variant['vep_annotations'] = [anno for anno in variant['vep_annotations'] if anno['Feature'] == transcript_id]
         add_consequence_to_variant(variant)
         remove_extraneous_information(variant)
     return variants
@@ -559,8 +596,5 @@ def remove_extraneous_information(variant):
     del variant['transcripts']
     del variant['genes']
     del variant['orig_alt_alleles']
-    del variant['xpos']
-    del variant['xstart']
-    del variant['xstop']
     del variant['site_quality']
     del variant['vep_annotations']
