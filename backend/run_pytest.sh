@@ -1,5 +1,5 @@
 #!/bin/sh
 
-BROWSER=modules/browser
+BROWSER=modules/browser/
 
-py.test . --cov==${BROWSER}/lookups --cov==${BROWSER}/utils
+py.test . --cov=${BROWSER}
