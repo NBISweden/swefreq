@@ -192,7 +192,7 @@ class GetTranscript(handlers.UnsafeHandler):
             ret['exons'] += [{'start':exon['start'], 'stop':exon['stop'], 'type':exon['feature_type']}]
 
         # Add gene information
-        gene                                = lookups.get_gene_by_dbid(dataset, transcript['gene'])
+        gene                                = lookups.get_gene_by_dbid(transcript['gene'])
         ret['gene']['id']                   = gene['gene_id']
         ret['gene']['name']                 = gene['name']
         ret['gene']['full_name']            = gene['full_name']

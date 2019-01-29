@@ -104,29 +104,13 @@ def test_get_exons_in_transcript(caplog):
     """
     Test get_exons_in_transcript()
     """
-    result = lookups.get_exons_in_transcript('SweGen', 'ENST00000346817')
-    expected = [{'id': 326403, 'gene': 8600, 'transcript': 28186, 'chrom': '2',
-                 'start': 202047893, 'stop': 202048032, 'strand': '+', 'feature_type': 'exon'},
-                {'id': 326404, 'gene': 8600, 'transcript': 28186, 'chrom': '2',
-                 'start': 202050495, 'stop': 202050848, 'strand': '+', 'feature_type': 'exon'},
-                {'id': 326406, 'gene': 8600, 'transcript': 28186, 'chrom': '2',
-                 'start': 202052430, 'stop': 202052523, 'strand': '+', 'feature_type': 'exon'},
-                {'id': 326408, 'gene': 8600, 'transcript': 28186, 'chrom': '2',
-                 'start': 202057708, 'stop': 202057843, 'strand': '+', 'feature_type': 'exon'},
-                {'id': 326410, 'gene': 8600, 'transcript': 28186, 'chrom': '2',
-                 'start': 202060566, 'stop': 202060672, 'strand': '+', 'feature_type': 'exon'},
-                {'id': 326412, 'gene': 8600, 'transcript': 28186, 'chrom': '2',
-                 'start': 202072799, 'stop': 202072907, 'strand': '+', 'feature_type': 'exon'},
-                {'id': 326414, 'gene': 8600, 'transcript': 28186, 'chrom': '2',
-                 'start': 202073794, 'stop': 202074286, 'strand': '+', 'feature_type': 'exon'},
-                {'id': 326416, 'gene': 8600, 'transcript': 28186, 'chrom': '2',
-                 'start': 202082312, 'stop': 202084804, 'strand': '+', 'feature_type': 'exon'}]
-    assert result == expected
+    result = lookups.get_exons_in_transcript('SweGen', 'ENST00000215855')
+    assert len(result) == 14
 
     # bad dataset
-    result = lookups.get_exons_in_transcript('NO_DATASET', 'ENST00000346817')
+    result = lookups.get_exons_in_transcript('NO_DATASET', 'ENST00000215855')
     assert not result
-    assert caplog.messages[0] == 'get_exons_in_transcript(NO_DATASET, ENST00000346817): unable to find dataset dbid'
+    assert caplog.messages[0] == 'get_exons_in_transcript(NO_DATASET, ENST00000215855): unable to find dataset dbid'
 
     # bad transcript
     result = lookups.get_exons_in_transcript('SweGen', 'BAD_TRANSCRIPT')
@@ -142,23 +126,15 @@ def test_get_gene():
     expected = {'id': 1,
                 'reference_set': 1,
                 'gene_id': 'ENSG00000223972',
-                'gene_name': 'DDX11L1',
+                'name': 'DDX11L1',
                 'full_name': 'DEAD/H (Asp-Glu-Ala-Asp/His) box helicase 11 like 1',
                 'canonical_transcript': 'ENST00000456328',
                 'chrom': '1',
-                'start_pos': 11870,
+                'start': 11870,
                 'strand': '+'}
     result = lookups.get_gene('SweGen', 'ENSG00000223972')
-    print(result)
-    assert result['id'] == expected['id']
-    assert result['reference_set'] == expected['reference_set']
-    assert result['gene_id'] == expected['gene_id']
-    assert result['name'] == expected['gene_name']
-    assert result['full_name'] == expected['full_name']
-    assert result['canonical_transcript'] == expected['canonical_transcript']
-    assert result['chrom'] == expected['chrom']
-    assert result['start'] == expected['start_pos']
-    assert result['strand'] == expected['strand']
+    for val in expected:
+        assert result[val] == expected[val]
 
     # non-existing gene
     result = lookups.get_gene('SweGen', 'NOT_A_GENE')
@@ -168,6 +144,30 @@ def test_get_gene():
     result = lookups.get_gene('NoDataset', 'ENSG00000223972')
     assert not result
 
+
+def test_get_gene_by_dbid():
+    """
+    Test get_gene_by_dbid()
+    """
+    # normal entry
+    expected = {'id': 53626,
+                'reference_set': 1,
+                'gene_id': 'ENSG00000226444',
+                'name': 'ACTR3BP6',
+                'full_name': 'ACTR3B pseudogene 6',
+                'canonical_transcript': 'ENST00000421366',
+                'chrom': '22',
+                'start': 16967411,
+                'strand': '+'}
+    result = lookups.get_gene_by_dbid(53626)
+    for val in expected:
+        assert result[val] == expected[val]
+
+    # non-existing genes
+    result = lookups.get_gene_by_dbid('NOT_A_GENE')
+    assert not result
+    result = lookups.get_gene_by_dbid(-1)
+    assert not result
 
 def test_get_gene_by_name(caplog):
     """
@@ -212,18 +212,34 @@ def test_get_genes_in_region():
     """
     Test get_genes_in_region()
     """
-    res = lookups.get_genes_in_region('SweGen', '4', 99080000, 99210000)
     # stop_pos missing in db, so needs to be updated when available
-    # exp_names = 
-    assert False
+    # normal
+    res = lookups.get_genes_in_region('SweGen', '22', 25595800, 25615800)
+    expected_names = set(['ENSG00000100053', 'ENSG00000236641', 'ENSG00000244752'])
+    names = set(gene['gene_id'] for gene in res)
+    assert names == expected_names
+    # bad dataset
+    res = lookups.get_genes_in_region('bad_dataset', '22', 25595800, 25615800)
+    # nothing found
+    res = lookups.get_genes_in_region('SweGen', '22', 25595800, 25595801)
+    assert not res
 
 
 def test_get_number_of_variants_in_transcript():
     """
     Test get_number_of_variants_in_transcripts()
     """
-    assert False
-    lookups.get_number_of_variants_in_transcripts()
+    # normal
+    res = lookups.get_number_of_variants_in_transcript('SweGen', 'ENST00000424770')
+    assert res == {'filtered': 1, 'total': 23}
+
+    # bad transcript
+    res = lookups.get_number_of_variants_in_transcript('SweGen', 'ENSTASDSADA')
+    assert res == {'filtered': 0, 'total': 0}
+
+    # bad dataset
+    res = lookups.get_number_of_variants_in_transcript('bad_dataset', 'ENST00000424770')
+    assert res is None
 
 
 def test_get_transcript():
@@ -281,6 +297,9 @@ def test_get_transcripts_in_gene():
                  'chrom': '1', 'start': 228320, 'stop': 228776, 'strand': '-'}]
     assert res == expected
 
+    assert not lookups.get_transcripts_in_gene('bad_dataset', 'ENSG00000241670')
+    assert not lookups.get_transcripts_in_gene('SweGen', 'ENSGASDFG')
+    
 
 def test_get_raw_variant():
     """
@@ -290,8 +309,19 @@ def test_get_raw_variant():
     assert result['genes'] == ['ENSG00000169174']
     assert result['transcripts'] == ['ENST00000302118']
     assert not lookups.get_raw_variant('SweGen', 55500281, '1', 'A', 'T')
+    assert not lookups.get_raw_variant('bad_dataset', 55500283, '1', 'A', 'T')
 
 
+def test_get_transcripts_in_gene_by_dbid():
+    """
+    Test get_transcripts_in_gene_by_dbid()
+    """
+    res = lookups.get_transcripts_in_gene_by_dbid(53626)
+    assert len(res) == 2
+    res = lookups.get_transcripts_in_gene_by_dbid(-1)
+    assert not res
+
+    
 def test_get_variant():
     """
     Test get_variant()
@@ -327,9 +357,6 @@ def test_get_variants_by_rsid(caplog):
     assert result[0]['pos'] == 16080482
     assert result[0]['genes'] == ['ENSG00000229286', 'ENSG00000235265']
     assert result[0]['transcripts'] == ['ENST00000448070','ENST00000413156']
-    print(type(result[0]['vep_annotations']))
-    print(result[0]['vep_annotations'])
-    assert False
 
     # by position
     result = lookups.get_variants_by_rsid('SweGen', 'rs373706802', check_position=True)
@@ -350,6 +377,16 @@ def test_get_variants_by_rsid(caplog):
 
     # no variants with rsid available
     assert not lookups.get_variants_by_rsid('SweGen', 'rs1')
+
+
+def test_get_variants_in_gene():
+    """
+    Test get_variants_in_gene()
+    """
+    res = lookups.get_variants_in_gene('SweGen', 'ENSG00000198062')
+    assert len(res) == 1185
+    assert not lookups.get_variants_in_gene('bad_dataset', 'ENSG00000198062')
+    assert not lookups.get_variants_in_gene('bad_dataset', 'ENSGASDFG')
 
 
 def test_get_variants_in_region():
@@ -374,6 +411,5 @@ def test_get_variants_in_transcript():
     """
     Test get_variants_in_transcript()
     """
-    # res = lookups.get_variants_in_transcript('ENST00000302118')
-    #  assert len(res) == 426
-    assert False
+    res = lookups.get_variants_in_transcript('SweGen', 'ENST00000452800')
+    assert len(res) == 1414
