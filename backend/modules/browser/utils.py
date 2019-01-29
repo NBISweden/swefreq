@@ -48,11 +48,9 @@ CSQ_ORDER = ["transcript_ablation",
 "feature_truncation",
 "intergenic_variant",
 ""]
-assert len(CSQ_ORDER) == len(set(CSQ_ORDER)) # No dupplicates
 
 CSQ_ORDER_DICT = {csq:i for i,csq in enumerate(CSQ_ORDER)}
 REV_CSQ_ORDER_DICT = dict(enumerate(CSQ_ORDER))
-assert all(csq == REV_CSQ_ORDER_DICT[CSQ_ORDER_DICT[csq]] for csq in CSQ_ORDER)
 
 METRICS = [
     'BaseQRankSum',
@@ -165,6 +163,15 @@ def get_flags_from_variant(variant):
 
 
 def get_proper_hgvs(csq):
+    """
+    Get HGVS for change, either at transcript or protein level
+
+    Args:
+        annotation (dict): VEP annotation with HGVS information
+
+    Returns:
+        str: variant effect at aa level in HGVS format (p.), None if parsing fails
+    """
     # Needs major_consequence
     if csq['major_consequence'] in ('splice_donor_variant', 'splice_acceptor_variant', 'splice_region_variant'):
         return get_transcript_hgvs(csq)
@@ -174,7 +181,13 @@ def get_proper_hgvs(csq):
 
 def get_protein_hgvs(annotation):
     """
-    Takes consequence dictionary, returns proper variant formatting for synonymous variants
+    Aa changes in HGVS format
+    
+    Args:
+        annotation (dict): VEP annotation with HGVS information
+
+    Returns:
+        str: variant effect at aa level in HGVS format (p.), None if parsing fails
     """
     if '%3D' in annotation['HGVSp']: # "%3D" is "="
         try:
@@ -182,6 +195,7 @@ def get_protein_hgvs(annotation):
             return "p." + amino_acids + annotation['Protein_position'] + amino_acids
         except KeyError:
             logging.error("Could not fetch protein hgvs - unknown amino acid")
+            return None
     return annotation['HGVSp'].split(':')[-1]
 
 
