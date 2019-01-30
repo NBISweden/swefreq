@@ -13,7 +13,6 @@ SEARCH_LIMIT = 10000
 def add_rsid_to_variant(dataset, variant):
     """
     Add rsid to a variant in the database based on position
-    Note that this may be inaccurate
 
     Args:
         dataset (str): short name of the dataset
@@ -441,7 +440,7 @@ def get_variant(dataset, pos, chrom, ref, alt, ds_version=None):
     else:
         if not str(variant['rsid']).startswith('rs'):
             variant['rsid'] = 'rs{}'.format(variant['rsid'])
-        return variant
+    return variant
 
 
 def get_variants_by_rsid(dataset, rsid, check_position=False, ds_version=None):
