@@ -80,8 +80,14 @@ def test_get_proper_hgvs():
     """
     Test get_proper_hgvs()
     """
-    assert False
-
+    annotation = {'HGVSc': 'ENST00000343518.6:c.35C>T',
+                  'HGVSp': 'ENSP00000340610.6:p.Ser12Phe',
+                  'major_consequence': 'splice_donor_variant'}
+    assert utils.get_proper_hgvs(annotation) == 'c.35C>T'
+    annotation['major_consequence'] = 'coding_sequence_variant'
+    assert utils.get_proper_hgvs(annotation) == 'p.Ser12Phe'
+    assert not utils.get_proper_hgvs(dict())
+    
 
 def test_get_protein_hgvs():
     """
@@ -99,27 +105,45 @@ def test_get_protein_hgvs():
     assert result == 'p.Pro9Pro'
     annotation['Amino_acids'] = 'Z'
     assert not utils.get_protein_hgvs(annotation)
+    assert not utils.get_protein_hgvs(dict())
 
 
 def test_get_transcript_hgvs():
     """
     Test get_transcript_hgvs()
+
     """
-    assert False
+    annotation = {'HGVSc': 'ENST00000343518.6:c.35C>T',
+                  'HGVSp': 'ENSP00000340610.6:p.Ser12Phe'}
+    assert utils.get_transcript_hgvs(annotation) == 'c.35C>T'
+    assert not utils.get_transcript_hgvs(dict())
 
 
 def test_order_vep_by_csq():
     """
     Test order_vep_by_csq()
     """
-    assert False
+    annotation = [{'Consequence': 'frameshift_variant'},
+                  {'Consequence': 'transcript_ablation'},
+                  {'Consequence': 'mature_miRNA_variant'}]
+    expected = [{'Consequence': 'transcript_ablation',
+                 'major_consequence': 'transcript_ablation'},
+                {'Consequence': 'frameshift_variant',
+                 'major_consequence': 'frameshift_variant'},
+                {'Consequence': 'mature_miRNA_variant',
+                 'major_consequence': 'mature_miRNA_variant'}]
+    result = utils.order_vep_by_csq(annotation)
+    assert result == expected
+    assert utils.order_vep_by_csq([dict()]) == [{'major_consequence': ''}]
 
 
 def test_remove_extraneous_vep_annotations():
     """
     Test remove_extraneous_vep_annotations()
     """
-    assert False
+    annotation = [{'Consequence': 'frameshift_variant'},
+                  {'Consequence': 'feature_elongation&TF_binding_site_variant'}]
+    assert utils.remove_extraneous_vep_annotations(annotation) == [{'Consequence': 'frameshift_variant'}]
 
 
 def test_worst_csq_from_csq():

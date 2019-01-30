@@ -122,7 +122,7 @@ def add_consequence_to_variant(variant):
 
 def annotation_severity(annotation):
     """
-    Evaluate severity of the consequences; "bigger is more important"
+    Evaluate severity of the consequences; "bigger is more important".
 
     Args:
         annotation (dict): vep_annotation from a variant
@@ -139,9 +139,9 @@ def annotation_severity(annotation):
 def get_flags_from_variant(variant):
     """
     Get flags from variant.
-    checks for: 
-     - MNP (identical length of reference and variant)
-     - LoF (loss of function)
+    Checks for: 
+    - MNP (identical length of reference and variant)
+    - LoF (loss of function)
 
     Args:
         variant (dict): a variant
@@ -162,9 +162,9 @@ def get_flags_from_variant(variant):
     return flags
 
 
-def get_proper_hgvs(csq):
+def get_proper_hgvs(annotation):
     """
-    Get HGVS for change, either at transcript or protein level
+    Get HGVS for change, either at transcript or protein level.
 
     Args:
         annotation (dict): VEP annotation with HGVS information
@@ -173,15 +173,19 @@ def get_proper_hgvs(csq):
         str: variant effect at aa level in HGVS format (p.), None if parsing fails
     """
     # Needs major_consequence
-    if csq['major_consequence'] in ('splice_donor_variant', 'splice_acceptor_variant', 'splice_region_variant'):
-        return get_transcript_hgvs(csq)
-
-    return get_protein_hgvs(csq)
+    try:
+        if annotation['major_consequence'] in ('splice_donor_variant',
+                                               'splice_acceptor_variant',
+                                               'splice_region_variant'):
+            return get_transcript_hgvs(annotation)
+        return get_protein_hgvs(annotation)
+    except KeyError:
+        return None
 
 
 def get_protein_hgvs(annotation):
     """
-    Aa changes in HGVS format
+    Aa changes in HGVS format.
     
     Args:
         annotation (dict): VEP annotation with HGVS information
@@ -189,39 +193,73 @@ def get_protein_hgvs(annotation):
     Returns:
         str: variant effect at aa level in HGVS format (p.), None if parsing fails
     """
-    if '%3D' in annotation['HGVSp']: # "%3D" is "="
-        try:
-            amino_acids = ''.join([PROTEIN_LETTERS_1TO3[x] for x in annotation['Amino_acids']])
-            return "p." + amino_acids + annotation['Protein_position'] + amino_acids
-        except KeyError:
-            logging.error("Could not fetch protein hgvs - unknown amino acid")
-            return None
-    return annotation['HGVSp'].split(':')[-1]
+    try:
+        if '%3D' in annotation['HGVSp']: # "%3D" is "="
+                amino_acids = ''.join([PROTEIN_LETTERS_1TO3[aa] for aa in annotation['Amino_acids']])
+                return "p." + amino_acids + annotation['Protein_position'] + amino_acids
+        return annotation['HGVSp'].split(':')[-1]
+    except KeyError:
+        logging.error("Could not fetch protein hgvs")
+        return None
 
 
-def get_transcript_hgvs(csq):
-    return csq['HGVSc'].split(':')[-1]
-
-
-def order_vep_by_csq(annotation_list):
+def get_transcript_hgvs(annotation):
     """
-    Adds "major_consequence" to each annotation.
-    Returns them ordered from most deleterious to least.
+    Nucleotide change in HGVS format.
+
+    Args:
+        annotation (dict): VEP annotation with HGVS information
+
+    Returns:
+        str: variant effect at nucleotide level in HGVS format (c.), None if parsing fails
+    """ 
+    try:
+        return annotation['HGVSc'].split(':')[-1]
+    except KeyError:
+        return None
+
+
+def order_vep_by_csq(annotation_list: list):
+    """
+    Adds "major_consequence" to each annotation, orders by severity.
+    
+    Args:
+        annotation_list (list): VEP annotations (as dict)
+
+    Returns:
+        list: annotations ordered by major consequence severity
     """
     for ann in annotation_list:
-        ann['major_consequence'] = worst_csq_from_csq(ann['Consequence'])
+        try:
+            ann['major_consequence'] = worst_csq_from_csq(ann['Consequence'])
+        except KeyError:
+            ann['major_consequence'] = ''
     return sorted(annotation_list, key=(lambda ann:CSQ_ORDER_DICT[ann['major_consequence']]))
 
 
-def remove_extraneous_vep_annotations(annotation_list):
-    return [ann for ann in annotation_list if worst_csq_index(ann['Consequence'].split('&')) <= CSQ_ORDER_DICT['intron_variant']]
+def remove_extraneous_vep_annotations(annotation_list: list):
+    """
+    Remove annotations with low-impact consequences (less than intron variant)
+    
+    Args:
+        annotation_list (list): VEP annotations (as dict)
+
+    Returns:
+        list: VEP annotations with higher impact
+    """
+    return [ann for ann in annotation_list
+            if worst_csq_index(ann['Consequence'].split('&')) <= CSQ_ORDER_DICT['intron_variant']]
 
 
 def worst_csq_from_list(csq_list):
     """
-    Input list of consequences (e.g. ['frameshift_variant', 'missense_variant'])
-    Return the worst consequence (In this case, 'frameshift_variant')
-    Works well with worst_csq_from_list('non_coding_exon_variant&nc_transcript_variant'.split('&'))
+    Choose the worst consequence
+    
+    Args:
+        csq_list (list): list of consequences
+
+    Returns:
+        str: the worst consequence
     """
     return REV_CSQ_ORDER_DICT[worst_csq_index(csq_list)]
 
@@ -256,12 +294,13 @@ def worst_csq_index(csq_list):
 def worst_csq_with_vep(annotation_list):
     """
     Choose the vep annotation with the most severe consequence
+    Adds a"major_consequence" field for that annotation
 
     Args:
         annotation_list (list): VEP annotations 
     
     Returns:
-        dict: the annotation with the most severe consequence; also adds "major_consequence" for that annotation
+        dict: the annotation with the most severe consequence
     """
     if not annotation_list:
         return None
