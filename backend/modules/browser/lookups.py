@@ -9,7 +9,7 @@ from . import utils
 SEARCH_LIMIT = 10000
 
 
-def add_rsid_to_variant(dataset, variant):
+def add_rsid_to_variant(dataset:str, variant:str):
     """
     Add rsid to a variant in the database based on position
 
@@ -41,7 +41,7 @@ def add_rsid_to_variant(dataset, variant):
 
 REGION_REGEX = re.compile(r'^\s*(\d+|X|Y|M|MT)\s*([-:]?)\s*(\d*)-?([\dACTG]*)-?([ACTG]*)')
 
-def get_awesomebar_result(dataset, query, ds_version=None):
+def get_awesomebar_result(dataset:str, query:str, ds_version:str=None):
     """
     Parse the search input
 
@@ -121,7 +121,7 @@ def get_awesomebar_result(dataset, query, ds_version=None):
     return 'not_found', query
 
 
-def get_coverage_for_bases(dataset, chrom, start_pos, end_pos=None, ds_version=None):
+def get_coverage_for_bases(dataset:str, chrom:str, start_pos:int, end_pos:int=None, ds_version:str=None):
     """
     Get the coverage for the list of bases given by start_pos->end_pos, inclusive
 
@@ -150,7 +150,7 @@ def get_coverage_for_bases(dataset, chrom, start_pos, end_pos=None, ds_version=N
                                   .dicts())]
 
 
-def get_coverage_for_transcript(dataset, chrom, start_pos, end_pos=None, ds_version=None):
+def get_coverage_for_transcript(dataset:str, chrom:str, start_pos:int, end_pos:int=None, ds_version:str=None):
     """
     Get the coverage for the list of bases given by start_pos->end_pos, inclusive
 
@@ -175,7 +175,7 @@ def get_coverage_for_transcript(dataset, chrom, start_pos, end_pos=None, ds_vers
     return covered
 
 
-def get_exons_in_transcript(dataset, transcript_id):
+def get_exons_in_transcript(dataset:str, transcript_id:str):
     """
     Retrieve exons associated with the given transcript id
 
@@ -206,7 +206,7 @@ def get_exons_in_transcript(dataset, transcript_id):
                   key=lambda k: k['start'])
 
 
-def get_gene(dataset, gene_id):
+def get_gene(dataset:str, gene_id:str):
     """
     Retrieve gene by gene id
 
@@ -227,7 +227,7 @@ def get_gene(dataset, gene_id):
         return {}
 
 
-def get_gene_by_dbid(gene_dbid):
+def get_gene_by_dbid(gene_dbid:str):
     """
     Retrieve gene by gene database id
 
@@ -245,7 +245,7 @@ def get_gene_by_dbid(gene_dbid):
         return {}
 
 
-def get_gene_by_name(dataset, gene_name):
+def get_gene_by_name(dataset:str, gene_name:str):
     """
     Retrieve gene by gene_name.
     First checks gene_name, then other_names.
@@ -271,7 +271,7 @@ def get_gene_by_name(dataset, gene_name):
             return {}
 
 
-def get_genes_in_region(dataset, chrom, start_pos, stop_pos):
+def get_genes_in_region(dataset:str, chrom:str, start_pos:int, stop_pos:int):
     """
     Retrieve genes located within a region
 
@@ -297,7 +297,7 @@ def get_genes_in_region(dataset, chrom, start_pos, stop_pos):
     return [gene for gene in gene_query]
 
 
-def get_number_of_variants_in_transcript(dataset, transcript_id, ds_version=None):
+def get_number_of_variants_in_transcript(dataset:str, transcript_id:str, ds_version:str=None):
     """
     Get the total and filtered amount of variants in a transcript
 
@@ -314,12 +314,14 @@ def get_number_of_variants_in_transcript(dataset, transcript_id, ds_version=None
         return None
 
     variants = get_variants_in_transcript(dataset, transcript_id)
+    if not variants:
+        return None
     total = len(variants)
     filtered = len(tuple(variant for variant in variants if variant['filter_string'] == 'PASS'))
     return {'filtered': filtered, 'total': total}
 
 
-def get_raw_variant(dataset, pos, chrom, ref, alt, ds_version=None):
+def get_raw_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_version:str=None):
     """
     Retrieve variant by position and change
 
@@ -354,7 +356,7 @@ def get_raw_variant(dataset, pos, chrom, ref, alt, ds_version=None):
         return None
 
 
-def get_transcript(dataset, transcript_id):
+def get_transcript(dataset:str, transcript_id:str):
     """
     Retrieve transcript by transcript id
     Also includes exons as ['exons']
@@ -381,7 +383,7 @@ def get_transcript(dataset, transcript_id):
         return {}
 
 
-def get_transcripts_in_gene(dataset, gene_id):
+def get_transcripts_in_gene(dataset:str, gene_id:str):
     """
     Get the transcripts associated with a gene
     Args:
@@ -404,18 +406,18 @@ def get_transcripts_in_gene(dataset, gene_id):
     return [transcript for transcript in db.Transcript.select().where(db.Transcript.gene == gene['id']).dicts()]
 
 
-def get_transcripts_in_gene_by_dbid(gene_dbid):
+def get_transcripts_in_gene_by_dbid(gene_dbid:int):
     """
     Get the transcripts associated with a gene
     Args:
-        gene_dbid (str): database id of the gene
+        gene_dbid (int): database id of the gene
     Returns:
         list: transcripts (dict) associated with the gene; empty if no hits
     """
     return [transcript for transcript in db.Transcript.select().where(db.Transcript.gene == gene_dbid).dicts()]
 
 
-def get_variant(dataset, pos, chrom, ref, alt, ds_version=None):
+def get_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_version:str=None):
     """
     Retrieve variant by position and change
     Retrieves rsid from db (if available) if not present in variant
@@ -442,7 +444,7 @@ def get_variant(dataset, pos, chrom, ref, alt, ds_version=None):
     return variant
 
 
-def get_variants_by_rsid(dataset, rsid, check_position=False, ds_version=None):
+def get_variants_by_rsid(dataset:str, rsid:str, check_position:str=False, ds_version:str=None):
     """
     Retrieve variants by their associated rsid
     May also look up rsid and search for variants at the position
@@ -502,12 +504,12 @@ def get_variants_by_rsid(dataset, rsid, check_position=False, ds_version=None):
     return variants
 
 
-def get_variants_in_gene(dataset, gene_id):
+def get_variants_in_gene(dataset:str, gene_id:str):
     """
     Retrieve variants present inside a gene
 
     Args:
-        dataset: short name of the dataset
+        dataset (str): short name of the dataset
         gene_id (str): id of the gene
 
     Returns:
@@ -531,7 +533,7 @@ def get_variants_in_gene(dataset, gene_id):
     return variants
 
 
-def get_variants_in_region(dataset, chrom, start_pos, end_pos, ds_version=None):
+def get_variants_in_region(dataset:str, chrom:str, start_pos:int, end_pos:int, ds_version:str=None):
     """
     Variants that overlap a region
 
@@ -574,7 +576,7 @@ def get_variants_in_region(dataset, chrom, start_pos, end_pos, ds_version=None):
     return variants
 
 
-def get_variants_in_transcript(dataset, transcript_id):
+def get_variants_in_transcript(dataset:str, transcript_id:str):
     """
     Retrieve variants inside a transcript
 
