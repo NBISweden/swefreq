@@ -17,7 +17,7 @@ def test_add_rsid_to_variant():
     assert variant['rsid'] == rsid
     # "non-existing"
     del variant['rsid']
-    lookups.add_rsid_to_variant(variant)
+    lookups.add_rsid_to_variant('SweGen', variant)
     assert variant['rsid'] == rsid
 
 
@@ -45,7 +45,7 @@ def test_get_awesomebar_result():
     assert result == ('not_found', 'DOES_NOT_EXIST')
 
 
-def test_get_coverage_for_bases(caplog):
+def test_get_coverage_for_bases():
     """
     Test get_coverage_for_bases()
     """
@@ -206,7 +206,7 @@ def test_get_gene_by_name(caplog):
     # name in other_names
     result = lookups.get_gene_by_name('SweGen', 'NIR')
     assert result['gene_id'] == 'ENSG00000188976'
-    
+
 
 def test_get_genes_in_region():
     """
@@ -299,7 +299,7 @@ def test_get_transcripts_in_gene():
 
     assert not lookups.get_transcripts_in_gene('bad_dataset', 'ENSG00000241670')
     assert not lookups.get_transcripts_in_gene('SweGen', 'ENSGASDFG')
-    
+
 
 def test_get_raw_variant():
     """
@@ -321,7 +321,7 @@ def test_get_transcripts_in_gene_by_dbid():
     res = lookups.get_transcripts_in_gene_by_dbid(-1)
     assert not res
 
-    
+
 def test_get_variant():
     """
     Test get_variant()
@@ -342,10 +342,9 @@ def test_get_variant():
                                      'ENST00000491666', 'ENST00000472607',
                                      'ENST00000475776']
     assert result['rsid'] == 'rs75050571'
-    # TODO: add test for entry with missing rsid
 
     # incorrect position
-    assert not lookups.get_variant(-1, '1', 'A', 'T')
+    assert not lookups.get_variant('SweGen', -1, '1', 'A', 'T')
 
 
 def test_get_variants_by_rsid(caplog):

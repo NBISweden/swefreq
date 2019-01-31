@@ -1,4 +1,3 @@
-
 import json # remove when db is fixed
 import logging
 import re
@@ -333,11 +332,11 @@ def get_raw_variant(dataset, pos, chrom, ref, alt, ds_version=None):
         ds_version (str): dataset version
 
     Returns:
-        dict: values for the variant; empty if not found
+        dict: values for the variant; None if not found
     """
     dataset_version = db.get_dataset_version(dataset, ds_version)
     if not dataset_version:
-        return
+        return None
 
     try:
         return (db.Variant
@@ -352,7 +351,7 @@ def get_raw_variant(dataset, pos, chrom, ref, alt, ds_version=None):
     except db.Variant.DoesNotExist:
         logging.error('get_raw_variant({}, {}, {}, {}, {}, {}): unable to retrieve variant'
                       .format(dataset, pos, chrom, ref, alt, dataset_version.id))
-        return {}
+        return None
 
 
 def get_transcript(dataset, transcript_id):
@@ -455,21 +454,21 @@ def get_variants_by_rsid(dataset, rsid, check_position=False, ds_version=None):
         ds_version (str): version of the dataset
 
     Returns:
-        list: variant dicts; no hits
+        list: variants as dict; no hits returns None
     """
     dataset_version = db.get_dataset_version(dataset, ds_version)
     if not dataset_version:
-        return
+        return None
 
     if not rsid.startswith('rs'):
         logging.error('get_variants_by_rsid({}, {}): rsid not starting with rs'.format(dataset, rsid))
-        return
+        return None
 
     try:
         rsid = int(rsid.lstrip('rs'))
     except ValueError:
         logging.error('get_variants_by_rsid({}, {}): not an integer after rs'.format(dataset, rsid))
-        return
+        return None
     if check_position:
         refset = (db.Dataset
                   .select(db.ReferenceSet)
@@ -544,11 +543,11 @@ def get_variants_in_region(dataset, chrom, start_pos, end_pos, ds_version=None):
         ds_version (str): version of the dataset
 
     Returns:
-        list: variant dicts
+        list: variant dicts, None if no hits
     """
     dataset_version = db.get_dataset_version(dataset, ds_version)
     if not dataset_version:
-        return
+        return None
     query = (db.Variant
              .select()
              .where((db.Variant.pos >= start_pos) &
@@ -584,11 +583,11 @@ def get_variants_in_transcript(dataset, transcript_id):
         transcript_id (str): id of the transcript (ENST)
 
     Returns:
-        dict: values for the variant; empty if not found
+        dict: values for the variant; None if not found
     """
     transcript = get_transcript(dataset, transcript_id)
     if not transcript:
-        return  {}
+        return  None
     # temporary while waiting for db fix
     variants = get_variants_in_region(dataset, transcript['chrom'], transcript['start'], transcript['stop'])
     #    variants = [variant for variant in db.Variant.select().where(db.Variant.transcripts.contains(transcript_id)).dicts()]
