@@ -1,5 +1,4 @@
 import logging
-from operator import itemgetter
 
 AF_BUCKETS = [0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1]
 
@@ -139,7 +138,7 @@ def annotation_severity(annotation):
 def get_flags_from_variant(variant):
     """
     Get flags from variant.
-    Checks for: 
+    Checks for:
     - MNP (identical length of reference and variant)
     - LoF (loss of function)
 
@@ -186,7 +185,7 @@ def get_proper_hgvs(annotation):
 def get_protein_hgvs(annotation):
     """
     Aa changes in HGVS format.
-    
+
     Args:
         annotation (dict): VEP annotation with HGVS information
 
@@ -195,8 +194,8 @@ def get_protein_hgvs(annotation):
     """
     try:
         if '%3D' in annotation['HGVSp']: # "%3D" is "="
-                amino_acids = ''.join([PROTEIN_LETTERS_1TO3[aa] for aa in annotation['Amino_acids']])
-                return "p." + amino_acids + annotation['Protein_position'] + amino_acids
+            amino_acids = ''.join([PROTEIN_LETTERS_1TO3[aa] for aa in annotation['Amino_acids']])
+            return "p." + amino_acids + annotation['Protein_position'] + amino_acids
         return annotation['HGVSp'].split(':')[-1]
     except KeyError:
         logging.error("Could not fetch protein hgvs")
@@ -212,7 +211,7 @@ def get_transcript_hgvs(annotation):
 
     Returns:
         str: variant effect at nucleotide level in HGVS format (c.), None if parsing fails
-    """ 
+    """
     try:
         return annotation['HGVSc'].split(':')[-1]
     except KeyError:
@@ -222,7 +221,7 @@ def get_transcript_hgvs(annotation):
 def order_vep_by_csq(annotation_list: list):
     """
     Adds "major_consequence" to each annotation, orders by severity.
-    
+
     Args:
         annotation_list (list): VEP annotations (as dict)
 
@@ -240,7 +239,7 @@ def order_vep_by_csq(annotation_list: list):
 def remove_extraneous_vep_annotations(annotation_list: list):
     """
     Remove annotations with low-impact consequences (less than intron variant)
-    
+
     Args:
         annotation_list (list): VEP annotations (as dict)
 
@@ -254,7 +253,7 @@ def remove_extraneous_vep_annotations(annotation_list: list):
 def worst_csq_from_list(csq_list):
     """
     Choose the worst consequence
-    
+
     Args:
         csq_list (list): list of consequences
 
@@ -266,11 +265,11 @@ def worst_csq_from_list(csq_list):
 
 def worst_csq_from_csq(csq):
     """
-    Find worst consequence in a possibly &-filled consequence string 
+    Find worst consequence in a possibly &-filled consequence string
 
     Args:
         csq (str): string of consequences, seperated with & (if multiple)
-    
+
     Returns:
         str: the worst consequence
     """
@@ -297,8 +296,8 @@ def worst_csq_with_vep(annotation_list):
     Adds a"major_consequence" field for that annotation
 
     Args:
-        annotation_list (list): VEP annotations 
-    
+        annotation_list (list): VEP annotations
+
     Returns:
         dict: the annotation with the most severe consequence
     """

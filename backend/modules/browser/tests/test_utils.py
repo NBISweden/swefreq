@@ -31,12 +31,12 @@ def test_add_consequence_to_variant():
     variant['vep_annotations'] = json.loads(variant['vep_annotations']) # remove when db is fixed
     utils.add_consequence_to_variant(variant)
     assert variant['major_consequence'] == 'intron_variant'
-    
+
     variant2 = lookups.get_variant('SweGen', 55500283, '1', 'A', 'T')
     variant2['vep_annotations'] = json.loads(variant2['vep_annotations']) # remove when db is fixed
     utils.add_consequence_to_variant(variant2)
     assert variant2['major_consequence'] == 'upstream_gene_variant'
-    
+
 
 def test_annotation_severity():
     """
@@ -46,7 +46,7 @@ def test_annotation_severity():
     variant['vep_annotations'] = json.loads(variant['vep_annotations']) # remove when db is fixed
     res = utils.annotation_severity(variant['vep_annotations'][0])
     assert res == -26.9
-    
+
 
 def test_data_structures():
     """
@@ -55,7 +55,7 @@ def test_data_structures():
     assert len(utils.CSQ_ORDER) == len(set(utils.CSQ_ORDER)) # No duplicates
     assert all(csq == utils.REV_CSQ_ORDER_DICT[utils.CSQ_ORDER_DICT[csq]] for csq in utils.CSQ_ORDER)
 
-    
+
 def test_get_flags_from_variant():
     """
     Test get_flags_from_variant()
@@ -87,7 +87,7 @@ def test_get_proper_hgvs():
     annotation['major_consequence'] = 'coding_sequence_variant'
     assert utils.get_proper_hgvs(annotation) == 'p.Ser12Phe'
     assert not utils.get_proper_hgvs(dict())
-    
+
 
 def test_get_protein_hgvs():
     """
