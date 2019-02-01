@@ -1,7 +1,6 @@
 import json # remove when db is fixed
 import logging
 
-import db
 import handlers
 
 from . import lookups
@@ -17,7 +16,7 @@ class Autocomplete(handlers.UnsafeHandler):
     def get(self, dataset, query):
         ret = {}
 
-        results = pgsql.get_autocomplete(dataset, query)
+        results = pgsql.get_autocomplete(query)
         ret = {'values': sorted(list(set(results)))[:20]}
 
         self.finish( ret )
@@ -42,12 +41,21 @@ class GetCoveragePos(handlers.UnsafeHandler):
 
 
 class Download(handlers.UnsafeHandler):
-    def get(self, dataset, datatype, item):
+    def get(self, dataset: str, datatype, item, ds_version=None):
+        """
+        Download variants as csv
+
+        Args:
+            dataset (str): dataset short name
+            datatype (str): type of data
+            item (str): query item
+            ds_version (str): dataset version
+        """
         filename = "{}_{}_{}.csv".format(dataset, datatype, item)
         self.set_header('Content-Type','text/csv')
         self.set_header('content-Disposition','attachement; filename={}'.format(filename))
 
-        data = mongodb.get_variant_list(dataset, datatype, item)
+        data = pgsql.get_variant_list(dataset, datatype, item)
         # Write header
         self.write(','.join([h[1] for h in data['headers']]) + '\n')
 
@@ -111,7 +119,7 @@ class GetRegion(handlers.UnsafeHandler):
     def get(self, dataset, region):
         """
         Request information about genes in a region
-        
+
         Args:
             dataset (str): short name of the dataset
             region (str): the region in the format chr-startpos-endpos
@@ -135,7 +143,7 @@ class GetRegion(handlers.UnsafeHandler):
             self.send_error(status_code=400)
             self.set_user_msg('Unable to parse region', 'error')
             return
-        
+
         if not start:
             start = 0
         if not stop and start:
@@ -207,7 +215,7 @@ class GetTranscript(handlers.UnsafeHandler):
 class GetVariant(handlers.UnsafeHandler):
     """
     Request information about a gene
-    """    
+    """
     def get(self, dataset, variant):
         """
         Request information about a gene
@@ -229,7 +237,7 @@ class GetVariant(handlers.UnsafeHandler):
             return
         orig_variant = variant
         variant = lookups.get_variant(dataset, v[1], v[0], v[2], v[3])
-        
+
         if not variant:
             logging.error('Variant not found ({})'.format(orig_variant))
             self.send_error(status_code=404)
