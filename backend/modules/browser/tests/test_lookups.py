@@ -64,6 +64,7 @@ def test_get_coverage_for_bases():
                  'pos': 55500320, 'mean': 39.69, 'median': 38.0,
                  'coverage': [1.0, 1.0, 1.0, 1.0, 0.996, 0.961, 0.856, 0.117, 0.001]}]
     assert coverage == expected
+    assert len(lookups.get_coverage_for_bases('SweGen', '22', 46615715, 46615880)) == 17
 
     # no end_pos
     coverage = lookups.get_coverage_for_bases('SweGen', '1', 55500290)
@@ -231,11 +232,11 @@ def test_get_number_of_variants_in_transcript():
     """
     # normal
     res = lookups.get_number_of_variants_in_transcript('SweGen', 'ENST00000424770')
-    assert res == {'filtered': 1, 'total': 23}
+    assert res == {'filtered': 243, 'total': 309}
 
     # bad transcript
     res = lookups.get_number_of_variants_in_transcript('SweGen', 'ENSTASDSADA')
-    assert res == {'filtered': 0, 'total': 0}
+    assert res is None
 
     # bad dataset
     res = lookups.get_number_of_variants_in_transcript('bad_dataset', 'ENST00000424770')

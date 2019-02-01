@@ -10,23 +10,20 @@ from . import lookups
 
 EXON_PADDING = 50
 
-def get_autocomplete(dataset, query):
+def get_autocomplete(query:str):
     """
     Provide autocomplete suggestions based on the query
-    NOTE: dataset is not used for sql
     Args:
-        dataset (str): name of the dataset
         query (str): the query to compare to the available gene names
     Returns:
         list: A list of genes names whose beginning matches the query
     """
     genes = db.Gene.select(db.Gene.name).where(db.Gene.name.startswith(query))
     gene_names = [str(gene.name) for gene in genes]
-    logging.error('Autocomplete: {}'.format(gene_names))
     return gene_names
 
 
-def get_coverage(dataset, datatype, item, ds_version=None):
+def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
     """
     Retrieve coverage for a gene/region/transcript
 
@@ -35,6 +32,9 @@ def get_coverage(dataset, datatype, item, ds_version=None):
         datatype (str): type of "region" (gene/region/transcript)
         item (str): the datatype item to look up
         ds_version (str): the dataset version
+
+    Returns:
+        dict: start, stop, coverage list
     """
     ret = {'coverage':[]}
 
@@ -58,7 +58,7 @@ def get_coverage(dataset, datatype, item, ds_version=None):
     return ret
 
 
-def get_coverage_pos(dataset, datatype, item):
+def get_coverage_pos(dataset:str, datatype:str, item:str):
     """
     Retrieve coverage range
 
@@ -66,7 +66,9 @@ def get_coverage_pos(dataset, datatype, item):
         dataset (str): short name of the dataset
         datatype (str): type of "region" (gene/region/transcript)
         item (str): the datatype item to look up
-        ds_version (str): the dataset version
+
+    Returns:
+        dict: start, stop, chromosome
     """
     ret = {'start':None, 'stop':None, 'chrom':None}
 
@@ -90,9 +92,21 @@ def get_coverage_pos(dataset, datatype, item):
     ret['chrom'] = chrom
 
     return ret
-    
 
-def get_variant_list(dataset, datatype, item):
+
+def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
+    """
+    Retrieve variants for a datatype
+
+    Args:
+        dataset (str): dataset short name
+        datatype (str): type of data
+        item (str): query item
+        ds_version (str): dataset version
+
+    Returns:
+        dict: {variants:list, headers:list}
+    """
     headers = [['variant_id','Variant'], ['chrom','Chrom'], ['pos','Position'],
                ['HGVS','Consequence'], ['filter','Filter'], ['major_consequence','Annotation'],
                ['flags','Flags'], ['allele_count','Allele Count'], ['allele_num','Allele Number'],
@@ -116,6 +130,6 @@ def get_variant_list(dataset, datatype, item):
 
         # This is so an array values turns into a comma separated string instead
         return {k: ", ".join(v) if isinstance(v,list) else v for k, v in variant.items()}
-        
+
     variants = list(map(format_variant, variants))
     return {'variants': variants, 'headers': headers}
