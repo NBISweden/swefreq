@@ -13,7 +13,7 @@ from .utils import add_consequence_to_variant, remove_extraneous_vep_annotations
 REGION_LIMIT = 100000
 
 class Autocomplete(handlers.UnsafeHandler):
-    def get(self, dataset, query):
+    def get(self, dataset, query, ds_version=None):
         ret = {}
 
         results = pgsql.get_autocomplete(query)
@@ -35,7 +35,7 @@ class GetCoveragePos(handlers.UnsafeHandler):
     """
     Retrieve coverage range
     """
-    def get(self, dataset, datatype, item):
+    def get(self, dataset, datatype, item, ds_version=None):
         ret = pgsql.get_coverage_pos(dataset, datatype, item)
         self.finish(ret)
 
@@ -116,7 +116,7 @@ class GetRegion(handlers.UnsafeHandler):
     """
     Request information about genes in a region
     """
-    def get(self, dataset, region):
+    def get(self, dataset, region, ds_version=None):
         """
         Request information about genes in a region
 
@@ -173,7 +173,7 @@ class GetTranscript(handlers.UnsafeHandler):
     """
     Request information about a transcript
     """
-    def get(self, dataset, transcript):
+    def get(self, dataset, transcript, ds_version=None):
         """
         Request information about a transcript
 
@@ -216,7 +216,7 @@ class GetVariant(handlers.UnsafeHandler):
     """
     Request information about a gene
     """
-    def get(self, dataset, variant):
+    def get(self, dataset, variant, ds_version=None):
         """
         Request information about a gene
 
@@ -318,7 +318,7 @@ class GetVariants(handlers.UnsafeHandler):
     """
     Retrieve variants
     """
-    def get(self, dataset, datatype, item):
+    def get(self, dataset, datatype, item, ds_version=None):
         """
         Retrieve variants
 
@@ -343,7 +343,7 @@ class Search(handlers.UnsafeHandler):
     """
     Perform a search for the wanted object
     """
-    def get(self, dataset, query):
+    def get(self, dataset, query, ds_version=None):
         """
         Perform a search for the wanted object
 
