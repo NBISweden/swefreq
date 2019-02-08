@@ -504,7 +504,7 @@ def get_variants_by_rsid(dataset:str, rsid:str, check_position:str=False, ds_ver
     return variants
 
 
-def get_variants_in_gene(dataset:str, gene_id:str, ds_version=None):
+def get_variants_in_gene(dataset:str, gene_id:str, ds_version:str=None):
     """
     Retrieve variants present inside a gene
 
@@ -527,9 +527,13 @@ def get_variants_in_gene(dataset:str, gene_id:str, ds_version=None):
 
     variants = [variant for variant in db.Variant.select()
                                                  .join(VariantGenes)
-                                                 .where((db.VariantGenes.name == gene_id) &
+                                                 .where((db.VariantGenes.gene == gene['id']) &
                                                         (db.Variant.dataset_version == dataset_version)).dicts()]
 
+    utils.add_consequence_to_variants(variants)
+    for variant in variants:
+        add_rsid_to_variant(dataset, variant)
+        remove_extraneous_information(variant)
     return variants
 
 
@@ -571,33 +575,42 @@ def get_variants_in_region(dataset:str, chrom:str, start_pos:int, end_pos:int, d
     for variant in variants:
         if variant['rsid']:
             variant['rsid'] = 'rs{}'.format(variant['rsid'])
-        # add_rsid_to_variant(dataset, variant)
+        add_rsid_to_variant(dataset, variant)
         remove_extraneous_information(variant)
     return variants
 
 
-def get_variants_in_transcript(dataset:str, transcript_id:str):
+def get_variants_in_transcript(dataset:str, transcript_id:str, ds_version:str=None):
     """
     Retrieve variants inside a transcript
 
     Args:
         dataset (str): short name of the dataset
         transcript_id (str): id of the transcript (ENST)
+        ds_version (str): version of the dataset
 
     Returns:
         dict: values for the variant; None if not found
     """
-    transcript = get_transcript(dataset, transcript_id)
-    if not transcript:
-        return  None
-    # temporary while waiting for db fix
-    variants = get_variants_in_region(dataset, transcript['chrom'], transcript['start'], transcript['stop'])
-    #    variants = [variant for variant in db.Variant.select().where(db.Variant.transcripts.contains(transcript_id)).dicts()]
+    ref_dbid = db.get_reference_dbid_dataset(dataset)
+    if not ref_dbid:
+        return None
+    dataset_version = db.get_dataset_version(dataset, ds_version)
+    if not dataset_version:
+        return None
 
-#    for variant in variants:
-#        variant['vep_annotations'] = [anno for anno in variant['vep_annotations'] if anno['Feature'] == transcript_id]
-#        add_consequence_to_variant(variant)
-#        remove_extraneous_information(variant)
+    transcript = get_transcript(dataset, gene_id)
+
+    variants = [variant for variant in db.Variant.select()
+                                                 .join(VariantTranscripts)
+                                                 .where((db.VariantTranscripts.transcript == transcript['id']) &
+                                                        (db.Variant.dataset_version == dataset_version)).dicts()]
+
+    utils.add_consequence_to_variants(variants)
+    for variant in variants:
+        variant['vep_annotations'] = [anno for anno in variant['vep_annotations'] if anno['Feature'] == transcript_id]
+        add_rsid_to_variant(dataset, variant)
+        remove_extraneous_information(variant)
     return variants
 
 
