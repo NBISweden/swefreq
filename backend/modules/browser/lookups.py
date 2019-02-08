@@ -264,9 +264,9 @@ def get_gene_by_name(dataset:str, gene_name:str):
                                       (db.Gene.name==gene_name)).dicts().get()
     except db.Gene.DoesNotExist:
         try:
-            return db.Gene.select().where((db.Gene.reference_set == ref_dbid) &
-                                          (db.Gene.other_names.contains(gene_name))).dicts().get()
-        except db.Gene.DoesNotExist:
+            return db.GeneOtherNames.select().join(db.Gene).where((db.GeneOtherNames.name == gene_name) &
+                                                                  (db.Gene.reference_set == ref_dbid)).dicts().get()
+        except db.GeneOtherNames.DoesNotExist:
             logging.error('get_gene_by_name({}, {}): unable to retrieve gene'.format(dataset, gene_name))
             return {}
 
