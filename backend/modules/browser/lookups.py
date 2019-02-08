@@ -504,32 +504,32 @@ def get_variants_by_rsid(dataset:str, rsid:str, check_position:str=False, ds_ver
     return variants
 
 
-def get_variants_in_gene(dataset:str, gene_id:str):
+def get_variants_in_gene(dataset:str, gene_id:str, ds_version=None):
     """
     Retrieve variants present inside a gene
 
     Args:
         dataset (str): short name of the dataset
         gene_id (str): id of the gene
+        ds_version (str): version of the dataset
 
     Returns:
         list: values for the variants
     """
     ref_dbid = db.get_reference_dbid_dataset(dataset)
+    if not ref_dbid:
+        return None
+    dataset_version = db.get_dataset_version(dataset, ds_version)
+    if not dataset_version:
+        return None
+
     gene = get_gene(dataset, gene_id)
-    #### remove when db is fixed
-    gene['stop'] = gene['start'] + 20000
-    ####
 
-    variants = get_variants_in_region(dataset, gene['chrom'], gene['start'], gene['stop'])
+    variants = [variant for variant in db.Variant.select()
+                                                 .join(VariantGenes)
+                                                 .where((db.VariantGenes.name == gene_id) &
+                                                        (db.Variant.dataset_version == dataset_version)).dicts()]
 
-    # variants = [variant for variant in db.Variant.select().where(db.Variant.genes.contains(transcript_id)).dicts()]
-
-#    for variant in variants:
-#        variant['vep_annotations'] = [anno for anno in variant['vep_annotations'] if anno['Gene'] == gene_id]
-#        add_consequence_to_variant(variant)
-#        remove_extraneous_information(variant)
-#        variants.append(variant)
     return variants
 
 
