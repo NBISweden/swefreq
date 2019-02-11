@@ -526,7 +526,7 @@ def get_variants_in_gene(dataset:str, gene_id:str, ds_version:str=None):
     gene = get_gene(dataset, gene_id)
 
     variants = [variant for variant in db.Variant.select()
-                                                 .join(VariantGenes)
+                                                 .join(db.VariantGenes)
                                                  .where((db.VariantGenes.gene == gene['id']) &
                                                         (db.Variant.dataset_version == dataset_version)).dicts()]
 
@@ -599,10 +599,10 @@ def get_variants_in_transcript(dataset:str, transcript_id:str, ds_version:str=No
     if not dataset_version:
         return None
 
-    transcript = get_transcript(dataset, gene_id)
+    transcript = get_transcript(dataset, transcript_id)
 
     variants = [variant for variant in db.Variant.select()
-                                                 .join(VariantTranscripts)
+                                                 .join(db.VariantTranscripts)
                                                  .where((db.VariantTranscripts.transcript == transcript['id']) &
                                                         (db.Variant.dataset_version == dataset_version)).dicts()]
 
