@@ -341,15 +341,23 @@ def get_raw_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_versio
         return None
 
     try:
-        return (db.Variant
-                .select()
-                .where((db.Variant.pos == pos) &
-                       (db.Variant.ref == ref) &
-                       (db.Variant.alt == alt) &
-                       (db.Variant.chrom == chrom) &
-                       (db.Variant.dataset_version == dataset_version.id))
-                .dicts()
-                .get())
+        variant = (db.Variant
+                   .select()
+                   .where((db.Variant.pos == pos) &
+                          (db.Variant.ref == ref) &
+                          (db.Variant.alt == alt) &
+                          (db.Variant.chrom == chrom) &
+                          (db.Variant.dataset_version == dataset_version.id))
+                   .dicts()
+                   .get())
+        variant['genes'] = [gene for gene in
+                            db.VariantGenes.select(db.VariantGenes.gene)
+                            .where(db.VariantGenes.variant == variant['id'])
+                            .dicts()]
+        variant['transcripts'] = [transcript for transcript in
+                                  db.VariantTranscripts.select(db.VariantTranscripts.transcript)
+                                  .where(db.VariantTranscripts.variant == variant['id'])
+                                  .dicts()]
     except db.Variant.DoesNotExist:
         logging.error('get_raw_variant({}, {}, {}, {}, {}, {}): unable to retrieve variant'
                       .format(dataset, pos, chrom, ref, alt, dataset_version.id))
