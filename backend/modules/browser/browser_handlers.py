@@ -1,4 +1,3 @@
-import json # remove when db is fixed
 import logging
 
 import handlers
@@ -82,9 +81,6 @@ class GetGene(handlers.UnsafeHandler):
 
         # Gene
         gene = lookups.get_gene(dataset, gene_id)
-        #### Remove when db is fixed
-        gene['stop'] = gene['start'] + 20000
-        ####
         if gene:
             ret['gene'] = gene
 
@@ -245,14 +241,12 @@ class GetVariant(handlers.UnsafeHandler):
             return
 
         # Just get the information we need
-        variant['quality_metrics'] = json.loads(variant['quality_metrics'])  # remove when db is fixed
         for item in ["variant_id", "chrom", "pos", "ref", "alt", "rsid", "allele_num",
                      "allele_freq", "allele_count", "orig_alt_alleles", "site_quality", "quality_metrics",
                      "transcripts", "genes"]:
             ret['variant'][item] = variant[item]
         ret['variant']['filter'] = variant['filter_string']
 
-        variant['vep_annotations'] = json.loads(variant['vep_annotations'])  # remove when db is fixed
         # Variant Effect Predictor (VEP) annotations
         # https://www.ensembl.org/info/docs/tools/vep/vep_formats.html
         ret['variant']['consequences'] = []

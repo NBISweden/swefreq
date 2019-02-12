@@ -5,8 +5,6 @@ Tests for utils.py
 from .. import lookups
 from .. import utils
 
-import json
-
 
 def test_add_consequence_to_variants():
     """
@@ -15,8 +13,6 @@ def test_add_consequence_to_variants():
     variants = []
     variants.append(lookups.get_variant('SweGen', 47730411, '21', 'TA', 'T'))
     variants.append(lookups.get_variant('SweGen', 55500283, '1', 'A', 'T'))
-    variants[0]['vep_annotations'] = json.loads(variants[0]['vep_annotations']) # remove when db is fixed
-    variants[1]['vep_annotations'] = json.loads(variants[1]['vep_annotations']) # remove when db is fixed
 
     utils.add_consequence_to_variants(variants)
     assert variants[0]['major_consequence'] == 'intron_variant'
@@ -28,12 +24,10 @@ def test_add_consequence_to_variant():
     Test add_consequence_to_variant()
     """
     variant = lookups.get_variant('SweGen', 47730411, '21', 'TA', 'T')
-    variant['vep_annotations'] = json.loads(variant['vep_annotations']) # remove when db is fixed
     utils.add_consequence_to_variant(variant)
     assert variant['major_consequence'] == 'intron_variant'
 
     variant2 = lookups.get_variant('SweGen', 55500283, '1', 'A', 'T')
-    variant2['vep_annotations'] = json.loads(variant2['vep_annotations']) # remove when db is fixed
     utils.add_consequence_to_variant(variant2)
     assert variant2['major_consequence'] == 'upstream_gene_variant'
 
@@ -43,7 +37,6 @@ def test_annotation_severity():
     Test annotation_severity()
     """
     variant = lookups.get_variant('SweGen', 55500283, '1', 'A', 'T')
-    variant['vep_annotations'] = json.loads(variant['vep_annotations']) # remove when db is fixed
     res = utils.annotation_severity(variant['vep_annotations'][0])
     assert res == -26.9
 
@@ -151,7 +144,6 @@ def test_worst_csq_from_csq():
     Test worst_csq_from_csq()
     """
     variant = lookups.get_variant('SweGen', 55500283, '1', 'A', 'T')
-    variant['vep_annotations'] = json.loads(variant['vep_annotations']) # remove when db is fixed
     res = utils.worst_csq_from_csq(variant['vep_annotations'][0]['Consequence'])
     assert res == 'upstream_gene_variant'
     res = utils.worst_csq_from_csq('non_coding_exon_variant&nc_transcript_variant')
