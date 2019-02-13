@@ -358,6 +358,7 @@ def get_raw_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_versio
                                   db.VariantTranscripts.select(db.VariantTranscripts.transcript)
                                   .where(db.VariantTranscripts.variant == variant['id'])
                                   .dicts()]
+        return variant
     except db.Variant.DoesNotExist:
         logging.error('get_raw_variant({}, {}, {}, {}, {}, {}): unable to retrieve variant'
                       .format(dataset, pos, chrom, ref, alt, dataset_version.id))
@@ -537,10 +538,18 @@ def get_variants_in_gene(dataset:str, gene_id:str, ds_version:str=None):
                                                  .join(db.VariantGenes)
                                                  .where((db.VariantGenes.gene == gene['id']) &
                                                         (db.Variant.dataset_version == dataset_version)).dicts()]
+    ##### remove when db is fixed
+    for variant in variants:
+        variant['hom_count'] = 0
+        variant['filter'] = variant['filter_string']
+    #####
 
     utils.add_consequence_to_variants(variants)
     for variant in variants:
-        add_rsid_to_variant(dataset, variant)
+        if variant['rsid'] and variant['rsid'] != '.':
+            variant['rsid'] = 'rs{}'.format(variant['rsid'])
+        else:
+            add_rsid_to_variant(dataset, variant)
         remove_extraneous_information(variant)
     return variants
 
@@ -569,21 +578,21 @@ def get_variants_in_region(dataset:str, chrom:str, start_pos:int, end_pos:int, d
                     (db.Variant.chrom == chrom) &
                     (db.Variant.dataset_version == dataset_version))
              .dicts())
+
     variants = [variant for variant in query]
 
     ##### remove when db is fixed
     for variant in variants:
-        variant['quality_metrics'] = json.loads(variant['quality_metrics'])
-        variant['vep_annotations'] = json.loads(variant['vep_annotations'])
         variant['hom_count'] = 0
         variant['filter'] = variant['filter_string']
     #####
 
     utils.add_consequence_to_variants(variants)
     for variant in variants:
-        if variant['rsid']:
+        if variant['rsid'] and variant['rsid'] != '.':
             variant['rsid'] = 'rs{}'.format(variant['rsid'])
-        add_rsid_to_variant(dataset, variant)
+        else:
+            add_rsid_to_variant(dataset, variant)
         remove_extraneous_information(variant)
     return variants
 
@@ -610,14 +619,24 @@ def get_variants_in_transcript(dataset:str, transcript_id:str, ds_version:str=No
     transcript = get_transcript(dataset, transcript_id)
 
     variants = [variant for variant in db.Variant.select()
-                                                 .join(db.VariantTranscripts)
-                                                 .where((db.VariantTranscripts.transcript == transcript['id']) &
-                                                        (db.Variant.dataset_version == dataset_version)).dicts()]
+                .join(db.VariantTranscripts)
+                .where((db.VariantTranscripts.transcript == transcript['id']) &
+                       (db.Variant.dataset_version == dataset_version))
+                .dicts()]
+
+    ##### remove when db is fixed
+    for variant in variants:
+        variant['hom_count'] = 0
+        variant['filter'] = variant['filter_string']
+    #####
 
     utils.add_consequence_to_variants(variants)
     for variant in variants:
         variant['vep_annotations'] = [anno for anno in variant['vep_annotations'] if anno['Feature'] == transcript_id]
-        add_rsid_to_variant(dataset, variant)
+        if variant['rsid'] and variant['rsid'] != '.':
+            variant['rsid'] = 'rs{}'.format(variant['rsid'])
+        else:
+            add_rsid_to_variant(dataset, variant)
         remove_extraneous_information(variant)
     return variants
 
@@ -625,8 +644,8 @@ def get_variants_in_transcript(dataset:str, transcript_id:str, ds_version:str=No
 def remove_extraneous_information(variant):
     #del variant['genotype_depths']
     #del variant['genotype_qualities']
-    del variant['transcripts']
-    del variant['genes']
+#    del variant['transcripts']
+#    del variant['genes']
     del variant['orig_alt_alleles']
     del variant['site_quality']
     del variant['vep_annotations']
