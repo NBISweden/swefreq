@@ -328,9 +328,7 @@ class GetVariants(handlers.UnsafeHandler):
             n = a[0] + "".join([b[0].upper() + b[1:] for b in a.split("_")])[1:]
             headers += [[n, h]]
         ret['headers'] = headers
-        logging.error('Variant request {} items'.format(len(ret)))
-        logging.error('Variant request {} items'.format(ret))
-        self.finish( ret )
+        self.finish(ret)
 
 
 class Search(handlers.UnsafeHandler):
