@@ -116,9 +116,9 @@ def test_get_gene():
     Test get_gene()
     """
     # normal entry
-    expected = {'gene_id': 'ENSG00000223972',
+    expected = {'gene_id': 'ENSG00000251940',
                 'name': 'SNORA15',
-                'full_name': '',
+                'full_name': None,
                 'canonical_transcript': 'ENST00000516131',
                 'chrom': '22',
                 'start': 19237396,
@@ -143,14 +143,13 @@ def test_get_gene_by_dbid():
     Test get_gene_by_dbid()
     """
     # normal entry
-    expected = {'id': 53626,
-                'reference_set': 1,
-                'gene_id': 'ENSG00000226444',
+    expected = {'gene_id': 'ENSG00000226444',
                 'name': 'ACTR3BP6',
                 'full_name': 'ACTR3B pseudogene 6',
                 'canonical_transcript': 'ENST00000421366',
                 'chrom': '22',
-                'start': 16967411,
+                'start': 16967410,
+                'stop': 16969212,
                 'strand': '+'}
     result = lookups.get_gene_by_dbid(53626)
     for val in expected:
@@ -162,30 +161,23 @@ def test_get_gene_by_dbid():
     result = lookups.get_gene_by_dbid(-1)
     assert not result
 
+
 def test_get_gene_by_name(caplog):
     """
     Test get_gene_by_name()
     """
     # normal entry
-    expected = {'id': 1,
-                'reference_set': 1,
-                'gene_id': 'ENSG00000223972',
-                'gene_name': 'DDX11L1',
-                'full_name': 'DEAD/H (Asp-Glu-Ala-Asp/His) box helicase 11 like 1',
-                'canonical_transcript': 'ENST00000456328',
-                'chrom': '1',
-                'start_pos': 11870,
+    expected = {'gene_id': 'ENSG00000226444',
+                'name': 'ACTR3BP6',
+                'full_name': 'ACTR3B pseudogene 6',
+                'canonical_transcript': 'ENST00000421366',
+                'chrom': '22',
+                'start': 16967410,
+                'stop': 16969212,
                 'strand': '+'}
-    result = lookups.get_gene_by_name('SweGen', 'DDX11L1')
-    assert result['id'] == expected['id']
-    assert result['reference_set'] == expected['reference_set']
-    assert result['gene_id'] == expected['gene_id']
-    assert result['name'] == expected['gene_name']
-    assert result['full_name'] == expected['full_name']
-    assert result['canonical_transcript'] == expected['canonical_transcript']
-    assert result['chrom'] == expected['chrom']
-    assert result['start'] == expected['start_pos']
-    assert result['strand'] == expected['strand']
+    result = lookups.get_gene_by_name('SweGen', 'ACTR3BP6')
+    for val in expected:
+        assert result[val] == expected[val]
 
     # non-existing gene
     result = lookups.get_gene_by_name('SweGen', 'NOT_A_GENE')
@@ -197,8 +189,9 @@ def test_get_gene_by_name(caplog):
     assert not result
 
     # name in other_names
-    result = lookups.get_gene_by_name('SweGen', 'NIR')
-    assert result['gene_id'] == 'ENSG00000188976'
+    result = lookups.get_gene_by_name('SweGen', 'BCL8C')
+    print(result)
+    assert result['gene_id'] == 'ENSG00000223875'
 
 
 def test_get_genes_in_region():
@@ -224,7 +217,7 @@ def test_get_number_of_variants_in_transcript():
     """
     # normal
     res = lookups.get_number_of_variants_in_transcript('SweGen', 'ENST00000424770')
-    assert res == {'filtered': 243, 'total': 309}
+    assert res == {'filtered': 66, 'total': 309}
 
     # bad transcript
     res = lookups.get_number_of_variants_in_transcript('SweGen', 'ENSTASDSADA')
@@ -240,38 +233,16 @@ def test_get_transcript():
     Test get_transcript()
     """
     # normal entry
-    expected = {'id': 5,
-                'transcript_id': 'ENST00000438504',
-                'gene': '2',
-                'mim_annotation': 'Was protein family homolog 1; wash1',
-                'chrom': '1',
-                'mim_gene_accession': 613632,
-                'start_pos': 14364,
-                'stop_pos': 29371,
-                'strand': '-'}
-    exp_exon = [{'id': 28, 'gene': 2, 'transcript': 5, 'chrom': '1', 'start': 14364, 'stop': 14830, 'strand': '-', 'feature_type': 'exon'},
-                {'id': 27, 'gene': 2, 'transcript': 5, 'chrom': '1', 'start': 14971, 'stop': 15039, 'strand': '-', 'feature_type': 'exon'},
-                {'id': 26, 'gene': 2, 'transcript': 5, 'chrom': '1', 'start': 15797, 'stop': 15902, 'strand': '-', 'feature_type': 'exon'},
-                {'id': 25, 'gene': 2, 'transcript': 5, 'chrom': '1', 'start': 15905, 'stop': 15948, 'strand': '-', 'feature_type': 'exon'},
-                {'id': 24, 'gene': 2, 'transcript': 5, 'chrom': '1', 'start': 16608, 'stop': 16766, 'strand': '-', 'feature_type': 'exon'},
-                {'id': 23, 'gene': 2, 'transcript': 5, 'chrom': '1', 'start': 16855, 'stop': 17056, 'strand': '-', 'feature_type': 'exon'},
-                {'id': 22, 'gene': 2, 'transcript': 5, 'chrom': '1', 'start': 17234, 'stop': 17365, 'strand': '-', 'feature_type': 'exon'},
-                {'id': 21, 'gene': 2, 'transcript': 5, 'chrom': '1', 'start': 17603, 'stop': 17743, 'strand': '-', 'feature_type': 'exon'},
-                {'id': 20, 'gene': 2, 'transcript': 5, 'chrom': '1', 'start': 17916, 'stop': 18062, 'strand': '-', 'feature_type': 'exon'},
-                {'id': 19, 'gene': 2, 'transcript': 5, 'chrom': '1', 'start': 18269, 'stop': 18380, 'strand': '-', 'feature_type': 'exon'},
-                {'id': 18, 'gene': 2, 'transcript': 5, 'chrom': '1', 'start': 24739, 'stop': 24892, 'strand': '-', 'feature_type': 'exon'},
-                {'id': 17, 'gene': 2, 'transcript': 5, 'chrom': '1', 'start': 29322, 'stop': 29371, 'strand': '-', 'feature_type': 'exon'}]
+    expected = {'transcript_id': 'ENST00000398242',
+                'chrom': '22',
+                'start': 16122720,
+                'stop': 16123768,
+                'strand': '+'}
 
-    result = lookups.get_transcript('SweGen', 'ENST00000438504')
-    assert result['id'] == expected['id']
-    assert result['mim_annotation'] == expected['mim_annotation']
-    assert result['transcript_id'] == expected['transcript_id']
-    assert result['mim_gene_accession'] == expected['mim_gene_accession']
-    assert result['chrom'] == expected['chrom']
-    assert result['start'] == expected['start_pos']
-    assert result['stop'] == expected['stop_pos']
-    assert result['strand'] == expected['strand']
-    assert result['exons'] == exp_exon
+    result = lookups.get_transcript('SweGen', 'ENST00000398242')
+    for val in expected:
+        assert result[val] == expected[val]
+    assert len(result['exons']) == 1
 
     # non-existing
     assert not lookups.get_transcript('SweGen', 'INCORRECT')
@@ -281,14 +252,8 @@ def test_get_transcripts_in_gene():
     """
     Test get_transcripts_in_gene()
     """
-    res = lookups.get_transcripts_in_gene('SweGen', 'ENSG00000241670')
-    expected = [{'id': 39, 'transcript_id': 'ENST00000424429', 'gene': 19,
-                 'mim_gene_accession': None, 'mim_annotation': None,
-                 'chrom': '1', 'start': 228293, 'stop': 228655, 'strand': '-'},
-                {'id': 40, 'transcript_id': 'ENST00000450734', 'gene': 19,
-                 'mim_gene_accession': None, 'mim_annotation': None,
-                 'chrom': '1', 'start': 228320, 'stop': 228776, 'strand': '-'}]
-    assert res == expected
+    res = lookups.get_transcripts_in_gene('SweGen', 'ENSG00000103197')
+    assert len(res) == 27
 
     assert not lookups.get_transcripts_in_gene('bad_dataset', 'ENSG00000241670')
     assert not lookups.get_transcripts_in_gene('SweGen', 'ENSGASDFG')
@@ -298,9 +263,9 @@ def test_get_raw_variant():
     """
     Test get_raw_variant
     """
-    result = lookups.get_raw_variant('SweGen', 55500283, '1', 'A', 'T')
-    assert result['genes'] == ['ENSG00000169174']
-    assert result['transcripts'] == ['ENST00000302118']
+    result = lookups.get_variant('SweGen', 16057464, '22', 'G', 'A')
+    assert result['genes'] == ['ENSG00000233866']
+    assert result['transcripts'] == ['ENST00000424770']
     assert not lookups.get_raw_variant('SweGen', 55500281, '1', 'A', 'T')
     assert not lookups.get_raw_variant('bad_dataset', 55500283, '1', 'A', 'T')
 
@@ -319,13 +284,11 @@ def test_get_variant():
     """
     Test get_variant()
     """
-    result = lookups.get_variant('SweGen', 55500283, '1', 'A', 'T')
-    assert result['genes'] == ['ENSG00000169174']
-    assert result['transcripts'] == ['ENST00000302118']
-    assert result['rsid'] == 'rs75050571'
+    result = lookups.get_variant('SweGen', 16057464, '22', 'G', 'A')
+    assert result['genes'] == ['ENSG00000233866']
+    assert result['transcripts'] == ['ENST00000424770']
 
     # missing rsid in result, multiple transcripts
-    # slow, need to fix db
     result = lookups.get_variant('SweGen', 47730411, '21', 'TA', 'T')
     assert result['genes'] == ['ENSG00000160298']
     assert result['transcripts'] == ['ENST00000417060', 'ENST00000397682',
