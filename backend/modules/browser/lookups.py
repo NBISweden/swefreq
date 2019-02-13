@@ -325,6 +325,7 @@ def get_number_of_variants_in_transcript(dataset:str, transcript_id:str, ds_vers
     if not variants:
         return None
     total = len(variants)
+
     filtered = len(tuple(variant for variant in variants if variant['filter_string'] == 'PASS'))
     return {'filtered': filtered, 'total': total}
 
@@ -383,9 +384,11 @@ def get_transcript(dataset:str, transcript_id:str):
         transcript_id (str): the id of the transcript
 
     Returns:
-        dict: values for the transcript, including exons; empty if not found
+        dict: values for the transcript, including exons; None if not found
     """
     ref_dbid = db.get_reference_dbid_dataset(dataset)
+    if not ref_dbid:
+        return None
     try:
         transcript = (db.Transcript
                       .select()
@@ -397,7 +400,7 @@ def get_transcript(dataset:str, transcript_id:str):
         transcript['exons'] = get_exons_in_transcript(dataset, transcript_id)
         return transcript
     except db.Transcript.DoesNotExist:
-        return {}
+        return None
 
 
 def get_transcripts_in_gene(dataset:str, gene_id:str):
@@ -625,6 +628,8 @@ def get_variants_in_transcript(dataset:str, transcript_id:str, ds_version:str=No
         return None
 
     transcript = get_transcript(dataset, transcript_id)
+    if not transcript:
+        return None
 
     variants = [variant for variant in db.Variant.select()
                 .join(db.VariantTranscripts)
