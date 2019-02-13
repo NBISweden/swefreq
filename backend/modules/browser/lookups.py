@@ -261,12 +261,19 @@ def get_gene_by_name(dataset:str, gene_name:str):
     if not ref_dbid:
         return {}
     try:
-        return db.Gene.select().where((db.Gene.reference_set == ref_dbid) &
-                                      (db.Gene.name==gene_name)).dicts().get()
+        return (db.Gene.select()
+                .where((db.Gene.reference_set == ref_dbid) &
+                       (db.Gene.name==gene_name))
+                .dicts()
+                .get())
     except db.Gene.DoesNotExist:
         try:
-            return db.GeneOtherNames.select().join(db.Gene).where((db.GeneOtherNames.name == gene_name) &
-                                                                  (db.Gene.reference_set == ref_dbid)).dicts().get()
+            return (db.GeneOtherNames.select(db.Gene)
+                    .join(db.Gene)
+                    .where((db.GeneOtherNames.name == gene_name) &
+                           (db.Gene.reference_set == ref_dbid))
+                    .dicts()
+                    .get())
         except db.GeneOtherNames.DoesNotExist:
             logging.error('get_gene_by_name({}, {}): unable to retrieve gene'.format(dataset, gene_name))
             return {}
