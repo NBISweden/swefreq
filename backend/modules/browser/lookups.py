@@ -25,7 +25,7 @@ def add_rsid_to_variant(dataset:str, variant:str):
               .get())
     dbsnp_version = refset['dbsnp_version']
 
-    if variant['rsid'] == '.' or variant['rsid'] is None:
+    if not variant['rsid']:
         try:
             rsid = (db.DbSNP
                     .select()
@@ -36,7 +36,8 @@ def add_rsid_to_variant(dataset:str, variant:str):
                     .get())
             variant['rsid'] = 'rs{}'.format(rsid['rsid'])
         except db.DbSNP.DoesNotExist:
-            logging.error('add_rsid_to_variant({}, variant[dbid: {}]): unable to retrieve rsid'.format(dataset, variant['id']))
+            pass
+            # logging.error('add_rsid_to_variant({}, variant[dbid: {}]): unable to retrieve rsid'.format(dataset, variant['id']))
 
 
 REGION_REGEX = re.compile(r'^\s*(\d+|X|Y|M|MT)\s*([-:]?)\s*(\d*)-?([\dACTG]*)-?([ACTG]*)')
@@ -546,7 +547,7 @@ def get_variants_in_gene(dataset:str, gene_id:str, ds_version:str=None):
 
     utils.add_consequence_to_variants(variants)
     for variant in variants:
-        if variant['rsid'] and variant['rsid'] != '.':
+        if variant['rsid']:
             variant['rsid'] = 'rs{}'.format(variant['rsid'])
         else:
             add_rsid_to_variant(dataset, variant)
@@ -589,7 +590,7 @@ def get_variants_in_region(dataset:str, chrom:str, start_pos:int, end_pos:int, d
 
     utils.add_consequence_to_variants(variants)
     for variant in variants:
-        if variant['rsid'] and variant['rsid'] != '.':
+        if variant['rsid']:
             variant['rsid'] = 'rs{}'.format(variant['rsid'])
         else:
             add_rsid_to_variant(dataset, variant)
@@ -633,7 +634,7 @@ def get_variants_in_transcript(dataset:str, transcript_id:str, ds_version:str=No
     utils.add_consequence_to_variants(variants)
     for variant in variants:
         variant['vep_annotations'] = [anno for anno in variant['vep_annotations'] if anno['Feature'] == transcript_id]
-        if variant['rsid'] and variant['rsid'] != '.':
+        if variant['rsid']:
             variant['rsid'] = 'rs{}'.format(variant['rsid'])
         else:
             add_rsid_to_variant(dataset, variant)
