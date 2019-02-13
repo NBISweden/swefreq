@@ -359,12 +359,14 @@ def get_raw_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_versio
                           (db.Variant.dataset_version == dataset_version.id))
                    .dicts()
                    .get())
-        variant['genes'] = [gene for gene in
-                            db.VariantGenes.select(db.VariantGenes.gene)
+        variant['genes'] = [gene['gene_id'] for gene in
+                            db.VariantGenes.select(db.Gene.gene_id)
+                            .join(db.Gene)
                             .where(db.VariantGenes.variant == variant['id'])
                             .dicts()]
-        variant['transcripts'] = [transcript for transcript in
-                                  db.VariantTranscripts.select(db.VariantTranscripts.transcript)
+        variant['transcripts'] = [transcript['transcript_id'] for transcript in
+                                  db.VariantTranscripts.select(db.Transcript.transcript_id)
+                                  .join(db.Transcript)
                                   .where(db.VariantTranscripts.variant == variant['id'])
                                   .dicts()]
         return variant
