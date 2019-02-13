@@ -9,16 +9,14 @@ def test_add_rsid_to_variant():
     """
     Test add_rsid_to_variant()
     """
-    # "with ."
-    variant = lookups.get_variant('SweGen', 55500283, '1', 'A', 'T')
+    variant = lookups.get_variant('SweGen', 34730985, '22', 'G', 'A')
+    lookups.add_rsid_to_variant('SweGen', variant)
+    assert variant['rsid'] == 'rs924645261'
+    variant = lookups.get_variant('SweGen', 16113980, '22', 'C', 'T')
     rsid = variant['rsid']
-    variant['rsid'] = '.'
+    variant['rsid'] = ''
     lookups.add_rsid_to_variant('SweGen', variant)
-    assert variant['rsid'] == rsid
-    # "non-existing"
-    del variant['rsid']
-    lookups.add_rsid_to_variant('SweGen', variant)
-    assert variant['rsid'] == rsid
+    assert variant['rsid'] == 'rs9680543'
 
 
 def test_get_awesomebar_result():
@@ -50,27 +48,17 @@ def test_get_coverage_for_bases():
     Test get_coverage_for_bases()
     """
     # normal
-    coverage = lookups.get_coverage_for_bases('SweGen', '1', 55500283, 55500320)
-    expected = [{'id': 5474062, 'dataset_version': 4, 'chrom': '1',
-                 'pos': 55500290, 'mean': 40.66, 'median': 39.0,
-                 'coverage': [1.0, 1.0, 1.0, 1.0, 0.996, 0.97, 0.867, 0.127, 0.001]},
-                {'id': 5474063, 'dataset_version': 4, 'chrom': '1',
-                 'pos': 55500300, 'mean': 40.7, 'median': 39.0,
-                 'coverage': [1.0, 1.0, 1.0, 1.0, 0.996, 0.971, 0.878, 0.132, 0.001]},
-                {'id': 5474064, 'dataset_version': 4, 'chrom': '1',
-                 'pos': 55500310, 'mean': 40.35, 'median': 39.0,
-                 'coverage': [1.0, 1.0, 1.0, 1.0, 0.995, 0.974, 0.859, 0.138, 0.001]},
-                {'id': 5474065, 'dataset_version': 4, 'chrom': '1',
-                 'pos': 55500320, 'mean': 39.69, 'median': 38.0,
-                 'coverage': [1.0, 1.0, 1.0, 1.0, 0.996, 0.961, 0.856, 0.117, 0.001]}]
-    assert coverage == expected
+    coverage = lookups.get_coverage_for_bases('SweGen', '22', 46546423, 46549652)
+    assert len(coverage) == 323
+    assert coverage[0] == {'chrom': '22', 'coverage': [1.0, 1.0, 0.993, 0.91, 0.697, 0.426, 0.2, 0.009, 0.0],
+                           'dataset_version': 4, 'id': 2954967, 'mean': 24.94, 'median': 24.0, 'pos': 46546430}
     assert len(lookups.get_coverage_for_bases('SweGen', '22', 46615715, 46615880)) == 17
 
     # no end_pos
-    coverage = lookups.get_coverage_for_bases('SweGen', '1', 55500290)
-    expected = [{'id': 5474062, 'dataset_version': 4, 'chrom': '1',
-                 'pos': 55500290, 'mean': 40.66, 'median': 39.0,
-                 'coverage': [1.0, 1.0, 1.0, 1.0, 0.996, 0.97, 0.867, 0.127, 0.001]}]
+    coverage = lookups.get_coverage_for_bases('SweGen', '22', 46546430)
+    assert coverage == [{'chrom': '22', 'coverage': [1.0, 1.0, 0.993, 0.91, 0.697, 0.426, 0.2, 0.009, 0.0],
+                         'dataset_version': 4, 'id': 2954967, 'mean': 24.94, 'median': 24.0, 'pos': 46546430}]
+    assert len(lookups.get_coverage_for_bases('SweGen', '22', 46615715, 46615880)) == 17
 
     # no hits
     coverage = lookups.get_coverage_for_bases('SweGen', '1', 55500283, 55500285)
@@ -84,21 +72,25 @@ def test_get_coverage_for_transcript():
     """
     Test get_coverage_for_transcript()
     """
-    coverage = lookups.get_coverage_for_transcript('SweGen', '1', 55500283, 55500320)
-    expected = [{'id': 5474062, 'dataset_version': 4, 'chrom': '1',
-                 'pos': 55500290, 'mean': 40.66, 'median': 39.0,
-                 'coverage': [1.0, 1.0, 1.0, 1.0, 0.996, 0.97, 0.867, 0.127, 0.001]},
-                {'id': 5474063, 'dataset_version': 4, 'chrom': '1',
-                 'pos': 55500300, 'mean': 40.7, 'median': 39.0,
-                 'coverage': [1.0, 1.0, 1.0, 1.0, 0.996, 0.971, 0.878, 0.132, 0.001]},
-                {'id': 5474064, 'dataset_version': 4, 'chrom': '1',
-                 'pos': 55500310, 'mean': 40.35, 'median': 39.0,
-                 'coverage': [1.0, 1.0, 1.0, 1.0, 0.995, 0.974, 0.859, 0.138, 0.001]},
-                {'id': 5474065, 'dataset_version': 4, 'chrom': '1',
-                 'pos': 55500320, 'mean': 39.69, 'median': 38.0,
-                 'coverage': [1.0, 1.0, 1.0, 1.0, 0.996, 0.961, 0.856, 0.117, 0.001]}]
-    assert coverage == expected
-    assert not lookups.get_coverage_for_transcript('BAD_DATASET', '1', 55500283, 55500320)
+    # normal
+    coverage = lookups.get_coverage_for_bases('SweGen', '22', 46546423, 46549652)
+    assert len(coverage) == 323
+    assert coverage[0] == {'chrom': '22', 'coverage': [1.0, 1.0, 0.993, 0.91, 0.697, 0.426, 0.2, 0.009, 0.0],
+                           'dataset_version': 4, 'id': 2954967, 'mean': 24.94, 'median': 24.0, 'pos': 46546430}
+    assert len(lookups.get_coverage_for_bases('SweGen', '22', 46615715, 46615880)) == 17
+
+    # no end_pos
+    coverage = lookups.get_coverage_for_bases('SweGen', '22', 46546430)
+    assert coverage == [{'chrom': '22', 'coverage': [1.0, 1.0, 0.993, 0.91, 0.697, 0.426, 0.2, 0.009, 0.0],
+                         'dataset_version': 4, 'id': 2954967, 'mean': 24.94, 'median': 24.0, 'pos': 46546430}]
+    assert len(lookups.get_coverage_for_bases('SweGen', '22', 46615715, 46615880)) == 17
+
+    # no hits
+    coverage = lookups.get_coverage_for_bases('SweGen', '1', 55500283, 55500285)
+    assert not coverage
+
+    # incorrect dataset
+    assert not lookups.get_coverage_for_bases('BAD_DATASET', '1', 55500283, 55500320)
 
 
 def test_get_exons_in_transcript(caplog):
@@ -124,16 +116,16 @@ def test_get_gene():
     Test get_gene()
     """
     # normal entry
-    expected = {'id': 1,
-                'reference_set': 1,
-                'gene_id': 'ENSG00000223972',
-                'name': 'DDX11L1',
-                'full_name': 'DEAD/H (Asp-Glu-Ala-Asp/His) box helicase 11 like 1',
-                'canonical_transcript': 'ENST00000456328',
-                'chrom': '1',
-                'start': 11870,
+    expected = {'gene_id': 'ENSG00000223972',
+                'name': 'SNORA15',
+                'full_name': '',
+                'canonical_transcript': 'ENST00000516131',
+                'chrom': '22',
+                'start': 19237396,
+                'stop': 19237489,
                 'strand': '+'}
-    result = lookups.get_gene('SweGen', 'ENSG00000223972')
+    
+    result = lookups.get_gene('SweGen', 'ENSG00000251940')
     for val in expected:
         assert result[val] == expected[val]
 
