@@ -123,8 +123,6 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
 
     # Format output
     def format_variant(variant):
-        if variant['rsid'] == '.':
-            variant['rsid'] = ''
         variant['major_consequence'] = (variant['major_consequence'].replace('_variant','')
                                         .replace('_prime_', '\'')
                                         .replace('_', ' '))
