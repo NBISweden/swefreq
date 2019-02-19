@@ -40,10 +40,12 @@ def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
 
     if datatype == 'gene':
         gene = lookups.get_gene(dataset, item)
-        transcript = lookups.get_transcript(dataset, gene['canonical_transcript'])
-        start = transcript['start'] - EXON_PADDING
-        stop  = transcript['stop'] + EXON_PADDING
-        ret['coverage'] = lookups.get_coverage_for_transcript(dataset, transcript['chrom'], start, stop, ds_version)
+        if gene:
+            transcript = lookups.get_transcript(dataset, gene['canonical_transcript'])
+            if transcript:
+                start = transcript['start'] - EXON_PADDING
+                stop  = transcript['stop'] + EXON_PADDING
+                ret['coverage'] = lookups.get_coverage_for_transcript(dataset, transcript['chrom'], start, stop, ds_version)
     elif datatype == 'region':
         chrom, start, stop = item.split('-')
         start = int(start)
@@ -51,9 +53,10 @@ def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
         ret['coverage'] = lookups.get_coverage_for_bases(dataset, chrom, start, stop, ds_version)
     elif datatype == 'transcript':
         transcript = lookups.get_transcript(dataset, item)
-        start = transcript['start'] - EXON_PADDING
-        stop  = transcript['stop'] + EXON_PADDING
-        ret['coverage'] = lookups.get_coverage_for_transcript(dataset, transcript['chrom'], start, stop, ds_version)
+        if transcript:
+            start = transcript['start'] - EXON_PADDING
+            stop  = transcript['stop'] + EXON_PADDING
+            ret['coverage'] = lookups.get_coverage_for_transcript(dataset, transcript['chrom'], start, stop, ds_version)
 
     return ret
 
@@ -72,24 +75,22 @@ def get_coverage_pos(dataset:str, datatype:str, item:str):
     """
     ret = {'start':None, 'stop':None, 'chrom':None}
 
-    if datatype == 'gene':
-        gene = lookups.get_gene(dataset, item)
-        transcript = lookups.get_transcript(dataset, gene['canonical_transcript'])
-    elif datatype == 'transcript':
-        transcript = lookups.get_transcript(dataset, item)
-
     if datatype == 'region':
         chrom, start, stop = item.split('-')
-        start = int(start)
-        stop = int(stop)
+        if start and stop and chrom:
+            ret['start'] = int(start)
+            ret['stop'] = int(stop)
+            ret['chrom'] = chrom
     else:
-        start = transcript['start'] - EXON_PADDING
-        stop  = transcript['stop'] + EXON_PADDING
-        chrom = transcript['chrom']
-
-    ret['start'] = start
-    ret['stop'] = stop
-    ret['chrom'] = chrom
+        if datatype == 'gene':
+            gene = lookups.get_gene(dataset, item)
+            transcript = lookups.get_transcript(dataset, gene['canonical_transcript'])
+        elif datatype == 'transcript':
+            transcript = lookups.get_transcript(dataset, item)
+        if transcript:
+            ret['start'] = transcript['start'] - EXON_PADDING
+            ret['stop']  = transcript['stop'] + EXON_PADDING
+            ret['chrom'] = transcript['chrom']
 
     return ret
 
