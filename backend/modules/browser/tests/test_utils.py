@@ -33,6 +33,7 @@ def test_add_consequence_to_variant():
 
     # bad variant
     variant = lookups.get_variant('SweGen', 38481311, '444', 'C', 'T')
+    utils.add_consequence_to_variant(variant)
     assert not variant
 
 

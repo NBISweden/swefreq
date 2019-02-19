@@ -138,7 +138,7 @@ def get_coverage_for_bases(dataset:str, chrom:str, start_pos:int, end_pos:int=No
     """
     dataset_version = db.get_dataset_version(dataset, ds_version)
     if not dataset_version:
-        return None
+        return []
 
     if end_pos is None:
         end_pos = start_pos
@@ -171,7 +171,7 @@ def get_coverage_for_transcript(dataset:str, chrom:str, start_pos:int, end_pos:i
     # only return coverages that have coverage (if that makes any sense?)
     # return coverage_array
     if not coverage_array:
-        return None
+        return []
     covered = [c for c in coverage_array if c['mean']]
     return covered
 
@@ -189,7 +189,7 @@ def get_exons_in_transcript(dataset:str, transcript_id:str):
     """
     ref_dbid = db.get_reference_dbid_dataset(dataset)
     if not ref_dbid:
-        logging.error('get_exons_in_transcript({}, {}): unable to find dataset dbid'.format(dataset, transcript_id))
+        logging.info('get_exons_in_transcript({}, {}): unable to find dataset dbid'.format(dataset, transcript_id))
         return None
     try:
         transcript = (db.Transcript
@@ -199,7 +199,7 @@ def get_exons_in_transcript(dataset:str, transcript_id:str):
                              (db.Gene.reference_set == ref_dbid))
                       .get())
     except db.Transcript.DoesNotExist:
-        logging.error('get_exons_in_transcript({}, {}): unable to retrieve transcript'.format(dataset, transcript_id))
+        logging.info('get_exons_in_transcript({}, {}): unable to retrieve transcript'.format(dataset, transcript_id))
         return None
     wanted_types = ('CDS', 'UTR', 'exon')
     return sorted(list(db.Feature.select().where((db.Feature.transcript == transcript) &
@@ -500,8 +500,6 @@ def get_variants_by_rsid(dataset:str, rsid:str, check_position:str=False, ds_ver
                   .where(db.Dataset.short_name == dataset)
                   .dicts()
                   .get())
-        if not refset:
-            return []
         dbsnp_version = refset['dbsnp_version']
 
         rsid_dbsnp = (db.DbSNP
@@ -556,8 +554,6 @@ def get_variants_in_gene(dataset:str, gene_id:str, ds_version:str=None):
     if not ref_dbid:
         return None
     dataset_version = db.get_dataset_version(dataset, ds_version)
-    if not dataset_version:
-        return None
 
     gene = get_gene(dataset, gene_id)
 
@@ -640,8 +636,6 @@ def get_variants_in_transcript(dataset:str, transcript_id:str, ds_version:str=No
     if not ref_dbid:
         return None
     dataset_version = db.get_dataset_version(dataset, ds_version)
-    if not dataset_version:
-        return None
 
     transcript = get_transcript(dataset, transcript_id)
     if not transcript:

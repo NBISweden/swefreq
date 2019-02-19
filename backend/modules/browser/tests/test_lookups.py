@@ -73,27 +73,27 @@ def test_get_coverage_for_transcript():
     Test get_coverage_for_transcript()
     """
     # normal
-    coverage = lookups.get_coverage_for_bases('SweGen', '22', 46546423, 46549652)
+    coverage = lookups.get_coverage_for_transcript('SweGen', '22', 46546423, 46549652)
     assert len(coverage) == 323
     assert coverage[0] == {'chrom': '22', 'coverage': [1.0, 1.0, 0.993, 0.91, 0.697, 0.426, 0.2, 0.009, 0.0],
                            'dataset_version': 4, 'id': 2954967, 'mean': 24.94, 'median': 24.0, 'pos': 46546430}
-    assert len(lookups.get_coverage_for_bases('SweGen', '22', 46615715, 46615880)) == 17
+    assert len(lookups.get_coverage_for_transcript('SweGen', '22', 46615715, 46615880)) == 17
 
     # no end_pos
-    coverage = lookups.get_coverage_for_bases('SweGen', '22', 46546430)
+    coverage = lookups.get_coverage_for_transcript('SweGen', '22', 46546430)
     assert coverage == [{'chrom': '22', 'coverage': [1.0, 1.0, 0.993, 0.91, 0.697, 0.426, 0.2, 0.009, 0.0],
                          'dataset_version': 4, 'id': 2954967, 'mean': 24.94, 'median': 24.0, 'pos': 46546430}]
-    assert len(lookups.get_coverage_for_bases('SweGen', '22', 46615715, 46615880)) == 17
+    assert len(lookups.get_coverage_for_transcript('SweGen', '22', 46615715, 46615880)) == 17
 
     # no hits
-    coverage = lookups.get_coverage_for_bases('SweGen', '1', 55500283, 55500285)
+    coverage = lookups.get_coverage_for_transcript('SweGen', '1', 55500283, 55500285)
     assert not coverage
 
     # incorrect dataset
-    assert not lookups.get_coverage_for_bases('BAD_DATASET', '1', 55500283, 55500320)
+    assert not lookups.get_coverage_for_transcript('BAD_DATASET', '1', 55500283, 55500320)
 
 
-def test_get_exons_in_transcript(caplog):
+def test_get_exons_in_transcript():
     """
     Test get_exons_in_transcript()
     """
@@ -103,12 +103,10 @@ def test_get_exons_in_transcript(caplog):
     # bad dataset
     result = lookups.get_exons_in_transcript('NO_DATASET', 'ENST00000215855')
     assert not result
-    assert caplog.messages[0] == 'get_exons_in_transcript(NO_DATASET, ENST00000215855): unable to find dataset dbid'
 
     # bad transcript
     result = lookups.get_exons_in_transcript('SweGen', 'BAD_TRANSCRIPT')
     assert not result
-    assert caplog.messages[1] == 'get_exons_in_transcript(SweGen, BAD_TRANSCRIPT): unable to retrieve transcript'
 
 
 def test_get_gene():
@@ -359,3 +357,4 @@ def test_get_variants_in_transcript():
     """
     res = lookups.get_variants_in_transcript('SweGen', 'ENST00000452800')
     assert len(res) == 1174
+    res = lookups.get_variants_in_transcript('BAD_DATASET', 'ENST00000452800')
