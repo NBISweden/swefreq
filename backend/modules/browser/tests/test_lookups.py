@@ -288,17 +288,6 @@ def test_get_variant():
     assert result['genes'] == ['ENSG00000233866']
     assert result['transcripts'] == ['ENST00000424770']
 
-    # missing rsid in result, multiple transcripts
-    result = lookups.get_variant('SweGen', 47730411, '21', 'TA', 'T')
-    assert result['genes'] == ['ENSG00000160298']
-    assert result['transcripts'] == ['ENST00000417060', 'ENST00000397682',
-                                     'ENST00000397683', 'ENST00000397680',
-                                     'ENST00000397685', 'ENST00000397679',
-                                     'ENST00000291691', 'ENST00000445935',
-                                     'ENST00000491666', 'ENST00000472607',
-                                     'ENST00000475776']
-    assert result['rsid'] == 'rs75050571'
-
     # incorrect position
     assert not lookups.get_variant('SweGen', -1, '1', 'A', 'T')
 
@@ -308,16 +297,18 @@ def test_get_variants_by_rsid(caplog):
     Test get_variants_by_rsid()
     '''
     # normal
-    result = lookups.get_variants_by_rsid('SweGen', 'rs373706802')
-    assert result[0]['pos'] == 16080482
-    assert result[0]['genes'] == ['ENSG00000229286', 'ENSG00000235265']
-    assert result[0]['transcripts'] == ['ENST00000448070','ENST00000413156']
+    result = lookups.get_variants_by_rsid('SweGen', 'rs185758992')
+    assert result[0]['pos'] == 38481311
+    assert set(result[0]['genes']) == set(['ENSG00000100156', 'ENSG00000128298', 'ENSG00000272720'])
+    assert len(result[0]['genes']) == 3
+    assert len(result[0]['transcripts']) == 6
 
     # by position
-    result = lookups.get_variants_by_rsid('SweGen', 'rs373706802', check_position=True)
-    assert result[0]['pos'] == 16080482
-    assert result[0]['genes'] == ['ENSG00000229286', 'ENSG00000235265']
-    assert result[0]['transcripts'] == ['ENST00000448070','ENST00000413156']
+    result = lookups.get_variants_by_rsid('SweGen', 'rs185758992', check_position=True)
+    assert result[0]['pos'] == 38481311
+    assert set(result[0]['genes']) == set(['ENSG00000100156', 'ENSG00000128298', 'ENSG00000272720'])
+    assert len(result[0]['genes']) == 3
+    assert len(result[0]['transcripts']) == 6
 
     # errors
     assert lookups.get_variants_by_rsid('incorrect_name', 'rs373706802') is None
@@ -367,4 +358,4 @@ def test_get_variants_in_transcript():
     Test get_variants_in_transcript()
     """
     res = lookups.get_variants_in_transcript('SweGen', 'ENST00000452800')
-    assert len(res) == 1414
+    assert len(res) == 1174

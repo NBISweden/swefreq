@@ -500,12 +500,14 @@ def get_variants_by_rsid(dataset:str, rsid:str, check_position:str=False, ds_ver
                   .where(db.Dataset.short_name == dataset)
                   .dicts()
                   .get())
+        if not refset:
+            return []
         dbsnp_version = refset['dbsnp_version']
 
         rsid_dbsnp = (db.DbSNP
                      .select()
                      .where((db.DbSNP.rsid == rsid) &
-                            (db.DbSNP.version_id == dbsnp_version) )
+                            (db.DbSNP.version_id == dbsnp_version))
                      .dicts()
                      .get())
         query = (db.Variant
@@ -522,7 +524,19 @@ def get_variants_by_rsid(dataset:str, rsid:str, check_position:str=False, ds_ver
                  .dicts())
 
     variants = [variant for variant in query]
-    # add_consequence_to_variants(variants)
+    for variant in variants:
+        variant['genes'] = [gene['gene_id'] for gene in
+                            db.VariantGenes.select(db.Gene.gene_id)
+                            .join(db.Gene)
+                            .where(db.VariantGenes.variant == variant['id'])
+                            .dicts()]
+        variant['transcripts'] = [transcript['transcript_id'] for transcript in
+                                  db.VariantTranscripts.select(db.Transcript.transcript_id)
+                                  .join(db.Transcript)
+                                  .where(db.VariantTranscripts.variant == variant['id'])
+                                  .dicts()]
+
+    utils.add_consequence_to_variants(variants)
     return variants
 
 
