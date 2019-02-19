@@ -1,4 +1,3 @@
-import json # remove when db is fixed
 import logging
 import re
 
