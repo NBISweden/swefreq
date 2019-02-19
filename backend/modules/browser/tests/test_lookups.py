@@ -13,7 +13,6 @@ def test_add_rsid_to_variant():
     lookups.add_rsid_to_variant('SweGen', variant)
     assert variant['rsid'] == 'rs924645261'
     variant = lookups.get_variant('SweGen', 16113980, '22', 'C', 'T')
-    rsid = variant['rsid']
     variant['rsid'] = ''
     lookups.add_rsid_to_variant('SweGen', variant)
     assert variant['rsid'] == 'rs9680543'
@@ -122,7 +121,7 @@ def test_get_gene():
                 'start': 19237396,
                 'stop': 19237489,
                 'strand': '+'}
-    
+
     result = lookups.get_gene('SweGen', 'ENSG00000251940')
     for val in expected:
         assert result[val] == expected[val]

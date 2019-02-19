@@ -14,7 +14,7 @@ def test_get_autocomplete():
                     'ADH5', 'ADH6', 'ADH7', 'ADH5P2',
                     'ADH5P3', 'ADH5P4', 'ADHFE1'])
     assert set(res) == expected
-    
+
 
 def test_get_coverage():
     """
@@ -37,7 +37,7 @@ def test_get_coverage_pos():
     res = pgsql.get_coverage_pos('SweGen', 'gene', 'ENSG00000231565')
     assert res['chrom'] == '22'
     assert res['start'] == 16364817
-    assert res['stop'] == 16366254    
+    assert res['stop'] == 16366254
     res = pgsql.get_coverage_pos('SweGen', 'region', '22-46615715-46615880')
     assert res['chrom'] == '22'
     assert res['start'] == 46615715
