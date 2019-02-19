@@ -92,6 +92,8 @@ def add_consequence_to_variant(variant):
     Args:
         variant (dict): variant information
     """
+    if not variant:
+        return dict()
     worst_csq = worst_csq_with_vep(variant['vep_annotations'])
     variant['major_consequence'] = ''
     if worst_csq is None:

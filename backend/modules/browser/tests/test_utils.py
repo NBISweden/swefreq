@@ -11,11 +11,11 @@ def test_add_consequence_to_variants():
     Test add_consequence_to_variants()
     """
     variants = []
-    variants.append(lookups.get_variant('SweGen', 47730411, '21', 'TA', 'T'))
-    variants.append(lookups.get_variant('SweGen', 55500283, '1', 'A', 'T'))
+    variants.append(lookups.get_variant('SweGen', 38481311, '22', 'C', 'T'))
+    variants.append(lookups.get_variant('SweGen', 38480546, '22', 'TG', 'TGG'))
 
     utils.add_consequence_to_variants(variants)
-    assert variants[0]['major_consequence'] == 'intron_variant'
+    assert variants[0]['major_consequence'] == 'missense_variant'
     assert variants[1]['major_consequence'] == 'upstream_gene_variant'
 
 
@@ -23,20 +23,24 @@ def test_add_consequence_to_variant():
     """
     Test add_consequence_to_variant()
     """
-    variant = lookups.get_variant('SweGen', 47730411, '21', 'TA', 'T')
+    variant = lookups.get_variant('SweGen', 38481311, '22', 'C', 'T')
     utils.add_consequence_to_variant(variant)
-    assert variant['major_consequence'] == 'intron_variant'
+    assert variant['major_consequence'] == 'missense_variant'
 
-    variant2 = lookups.get_variant('SweGen', 55500283, '1', 'A', 'T')
-    utils.add_consequence_to_variant(variant2)
-    assert variant2['major_consequence'] == 'upstream_gene_variant'
+    variant = lookups.get_variant('SweGen', 38480546, '22', 'TG', 'TGG')
+    utils.add_consequence_to_variant(variant)
+    assert variant['major_consequence'] == 'upstream_gene_variant'
+
+    # bad variant
+    variant = lookups.get_variant('SweGen', 38481311, '444', 'C', 'T')
+    assert not variant
 
 
 def test_annotation_severity():
     """
     Test annotation_severity()
     """
-    variant = lookups.get_variant('SweGen', 55500283, '1', 'A', 'T')
+    variant = lookups.get_variant('SweGen', 38481311, '22', 'C', 'T')
     res = utils.annotation_severity(variant['vep_annotations'][0])
     assert res == -26.9
 
@@ -143,7 +147,7 @@ def test_worst_csq_from_csq():
     """
     Test worst_csq_from_csq()
     """
-    variant = lookups.get_variant('SweGen', 55500283, '1', 'A', 'T')
+    variant = lookups.get_variant('SweGen', 38481311, '22', 'C', 'T')
     res = utils.worst_csq_from_csq(variant['vep_annotations'][0]['Consequence'])
     assert res == 'upstream_gene_variant'
     res = utils.worst_csq_from_csq('non_coding_exon_variant&nc_transcript_variant')
