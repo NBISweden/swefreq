@@ -74,7 +74,7 @@ PROTEIN_LETTERS_1TO3 = {
 }
 
 
-def add_consequence_to_variants(variant_list):
+def add_consequence_to_variants(variant_list:list):
     """
     Add information about variant consequence to multiple variants
 
@@ -85,7 +85,7 @@ def add_consequence_to_variants(variant_list):
         add_consequence_to_variant(variant)
 
 
-def add_consequence_to_variant(variant):
+def add_consequence_to_variant(variant:dict):
     """
     Add information about variant consequence to a variant
 
@@ -93,7 +93,7 @@ def add_consequence_to_variant(variant):
         variant (dict): variant information
     """
     if not variant:
-        return dict()
+        return
     worst_csq = worst_csq_with_vep(variant['vep_annotations'])
     variant['major_consequence'] = ''
     if worst_csq is None:
@@ -121,7 +121,7 @@ def add_consequence_to_variant(variant):
     variant['flags'] = get_flags_from_variant(variant)
 
 
-def annotation_severity(annotation):
+def annotation_severity(annotation:dict):
     """
     Evaluate severity of the consequences; "bigger is more important".
 
@@ -137,7 +137,7 @@ def annotation_severity(annotation):
     return rv
 
 
-def get_flags_from_variant(variant):
+def get_flags_from_variant(variant:dict):
     """
     Get flags from variant.
     Checks for:
@@ -163,7 +163,7 @@ def get_flags_from_variant(variant):
     return flags
 
 
-def get_proper_hgvs(annotation):
+def get_proper_hgvs(annotation:dict):
     """
     Get HGVS for change, either at transcript or protein level.
 
@@ -204,7 +204,7 @@ def get_protein_hgvs(annotation):
         return None
 
 
-def get_transcript_hgvs(annotation):
+def get_transcript_hgvs(annotation:dict):
     """
     Nucleotide change in HGVS format.
 
@@ -220,7 +220,7 @@ def get_transcript_hgvs(annotation):
         return None
 
 
-def order_vep_by_csq(annotation_list: list):
+def order_vep_by_csq(annotation_list:list):
     """
     Adds "major_consequence" to each annotation, orders by severity.
 
@@ -238,7 +238,7 @@ def order_vep_by_csq(annotation_list: list):
     return sorted(annotation_list, key=(lambda ann:CSQ_ORDER_DICT[ann['major_consequence']]))
 
 
-def remove_extraneous_vep_annotations(annotation_list: list):
+def remove_extraneous_vep_annotations(annotation_list:list):
     """
     Remove annotations with low-impact consequences (less than intron variant)
 
@@ -252,7 +252,7 @@ def remove_extraneous_vep_annotations(annotation_list: list):
             if worst_csq_index(ann['Consequence'].split('&')) <= CSQ_ORDER_DICT['intron_variant']]
 
 
-def worst_csq_from_list(csq_list):
+def worst_csq_from_list(csq_list:list):
     """
     Choose the worst consequence
 
@@ -265,7 +265,7 @@ def worst_csq_from_list(csq_list):
     return REV_CSQ_ORDER_DICT[worst_csq_index(csq_list)]
 
 
-def worst_csq_from_csq(csq):
+def worst_csq_from_csq(csq:str):
     """
     Find worst consequence in a possibly &-filled consequence string
 
@@ -278,7 +278,7 @@ def worst_csq_from_csq(csq):
     return REV_CSQ_ORDER_DICT[worst_csq_index(csq.split('&'))]
 
 
-def worst_csq_index(csq_list):
+def worst_csq_index(csq_list:list):
     """
     Find the index of the worst consequence.
     Corresponds to the lowest value (index) from CSQ_ORDER_DICT
@@ -292,7 +292,7 @@ def worst_csq_index(csq_list):
     return min([CSQ_ORDER_DICT[csq] for csq in csq_list])
 
 
-def worst_csq_with_vep(annotation_list):
+def worst_csq_with_vep(annotation_list:list):
     """
     Choose the vep annotation with the most severe consequence
     Adds a"major_consequence" field for that annotation

@@ -1,9 +1,6 @@
 """
 Replaces mongodb.py
 """
-
-import logging
-
 import db
 
 from . import lookups
