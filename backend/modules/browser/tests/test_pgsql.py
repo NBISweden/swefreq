@@ -9,10 +9,9 @@ def test_get_autocomplete():
     """
     Test get_autocomplete()
     """
-    res = pgsql.get_autocomplete('ADH')
-    expected = set(['ADH1A', 'ADH1B', 'ADH1C', 'ADH4',
-                    'ADH5', 'ADH6', 'ADH7', 'ADH5P2',
-                    'ADH5P3', 'ADH5P4', 'ADHFE1'])
+    res = pgsql.get_autocomplete('PA')
+    expected = set(["PABPC1P9", "PACSIN2", "PANX2", "PARP4P3",
+                "PARVB", "PARVG", "PATZ1", "PAXBP1", "PAXBP1-AS1"])
     assert set(res) == expected
 
 

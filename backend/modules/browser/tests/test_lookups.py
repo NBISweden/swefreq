@@ -26,12 +26,12 @@ def test_get_awesomebar_result():
     assert result == ('dbsnp_variant_set', 373706802)
     result = lookups.get_awesomebar_result('SweGen', 'rs783')
     assert result == ('variant', '22-29461622-G-A')
-    result = lookups.get_awesomebar_result('SweGen', 'ADH6')
-    assert result == ('gene', 'ENSG00000172955')
-    result = lookups.get_awesomebar_result('SweGen', 'ENSG00000172955')
-    assert result == ('gene', 'ENSG00000172955')
-    result = lookups.get_awesomebar_result('SweGen', 'ENST00000237653')
-    assert result == ('transcript', 'ENST00000237653')
+    result = lookups.get_awesomebar_result('SweGen', 'NF1P3')
+    assert result == ('gene', 'ENSG00000183249')
+    result = lookups.get_awesomebar_result('SweGen', 'ENSG00000183249')
+    assert result == ('gene', 'ENSG00000183249')
+    result = lookups.get_awesomebar_result('SweGen', 'ENST00000457709')
+    assert result == ('transcript', 'ENST00000457709')
     result = lookups.get_awesomebar_result('SweGen', '22-46615715-46615880')
     assert result == ('region', '22-46615715-46615880')
     result = lookups.get_awesomebar_result('SweGen', 'CHR22:46615715-46615880')
@@ -49,14 +49,19 @@ def test_get_coverage_for_bases():
     # normal
     coverage = lookups.get_coverage_for_bases('SweGen', '22', 46546423, 46549652)
     assert len(coverage) == 323
-    assert coverage[0] == {'chrom': '22', 'coverage': [1.0, 1.0, 0.993, 0.91, 0.697, 0.426, 0.2, 0.009, 0.0],
-                           'dataset_version': 4, 'id': 2954967, 'mean': 24.94, 'median': 24.0, 'pos': 46546430}
+    expected = {'chrom': '22', 'coverage': [1.0, 1.0, 0.993, 0.91, 0.697, 0.426, 0.2, 0.009, 0.0],
+                           'dataset_version': 4, 'mean': 24.94, 'median': 24.0, 'pos': 46546430}
+    for val in expected:
+        assert coverage[0][val] == expected[val]
+
     assert len(lookups.get_coverage_for_bases('SweGen', '22', 46615715, 46615880)) == 17
 
     # no end_pos
     coverage = lookups.get_coverage_for_bases('SweGen', '22', 46546430)
-    assert coverage == [{'chrom': '22', 'coverage': [1.0, 1.0, 0.993, 0.91, 0.697, 0.426, 0.2, 0.009, 0.0],
-                         'dataset_version': 4, 'id': 2954967, 'mean': 24.94, 'median': 24.0, 'pos': 46546430}]
+    expected = {'chrom': '22', 'coverage': [1.0, 1.0, 0.993, 0.91, 0.697, 0.426, 0.2, 0.009, 0.0],
+                'dataset_version': 4, 'mean': 24.94, 'median': 24.0, 'pos': 46546430}
+    for val in expected:
+        assert coverage[0][val] == expected[val]
     assert len(lookups.get_coverage_for_bases('SweGen', '22', 46615715, 46615880)) == 17
 
     # no hits
@@ -74,14 +79,18 @@ def test_get_coverage_for_transcript():
     # normal
     coverage = lookups.get_coverage_for_transcript('SweGen', '22', 46546423, 46549652)
     assert len(coverage) == 323
-    assert coverage[0] == {'chrom': '22', 'coverage': [1.0, 1.0, 0.993, 0.91, 0.697, 0.426, 0.2, 0.009, 0.0],
-                           'dataset_version': 4, 'id': 2954967, 'mean': 24.94, 'median': 24.0, 'pos': 46546430}
+    expected = {'chrom': '22', 'coverage': [1.0, 1.0, 0.993, 0.91, 0.697, 0.426, 0.2, 0.009, 0.0],
+                'dataset_version': 4, 'mean': 24.94, 'median': 24.0, 'pos': 46546430}
+    for val in expected:
+        assert coverage[0][val] == expected[val]
     assert len(lookups.get_coverage_for_transcript('SweGen', '22', 46615715, 46615880)) == 17
 
     # no end_pos
     coverage = lookups.get_coverage_for_transcript('SweGen', '22', 46546430)
-    assert coverage == [{'chrom': '22', 'coverage': [1.0, 1.0, 0.993, 0.91, 0.697, 0.426, 0.2, 0.009, 0.0],
-                         'dataset_version': 4, 'id': 2954967, 'mean': 24.94, 'median': 24.0, 'pos': 46546430}]
+    expected = {'chrom': '22', 'coverage': [1.0, 1.0, 0.993, 0.91, 0.697, 0.426, 0.2, 0.009, 0.0],
+                'dataset_version': 4, 'mean': 24.94, 'median': 24.0, 'pos': 46546430}
+    for val in expected:
+        assert coverage[0][val] == expected[val]
     assert len(lookups.get_coverage_for_transcript('SweGen', '22', 46615715, 46615880)) == 17
 
     # no hits
@@ -148,7 +157,8 @@ def test_get_gene_by_dbid():
                 'start': 16967410,
                 'stop': 16969212,
                 'strand': '+'}
-    result = lookups.get_gene_by_dbid(53626)
+    gene = lookups.get_gene('SweGen', 'ENSG00000226444')
+    result = lookups.get_gene_by_dbid(gene['id'])
     for val in expected:
         assert result[val] == expected[val]
 
@@ -249,8 +259,8 @@ def test_get_transcripts_in_gene():
     """
     Test get_transcripts_in_gene()
     """
-    res = lookups.get_transcripts_in_gene('SweGen', 'ENSG00000103197')
-    assert len(res) == 27
+    res = lookups.get_transcripts_in_gene('SweGen', 'ENSG00000228314')
+    assert len(res) == 3
 
     assert not lookups.get_transcripts_in_gene('bad_dataset', 'ENSG00000241670')
     assert not lookups.get_transcripts_in_gene('SweGen', 'ENSGASDFG')
@@ -271,8 +281,9 @@ def test_get_transcripts_in_gene_by_dbid():
     """
     Test get_transcripts_in_gene_by_dbid()
     """
-    res = lookups.get_transcripts_in_gene_by_dbid(53626)
-    assert len(res) == 2
+    gene = lookups.get_gene('SweGen', 'ENSG00000228314')
+    res = lookups.get_transcripts_in_gene_by_dbid(gene['id'])
+    assert len(res) == 3
     res = lookups.get_transcripts_in_gene_by_dbid(-1)
     assert not res
 
@@ -298,7 +309,7 @@ def test_get_variant():
     assert result['variant_id'] == '21-9435852-T-C'
 
 
-def test_get_variants_by_rsid(caplog):
+def test_get_variants_by_rsid():
     '''
     Test get_variants_by_rsid()
     '''
@@ -331,12 +342,6 @@ def test_get_variants_by_rsid(caplog):
     assert lookups.get_variants_by_rsid('SweGen', 'rs37356766700', check_position=True) is None
     assert lookups.get_variants_by_rsid('SweGen', '373706802') is None
     assert lookups.get_variants_by_rsid('SweGen', 'rs3737o68o2') is None
-
-    expected = ('get_dataset_version(incorrect_name, version=None): cannot retrieve dataset version',
-                'get_variants_by_rsid(SweGen, 373706802): rsid not starting with rs',
-                'get_variants_by_rsid(SweGen, rs3737o68o2): not an integer after rs')
-    for comparison in zip(caplog.messages, expected):
-        assert comparison[0] == comparison[1]
 
     # no variants with rsid available
     assert not lookups.get_variants_by_rsid('SweGen', 'rs1')
