@@ -465,7 +465,7 @@ def get_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_version:st
     return variant
 
 
-def get_variants_by_rsid(dataset:str, rsid:str, check_position:str=False, ds_version:str=None):
+def get_variants_by_rsid(dataset:str, rsid:str, ds_version:str=None, check_position:str=False):
     """
     Retrieve variants by their associated rsid
     May also look up rsid and search for variants at the position
@@ -500,13 +500,16 @@ def get_variants_by_rsid(dataset:str, rsid:str, check_position:str=False, ds_ver
                   .dicts()
                   .get())
         dbsnp_version = refset['dbsnp_version']
-
-        rsid_dbsnp = (db.DbSNP
-                     .select()
-                     .where((db.DbSNP.rsid == rsid) &
-                            (db.DbSNP.version_id == dbsnp_version))
-                     .dicts()
-                     .get())
+        try:
+            rsid_dbsnp = (db.DbSNP
+                          .select()
+                          .where((db.DbSNP.rsid == rsid) &
+                                 (db.DbSNP.version_id == dbsnp_version))
+                          .dicts()
+                          .get())
+        except db.DbSNP.DoesNotExist:
+            logging.error('get_variants_by_rsid({}, {}): rsid not in dbsnp'.format(dataset, rsid))
+            return None
         query = (db.Variant
                  .select()
                  .where((db.Variant.pos == rsid_dbsnp['pos']) &
