@@ -282,11 +282,20 @@ def test_get_variant():
     Test get_variant()
     """
     result = lookups.get_variant('SweGen', 16057464, '22', 'G', 'A')
+    assert result['variant_id'] == '22-16057464-G-A'
     assert result['genes'] == ['ENSG00000233866']
     assert result['transcripts'] == ['ENST00000424770']
+    result = lookups.get_variant('SweGen', 9435852, '21', 'T', 'C')
+    assert not result
 
     # incorrect position
     assert not lookups.get_variant('SweGen', -1, '1', 'A', 'T')
+
+    # with version
+    result = lookups.get_variant('SweGen', 16057464, '22', 'G', 'A', "20161223")
+    assert not result
+    result = lookups.get_variant('SweGen', 9435852, '21', 'T', 'C', "20161223")
+    assert result['variant_id'] == '21-9435852-T-C'
 
 
 def test_get_variants_by_rsid(caplog):
@@ -299,6 +308,11 @@ def test_get_variants_by_rsid(caplog):
     assert set(result[0]['genes']) == set(['ENSG00000100156', 'ENSG00000128298', 'ENSG00000272720'])
     assert len(result[0]['genes']) == 3
     assert len(result[0]['transcripts']) == 6
+    assert not lookups.get_variants_by_rsid('SweGen', 'rs76676778')
+    # with version
+    assert not lookups.get_variants_by_rsid('SweGen', 'rs185758992', '20161223')
+    result = lookups.get_variants_by_rsid('SweGen', 'rs76676778', '20161223')
+    assert result[0]['variant_id'] == '21-9411609-G-T'
 
     # by position
     result = lookups.get_variants_by_rsid('SweGen', 'rs185758992', check_position=True)
@@ -306,9 +320,15 @@ def test_get_variants_by_rsid(caplog):
     assert set(result[0]['genes']) == set(['ENSG00000100156', 'ENSG00000128298', 'ENSG00000272720'])
     assert len(result[0]['genes']) == 3
     assert len(result[0]['transcripts']) == 6
+    assert not lookups.get_variants_by_rsid('SweGen', 'rs76676778', check_position=True)
+    # with version
+    assert not lookups.get_variants_by_rsid('SweGen', 'rs185758992', '20161223', check_position=True)
+    result = lookups.get_variants_by_rsid('SweGen', 'rs76676778', '20161223', check_position=True)
+    assert result[0]['variant_id'] == '21-9411609-G-T'
 
     # errors
     assert lookups.get_variants_by_rsid('incorrect_name', 'rs373706802') is None
+    assert lookups.get_variants_by_rsid('SweGen', 'rs37356766700', check_position=True) is None
     assert lookups.get_variants_by_rsid('SweGen', '373706802') is None
     assert lookups.get_variants_by_rsid('SweGen', 'rs3737o68o2') is None
 
