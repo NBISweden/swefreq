@@ -355,7 +355,7 @@ def get_raw_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_versio
                           (db.Variant.ref == ref) &
                           (db.Variant.alt == alt) &
                           (db.Variant.chrom == chrom) &
-                          (db.Variant.dataset_version == dataset_version.id))
+                          (db.Variant.dataset_version == dataset_version))
                    .dicts()
                    .get())
         variant['genes'] = [gene['gene_id'] for gene in
