@@ -349,7 +349,7 @@ class Search(handlers.UnsafeHandler):
         """
         ret = {"dataset": dataset, "value": None, "type": None}
 
-        datatype, identifier = lookups.get_awesomebar_result(dataset, query)
+        datatype, identifier = lookups.get_awesomebar_result(dataset, query, ds_version)
 
         if datatype == "dbsnp_variant_set":
             datatype = "dbsnp"
