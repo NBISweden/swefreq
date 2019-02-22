@@ -1,3 +1,7 @@
+"""
+Request handlers for the browser
+"""
+
 import logging
 
 import handlers
@@ -18,24 +22,6 @@ class Autocomplete(handlers.UnsafeHandler):
         results = pgsql.get_autocomplete(query)
         ret = {'values': sorted(list(set(results)))[:20]}
 
-        self.finish( ret )
-
-
-class GetCoverage(handlers.UnsafeHandler):
-    """
-    Retrieve coverage
-    """
-    def get(self, dataset, datatype, item, ds_version=None):
-        ret = pgsql.get_coverage(dataset, datatype, item, ds_version)
-        self.finish(ret)
-
-
-class GetCoveragePos(handlers.UnsafeHandler):
-    """
-    Retrieve coverage range
-    """
-    def get(self, dataset, datatype, item, ds_version=None):
-        ret = pgsql.get_coverage_pos(dataset, datatype, item)
         self.finish(ret)
 
 
@@ -61,6 +47,24 @@ class Download(handlers.UnsafeHandler):
         for variant in data['variants']:
             headers = [h[0] for h in data['headers']]
             self.write(','.join(map(str, [variant[h] for h in headers])) + '\n')
+
+
+class GetCoverage(handlers.UnsafeHandler):
+    """
+    Retrieve coverage
+    """
+    def get(self, dataset, datatype, item, ds_version=None):
+        ret = pgsql.get_coverage(dataset, datatype, item, ds_version)
+        self.finish(ret)
+
+
+class GetCoveragePos(handlers.UnsafeHandler):
+    """
+    Retrieve coverage range
+    """
+    def get(self, dataset, datatype, item, ds_version=None):
+        ret = pgsql.get_coverage_pos(dataset, datatype, item)
+        self.finish(ret)
 
 
 class GetGene(handlers.UnsafeHandler):
@@ -232,7 +236,7 @@ class GetVariant(handlers.UnsafeHandler):
             self.set_user_msg('Unable to parse variant', 'error')
             return
         orig_variant = variant
-        variant = lookups.get_variant(dataset, v[1], v[0], v[2], v[3])
+        variant = lookups.get_variant(dataset, v[1], v[0], v[2], v[3], ds_version)
 
         if not variant:
             logging.error('Variant not found ({})'.format(orig_variant))
