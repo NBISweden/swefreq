@@ -190,3 +190,4 @@ def test_worst_csq_with_vep():
     res = utils.worst_csq_with_vep(veps)
     assert res == {'SYMBOL': '1', 'Consequence': 'frameshift_variant',
                    'CANONICAL': 'YES', 'major_consequence': 'frameshift_variant'}
+    assert not utils.worst_csq_with_vep([])

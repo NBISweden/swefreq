@@ -91,6 +91,14 @@ def test_get_region():
     region = json.loads(response.text)
     assert region == {'region': {'chrom': '22', 'start': 46615715, 'stop': 46615880, 'limit': 100000}}
 
+    region_def = '22-46A1615715-46615880'
+    response = requests.get('{}/api/datasets/{}/browser/region/{}'.format(BASE_URL, dataset, region_def))
+    assert response.status_code == 400
+
+    region_def = '22-46A1615715-46615880'
+    response = requests.get('{}/api/datasets/{}/browser/region/{}'.format(BASE_URL, dataset, region_def))
+    assert response.status_code == 400
+
 
 def test_get_transcript():
     """
@@ -163,3 +171,10 @@ def test_search():
     data = json.loads(response.text)
     assert data['type'] == 'gene'
     assert data['value'] == 'ENSG00000183249'
+
+    query = '21-9411281-T-C'
+    version = '20161223'
+    response = requests.get('{}/api/datasets/{}/version/{}/browser/search/{}'.format(BASE_URL, dataset, version, query))
+    data = json.loads(response.text)
+    assert data['type'] == 'variant'
+    assert data['value'] == '21-9411281-T-C'
