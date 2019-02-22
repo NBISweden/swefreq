@@ -54,7 +54,7 @@
             if ($routeParams.transcript) {
                 localThis.itemType = "transcript";
                 localThis.item = $routeParams.transcript;
-                Browser.getTranscript($routeParams.dataset, $routeParams.transcript).then( function(data) {
+                Browser.getTranscript($routeParams.dataset, $routeParams.version, $routeParams.transcript).then( function(data) {
                     localThis.transcript = data.transcript;
                     localThis.gene       = data.gene;
                     localThis.coverage.region.exons = data.exons;
@@ -63,21 +63,21 @@
             if ($routeParams.region) {
                 localThis.itemType = "region";
                 localThis.item = $routeParams.region;
-                Browser.getRegion($routeParams.dataset, $routeParams.region).then( function(data) {
+                Browser.getRegion($routeParams.dataset, $routeParams.version, $routeParams.region).then( function(data) {
                     localThis.region = data.region;
                 });
             }
             if ($routeParams.gene) {
                 localThis.itemType = "gene";
                 localThis.item = $routeParams.gene;
-                Browser.getGene($routeParams.dataset, $routeParams.gene).then( function(data) {
+                Browser.getGene($routeParams.dataset, $routeParams.version, $routeParams.gene).then( function(data) {
                     localThis.gene = data.gene;
                     localThis.transcripts = data.transcripts;
                     localThis.coverage.region.exons = data.exons;
                 });
             }
             if (localThis.itemType) {
-                Browser.getVariants($routeParams.dataset, localThis.itemType, localThis.item).then( function(data) {
+                Browser.getVariants($routeParams.dataset, $routeParams.version, localThis.itemType, localThis.item).then( function(data) {
                     localThis.variants = data.variants;
                     localThis.headers = data.headers;
 
@@ -92,12 +92,12 @@
                     localThis.filterVariants();
 
                 });
-                Browser.getCoveragePos($routeParams.dataset, localThis.itemType, localThis.item).then( function(data) {
+                Browser.getCoveragePos($routeParams.dataset, $routeParams.version, localThis.itemType, localThis.item).then( function(data) {
                     localThis.coverage.region.start = data.start;
                     localThis.coverage.region.stop  = data.stop;
                     localThis.coverage.region.chrom = data.chrom;
                 });
-                Browser.getCoverage($routeParams.dataset, localThis.itemType, localThis.item).then(function(data) {
+                Browser.getCoverage($routeParams.dataset, $routeParams.version, localThis.itemType, localThis.item).then(function(data) {
                     localThis.coverage.data = data.coverage;
                     localThis.coverage.loaded = true;
                 }, function() {
@@ -105,11 +105,11 @@
                 });
             }
             if ($routeParams.variant) {
-                Browser.getVariant($routeParams.dataset, $routeParams.variant).then( function(data) {
+                Browser.getVariant($routeParams.dataset, $routeParams.version, $routeParams.variant).then( function(data) {
                     localThis.variant = data.variant;
                 });
             }
-            Dataset.getDataset($routeParams.dataset, $routeParams.version)
+            Dataset.getDataset($routeParams.dataset, $routeParams.version, $routeParams.version)
                 .then(function(data) {
                     localThis.dataset = data.dataset;
                 },
@@ -131,7 +131,7 @@
                 localThis.query = query;
             }
             if (localThis.query) {
-                Browser.search($routeParams.dataset, localThis.query).then( function(data) {
+                Browser.search($routeParams.dataset, $routeParams.version, localThis.query).then( function(data) {
 
                     var url = browserLink(`${data.type}/${data.value}`);
                     if ( data.type == "error" || data.type == "not_found" ) {
@@ -145,7 +145,7 @@
         function autocomplete() {
             localThis.activeSuggestion = -1;
             if (localThis.query) {
-                Browser.autocomplete($routeParams.dataset, localThis.query)
+                Browser.autocomplete($routeParams.dataset, $routeParams.version, localThis.query)
                        .then( function(data) {
                             localThis.suggestions = data.values;
                         });
