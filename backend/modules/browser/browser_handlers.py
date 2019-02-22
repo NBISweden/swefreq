@@ -16,7 +16,7 @@ from .utils import add_consequence_to_variant, remove_extraneous_vep_annotations
 REGION_LIMIT = 100000
 
 class Autocomplete(handlers.UnsafeHandler):
-    def get(self, dataset, query, ds_version=None):
+    def get(self, dataset:str, query:str, ds_version:str=None):
         ret = {}
 
         results = pgsql.get_autocomplete(query)
@@ -26,7 +26,7 @@ class Autocomplete(handlers.UnsafeHandler):
 
 
 class Download(handlers.UnsafeHandler):
-    def get(self, dataset: str, datatype, item, ds_version=None):
+    def get(self, dataset:str, datatype:str, item:str, ds_version:str=None):
         """
         Download variants as csv
 
@@ -53,7 +53,7 @@ class GetCoverage(handlers.UnsafeHandler):
     """
     Retrieve coverage
     """
-    def get(self, dataset, datatype, item, ds_version=None):
+    def get(self, dataset:str, datatype:str, item:str, ds_version:str=None):
         ret = pgsql.get_coverage(dataset, datatype, item, ds_version)
         self.finish(ret)
 
@@ -62,7 +62,7 @@ class GetCoveragePos(handlers.UnsafeHandler):
     """
     Retrieve coverage range
     """
-    def get(self, dataset, datatype, item, ds_version=None):
+    def get(self, dataset:str, datatype:str, item:str, ds_version:str=None):
         ret = pgsql.get_coverage_pos(dataset, datatype, item)
         self.finish(ret)
 
@@ -71,7 +71,7 @@ class GetGene(handlers.UnsafeHandler):
     """
     Request information about a gene
     """
-    def get(self, dataset, gene, ds_version=None):
+    def get(self, dataset:str, gene:str, ds_version:str=None):
         """
         Request information about a gene
 
@@ -116,7 +116,7 @@ class GetRegion(handlers.UnsafeHandler):
     """
     Request information about genes in a region
     """
-    def get(self, dataset, region, ds_version=None):
+    def get(self, dataset:str, region:str, ds_version:str=None):
         """
         Request information about genes in a region
 
@@ -173,7 +173,7 @@ class GetTranscript(handlers.UnsafeHandler):
     """
     Request information about a transcript
     """
-    def get(self, dataset, transcript, ds_version=None):
+    def get(self, dataset:str, transcript:str, ds_version:str=None):
         """
         Request information about a transcript
 
@@ -216,7 +216,7 @@ class GetVariant(handlers.UnsafeHandler):
     """
     Request information about a gene
     """
-    def get(self, dataset, variant, ds_version=None):
+    def get(self, dataset:str, variant:str, ds_version:str=None):
         """
         Request information about a gene
 
@@ -316,7 +316,7 @@ class GetVariants(handlers.UnsafeHandler):
     """
     Retrieve variants
     """
-    def get(self, dataset, datatype, item, ds_version=None):
+    def get(self, dataset:str, datatype:str, item:str, ds_version:str=None):
         """
         Retrieve variants
 
@@ -339,7 +339,7 @@ class Search(handlers.UnsafeHandler):
     """
     Perform a search for the wanted object
     """
-    def get(self, dataset, query, ds_version=None):
+    def get(self, dataset:str, query:str, ds_version:str=None):
         """
         Perform a search for the wanted object
 
