@@ -7,38 +7,6 @@ from . import utils
 
 SEARCH_LIMIT = 10000
 
-
-def add_rsid_to_variant(dataset:str, variant:str):
-    """
-    Add rsid to a variant in the database based on position
-
-    Args:
-        dataset (str): short name of the dataset
-        variant (dict): values for a variant
-    """
-    refset = (db.Dataset
-              .select(db.ReferenceSet)
-              .join(db.ReferenceSet)
-              .where(db.Dataset.short_name == dataset)
-              .dicts()
-              .get())
-    dbsnp_version = refset['dbsnp_version']
-
-    if not variant['rsid']:
-        try:
-            rsid = (db.DbSNP
-                    .select()
-                    .where((db.DbSNP.pos == variant['pos']) &
-                           (db.DbSNP.chrom == variant['chrom']) &
-                           (db.DbSNP.version == dbsnp_version))
-                    .dicts()
-                    .get())
-            variant['rsid'] = 'rs{}'.format(rsid['rsid'])
-        except db.DbSNP.DoesNotExist:
-            pass
-            # logging.error('add_rsid_to_variant({}, variant[dbid: {}]): unable to retrieve rsid'.format(dataset, variant['id']))
-
-
 REGION_REGEX = re.compile(r'^\s*(\d+|X|Y|M|MT)\s*([-:]?)\s*(\d*)-?([\dACTG]*)-?([ACTG]*)')
 
 def get_awesomebar_result(dataset:str, query:str, ds_version:str=None):
@@ -457,9 +425,7 @@ def get_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_version:st
     variant = get_raw_variant(dataset, pos, chrom, ref, alt, ds_version)
     if not variant or 'rsid' not in variant:
         return variant
-    if variant['rsid'] == '.' or variant['rsid'] is None:
-        add_rsid_to_variant(dataset, variant)
-    else:
+    if variant['rsid']:
         if not str(variant['rsid']).startswith('rs'):
             variant['rsid'] = 'rs{}'.format(variant['rsid'])
     return variant
@@ -573,8 +539,6 @@ def get_variants_in_gene(dataset:str, gene_id:str, ds_version:str=None):
     for variant in variants:
         if variant['rsid']:
             variant['rsid'] = 'rs{}'.format(variant['rsid'])
-        else:
-            add_rsid_to_variant(dataset, variant)
         remove_extraneous_information(variant)
     return variants
 
@@ -616,8 +580,6 @@ def get_variants_in_region(dataset:str, chrom:str, start_pos:int, end_pos:int, d
     for variant in variants:
         if variant['rsid']:
             variant['rsid'] = 'rs{}'.format(variant['rsid'])
-        else:
-            add_rsid_to_variant(dataset, variant)
         remove_extraneous_information(variant)
     return variants
 
@@ -660,8 +622,6 @@ def get_variants_in_transcript(dataset:str, transcript_id:str, ds_version:str=No
         variant['vep_annotations'] = [anno for anno in variant['vep_annotations'] if anno['Feature'] == transcript_id]
         if variant['rsid']:
             variant['rsid'] = 'rs{}'.format(variant['rsid'])
-        else:
-            add_rsid_to_variant(dataset, variant)
         remove_extraneous_information(variant)
     return variants
 
