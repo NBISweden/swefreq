@@ -5,19 +5,6 @@ Tests for the functions available in lookups.py
 from .. import lookups
 
 
-def test_add_rsid_to_variant():
-    """
-    Test add_rsid_to_variant()
-    """
-    variant = lookups.get_variant('SweGen', 34730985, '22', 'G', 'A')
-    lookups.add_rsid_to_variant('SweGen', variant)
-    assert variant['rsid'] == 'rs924645261'
-    variant = lookups.get_variant('SweGen', 16113980, '22', 'C', 'T')
-    variant['rsid'] = ''
-    lookups.add_rsid_to_variant('SweGen', variant)
-    assert variant['rsid'] == 'rs9680543'
-
-
 def test_get_awesomebar_result():
     """
     Test get_awesomebar_result()
@@ -354,6 +341,8 @@ def test_get_variants_in_gene():
     res = lookups.get_variants_in_gene('SweGen', 'ENSG00000198062')
     assert len(res) == 1185
     assert not lookups.get_variants_in_gene('bad_dataset', 'ENSG00000198062')
+    res = lookups.get_variants_in_gene('ACpop', 'ENSG00000040608')
+    assert len(res) == 260
     assert not lookups.get_variants_in_gene('bad_dataset', 'ENSGASDFG')
 
 
