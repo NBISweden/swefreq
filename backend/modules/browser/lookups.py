@@ -183,16 +183,16 @@ def get_gene(dataset:str, gene_id:str):
         gene_id (str): the id of the gene
 
     Returns:
-        dict: values for the gene; empty if not found
+        dict: values for the gene; None if not found
     """
     ref_dbid = db.get_reference_dbid_dataset(dataset)
     if not ref_dbid:
-        return {}
+        return None
     try:
         return db.Gene.select().where((db.Gene.gene_id == gene_id) &
                                       (db.Gene.reference_set == ref_dbid)).dicts().get()
     except db.Gene.DoesNotExist:
-        return {}
+        return None
 
 
 def get_gene_by_dbid(gene_dbid:str):
@@ -270,31 +270,6 @@ def get_genes_in_region(dataset:str, chrom:str, start_pos:int, stop_pos:int):
                                            (db.Gene.stop <= stop_pos))) &
                                          (db.Gene.chrom == chrom))).dicts()
     return [gene for gene in gene_query]
-
-
-def get_number_of_variants_in_transcript(dataset:str, transcript_id:str, ds_version:str=None):
-    """
-    Get the total and filtered amount of variants in a transcript
-
-    Args:
-        dataset (str): short name of the dataset
-        transcript_id (str): id of the transcript
-        ds_version (str): version of the dataset
-
-    Returns:
-        dict: {filtered: nr_filtered, total: nr_total}, None if error
-    """
-    dataset_version = db.get_dataset_version(dataset, ds_version)
-    if not dataset_version:
-        return None
-
-    variants = get_variants_in_transcript(dataset, transcript_id)
-    if not variants:
-        return None
-    total = len(variants)
-
-    filtered = len(tuple(variant for variant in variants if variant['filter_string'] == 'PASS'))
-    return {'filtered': filtered, 'total': total}
 
 
 def get_raw_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_version:str=None):
@@ -522,7 +497,8 @@ def get_variants_in_gene(dataset:str, gene_id:str, ds_version:str=None):
     if not ref_dbid:
         return None
     dataset_version = db.get_dataset_version(dataset, ds_version)
-
+    if not dataset_version:
+        return None
     gene = get_gene(dataset, gene_id)
 
     variants = [variant for variant in db.Variant.select()

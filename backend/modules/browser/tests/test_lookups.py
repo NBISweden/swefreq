@@ -205,23 +205,6 @@ def test_get_genes_in_region():
     assert not res
 
 
-def test_get_number_of_variants_in_transcript():
-    """
-    Test get_number_of_variants_in_transcripts()
-    """
-    # normal
-    res = lookups.get_number_of_variants_in_transcript('SweGen', 'ENST00000424770')
-    assert res == {'filtered': 66, 'total': 309}
-
-    # bad transcript
-    res = lookups.get_number_of_variants_in_transcript('SweGen', 'ENSTASDSADA')
-    assert res is None
-
-    # bad dataset
-    res = lookups.get_number_of_variants_in_transcript('bad_dataset', 'ENST00000424770')
-    assert res is None
-
-
 def test_get_transcript():
     """
     Test get_transcript()
@@ -341,8 +324,6 @@ def test_get_variants_in_gene():
     res = lookups.get_variants_in_gene('SweGen', 'ENSG00000198062')
     assert len(res) == 1185
     assert not lookups.get_variants_in_gene('bad_dataset', 'ENSG00000198062')
-    res = lookups.get_variants_in_gene('ACpop', 'ENSG00000040608')
-    assert len(res) == 260
     assert not lookups.get_variants_in_gene('bad_dataset', 'ENSGASDFG')
 
 

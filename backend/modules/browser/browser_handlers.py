@@ -94,9 +94,6 @@ class GetGene(handlers.UnsafeHandler):
         for exon in sorted(transcript['exons'], key=lambda k: k['start']):
             ret['exons'] += [{'start':exon['start'], 'stop':exon['stop'], 'type':exon['feature_type']}]
 
-        # Variants
-        ret['gene']['variants'] = lookups.get_number_of_variants_in_transcript(dataset, gene['canonical_transcript'], ds_version)
-
         # Transcripts
         transcripts_in_gene = lookups.get_transcripts_in_gene(dataset, gene_id)
         if transcripts_in_gene:
