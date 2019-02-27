@@ -32,13 +32,6 @@ elixir = json_settings["elixir"]
 ## Generated with base64.b64encode(uuid.uuid4().bytes + uuid.uuid4().bytes)
 cookie_secret = json_settings["cookieSecret"]
 
-# Mongodb settings
-mongo_host      = json_settings["mongoHost"]
-mongo_port      = json_settings["mongoPort"]
-mongo_user      = json_settings["mongoUser"]
-mongo_password  = json_settings["mongoPassword"]
-mongo_databases = json_settings["mongoDatabases"]
-
 # PostgreSQL settings
 psql_host = json_settings["postgresHost"]
 psql_port = json_settings["postgresPort"]
