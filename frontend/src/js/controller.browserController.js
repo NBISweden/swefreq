@@ -88,9 +88,9 @@
                         variant.isMissense = variant.majorConsequence == "missense";
                     };
                     localThis.variants.map(mapFunction);
+		    localThis.passed = localThis.variants.filter(v => v.isPass).length;
 
                     localThis.filterVariants();
-
                 });
                 Browser.getCoveragePos($routeParams.dataset, $routeParams.version, localThis.itemType, localThis.item).then( function(data) {
                     localThis.coverage.region.start = data.start;
