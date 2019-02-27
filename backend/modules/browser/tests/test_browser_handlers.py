@@ -5,7 +5,7 @@ Test the browser handlers
 import requests
 import json
 
-BASE_URL="http://localhost:4001"
+BASE_URL="http://localhost:4000"
 
 def test_get_autocomplete():
     """
