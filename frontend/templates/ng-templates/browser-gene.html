@@ -15,9 +15,6 @@
                 <dt>{{ ctrl.gene.geneName }}</dt>
                 <dd>{{ ctrl.gene.fullGeneName }}</dd>
 
-                <dt>Number of variants</dt>
-                <dd>{{ ctrl.gene.variants.filtered }} (Including filtered: {{ ctrl.gene.variants.total }})</dd>
-
                 <dt>UCSC Browser</dt>
                 <dd class="hidden-xs">
                     <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=chr{{ ctrl.gene.chrom }}%3A{{ ctrl.gene.start - 1 }}-{{ ctrl.gene.stop - 1 }}&hgt.customText=http://personal.broadinstitute.org/ruderfer/exac/exac-final.autosome-1pct-sq60-qc-prot-coding.cnv.bed" target="_blank">
