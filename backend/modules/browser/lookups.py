@@ -602,11 +602,16 @@ def get_variants_in_transcript(dataset:str, transcript_id:str, ds_version:str=No
     return variants
 
 
-def remove_extraneous_information(variant):
-    #del variant['genotype_depths']
-    #del variant['genotype_qualities']
-#    del variant['transcripts']
-#    del variant['genes']
+def remove_extraneous_information(variant:dict):
+    '''
+    Remove information that is not used in the frontend from a variant
+    Intended to be used by the variants_in_* functions
+
+    Args:
+        variant (dict): variant data from database
+    '''
+    del variant['id']
+    del variant['dataset_version']
     del variant['orig_alt_alleles']
     del variant['site_quality']
     del variant['vep_annotations']
