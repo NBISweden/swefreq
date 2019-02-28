@@ -1,8 +1,8 @@
 <div class="container">
     <div class="row">
-    	 Variants: {{ctrl.passed}} (including filtered: {{ctrl.variants.length}})
-    </div>
-    <div class="row">
+        <div class="col-md-12">
+    	    Number of variants: {{ctrl.filteredVariants.length}} (total: {{ctrl.variants.length}})
+	</div>
         <div class="col-md-12">
             <span class="btn-group radio-button-group" ng-click="ctrl.filterVariants()">
                 <input type="radio" id="variants-filter-all" ng-model="ctrl.filterVariantsBy" value="all">

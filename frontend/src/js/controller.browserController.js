@@ -88,7 +88,6 @@
                         variant.isMissense = variant.majorConsequence == "missense";
                     };
                     localThis.variants.map(mapFunction);
-		    localThis.passed = localThis.variants.filter(v => v.isPass).length;
 
                     localThis.filterVariants();
                 });
