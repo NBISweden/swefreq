@@ -7,7 +7,7 @@ import logging
 import handlers
 
 from . import lookups
-from . import pgsql
+from . import psql
 
 from .utils import add_consequence_to_variant, remove_extraneous_vep_annotations, \
     order_vep_by_csq, get_proper_hgvs
@@ -19,7 +19,7 @@ class Autocomplete(handlers.UnsafeHandler):
     def get(self, dataset:str, query:str, ds_version:str=None):
         ret = {}
 
-        results = pgsql.get_autocomplete(query)
+        results = psql.get_autocomplete(query)
         ret = {'values': sorted(list(set(results)))[:20]}
 
         self.finish(ret)
@@ -40,7 +40,7 @@ class Download(handlers.UnsafeHandler):
         self.set_header('Content-Type','text/csv')
         self.set_header('content-Disposition','attachement; filename={}'.format(filename))
 
-        data = pgsql.get_variant_list(dataset, datatype, item)
+        data = psql.get_variant_list(dataset, datatype, item)
         # Write header
         self.write(','.join([h[1] for h in data['headers']]) + '\n')
 
@@ -54,7 +54,7 @@ class GetCoverage(handlers.UnsafeHandler):
     Retrieve coverage
     """
     def get(self, dataset:str, datatype:str, item:str, ds_version:str=None):
-        ret = pgsql.get_coverage(dataset, datatype, item, ds_version)
+        ret = psql.get_coverage(dataset, datatype, item, ds_version)
         self.finish(ret)
 
 
@@ -63,7 +63,7 @@ class GetCoveragePos(handlers.UnsafeHandler):
     Retrieve coverage range
     """
     def get(self, dataset:str, datatype:str, item:str, ds_version:str=None):
-        ret = pgsql.get_coverage_pos(dataset, datatype, item)
+        ret = psql.get_coverage_pos(dataset, datatype, item)
         self.finish(ret)
 
 
@@ -322,7 +322,7 @@ class GetVariants(handlers.UnsafeHandler):
             datatype (str): gene, region, or transcript
             item (str): item to query
         """
-        ret = pgsql.get_variant_list(dataset, datatype, item)
+        ret = psql.get_variant_list(dataset, datatype, item)
         # inconvenient way of doing humpBack-conversion
         headers = []
         for a, h in ret['headers']:
