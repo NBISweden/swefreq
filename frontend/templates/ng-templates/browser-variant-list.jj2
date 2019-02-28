@@ -1,9 +1,6 @@
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-    	    Number of variants: {{ctrl.filteredVariants.length}} (total: {{ctrl.variants.length}})
-	</div>
-        <div class="col-md-12">
             <span class="btn-group radio-button-group" ng-click="ctrl.filterVariants()">
                 <input type="radio" id="variants-filter-all" ng-model="ctrl.filterVariantsBy" value="all">
                     <label class="btn btn-primary first-button" for="variants-filter-all">
@@ -31,7 +28,11 @@
             <span class="label label-info">&dagger; denotes a consequence that is for a non-canonical transcript</span>
         </div>
     </div>
-
+    <div class="row">
+	<div class="col-md-12">
+            Number of variants: {{ctrl.filteredVariants.length}} (including filtered: {{ctrl.variants.length}})
+	</div>
+    </div>
     <div class="row">
         <div class="col-md-12">
         <table class="table table-sm table-condensed small variant-table">
