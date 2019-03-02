@@ -160,8 +160,8 @@ class GetRegion(handlers.UnsafeHandler):
             ret['region']['genes'] = []
             for gene in genes_in_region:
                 ret['region']['genes'] += [{'gene_id':gene['gene_id'],
-                                            'gene_name':gene['gene_name'],
-                                            'full_gene_name':gene['full_gene_name'],
+                                            'gene_name':gene['name'],
+                                            'full_gene_name':gene['full_name'],
                                            }]
         self.finish(ret)
 
