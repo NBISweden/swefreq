@@ -124,6 +124,7 @@
 		   .then(function(data) {
                        localThis.coverage.data = data.coverage;
                        localThis.coverage.loaded = true;
+		       console.log("loaded correctly");
                    })
 		   .catch((err) => {
 		       localThis.coverage = {"statusCode": err.status,
