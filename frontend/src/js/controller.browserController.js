@@ -50,7 +50,7 @@
             User.getUser().then(function(data) {
                 localThis.user = data;
             });
-
+	    
             if ($routeParams.transcript) {
                 localThis.itemType = "transcript";
                 localThis.item = $routeParams.transcript;
@@ -63,9 +63,15 @@
             if ($routeParams.region) {
                 localThis.itemType = "region";
                 localThis.item = $routeParams.region;
-                Browser.getRegion($routeParams.dataset, $routeParams.version, $routeParams.region).then( function(data) {
-                    localThis.region = data.region;
-                });
+                Browser.getRegion($routeParams.dataset, $routeParams.version, $routeParams.region)
+		    .then( function(data) {
+			localThis.region = data.region;
+                    })
+		    .catch((err) => {
+			localThis.region = {"statusCode": err.status,
+					    "statusText": err.statusText,
+					    "variantId": $routeParams.region};
+		    });
             }
             if ($routeParams.gene) {
                 localThis.itemType = "gene";
@@ -76,32 +82,42 @@
                     localThis.coverage.region.exons = data.exons;
                 });
             }
-            if (localThis.itemType) {
-                Browser.getVariants($routeParams.dataset, $routeParams.version, localThis.itemType, localThis.item).then( function(data) {
-                    localThis.variants = data.variants;
-                    localThis.headers = data.headers;
+           if (localThis.itemType) {
+               Browser.getVariants($routeParams.dataset, $routeParams.version, localThis.itemType, localThis.item)
+		   .then( function(data) {
+                       localThis.variants = data.variants;
+                       localThis.headers = data.headers;
 
-                    // TODO Move to function later
-                    let mapFunction = function(variant) {
-                        variant.isPass     = variant.filter == "PASS";
-                        variant.isLof      = variant.flags == "LC LoF";
-                        variant.isMissense = variant.majorConsequence == "missense";
-                    };
-                    localThis.variants.map(mapFunction);
+                       // TODO Move to function later
+                       let mapFunction = function(variant) {
+                           variant.isPass     = variant.filter == "PASS";
+                           variant.isLof      = variant.flags == "LC LoF";
+                           variant.isMissense = variant.majorConsequence == "missense";
+                       };
+                       localThis.variants.map(mapFunction);
 
-                    localThis.filterVariants();
-                });
+                       localThis.filteredVariants();
+                   })
+	       	   .catch((err) => {
+		       localThis.variants = {"statusCode": err.status,
+					     "statusText": err.statusText};
+		       localThis.filteredVariants = "done";
+		   });
                 Browser.getCoveragePos($routeParams.dataset, $routeParams.version, localThis.itemType, localThis.item).then( function(data) {
                     localThis.coverage.region.start = data.start;
                     localThis.coverage.region.stop  = data.stop;
                     localThis.coverage.region.chrom = data.chrom;
                 });
-                Browser.getCoverage($routeParams.dataset, $routeParams.version, localThis.itemType, localThis.item).then(function(data) {
-                    localThis.coverage.data = data.coverage;
-                    localThis.coverage.loaded = true;
-                }, function() {
-                    localThis.coverage.loaded = true;
-                });
+               Browser.getCoverage($routeParams.dataset, $routeParams.version, localThis.itemType, localThis.item)
+		   .then(function(data) {
+                       localThis.coverage.data = data.coverage;
+                       localThis.coverage.loaded = true;
+                   })
+		   .catch((err) => {
+		       localThis.coverage = {"statusCode": err.status,
+					     "statusText": err.statusText,
+					     "loaded": true};
+		   });
             }
             if ($routeParams.variant) {
                 Browser.getVariant($routeParams.dataset, $routeParams.version, $routeParams.variant).then( function(data) {
