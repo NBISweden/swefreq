@@ -51,7 +51,7 @@ class GetCoverage(handlers.UnsafeHandler):
     def get(self, dataset:str, datatype:str, item:str, ds_version:str=None):
         ret = utils.get_coverage(dataset, datatype, item, ds_version)
         if 'region_too_large' in ret:
-            self.send_error(status_code=413, reason="The region is too large")
+            self.send_error(status_code=400, reason="The region is too large")
             return
         self.finish(ret)
 
@@ -154,7 +154,7 @@ class GetRegion(handlers.UnsafeHandler):
               }
 
         if utils.is_region_too_large(start, stop):
-            self.send_error(status_code=413, reason="The region is too large")
+            self.send_error(status_code=400, reason="The region is too large")
             return
 
         genes_in_region = lookups.get_genes_in_region(dataset, chrom, start, stop)
@@ -326,7 +326,7 @@ class GetVariants(handlers.UnsafeHandler):
         """
         ret = utils.get_variant_list(dataset, datatype, item)
         if 'region_too_large' in ret:
-            self.send_error(status_code=413, reason="The region is too large")
+            self.send_error(status_code=400, reason="The region is too large")
             return
 
         # inconvenient way of doing humpBack-conversion
