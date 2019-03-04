@@ -7,19 +7,14 @@ import logging
 import handlers
 
 from . import lookups
-from . import psql
+from . import utils
 
-from .utils import add_consequence_to_variant, remove_extraneous_vep_annotations, \
-    order_vep_by_csq, get_proper_hgvs
-
-# maximum length of requested region (GetRegion)
-REGION_LIMIT = 100000
 
 class Autocomplete(handlers.UnsafeHandler):
     def get(self, dataset:str, query:str, ds_version:str=None):
         ret = {}
 
-        results = psql.get_autocomplete(query)
+        results = lookups.get_autocomplete(dataset, query)
         ret = {'values': sorted(list(set(results)))[:20]}
 
         self.finish(ret)
@@ -40,7 +35,7 @@ class Download(handlers.UnsafeHandler):
         self.set_header('Content-Type','text/csv')
         self.set_header('content-Disposition','attachement; filename={}'.format(filename))
 
-        data = psql.get_variant_list(dataset, datatype, item)
+        data = utils.get_variant_list(dataset, datatype, item)
         # Write header
         self.write(','.join([h[1] for h in data['headers']]) + '\n')
 
@@ -54,7 +49,10 @@ class GetCoverage(handlers.UnsafeHandler):
     Retrieve coverage
     """
     def get(self, dataset:str, datatype:str, item:str, ds_version:str=None):
-        ret = psql.get_coverage(dataset, datatype, item, ds_version)
+        ret = utils.get_coverage(dataset, datatype, item, ds_version)
+        if 'region_too_large' in ret:
+            self.send_error(status_code=413)
+            return
         self.finish(ret)
 
 
@@ -63,7 +61,7 @@ class GetCoveragePos(handlers.UnsafeHandler):
     Retrieve coverage range
     """
     def get(self, dataset:str, datatype:str, item:str, ds_version:str=None):
-        ret = psql.get_coverage_pos(dataset, datatype, item)
+        ret = utils.get_coverage_pos(dataset, datatype, item)
         self.finish(ret)
 
 
@@ -142,9 +140,6 @@ class GetRegion(handlers.UnsafeHandler):
             self.set_user_msg('Unable to parse region', 'error')
             return
 
-        if stop-start > REGION_LIMIT:
-            return
-
         if not start:
             start = 0
         if not stop and start:
@@ -155,9 +150,12 @@ class GetRegion(handlers.UnsafeHandler):
         ret = {'region':{'chrom': chrom,
                          'start': start,
                          'stop':  stop,
-                         'limit': REGION_LIMIT,
                         },
               }
+
+        if utils.is_region_too_large(start, stop):
+            self.send_error(status_code=413)
+            return
 
         genes_in_region = lookups.get_genes_in_region(dataset, chrom, start, stop)
         if genes_in_region:
@@ -326,7 +324,11 @@ class GetVariants(handlers.UnsafeHandler):
             datatype (str): gene, region, or transcript
             item (str): item to query
         """
-        ret = psql.get_variant_list(dataset, datatype, item)
+        ret = utils.get_variant_list(dataset, datatype, item)
+        if 'region_too_large' in ret:
+            self.send_error(status_code=413)
+            return
+
         # inconvenient way of doing humpBack-conversion
         headers = []
         for a, h in ret['headers']:

@@ -9,6 +9,23 @@ SEARCH_LIMIT = 10000
 
 REGION_REGEX = re.compile(r'^\s*(\d+|X|Y|M|MT)\s*([-:]?)\s*(\d*)-?([\dACTG]*)-?([ACTG]*)')
 
+
+def get_autocomplete(dataset, query:str):
+    """
+    Provide autocomplete suggestions based on the query
+    Args:
+        query (str): the query to compare to the available gene names
+    Returns:
+        list: A list of genes names whose beginning matches the query
+    """
+    ref_dbid = db.get_reference_dbid_dataset(dataset)
+    query = (db.Gene.select(db.Gene.name)
+             .where(((db.Gene.name.startswith(query) &
+                      db.Gene.reference_set == ref_dbid))))
+    gene_names = [str(gene.name) for gene in query]
+    return gene_names
+
+
 def get_awesomebar_result(dataset:str, query:str, ds_version:str=None):
     """
     Parse the search input

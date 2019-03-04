@@ -1,5 +1,7 @@
 import logging
 
+from . import lookups
+
 AF_BUCKETS = [0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1]
 
 CHROMOSOMES = ['chr%s' % x for x in range(1, 23)]
@@ -137,6 +139,81 @@ def annotation_severity(annotation:dict):
     return rv
 
 
+def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
+    """
+    Retrieve coverage for a gene/region/transcript
+
+    Args:
+        dataset (str): short name of the dataset
+        datatype (str): type of "region" (gene/region/transcript)
+        item (str): the datatype item to look up
+        ds_version (str): the dataset version
+
+    Returns:
+        dict: start, stop, coverage list
+    """
+    ret = {'coverage':[]}
+
+    if datatype == 'gene':
+        gene = lookups.get_gene(dataset, item)
+        if gene:
+            transcript = lookups.get_transcript(dataset, gene['canonical_transcript'])
+            if transcript:
+                start = transcript['start'] - EXON_PADDING
+                stop  = transcript['stop'] + EXON_PADDING
+                ret['coverage'] = lookups.get_coverage_for_transcript(dataset, transcript['chrom'], start, stop, ds_version)
+    elif datatype == 'region':
+        chrom, start, stop = item.split('-')
+        start = int(start)
+        stop = int(stop)
+
+        if is_region_too_large(start, stop):
+            return {'coverage': [], 'region_too_large': True}
+
+        ret['coverage'] = lookups.get_coverage_for_bases(dataset, chrom, start, stop, ds_version)
+    elif datatype == 'transcript':
+        transcript = lookups.get_transcript(dataset, item)
+        if transcript:
+            start = transcript['start'] - EXON_PADDING
+            stop  = transcript['stop'] + EXON_PADDING
+            ret['coverage'] = lookups.get_coverage_for_transcript(dataset, transcript['chrom'], start, stop, ds_version)
+    return ret
+
+
+def get_coverage_pos(dataset:str, datatype:str, item:str):
+    """
+    Retrieve coverage range
+
+    Args:
+        dataset (str): short name of the dataset
+        datatype (str): type of "region" (gene/region/transcript)
+        item (str): the datatype item to look up
+
+    Returns:
+        dict: start, stop, chromosome
+    """
+    ret = {'start':None, 'stop':None, 'chrom':None}
+
+    if datatype == 'region':
+        chrom, start, stop = item.split('-')
+        if start and stop and chrom:
+            ret['start'] = int(start)
+            ret['stop'] = int(stop)
+            ret['chrom'] = chrom
+    else:
+        if datatype == 'gene':
+            gene = lookups.get_gene(dataset, item)
+            transcript = lookups.get_transcript(dataset, gene['canonical_transcript'])
+        elif datatype == 'transcript':
+            transcript = lookups.get_transcript(dataset, item)
+        if transcript:
+            ret['start'] = transcript['start'] - EXON_PADDING
+            ret['stop']  = transcript['stop'] + EXON_PADDING
+            ret['chrom'] = transcript['chrom']
+
+    return ret
+
+
 def get_flags_from_variant(variant:dict):
     """
     Get flags from variant.
@@ -220,6 +297,47 @@ def get_transcript_hgvs(annotation:dict):
         return None
 
 
+def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
+    """
+    Retrieve variants for a datatype
+
+    Args:
+        dataset (str): dataset short name
+        datatype (str): type of data
+        item (str): query item
+        ds_version (str): dataset version
+
+    Returns:
+        dict: {variants:list, headers:list}
+    """
+    headers = [['variant_id','Variant'], ['chrom','Chrom'], ['pos','Position'],
+               ['HGVS','Consequence'], ['filter','Filter'], ['major_consequence','Annotation'],
+               ['flags','Flags'], ['allele_count','Allele Count'], ['allele_num','Allele Number'],
+               ['hom_count','Number of Homozygous Alleles'], ['allele_freq','Allele Frequency']]
+
+    if datatype == 'gene':
+        variants = lookups.get_variants_in_gene(dataset, item)
+    elif datatype == 'region':
+        chrom, start, stop = item.split('-')
+        if is_region_too_large(start, stop):
+            return {'variants': [], 'headers': [], 'region_too_large': True}
+        variants = lookups.get_variants_in_region(dataset, chrom, start, stop)
+    elif datatype == 'transcript':
+        variants = lookups.get_variants_in_transcript(dataset, item)
+
+    # Format output
+    def format_variant(variant):
+        variant['major_consequence'] = (variant['major_consequence'].replace('_variant','')
+                                        .replace('_prime_', '\'')
+                                        .replace('_', ' '))
+
+        # This is so an array values turns into a comma separated string instead
+        return {k: ", ".join(v) if isinstance(v,list) else v for k, v in variant.items()}
+
+    variants = list(map(format_variant, variants))
+    return {'variants': variants, 'headers': headers}
+
+
 def order_vep_by_csq(annotation_list:list):
     """
     Adds "major_consequence" to each annotation, orders by severity.
@@ -236,6 +354,20 @@ def order_vep_by_csq(annotation_list:list):
         except KeyError:
             ann['major_consequence'] = ''
     return sorted(annotation_list, key=(lambda ann:CSQ_ORDER_DICT[ann['major_consequence']]))
+
+
+def is_region_too_large(start:int, stop:int):
+    '''
+    Evaluates whether the size of a region is larger than maximum query
+    Args:
+        start (int): Start position of the region
+        stop (int): End position of the region
+
+    Returns:
+        bool: True if too large
+    '''
+    region_limit = 100000
+    return int(stop)-int(start) > region_limit
 
 
 def remove_extraneous_vep_annotations(annotation_list:list):
