@@ -96,7 +96,7 @@
                        };
                        localThis.variants.map(mapFunction);
 
-                       localThis.filteredVariants();
+                       localThis.filterVariants();
                    })
 	       	   .catch((err) => {
 		       localThis.variants = {"statusCode": err.status,
