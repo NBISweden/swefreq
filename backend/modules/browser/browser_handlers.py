@@ -254,13 +254,13 @@ class GetVariant(handlers.UnsafeHandler):
         # https://www.ensembl.org/info/docs/tools/vep/vep_formats.html
         ret['variant']['consequences'] = []
         if 'vep_annotations' in variant:
-            add_consequence_to_variant(variant)
-            variant['vep_annotations'] = remove_extraneous_vep_annotations(variant['vep_annotations'])
+            utils.add_consequence_to_variant(variant)
+            variant['vep_annotations'] = utils.remove_extraneous_vep_annotations(variant['vep_annotations'])
             # Adds major_consequence
-            variant['vep_annotations'] = order_vep_by_csq(variant['vep_annotations'])
+            variant['vep_annotations'] = utils.order_vep_by_csq(variant['vep_annotations'])
             ret['variant']['annotations'] = {}
             for annotation in variant['vep_annotations']:
-                annotation['HGVS'] = get_proper_hgvs(annotation)
+                annotation['HGVS'] = utils.get_proper_hgvs(annotation)
 
                 # Add consequence type to the annotations if it doesn't exist
                 consequence_type = annotation['Consequence'].split('&')[0]  \
