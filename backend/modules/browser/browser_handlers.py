@@ -135,6 +135,10 @@ class GetRegion(handlers.UnsafeHandler):
                 start = int(region[1])
             if len(region) > 2:
                 stop = int(region[2])
+
+        if stop-start > REGION_LIMIT:
+            return
+
         except ValueError:
             logging.error('GetRegion: unable to parse region ({})'.format(region))
             self.send_error(status_code=400)
