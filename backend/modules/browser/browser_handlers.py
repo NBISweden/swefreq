@@ -83,8 +83,9 @@ class GetGene(handlers.UnsafeHandler):
 
         # Gene
         gene = lookups.get_gene(dataset, gene_id)
-        if gene:
-            ret['gene'] = gene
+        if not gene:
+            self.send_error(status_code=404, reason='Gene not found')
+        ret['gene'] = gene
 
         # Add exons from transcript
         transcript = lookups.get_transcript(dataset, gene['canonical_transcript'])
@@ -190,6 +191,8 @@ class GetTranscript(handlers.UnsafeHandler):
 
         # Add transcript information
         transcript = lookups.get_transcript(dataset, transcript_id)
+        if not transcript:
+            self.send_error(status_code=404, reason='Transcript not found')
         ret['transcript']['id'] = transcript['transcript_id']
         ret['transcript']['number_of_CDS'] = len([t for t in transcript['exons'] if t['feature_type'] == 'CDS'])
 

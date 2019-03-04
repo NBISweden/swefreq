@@ -54,11 +54,17 @@
             if ($routeParams.transcript) {
                 localThis.itemType = "transcript";
                 localThis.item = $routeParams.transcript;
-                Browser.getTranscript($routeParams.dataset, $routeParams.version, $routeParams.transcript).then( function(data) {
-                    localThis.transcript = data.transcript;
-                    localThis.gene       = data.gene;
-                    localThis.coverage.region.exons = data.exons;
-                });
+                Browser.getTranscript($routeParams.dataset, $routeParams.version, $routeParams.transcript)
+		    .then( function(data) {
+			localThis.transcript = data.transcript;
+			localThis.gene       = data.gene;
+			localThis.coverage.region.exons = data.exons;
+                    })
+		    .catch((err) => {
+			localThis.transcript = {"statusCode": err.status,
+						"statusText": err.statusText};
+		    });
+;
             }
             if ($routeParams.region) {
                 localThis.itemType = "region";
@@ -76,11 +82,16 @@
             if ($routeParams.gene) {
                 localThis.itemType = "gene";
                 localThis.item = $routeParams.gene;
-                Browser.getGene($routeParams.dataset, $routeParams.version, $routeParams.gene).then( function(data) {
-                    localThis.gene = data.gene;
-                    localThis.transcripts = data.transcripts;
-                    localThis.coverage.region.exons = data.exons;
-                });
+                Browser.getGene($routeParams.dataset, $routeParams.version, $routeParams.gene)
+		    .then( function(data) {
+			localThis.gene = data.gene;
+			localThis.transcripts = data.transcripts;
+			localThis.coverage.region.exons = data.exons;
+                    })
+		    .catch((err) => {
+			localThis.gene = {"statusCode": err.status,
+					  "statusText": err.statusText};
+		    });
             }
            if (localThis.itemType) {
                Browser.getVariants($routeParams.dataset, $routeParams.version, localThis.itemType, localThis.item)
@@ -103,11 +114,12 @@
 					     "statusText": err.statusText};
 		       localThis.filteredVariants = "done";
 		   });
-                Browser.getCoveragePos($routeParams.dataset, $routeParams.version, localThis.itemType, localThis.item).then( function(data) {
-                    localThis.coverage.region.start = data.start;
-                    localThis.coverage.region.stop  = data.stop;
-                    localThis.coverage.region.chrom = data.chrom;
-                });
+               Browser.getCoveragePos($routeParams.dataset, $routeParams.version, localThis.itemType, localThis.item)
+		   .then( function(data) {
+                       localThis.coverage.region.start = data.start;
+                       localThis.coverage.region.stop  = data.stop;
+                       localThis.coverage.region.chrom = data.chrom;
+                   });
                Browser.getCoverage($routeParams.dataset, $routeParams.version, localThis.itemType, localThis.item)
 		   .then(function(data) {
                        localThis.coverage.data = data.coverage;
