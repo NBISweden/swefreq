@@ -5,6 +5,16 @@ Tests for the functions available in lookups.py
 from .. import lookups
 
 
+def test_get_autocomplete():
+    """
+    Test get_autocomplete()
+    """
+    res = pgsql.get_autocomplete('PA')
+    expected = set(["PABPC1P9", "PACSIN2", "PANX2", "PARP4P3",
+                "PARVB", "PARVG", "PATZ1", "PAXBP1", "PAXBP1-AS1"])
+    assert set(res) == expected
+
+
 def test_get_awesomebar_result():
     """
     Test get_awesomebar_result()
