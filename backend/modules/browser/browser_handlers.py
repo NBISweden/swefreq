@@ -53,6 +53,9 @@ class GetCoverage(handlers.UnsafeHandler):
         if 'region_too_large' in ret:
             self.send_error(status_code=400, reason="The region is too large")
             return
+        if not ret['coverage']:
+            self.send_error(status_code=404, reason="No coverage found")
+            return
         self.finish(ret)
 
 
