@@ -5,7 +5,7 @@ Test the browser handlers
 import requests
 import json
 
-BASE_URL="http://localhost:4000"
+BASE_URL="http://localhost:4001"
 
 def test_get_autocomplete():
     """
@@ -43,8 +43,15 @@ def test_get_coverage():
     response = requests.get('{}/api/datasets/{}/browser/coverage/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
     data = json.loads(response.text)
     assert len(data['coverage']) == 144
+    data_type = 'region'
+    data_item = '1-1-1000000'
+    response = requests.get('{}/api/datasets/{}/browser/coverage/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
+    assert response.status_code == 400
+    data_item = '1-1-5'
+    response = requests.get('{}/api/datasets/{}/browser/coverage/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
+    assert response.status_code == 404
 
-
+    
 def test_get_coverage_pos():
     """
     Test GetCoveragePos.get()
@@ -79,6 +86,11 @@ def test_get_gene():
     response = requests.get('{}/api/datasets/{}/browser/gene/{}'.format(BASE_URL, dataset, gene_id))
     expected = {"name": "BID", "canonicalTranscript": "ENST00000317361", "chrom": "22", "strand": "-", "geneName": "BID"}
     gene = json.loads(response.text)
+
+    dataset = 'SweGen'
+    gene_id = 'BAD_GENE_ID'
+    response = requests.get('{}/api/datasets/{}/browser/gene/{}'.format(BASE_URL, dataset, gene_id))
+    assert response.status_code == 404
     
 
 def test_get_region():
@@ -89,15 +101,43 @@ def test_get_region():
     region_def = '22-46615715-46615880'
     response = requests.get('{}/api/datasets/{}/browser/region/{}'.format(BASE_URL, dataset, region_def))
     region = json.loads(response.text)
-    assert region == {'region': {'chrom': '22', 'start': 46615715, 'stop': 46615880, 'limit': 100000}}
+    expected = {'region': {'chrom': '22',
+                           'start': 46615715,
+                           'stop': 46615880,
+                           'genes': [{'fullGeneName': 'peroxisome proliferator-activated receptor alpha',
+                                      'geneId': 'ENSG00000186951',
+                                      'geneName': 'PPARA'}]}}
+    assert region == expected
+    
+    region_def = '22'
+    response = requests.get('{}/api/datasets/{}/browser/region/{}'.format(BASE_URL, dataset, region_def))
+    region = json.loads(response.text)
+    assert region == {'region': {'chrom': '22', 'start': 0, 'stop': 20}}
+
+    region_def = '22-1000'
+    response = requests.get('{}/api/datasets/{}/browser/region/{}'.format(BASE_URL, dataset, region_def))
+    region = json.loads(response.text)
+    assert region == {'region': {'chrom': '22', 'start': 980, 'stop': 1020}}
+
+    region_def = '22-16364870-16366200'
+    response = requests.get('{}/api/datasets/{}/browser/region/{}'.format(BASE_URL, dataset, region_def))
+    region = json.loads(response.text)
+    expected = {'region': {'chrom': '22',
+                           'start': 16364870,
+                           'stop': 16366200,
+                           'genes': [{'geneId': 'ENSG00000231565',
+                                      'geneName': 'NEK2P2',
+                                      'fullGeneName': 'NEK2 pseudogene 2'}]}}
+    assert region == expected
 
     region_def = '22-46A1615715-46615880'
     response = requests.get('{}/api/datasets/{}/browser/region/{}'.format(BASE_URL, dataset, region_def))
     assert response.status_code == 400
 
-    region_def = '22-46A1615715-46615880'
+    region_def = '22-1-1000000'
     response = requests.get('{}/api/datasets/{}/browser/region/{}'.format(BASE_URL, dataset, region_def))
     assert response.status_code == 400
+
 
 
 def test_get_transcript():

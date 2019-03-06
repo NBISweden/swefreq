@@ -205,9 +205,12 @@ def test_get_genes_in_region():
     # stop_pos missing in db, so needs to be updated when available
     # normal
     res = lookups.get_genes_in_region('SweGen', '22', 25595800, 25615800)
-    expected_names = set(['ENSG00000100053', 'ENSG00000236641', 'ENSG00000244752'])
-    names = set(gene['gene_id'] for gene in res)
-    assert names == expected_names
+    expected_ids = set(['ENSG00000100053', 'ENSG00000236641', 'ENSG00000244752'])
+    gene_ids = set(gene['gene_id'] for gene in res)
+    assert gene_ids == expected_ids
+    res = lookups.get_genes_in_region('SweGen', '22', 16364870, 16366200)
+    expected_ids = ['ENSG00000231565']
+    assert [gene['gene_id'] for gene in res] == expected_ids
     # bad dataset
     res = lookups.get_genes_in_region('bad_dataset', '22', 25595800, 25615800)
     # nothing found
