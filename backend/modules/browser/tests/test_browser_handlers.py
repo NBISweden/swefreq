@@ -5,7 +5,7 @@ Test the browser handlers
 import requests
 import json
 
-BASE_URL="http://localhost:4001"
+BASE_URL="http://localhost:4000"
 
 def test_get_autocomplete():
     """
@@ -139,7 +139,6 @@ def test_get_region():
     assert response.status_code == 400
 
 
-
 def test_get_transcript():
     """
     Test GetTranscript.get()
@@ -148,9 +147,13 @@ def test_get_transcript():
     transcript_id = 'ENST00000317361'
     response = requests.get('{}/api/datasets/{}/browser/transcript/{}'.format(BASE_URL, dataset, transcript_id))
     transcript = json.loads(response.text)
-
     assert transcript['gene']['id'] == 'ENSG00000015475'
     assert len(transcript['exons']) == 14
+
+    dataset = 'SweGen'
+    transcript_id = 'BAD_TRANSCRIPT'
+    response = requests.get('{}/api/datasets/{}/browser/transcript/{}'.format(BASE_URL, dataset, transcript_id))
+    assert response.status_code == 404
 
 
 def test_get_variant():
@@ -174,6 +177,10 @@ def test_get_variant():
     variant = json.loads(response.text)
     assert variant['variant']['variantId'] == '21-9435852-T-C'
 
+    variant_id = '22-94358sfsdfsdf52-T-C'
+    response = requests.get('{}/api/datasets/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
+    assert response.status_code == 400
+
 
 def test_get_variants():
     """
@@ -193,11 +200,18 @@ def test_get_variants():
     data = json.loads(response.text)
     assert len(data['variants']) == 3
 
+    data_type = 'region'
+    data_item = '22-46615715-46715880'
+    response = requests.get('{}/api/datasets/{}/browser/variants/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
+    assert response.status_code == 400
+    
     data_type = 'transcript'
     data_item = 'ENST00000438441'
     response = requests.get('{}/api/datasets/{}/browser/variants/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
     data = json.loads(response.text)
     assert len(data['variants']) == 405
+
+    
 
 
 def test_search():
