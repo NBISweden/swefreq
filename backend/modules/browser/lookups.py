@@ -281,11 +281,9 @@ def get_genes_in_region(dataset:str, chrom:str, start_pos:int, stop_pos:int):
         return {}
 
     gene_query = db.Gene.select().where((db.Gene.reference_set == ref_dbid) &
-                                        ((((db.Gene.start >= start_pos) &
-                                           (db.Gene.start <= stop_pos)) |
-                                          ((db.Gene.stop >= start_pos) &
-                                           (db.Gene.stop <= stop_pos))) &
-                                         (db.Gene.chrom == chrom))).dicts()
+                                        (db.Gene.start <= stop_pos) &
+                                        (db.Gene.stop >= start_pos) &
+                                        (db.Gene.chrom == chrom)).dicts()
     return [gene for gene in gene_query]
 
 
