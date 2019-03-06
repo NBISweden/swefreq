@@ -9,7 +9,7 @@ def test_get_autocomplete():
     """
     Test get_autocomplete()
     """
-    res = lookups.get_autocomplete('PA')
+    res = lookups.get_autocomplete('SweGen', 'PA')
     expected = set(["PABPC1P9", "PACSIN2", "PANX2", "PARP4P3",
                 "PARVB", "PARVG", "PATZ1", "PAXBP1", "PAXBP1-AS1"])
     assert set(res) == expected
@@ -335,7 +335,7 @@ def test_get_variants_in_gene():
     assert len(res) == 1185
     assert not lookups.get_variants_in_gene('bad_dataset', 'ENSG00000198062')
     assert not lookups.get_variants_in_gene('bad_dataset', 'ENSGASDFG')
-
+    assert not lookups.get_variants_in_gene('SweGen', 'ENSG00000198062', "BAD_VERSION")
 
 def test_get_variants_in_region():
     """
@@ -361,4 +361,5 @@ def test_get_variants_in_transcript():
     """
     res = lookups.get_variants_in_transcript('SweGen', 'ENST00000452800')
     assert len(res) == 1174
-    res = lookups.get_variants_in_transcript('BAD_DATASET', 'ENST00000452800')
+    assert not lookups.get_variants_in_transcript('BAD_DATASET', 'ENST00000452800')
+    assert not lookups.get_variants_in_transcript('SweGen', 'ENST123')

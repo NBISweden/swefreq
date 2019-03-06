@@ -31,6 +31,10 @@ def test_add_consequence_to_variant():
     utils.add_consequence_to_variant(variant)
     assert variant['major_consequence'] == 'upstream_gene_variant'
 
+    variant['vep_annotations'] = []
+    utils.add_consequence_to_variant(variant)
+    assert variant['major_consequence'] == ''
+    
     # bad variant
     variant = lookups.get_variant('SweGen', 38481311, '444', 'C', 'T')
     utils.add_consequence_to_variant(variant)
@@ -54,6 +58,12 @@ def test_get_coverage():
     assert len(res['coverage']) == 144
     res = utils.get_coverage('SweGen', 'region', '22-46615715-46615880')
     assert len(res['coverage']) == 17
+    res = utils.get_coverage('SweGen', 'region', '22:46615715-46615880')
+    assert not res['coverage']
+    assert res['bad_region']
+    res = utils.get_coverage('SweGen', 'region', '22-46615715asd-46615880')    
+    assert not res['coverage']
+    assert res['bad_region']
     res = utils.get_coverage('SweGen', 'transcript', 'ENST00000438441')
     assert len(res['coverage']) == 144
 
@@ -163,6 +173,7 @@ def test_get_variant_list():
     assert len(res['variants']) == 3
     res = utils.get_variant_list('SweGen', 'transcript', 'ENST00000438441')
     assert len(res['variants']) == 405
+    res = utils.get_variant_list('SweGen', 'region', '22-1-1000000')
 
 
 def test_order_vep_by_csq():
