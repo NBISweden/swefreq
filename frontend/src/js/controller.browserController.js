@@ -6,7 +6,7 @@
         localThis.query = "";
         localThis.suggestions = "";
         localThis.activeSuggestion = -1;
-        localThis.orderByField = "variantId";
+        localThis.orderByField = "pos";
         localThis.reverseSort = false;
 
         localThis.coverage = {};
