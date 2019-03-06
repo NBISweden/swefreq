@@ -20,8 +20,8 @@ def get_autocomplete(dataset, query:str):
     """
     ref_dbid = db.get_reference_dbid_dataset(dataset)
     query = (db.Gene.select(db.Gene.name)
-             .where(((db.Gene.name.startswith(query) &
-                      db.Gene.reference_set == ref_dbid))))
+             .where(((db.Gene.name.startswith(query)) &
+                      (db.Gene.reference_set == ref_dbid))))
     gene_names = [str(gene.name) for gene in query]
     return gene_names
 
