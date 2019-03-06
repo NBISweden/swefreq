@@ -146,7 +146,7 @@ class GetRegion(handlers.UnsafeHandler):
 
         if not start:
             start = 0
-        if not stop and start:
+        if not stop:
             stop = start
         if start == stop:
             start -= min(start, 20)
@@ -237,8 +237,7 @@ class GetVariant(handlers.UnsafeHandler):
             v[1] = int(v[1])
         except ValueError:
             logging.error('GetVariant: unable to parse variant ({})'.format(variant))
-            self.send_error(status_code=400)
-            self.set_user_msg('Unable to parse variant', 'error')
+            self.send_error(status_code=400, reason="Unable to parse variant")
             return
         orig_variant = variant
         variant = lookups.get_variant(dataset, v[1], v[0], v[2], v[3], ds_version)
