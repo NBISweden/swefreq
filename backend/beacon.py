@@ -102,7 +102,7 @@ class Info(handlers.UnsafeHandler):
 def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset): #pylint: disable=too-many-arguments, unused-argument
     """
     Check if an allele is present in the database
-    
+
     Args:
         chrom: The chromosome, format matches [1-22XY]
         pos: Coordinate within a chromosome. Position is a number and is 0-based
@@ -110,7 +110,7 @@ def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset): #pyli
         alternate: Any string of nucleotides A,C,T,G
         reference: The human reference build that was used
         dataset: Dataset to look in (currently used to select Mongo database)
-    
+
     Returns:
         The string 'true' if the allele was found, otherwise the string 'false'
     """
