@@ -13,7 +13,8 @@ import db
 
 
 class BaseHandler(tornado.web.RequestHandler):
-    """Base Handler. Handlers should not inherit from this
+    """
+    Base Handler. Handlers should not inherit from this
     class directly but from either SafeHandler or UnsafeHandler
     to make security status explicit.
     """
@@ -66,7 +67,8 @@ class BaseHandler(tornado.web.RequestHandler):
         self.set_cookie("msg", urllib.parse.quote( json_encode({"msg":msg, "level":level}) ) )
 
     def write_error(self, status_code, **kwargs):
-        """ Overwrites write_error method to have custom error pages.
+        """
+        Overwrites write_error method to have custom error pages.
         http://tornado.readthedocs.org/en/latest/web.html#tornado.web.RequestHandler.write_error
         """
         logging.info("Error do something here again")
@@ -102,11 +104,13 @@ class UnsafeHandler(BaseHandler):
 
 
 class SafeHandler(BaseHandler):
-    """ All handlers that need authentication and authorization should inherit
+    """
+    All handlers that need authentication and authorization should inherit
     from this class.
     """
     def prepare(self):
-        """This method is called before any other method.
+        """
+        This method is called before any other method.
         Having the decorator @tornado.web.authenticated here implies that all
         the Handlers that inherit from this one are going to require
         authentication in all their methods.
@@ -152,22 +156,23 @@ class AdminHandler(SafeHandler):
 
 
 class SafeStaticFileHandler(tornado.web.StaticFileHandler, SafeHandler):
-    """ Serve static files for logged in users
     """
-    pass
+    Serve static files for logged in users
+    """
 
 
 class BaseStaticNginxFileHandler(UnsafeHandler):
-    """Serve static files for users from the nginx frontend
+    """
+    Serve static files for users from the nginx frontend
 
     Requires a ``path`` argument in constructor which should be the root of
     the nginx frontend where the files can be found. Then configure the nginx
     frontend something like this
 
-        location <path> {
-            internal;
-            alias <location of files>;
-        }
+    location <path> { \
+        internal; \
+        alias <location of files>; \
+    }
     """
     def initialize(self, path):
         if not path.startswith("/"):
@@ -198,22 +203,21 @@ class BaseStaticNginxFileHandler(UnsafeHandler):
 
 
 class AuthorizedStaticNginxFileHandler(AuthorizedHandler, BaseStaticNginxFileHandler):
-    """Serve static files for authenticated users from the nginx frontend
+    """
+    Serve static files for authenticated users from the nginx frontend
 
-    Requires a ``path`` argument in constructor which should be the root of
+    Requires a "path" argument in constructor which should be the root of
     the nginx frontend where the files can be found. Then configure the nginx
     frontend something like this
 
-        location <path> {
-            internal;
-            alias <location of files>;
-        }
+    location <path> { \
+        internal; \
+        alias <location of files>; \
+    }
     """
-    pass
 
 
 class TemporaryStaticNginxFileHandler(BaseStaticNginxFileHandler):
-
     def get(self, dataset, hash_value, file):
         logging.debug("Want to download hash {} ({})".format(hash_value, file))
         linkhash = (db.Linkhash
