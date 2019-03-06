@@ -165,13 +165,14 @@ def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
                 stop  = transcript['stop'] + EXON_PADDING
                 ret['coverage'] = lookups.get_coverage_for_transcript(dataset, transcript['chrom'], start, stop, ds_version)
     elif datatype == 'region':
-        chrom, start, stop = item.split('-')
-        start = int(start)
-        stop = int(stop)
-
+        try:
+            chrom, start, stop = item.split('-')
+            start = int(start)
+            stop = int(stop)
+        except ValueError:
+            return {'coverage': [], 'bad_region':True}
         if is_region_too_large(start, stop):
             return {'coverage': [], 'region_too_large': True}
-
         ret['coverage'] = lookups.get_coverage_for_bases(dataset, chrom, start, stop, ds_version)
     elif datatype == 'transcript':
         transcript = lookups.get_transcript(dataset, item)
