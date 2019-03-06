@@ -2,4 +2,4 @@
 omit = /usr/local/*,/home/travis/virtualenv/*,*venv*
 
 [report]
-omit = /usr/local/*,/home/travis/virtualenv/*, */__init.py__, */test*.py, *venv*
+omit = /usr/local/*,/home/travis/virtualenv/*, */__init__.py, */test*.py, *venv*
