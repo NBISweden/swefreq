@@ -527,7 +527,6 @@ def get_variants_in_gene(dataset:str, gene_id:str, ds_version:str=None):
         variant['filter'] = variant['filter_string']
     #####
 
-    utils.add_consequence_to_variants(variants)
     for variant in variants:
         if variant['rsid']:
             variant['rsid'] = 'rs{}'.format(variant['rsid'])
@@ -569,7 +568,6 @@ def get_variants_in_region(dataset:str, chrom:str, start_pos:int, end_pos:int, d
         variant['filter'] = variant['filter_string']
     #####
 
-    utils.add_consequence_to_variants(variants)
     for variant in variants:
         if variant['rsid']:
             variant['rsid'] = 'rs{}'.format(variant['rsid'])
@@ -611,7 +609,6 @@ def get_variants_in_transcript(dataset:str, transcript_id:str, ds_version:str=No
         variant['filter'] = variant['filter_string']
     #####
 
-    utils.add_consequence_to_variants(variants)
     for variant in variants:
         variant['vep_annotations'] = [anno for anno in variant['vep_annotations'] if anno['Feature'] == transcript_id]
         if variant['rsid']:

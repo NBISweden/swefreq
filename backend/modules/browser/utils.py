@@ -78,26 +78,40 @@ PROTEIN_LETTERS_1TO3 = {
 }
 
 
-def add_consequence_to_variants(variant_list:list):
+def add_consequence_to_variants(variant_list:list, datatype:str, item:str):
     """
     Add information about variant consequence to multiple variants
 
     Args:
         variant_list (list): list of variants
+        datatype (str): type of data
+        item (str): query item
     """
     for variant in variant_list:
-        add_consequence_to_variant(variant)
+        add_consequence_to_variant(variant, datatype, item)
 
 
-def add_consequence_to_variant(variant:dict):
+def add_consequence_to_variant(variant:dict, datatype:str, item:str):
     """
     Add information about variant consequence to a variant
 
     Args:
         variant (dict): variant information
+        datatype (str): type of data
+        item (str): query item
     """
+    logging.error(variant)
     if not variant:
         return
+    if datatype == 'gene':
+        gene_anno = [anno for anno in variant['vep_annotations'] if anno['Gene'] == item]
+        if gene_anno:
+            variant['vep_annotations'] = gene_anno
+    if datatype == 'transcript':
+        transcript_anno = [anno for anno in variant['vep_annotations'] if anno['Feature'] == item]
+        if transcript_anno:
+            variant['vep_annotations'] = transcript_anno
+
     worst_csq = worst_csq_with_vep(variant['vep_annotations'])
     variant['major_consequence'] = ''
     if worst_csq is None:
@@ -328,6 +342,7 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
     elif datatype == 'transcript':
         variants = lookups.get_variants_in_transcript(dataset, item)
 
+    utils.add_consequence_to_variants(variants, datatype, item)
     # Format output
     def format_variant(variant):
         variant['major_consequence'] = (variant['major_consequence'].replace('_variant','')
