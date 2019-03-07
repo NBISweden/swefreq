@@ -522,7 +522,8 @@ def get_variants_in_gene(dataset:str, gene_id:str, ds_version:str=None):
                                                         (db.Variant.dataset_version == dataset_version)).dicts()]
     ##### remove when db is fixed
     for variant in variants:
-        variant['hom_count'] = 0
+        if not variant['hom_count']:
+            variant['hom_count'] = 0
         variant['filter'] = variant['filter_string']
     #####
 
@@ -563,7 +564,8 @@ def get_variants_in_region(dataset:str, chrom:str, start_pos:int, end_pos:int, d
 
     ##### remove when db is fixed
     for variant in variants:
-        variant['hom_count'] = 0
+        if not variant['hom_count']:
+            variant['hom_count'] = 0
         variant['filter'] = variant['filter_string']
     #####
 
@@ -604,7 +606,8 @@ def get_variants_in_transcript(dataset:str, transcript_id:str, ds_version:str=No
 
     ##### remove when db is fixed
     for variant in variants:
-        variant['hom_count'] = 0
+        if not variant['hom_count']:
+            variant['hom_count'] = 0
         variant['filter'] = variant['filter_string']
     #####
 
