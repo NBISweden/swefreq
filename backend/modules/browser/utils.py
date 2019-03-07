@@ -342,7 +342,7 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
     elif datatype == 'transcript':
         variants = lookups.get_variants_in_transcript(dataset, item)
 
-    utils.add_consequence_to_variants(variants, datatype, item)
+    add_consequence_to_variants(variants, datatype, item)
     # Format output
     def format_variant(variant):
         variant['major_consequence'] = (variant['major_consequence'].replace('_variant','')
