@@ -78,7 +78,7 @@ PROTEIN_LETTERS_1TO3 = {
 }
 
 
-def add_consequence_to_variants(variant_list:list, datatype:str, item:str):
+def add_consequence_to_variants(variant_list:list):
     """
     Add information about variant consequence to multiple variants
 
@@ -87,31 +87,18 @@ def add_consequence_to_variants(variant_list:list, datatype:str, item:str):
         datatype (str): type of data
         item (str): query item
     """
+    
     for variant in variant_list:
-        add_consequence_to_variant(variant, datatype, item)
+        add_consequence_to_variant(variant)
 
 
-def add_consequence_to_variant(variant:dict, datatype:str, item:str):
+def add_consequence_to_variant(variant:dict):
     """
     Add information about variant consequence to a variant
 
     Args:
         variant (dict): variant information
-        datatype (str): type of data
-        item (str): query item
     """
-    logging.error(variant)
-    if not variant:
-        return
-    if datatype == 'gene':
-        gene_anno = [anno for anno in variant['vep_annotations'] if anno['Gene'] == item]
-        if gene_anno:
-            variant['vep_annotations'] = gene_anno
-    if datatype == 'transcript':
-        transcript_anno = [anno for anno in variant['vep_annotations'] if anno['Feature'] == item]
-        if transcript_anno:
-            variant['vep_annotations'] = transcript_anno
-
     worst_csq = worst_csq_with_vep(variant['vep_annotations'])
     variant['major_consequence'] = ''
     if worst_csq is None:
@@ -342,7 +329,27 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
     elif datatype == 'transcript':
         variants = lookups.get_variants_in_transcript(dataset, item)
 
-    add_consequence_to_variants(variants, datatype, item)
+    if datatype == 'transcript':
+        refgene = lookups.get_transcript(dataset, item)
+        logging.error(refgene)
+        refgene = refgene['gene_id']
+    for variant in variants:
+        if datatype in ('gene', 'transcript'):
+            anno = None
+            if datatype == 'transcript':
+                anno = [ann for ann in variant['vep_annotations'] if ann['Feature'] == item]
+                if not anno:
+                    anno = [ann for ann in variant['vep_annotations'] if ann['Gene'] == refgene]
+            else:
+                anno = [ann for ann in variant['vep_annotations'] if ann['Gene'] == item]
+            if anno:
+                variant['vep_annotations'] = anno
+            
+    add_consequence_to_variants(variants)
+
+    for variant in variants:
+        remove_extraneous_information(variant)
+    
     # Format output
     def format_variant(variant):
         variant['major_consequence'] = (variant['major_consequence'].replace('_variant','')
@@ -386,6 +393,20 @@ def is_region_too_large(start:int, stop:int):
     '''
     region_limit = 100000
     return int(stop)-int(start) > region_limit
+
+
+def remove_extraneous_information(variant:dict):
+    '''
+    Remove information that is not used in the frontend from a variant
+
+    Args:
+        variant (dict): variant data from database
+    '''
+    del variant['id']
+    del variant['dataset_version']
+    del variant['orig_alt_alleles']
+    del variant['site_quality']
+    del variant['vep_annotations']
 
 
 def remove_extraneous_vep_annotations(annotation_list:list):

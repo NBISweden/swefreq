@@ -350,7 +350,7 @@ def get_transcript(dataset:str, transcript_id:str):
         return None
     try:
         transcript = (db.Transcript
-                      .select()
+                      .select(db.Transcript, db.Gene)
                       .join(db.Gene)
                       .where((db.Transcript.transcript_id == transcript_id) &
                              (db.Gene.reference_set == ref_dbid))
@@ -421,6 +421,24 @@ def get_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_version:st
     return variant
 
 
+def get_variant_genes(dataset:str, variant:dict):
+    """
+    Get a list of genes associated with a variant.
+
+    Args: 
+        dataset (str): short name of the dataset
+        variant (dict): variant information
+
+    Returns:
+        list: gene ids associated with the variant
+    """
+    return [gene['gene_id'] for gene in
+            db.VariantGenes.select(db.Gene.gene_id)
+            .join(db.Gene)
+            .where(db.VariantGenes.variant == variant['id'])
+            .dicts()]
+
+
 def get_variants_by_rsid(dataset:str, rsid:str, ds_version:str=None, check_position:str=False):
     """
     Retrieve variants by their associated rsid
@@ -480,19 +498,6 @@ def get_variants_by_rsid(dataset:str, rsid:str, ds_version:str=None, check_posit
                  .dicts())
 
     variants = [variant for variant in query]
-    for variant in variants:
-        variant['genes'] = [gene['gene_id'] for gene in
-                            db.VariantGenes.select(db.Gene.gene_id)
-                            .join(db.Gene)
-                            .where(db.VariantGenes.variant == variant['id'])
-                            .dicts()]
-        variant['transcripts'] = [transcript['transcript_id'] for transcript in
-                                  db.VariantTranscripts.select(db.Transcript.transcript_id)
-                                  .join(db.Transcript)
-                                  .where(db.VariantTranscripts.variant == variant['id'])
-                                  .dicts()]
-
-    utils.add_consequence_to_variants(variants)
     return variants
 
 
@@ -530,7 +535,6 @@ def get_variants_in_gene(dataset:str, gene_id:str, ds_version:str=None):
     for variant in variants:
         if variant['rsid']:
             variant['rsid'] = 'rs{}'.format(variant['rsid'])
-        remove_extraneous_information(variant)
     return variants
 
 
@@ -571,7 +575,6 @@ def get_variants_in_region(dataset:str, chrom:str, start_pos:int, end_pos:int, d
     for variant in variants:
         if variant['rsid']:
             variant['rsid'] = 'rs{}'.format(variant['rsid'])
-        remove_extraneous_information(variant)
     return variants
 
 
@@ -613,20 +616,22 @@ def get_variants_in_transcript(dataset:str, transcript_id:str, ds_version:str=No
         variant['vep_annotations'] = [anno for anno in variant['vep_annotations'] if anno['Feature'] == transcript_id]
         if variant['rsid']:
             variant['rsid'] = 'rs{}'.format(variant['rsid'])
-        remove_extraneous_information(variant)
     return variants
 
 
-def remove_extraneous_information(variant:dict):
-    '''
-    Remove information that is not used in the frontend from a variant
-    Intended to be used by the variants_in_* functions
+def get_variant_transcripts(dataset:str, variant:dict):
+    """
+    Get a list of transcripts associated with a variant.
 
-    Args:
-        variant (dict): variant data from database
-    '''
-    del variant['id']
-    del variant['dataset_version']
-    del variant['orig_alt_alleles']
-    del variant['site_quality']
-    del variant['vep_annotations']
+    Args: 
+        dataset (str): short name of the dataset
+        variant (dict): variant information
+
+    Returns:
+        list: transcript ids associated with the variant
+    """
+    return [transcript['transcript_id'] for transcript in
+            db.VariantTranscripts.select(db.Transcript.transcript_id)
+            .join(db.Transcript)
+            .where(db.VariantTranscripts.variant == variant['id'])
+            .dicts()]
