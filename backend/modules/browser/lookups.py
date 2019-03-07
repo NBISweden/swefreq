@@ -350,7 +350,7 @@ def get_transcript(dataset:str, transcript_id:str):
         return None
     try:
         transcript = (db.Transcript
-                      .select(db.Transcript, db.Gene)
+                      .select(db.Transcript, db.Gene.gene_id)
                       .join(db.Gene)
                       .where((db.Transcript.transcript_id == transcript_id) &
                              (db.Gene.reference_set == ref_dbid))

@@ -331,7 +331,6 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
 
     if datatype == 'transcript':
         refgene = lookups.get_transcript(dataset, item)
-        logging.error(refgene)
         refgene = refgene['gene_id']
     for variant in variants:
         if datatype in ('gene', 'transcript'):
@@ -360,6 +359,7 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
         return {k: ", ".join(v) if isinstance(v,list) else v for k, v in variant.items()}
 
     variants = list(map(format_variant, variants))
+
     return {'variants': variants, 'headers': headers}
 
 
