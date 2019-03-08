@@ -1,0 +1,5 @@
+FROM postgres:10
+
+ENV POSTGRES_DB swefreq
+COPY sql/data_schema.sql /docker-entrypoint-initdb.d/01_data_schema.sql
+COPY sql/user_schema.sql /docker-entrypoint-initdb.d/02_user_schema.sql

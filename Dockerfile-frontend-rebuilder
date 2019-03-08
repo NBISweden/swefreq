@@ -14,13 +14,10 @@ RUN apt-get install -y \
         nodejs \
         npm
 
-COPY Makefile /code/Makefile
-COPY backend/requirements.txt /code/requirements.txt
-COPY scripts/compile_template.py /code/scripts/compile_template.py
-COPY scripts/watch_frontend.py /code/scripts/watch_frontend.py
+ADD . /code
 WORKDIR /code
 
-RUN pip3 install -r requirements.txt && \
+RUN pip3 install -r backend/requirements.txt && \
     pip3 install inotify
 
 CMD ["python", "scripts/watch_frontend.py"]

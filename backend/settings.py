@@ -1,13 +1,24 @@
 
 import os
+import sys
 import json
+import logging
+
+ARG = "--settings_file"
+SETTINGS_FILE = "settings.json"
+if ARG in sys.argv:
+    try:
+        SETTINGS_FILE = sys.argv[sys.argv.index(ARG)+1]
+    except IndexError:
+        logging.error("No argument for --settings_file")
+        sys.exit(1)
 
 try:
     current_dir = os.path.dirname(os.path.realpath(__file__))
-    json_settings_fh = open(os.path.join(current_dir, "settings.json"))
+    json_settings_fh = open(os.path.join(current_dir, SETTINGS_FILE))
 except FileNotFoundError:
     parent_dir = os.path.join(current_dir, os.pardir)
-    json_settings_fh = open(os.path.join(parent_dir, "settings.json"))
+    json_settings_fh = open(os.path.join(parent_dir, SETTINGS_FILE))
 
 json_settings = json.load(json_settings_fh)
 json_settings_fh.close()

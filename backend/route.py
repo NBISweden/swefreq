@@ -4,6 +4,7 @@ import tornado.ioloop
 import tornado.web
 from tornado.options import define, options
 
+import sys
 import application
 import handlers
 import auth
@@ -109,6 +110,13 @@ class Application(tornado.web.Application):
         tornado.web.Application.__init__(self, self.declared_handlers, **settings)
 
 if __name__ == '__main__':
+    # Make sure that the extra option to `settings` isn't upsetting tornado
+    if '--settings_file' in sys.argv:
+        flag_index = sys.argv.index('--settings_file')
+        # first remove flag, then argument
+        del sys.argv[flag_index]
+        del sys.argv[flag_index]
+
     tornado.log.enable_pretty_logging()
     tornado.options.parse_command_line()
 
