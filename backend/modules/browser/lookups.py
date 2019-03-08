@@ -18,10 +18,10 @@ def get_autocomplete(dataset, query:str):
     Returns:
         list: A list of genes names whose beginning matches the query
     """
-    ref_dbid = db.get_reference_dbid_dataset(dataset)
+    ref_set = db.get_reference_set_for_dataset(dataset)
     query = (db.Gene.select(db.Gene.name)
              .where(((db.Gene.name.startswith(query)) &
-                      (db.Gene.reference_set == ref_dbid))))
+                      (db.Gene.reference_set == ref_set))))
     gene_names = [str(gene.name) for gene in query]
     return gene_names
 
@@ -171,8 +171,8 @@ def get_exons_in_transcript(dataset:str, transcript_id:str):
     Returns:
         list: dicts with values for each exon sorted by start position
     """
-    ref_dbid = db.get_reference_dbid_dataset(dataset)
-    if not ref_dbid:
+    ref_set = db.get_reference_set_for_dataset(dataset)
+    if not ref_set:
         logging.info('get_exons_in_transcript({}, {}): unable to find dataset dbid'.format(dataset, transcript_id))
         return None
     try:
@@ -180,7 +180,7 @@ def get_exons_in_transcript(dataset:str, transcript_id:str):
                       .select()
                       .join(db.Gene)
                       .where((db.Transcript.transcript_id == transcript_id) &
-                             (db.Gene.reference_set == ref_dbid))
+                             (db.Gene.reference_set == ref_set))
                       .get())
     except db.Transcript.DoesNotExist:
         logging.info('get_exons_in_transcript({}, {}): unable to retrieve transcript'.format(dataset, transcript_id))
@@ -202,12 +202,12 @@ def get_gene(dataset:str, gene_id:str):
     Returns:
         dict: values for the gene; None if not found
     """
-    ref_dbid = db.get_reference_dbid_dataset(dataset)
-    if not ref_dbid:
+    ref_set = db.get_reference_set_for_dataset(dataset)
+    if not ref_set:
         return None
     try:
         return db.Gene.select().where((db.Gene.gene_id == gene_id) &
-                                      (db.Gene.reference_set == ref_dbid)).dicts().get()
+                                      (db.Gene.reference_set == ref_set)).dicts().get()
     except db.Gene.DoesNotExist:
         return None
 
@@ -241,12 +241,12 @@ def get_gene_by_name(dataset:str, gene_name:str):
     Returns:
         dict: values for the gene; empty if not found
     """
-    ref_dbid = db.get_reference_dbid_dataset(dataset)
-    if not ref_dbid:
+    ref_set = db.get_reference_set_for_dataset(dataset)
+    if not ref_set:
         return {}
     try:
         return (db.Gene.select()
-                .where((db.Gene.reference_set == ref_dbid) &
+                .where((db.Gene.reference_set == ref_set) &
                        (db.Gene.name==gene_name))
                 .dicts()
                 .get())
@@ -255,7 +255,7 @@ def get_gene_by_name(dataset:str, gene_name:str):
             return (db.GeneOtherNames.select(db.Gene)
                     .join(db.Gene)
                     .where((db.GeneOtherNames.name == gene_name) &
-                           (db.Gene.reference_set == ref_dbid))
+                           (db.Gene.reference_set == ref_set))
                     .dicts()
                     .get())
         except db.GeneOtherNames.DoesNotExist:
@@ -276,11 +276,11 @@ def get_genes_in_region(dataset:str, chrom:str, start_pos:int, stop_pos:int):
     Returns:
         dict: values for the gene; empty if not found
     """
-    ref_dbid = db.get_reference_dbid_dataset(dataset)
-    if not ref_dbid:
+    ref_set = db.get_reference_set_for_dataset(dataset)
+    if not ref_set:
         return {}
 
-    gene_query = db.Gene.select().where((db.Gene.reference_set == ref_dbid) &
+    gene_query = db.Gene.select().where((db.Gene.reference_set == ref_set) &
                                         (db.Gene.start <= stop_pos) &
                                         (db.Gene.stop >= start_pos) &
                                         (db.Gene.chrom == chrom)).dicts()
@@ -345,15 +345,15 @@ def get_transcript(dataset:str, transcript_id:str):
     Returns:
         dict: values for the transcript, including exons; None if not found
     """
-    ref_dbid = db.get_reference_dbid_dataset(dataset)
-    if not ref_dbid:
+    ref_set = db.get_reference_set_for_dataset(dataset)
+    if not ref_set:
         return None
     try:
         transcript = (db.Transcript
                       .select(db.Transcript, db.Gene.gene_id)
                       .join(db.Gene)
                       .where((db.Transcript.transcript_id == transcript_id) &
-                             (db.Gene.reference_set == ref_dbid))
+                             (db.Gene.reference_set == ref_set))
                       .dicts()
                       .get())
         transcript['exons'] = get_exons_in_transcript(dataset, transcript_id)
@@ -371,12 +371,12 @@ def get_transcripts_in_gene(dataset:str, gene_id:str):
     Returns:
         list: transcripts (dict) associated with the gene; empty if no hits
     """
-    ref_dbid = db.get_reference_dbid_dataset(dataset)
-    if not ref_dbid:
+    ref_set = db.get_reference_set_for_dataset(dataset)
+    if not ref_set:
         logging.error('get_transcripts_in_gene({}, {}): unable to get referenceset dbid'.format(dataset, gene_id))
         return []
     try:
-        gene = db.Gene.select().where((db.Gene.reference_set == ref_dbid) &
+        gene = db.Gene.select().where((db.Gene.reference_set == ref_set) &
                                       (db.Gene.gene_id == gene_id)).dicts().get()
     except db.Gene.DoesNotExist:
         logging.error('get_transcripts_in_gene({}, {}): unable to retrieve gene'.format(dataset, gene_id))
@@ -513,8 +513,8 @@ def get_variants_in_gene(dataset:str, gene_id:str, ds_version:str=None):
     Returns:
         list: values for the variants
     """
-    ref_dbid = db.get_reference_dbid_dataset(dataset)
-    if not ref_dbid:
+    ref_set = db.get_reference_set_for_dataset(dataset)
+    if not ref_set:
         return None
     dataset_version = db.get_dataset_version(dataset, ds_version)
     if not dataset_version:
@@ -590,8 +590,8 @@ def get_variants_in_transcript(dataset:str, transcript_id:str, ds_version:str=No
     Returns:
         dict: values for the variant; None if not found
     """
-    ref_dbid = db.get_reference_dbid_dataset(dataset)
-    if not ref_dbid:
+    ref_set = db.get_reference_set_for_dataset(dataset)
+    if not ref_set:
         return None
     dataset_version = db.get_dataset_version(dataset, ds_version)
 
