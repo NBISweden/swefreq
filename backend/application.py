@@ -100,11 +100,16 @@ class GetSchema(handlers.UnsafeHandler):
 
             try:
                 dataset_version = db.get_dataset_version(dataset, version)
+                if dataset_version is None:
+                    self.send_error(status_code=404)
+                    return
+
 
                 if dataset_version.available_from > datetime.now():
                     # If it's not available yet, only return if user is admin.
-                    if not (self.current_user and self.current_user.is_admin(version.dataset)):
+                    if not (self.current_user and self.current_user.is_admin(dataset_version.dataset)):
                         self.send_error(status_code=403)
+                        return
 
                 base_url = "%s://%s" % (self.request.protocol, self.request.host)
                 dataset_schema['url']         = base_url + "/dataset/" + dataset_version.dataset.short_name
@@ -162,6 +167,9 @@ class GetDataset(handlers.UnsafeHandler):
         future_version = False
 
         version = db.get_dataset_version(dataset, version)
+        if version is None:
+            self.send_error(status_code=404)
+            return
 
         if version.available_from > datetime.now():
             future_version = True
@@ -215,6 +223,10 @@ class GenerateTemporaryLink(handlers.AuthorizedHandler):
     def post(self, dataset, version=None):
         user = self.current_user
         dataset_version = db.get_dataset_version(dataset, version)
+        if dataset_version is None:
+            self.send_error(status_code=404)
+            return
+
         lh = db.Linkhash.create(
                 user            = user,
                 dataset_version = dataset_version,
@@ -239,6 +251,10 @@ class GenerateTemporaryLink(handlers.AuthorizedHandler):
 class DatasetFiles(handlers.AuthorizedHandler):
     def get(self, dataset, version=None):
         dataset_version = db.get_dataset_version(dataset, version)
+        if dataset_version is None:
+            self.send_error(status_code=404)
+            return
+
         ret = []
         for f in dataset_version.files:
             d = db.build_dict_from_row(f)
@@ -574,6 +590,7 @@ class SFTPAccess(handlers.SafeHandler):
         """
         if db.get_admin_datasets(self.current_user).count() <= 0:
             self.finish({'user':None, 'expires':None, 'password':None})
+            return
 
         password = None
         username = None
@@ -599,6 +616,7 @@ class SFTPAccess(handlers.SafeHandler):
         """
         if db.get_admin_datasets(self.current_user).count() <= 0:
             self.finish({'user':None, 'expires':None, 'password':None})
+            return
 
         # Create a new password
         username = "_".join(self.current_user.name.split()) + "_sftp"

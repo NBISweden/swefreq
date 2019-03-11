@@ -49,7 +49,7 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
         if self.get_argument("code", False):
 
             if not self._check_state(self.get_argument('state', 'N/A')):
-                self.set_user_msg("We're beeing MITM:ed or something ABORT!", "error")
+                self.set_user_msg("We're being MITM:ed or something ABORT!", "error")
                 self.redirect("/security_warning")
                 return
 

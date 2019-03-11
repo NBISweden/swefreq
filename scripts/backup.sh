@@ -66,5 +66,5 @@ chmod -R ug+rw,o-rwx "$data_home"
 # Remove temporary files before running the off-site backup.
 rm -f "$tmpbackup" "$tmpbackup.gz"
 
-# Do off-site backup.
-/opt/tivoli/tsm/client/ba/bin/dsmc incr /data/SweFreq
+# Do off-site backup. Don't let this run for more than 45 minutes.
+timeout --kill-after=15m 30m /opt/tivoli/tsm/client/ba/bin/dsmc incr /data/SweFreq

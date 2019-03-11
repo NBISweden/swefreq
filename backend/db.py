@@ -12,6 +12,7 @@ from peewee import (
         TextField,
         fn,
     )
+import logging
 import settings
 
 database = MySQLDatabase(
@@ -295,16 +296,26 @@ def get_dataset(dataset):
 
 def get_dataset_version(dataset, version=None):
     if version:
-        dataset_version = (DatasetVersion
-                            .select(DatasetVersion, Dataset)
-                            .join(Dataset)
-                            .where(DatasetVersion.version == version,
-                                   Dataset.short_name == dataset)).get()
+        try:
+            dataset_version = (DatasetVersion
+                               .select(DatasetVersion, Dataset)
+                               .join(Dataset)
+                               .where(DatasetVersion.version == version,
+                                      Dataset.short_name == dataset)).get()
+        except DatasetVersion.DoesNotExist:
+            logging.error("get_dataset_version({}, {}): ".format(dataset, version) +
+                          "cannot retrieve dataset version")
+            return
     else:
-        dataset_version = (DatasetVersionCurrent
-                            .select(DatasetVersionCurrent, Dataset)
-                            .join(Dataset)
-                            .where(Dataset.short_name == dataset)).get()
+        try:
+            dataset_version = (DatasetVersionCurrent
+                               .select(DatasetVersionCurrent, Dataset)
+                               .join(Dataset)
+                               .where(Dataset.short_name == dataset)).get()
+        except DatasetVersionCurrent.DoesNotExist:
+            logging.error("get_dataset_version({}, version=None): ".format(dataset) +
+                          "cannot retrieve dataset version")
+            return
     return dataset_version
 
 
