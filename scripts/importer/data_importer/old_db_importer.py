@@ -24,12 +24,13 @@ class OldDbImporter( DataImporter ):
 
     def _select_reference_set(self, short_name):
         if len(self.reference_sets) == 1:
-            logging.info(("Only one reference set is available, {},"
-                          "will default to this set for all datasets".format(self.reference_sets[0])))
+            logging.info(("Only one reference set is available, %s,"
+                          "will default to this set for all datasets"),
+                         self.reference_sets[0].name)
             return self.reference_sets[0].id
         elif short_name.lower() in [r.name.lower() for r in self.reference_sets]:
             refset = [r for r in self.reference_sets if r.name.lower() == short_name.lower()][0]
-            logging.info("Auto-selecting reference set '{}' based on name.".format(refset.name))
+            logging.info("Auto-selecting reference set '%s' based on name.", refset.name)
             return refset
         else:
             print("Select a reference set to use with this dataset")
@@ -106,12 +107,10 @@ class OldDbImporter( DataImporter ):
                 new_id = db.Dataset.get(study         = study_ref_id,
                                         short_name    = dataset.short_name).id
             except db.Dataset.DoesNotExist:
-                target_reference_id = self._select_reference_set(dataset.short_name)
                 if self.settings.dry_run:
                     continue
                 new_id = (db.Dataset
                             .insert(study         = study_ref_id,
-                                    reference_set = target_reference_id,
                                     short_name    = dataset.short_name,
                                     full_name     = dataset.full_name,
                                     browser_uri   = dataset.browser_uri,
@@ -150,6 +149,7 @@ class OldDbImporter( DataImporter ):
         for dataset_version in old_db.DatasetVersion.select():
             try:
                 dataset_ref_id = self.id_map['dataset'][dataset_version.dataset.dataset]
+                dataset = db.Dataset.get(id = dataset_ref_id)
             except KeyError:
                 if not self.settings.dry_run:
                     raise
@@ -165,10 +165,12 @@ class OldDbImporter( DataImporter ):
                                                data_contact_name = dataset_version.data_contact_name,
                                                data_contact_link = dataset_version.data_contact_link).id
             except db.DatasetVersion.DoesNotExist:
+                target_reference_id = self._select_reference_set(dataset.short_name)
                 if self.settings.dry_run:
                     continue
                 new_id = (db.DatasetVersion
                             .insert(dataset           = dataset_ref_id,
+                                    reference_set     = target_reference_id,
                                     version           = dataset_version.version,
                                     description       = dataset_version.description,
                                     terms             = dataset_version.terms,

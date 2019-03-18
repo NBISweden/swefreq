@@ -36,7 +36,6 @@ class ReferenceSetImporter( DataImporter ):
         # file handlers for later
         self.gencode = None
         self.dbnsfp  = None
-        self.omim    = None
         self.ensembl = None
 
     def _insert_features(self):
@@ -112,31 +111,12 @@ class ReferenceSetImporter( DataImporter ):
         logging.info("Genes inserted in {}".format( self._time_since(start) ))
 
     def _insert_reference(self):
-        version_id = "{a.dbsnp_version}_{a.dbsnp_reference}".format(a=self.settings)
-
-        if self.settings.dry_run:
-            try:
-                dbsnp_version = db.DbSNP_version.get(version_id = version_id)
-                logging.info("Using dbsnp_version '{}'".format(version_id))
-            except db.DbSNP_version.DoesNotExist:
-                dbsnp_version = db.DbSNP_version.select(fn.Max(db.DbSNP_version.version_id)).get()
-                logging.info("Created dbsnp_version '{}'".format(version_id))
-        else:
-            dbsnp_version, created = db.DbSNP_version.get_or_create(version_id = version_id)
-            if created:
-                logging.info("Created dbsnp_version '{}'".format(version_id))
-            else:
-                logging.info("Using dbsnp_version '{}'".format(version_id))
-
-        omim_filename = self.settings.omim_file.split("/")[-1]
         logging.info("inserting reference header")
         self.db_reference = db.ReferenceSet(name = self.settings.ref_name,
+                            reference_build = self.settings.assembly_id,
                             ensembl_version = self.settings.ensembl_version,
                             gencode_version = self.settings.gencode_version,
-                            dbnsfp_version  = self.settings.dbnsfp_version,
-                            omim_version    = omim_filename,
-                            dbsnp_version   = dbsnp_version.id)
-
+                            dbnsfp_version  = self.settings.dbnsfp_version)
 
         if self.settings.dry_run:
             max_id = db.ReferenceSet.select(fn.Max(db.ReferenceSet.id)).get()
@@ -146,7 +126,7 @@ class ReferenceSetImporter( DataImporter ):
                 self.db_reference.id = max_id.id + 1
         else:
             self.db_reference.save()
-        logging.info("Reference {} created".format(self.db_reference.id))
+        logging.info("Reference %s created", self.db_reference.id)
 
     def _insert_transcripts(self):
         logging.info("Inserting transcripts into database")
@@ -241,13 +221,6 @@ class ReferenceSetImporter( DataImporter ):
         except FileNotFoundError:
             self.gencode = self._download_and_open(url)
 
-    def _open_omim(self):
-        """
-        We can't download OMIM files, so we just open the given OMIM file
-        """
-        logging.info("----- Opening OMIM file -----")
-        self.omim = self._open( self.settings.omim_file )
-
     def _read_dbnsfp(self):
         start = time.time()
         header = None
@@ -315,45 +288,6 @@ class ReferenceSetImporter( DataImporter ):
             self._tick(True)
         logging.info("Canonical transcript information from ensembl added in {}.".format( self._time_since(start) ))
 
-    def _read_omim(self):
-        start = time.time()
-        logging.info("Adding OMIM annotations")
-
-        cache = {}
-        header = None
-        for line in self.omim:
-            raw = bytes(line).decode('utf8').strip().split("\t")
-            if not header:
-                header = [r.strip() for r in raw]
-                if header:
-                    continue
-
-            values = {}
-            for i, value in enumerate(raw):
-                values[header[i]] = value
-
-            if 'MIM Gene Description' not in values:
-                continue
-
-            if 'Ensembl Transcript ID' in cache:
-                logging.warning(("The Ensembl Transcript ID '{}' was found twice"
-                                " in the OMIM file. this was not planned for."))
-            cache[values['Ensembl Transcript ID']] = \
-                        {'mim_gene_accession':int(values['MIM Gene Accession']),
-                        'mim_annotation':values['MIM Gene Description'].strip().capitalize(),
-                        }
-
-        counter = 0
-        empty = {'mim_gene_accession':None, 'mim_annotation':None}
-        for i, transcript in enumerate(self.transcripts):
-            if transcript['transcript_id'] in cache:
-                self.transcripts[i].update(cache[transcript['transcript_id']])
-                counter += 1
-            else:
-                self.transcripts[i].update(empty)
-
-        logging.info("OMIM information added in {}.".format( self._time_since(start) ))
-
     def count_entries(self):
         logging.info("Counting features in gencode file (for progress bar)")
         start = time.time()
@@ -389,7 +323,6 @@ class ReferenceSetImporter( DataImporter ):
     def prepare_data(self):
         self._open_gencode()
         self._open_dbnsfp()
-        self._open_omim()
         self._open_ensembl()
 
     def start_import(self):
@@ -449,7 +382,6 @@ class ReferenceSetImporter( DataImporter ):
         logging.info("Gencode data read into buffers in {}.".format( self._time_since(start) ))
         self._read_ensembl()
         self._read_dbnsfp()
-        self._read_omim()
         self._insert_reference()
         self._insert_genes()
         self._insert_transcripts()

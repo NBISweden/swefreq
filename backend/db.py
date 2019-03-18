@@ -52,28 +52,6 @@ class EnumField(Field):
 # Reference Tables
 ##
 
-class DbSNP_version(BaseModel):
-    """
-    dbSNP datasets are very large, and some reference sets can use the same set,
-    which is why they are given their own header-table.
-    """
-    class Meta:
-        db_table = 'dbsnp_versions'
-        schema = 'data'
-
-    version_id = CharField()
-
-
-class DbSNP(BaseModel):
-    class Meta:
-        db_table = 'dbsnp'
-        schema = 'data'
-
-    version = ForeignKeyField(DbSNP_version, related_name="variants")
-    rsid = BigIntegerField()
-    chrom = CharField(max_length=10)
-    pos = IntegerField()
-
 
 class ReferenceSet(BaseModel):
     """
@@ -85,12 +63,10 @@ class ReferenceSet(BaseModel):
         db_table = 'reference_sets'
         schema = 'data'
 
-    dbsnp_version = ForeignKeyField(DbSNP_version, db_column="dbsnp_version", related_name="references")
     name = CharField(db_column="reference_name", null=True)
     ensembl_version = CharField()
     gencode_version = CharField()
     dbnsfp_version = CharField()
-    omim_version = CharField()
 
 
 class Gene(BaseModel):
@@ -189,7 +165,6 @@ class Dataset(BaseModel):
         schema = 'data'
 
     study              = ForeignKeyField(Study, db_column="study", related_name='datasets')
-    reference_set      = ForeignKeyField(ReferenceSet, db_column="reference_set", related_name='datasets')
     short_name         = CharField()
     full_name          = CharField()
     browser_uri        = CharField(null=True)
@@ -226,6 +201,7 @@ class DatasetVersion(BaseModel):
         schema = 'data'
 
     dataset           = ForeignKeyField(Dataset, db_column="dataset", related_name='versions')
+    reference_set     = ForeignKeyField(ReferenceSet, db_column="reference_set", related_name='dataset_versions')
     version           = CharField(db_column="dataset_version")
     description       = TextField(db_column="dataset_description")
     terms             = TextField()
@@ -444,6 +420,7 @@ class DatasetVersionCurrent(DatasetVersion):
         schema = 'data'
 
     dataset           = ForeignKeyField(Dataset, db_column="dataset", related_name='current_version')
+    reference_set     = ForeignKeyField(ReferenceSet, db_column="reference_set", related_name='current_version')
 
 
 class DatasetAccessCurrent(DatasetAccess):

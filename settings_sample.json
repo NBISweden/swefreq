@@ -15,7 +15,7 @@
     "postgresPort" : 5432,
     "postgresUser" : "postgres",
     "postgresPass" : "",
-    "postgresName" : "",
+    "postgresName" : "swefreq",
 
     "mongoHost" : "mongodb host",
     "mongoPassword" : "password",

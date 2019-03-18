@@ -82,26 +82,33 @@ class RawDataImporter(DataImporter):
     def _select_dataset_version(self):
         datasets = []
 
+        # Make sure that the dataset exists
         try:
             ds = db.Dataset.get(short_name=self.settings.dataset)
         except db.Dataset.DoesNotExist:
-            print("Select a Dataset to use with this data")
+            logging.error("Unknown dataset '%s'", self.settings.dataset)
+            logging.info("Available datasets are:")
             for dataset in db.Dataset.select():
-                print("  {}  : {}".format(dataset.id, dataset.short_name))
-                datasets += [dataset]
-
-            selection = -1
-            while selection not in [d.id for d in datasets]:
-                if selection != -1:
-                    print("Please select a number in {}".format([d.id for d in datasets]))
-                try:
-                    selection = int(input("Please select a dataset: "))
-                except ValueError:
-                    print("Please select a number in {}".format([d.id for d in datasets]))
-            ds = [d for d in datasets if d.id == selection][0]
+                logging.info(" * %s", dataset.short_name)
+            sys.exit(1)
         logging.info("Using dataset {}".format(ds.short_name))
         self.dataset = ds
 
+        versions = [v for v in db.DatasetVersion.select().where(db.DatasetVersion.dataset == ds)]
+
+        # Make sure that the dataset version exists
+        if not versions:
+            raise db.DatasetVersion.DoesNotExist("No versions exist for this dataset")
+
+        if self.settings.version not in [v.version for v in versions]:
+            logging.error("Unknown version '%s' for dataset '%s'.", self.settings.version, self.dataset.short_name)
+            logging.info("Available versions are:")
+            for version in versions:
+                logging.info(" * %s", version.version)
+            sys.exit(1)
+        self.dataset_version = [v for v in versions if v.version == self.settings.version][0]
+
+        # Set the sample set's sample size
         if self.settings.set_vcf_sampleset_size or self.settings.sampleset_size:
             try:
                 samplesets = db.SampleSet.select()
@@ -111,89 +118,6 @@ class RawDataImporter(DataImporter):
                 logging.warning("Sample size will not be set")
                 self.settings.set_vcf_sampleset_size = False
                 self.settings.sampleset_size = 0
-
-        versions = []
-        for version in db.DatasetVersion.select().where(db.DatasetVersion.dataset == ds):
-            versions += [version]
-
-        if not versions:
-            raise db.DatasetVersion.DoesNotExist("At least one dataset version required for dataset")
-
-        if len(versions) == 1:
-            logging.info("Only one available dataset version, using: {}".format(versions[0].version))
-            self.dataset_version = versions[0]
-            return
-
-        if self.settings.version:
-            # name based version picking
-            if self.settings.version.lower() in [v.version.lower() for v in versions]:
-                selected = [v for v in versions if v.version.lower() == self.settings.version.lower()][0]
-                self.dataset_version = selected
-                logging.info("Using dataset version {}".format(self.dataset_version.version))
-                return
-
-            # date-based version picking
-            # note that this only works if the version string is formatted like:
-            # yyyymmdd or yyyy-mm-dd
-
-            target = self.settings.version
-            version_dates = []
-            for v in versions:
-                try:
-                    version_dates += [(datetime.strptime(v.version, "%Y-%m-%d"), v)]
-                except ValueError:
-                    try:
-                        version_dates += [(datetime.strptime(v.version, "%Y%m%d"), v)]
-                    except ValueError:
-                        pass
-            if target not in ["latest", "next"]:
-                try:
-                    target = datetime.strptime(target, "%Y-%m-%d")
-                except ValueError:
-                    pass
-                try:
-                    target = datetime.strptime(target, "%Y%m%d")
-                except ValueError:
-                    pass
-                for date, version in version_dates:
-                    if target == date:
-                        self.dataset_version = version
-                        logging.info("Using dataset version {}".format(self.dataset_version.version))
-                        return
-            else:
-                today = datetime.today()
-                if target == "latest":
-                    try:
-                        target, version = max([i for i in version_dates if i[0] < today])
-                        self.dataset_version = version
-                        logging.info("Using dataset version {}".format(self.dataset_version.version))
-                        return
-                    except ValueError:
-                        pass
-                elif target == "next":
-                    try:
-                        target, version = min([i for i in version_dates if i[0] > today])
-                        self.dataset_version = version
-                        logging.info("Using dataset version {}".format(self.dataset_version.version))
-                        return
-                    except ValueError:
-                        logging.warning("No future dataset versions found!")
-
-        print("Select a Version of this dataset to use")
-        for version in versions:
-            print("  {}  : {}".format(version.id, version.version))
-
-        selection = -1
-        while selection not in [v.id for v in versions]:
-            if selection != -1:
-                print("Please select a number in {}".format([v.id for v in versions]))
-            try:
-                selection = int(input("Please select a version: "))
-            except ValueError:
-                print("Please select a number in {}".format([v.id for v in versions]))
-
-        logging.info("Using dataset version {}".format(self.dataset_version))
-        self.dataset_version = [v for v in versions if v.id == selection][0]
 
     def _insert_coverage(self):
         """
@@ -281,7 +205,10 @@ class RawDataImporter(DataImporter):
         gq_mids = None
         with db.database.atomic():
             for filename in self.settings.variant_file:
-                ref_set = get_reference_set_for_dataset(self.settings.dataset)
+                # Get reference set for the variant
+                ref_set = self.dataset_version.reference_set
+
+                # Get all genes and transcripts for foreign keys
                 ref_genes = {gene.gene_id: gene.id for gene in (db.Gene.select(db.Gene.id, db.Gene.gene_id)
                                                                 .where(db.Gene.reference_set == ref_set))}
                 ref_transcripts = {tran.transcript_id: tran.id for tran in (db.Transcript
@@ -426,7 +353,7 @@ class RawDataImporter(DataImporter):
                             curr_id = 0
 
                     db.Variant.insert_many(batch).execute()
-                    
+
                     if not self.settings.beacon_only:
                         last_id = db.Variant.select(db.Variant.id).order_by(db.Variant.id.desc()).limit(1).get().id
                         if  last_id-curr_id == len(batch):
