@@ -264,8 +264,14 @@ class RawDataImporter(DataImporter):
                     except KeyError:
                         hom_counts = None # null is better than 0, as 0 has a meaning
                     except ValueError:
-                        hom_count = tuple(int(count) for count in info['AC_Hom'].split(','))  # parsing Swegen sometimes give e.g. 14,0
+                        hom_counts = tuple(int(count) for count in info['AC_Hom'].split(','))
 
+                    fmt_alleles = ['{}-{}-{}-{}'
+                                   .format(data['chrom'],
+                                           *get_minimal_representation(base['pos'],
+                                                                       base['ref'],
+                                                                       x))
+                                   for x in alt_alleles]
 
                     for i, alt in enumerate(alt_alleles):
                         if not self.settings.beacon_only:
@@ -273,10 +279,7 @@ class RawDataImporter(DataImporter):
 
                         data = dict(base)
                         data['pos'], data['ref'], data['alt'] = get_minimal_representation(base['pos'], base['ref'], alt)
-                        data['orig_alt_alleles'] = [
-                            '{}-{}-{}-{}'.format(data['chrom'], *get_minimal_representation(base['pos'], base['ref'], x)) for x in alt_alleles
-                        ]
-
+                        data['orig_alt_alleles'] = fmt_alleles
 
                         if len(rsids) <= i:
                             data['rsid'] = rsids[-1]  # same id as the last alternate
