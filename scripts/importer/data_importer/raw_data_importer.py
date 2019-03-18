@@ -275,7 +275,7 @@ class RawDataImporter(DataImporter):
                             vep_annotations = [ann for ann in annotations if int(ann['ALLELE_NUM']) == i + 1]
 
                         data = dict(base)
-                        data['ref'], data['alt'] = get_minimal_representation(base['pos'], base['ref'], alt)
+                        _, data['ref'], data['alt'] = get_minimal_representation(base['pos'], base['ref'], alt)
 
                         if len(rsids) <= i:
                             data['rsid'] = rsids[-1]  # same id as the last alternate
