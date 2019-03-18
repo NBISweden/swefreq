@@ -259,6 +259,13 @@ class RawDataImporter(DataImporter):
                     else:
                         rsids = [None]
 
+                    try:
+                        hom_counts = tuple(int(info['AC_Hom']))
+                    except KeyError:
+                        hom_counts = None # null is better than 0, as 0 has a meaning
+                    except ValueError:
+                        data['hom_count'] = tuple(int(count) for count in info['AC_Hom'].split(',')) # parsing Swegen sometimes give e.g. 14,0
+
                     for i, alt in enumerate(alt_alleles):
                         if not self.settings.beacon_only:
                             vep_annotations = [ann for ann in annotations if int(ann['ALLELE_NUM']) == i + 1]
@@ -296,12 +303,9 @@ class RawDataImporter(DataImporter):
                         data['orig_alt_alleles'] = [
                             '{}-{}-{}-{}'.format(data['chrom'], *get_minimal_representation(base['pos'], base['ref'], x)) for x in alt_alleles
                         ]
-                        try:
-                            data['hom_count'] = int(info['AC_Hom'])
-                        except KeyError:
-                            pass # null is better than 0, as 0 has a meaning
-                        except ValueError:
-                            data['hom_count'] = int(info['AC_Hom'].split(',')[0]) # parsing Swegen sometimes give e.g. 14,0
+
+                        data['hom_count'] = hom_counts[i]
+
                         data['variant_id'] = '{}-{}-{}-{}'.format(data['chrom'], data['pos'], data['ref'], data['alt'])
                         data['quality_metrics'] = dict([(x, info[x]) for x in METRICS if x in info])
                         batch += [data]
