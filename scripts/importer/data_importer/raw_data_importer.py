@@ -264,11 +264,8 @@ class RawDataImporter(DataImporter):
                     except KeyError:
                         hom_counts = None # null is better than 0, as 0 has a meaning
                     except ValueError:
-                        data['hom_count'] = tuple(int(count) for count in info['AC_Hom'].split(',')) # parsing Swegen sometimes give e.g. 14,0
+                        hom_count = tuple(int(count) for count in info['AC_Hom'].split(','))  # parsing Swegen sometimes give e.g. 14,0
 
-                    data['orig_alt_alleles'] = [
-                        '{}-{}-{}-{}'.format(data['chrom'], *get_minimal_representation(base['pos'], base['ref'], x)) for x in alt_alleles
-                    ]
 
                     for i, alt in enumerate(alt_alleles):
                         if not self.settings.beacon_only:
@@ -276,6 +273,10 @@ class RawDataImporter(DataImporter):
 
                         data = dict(base)
                         data['pos'], data['ref'], data['alt'] = get_minimal_representation(base['pos'], base['ref'], alt)
+                        data['orig_alt_alleles'] = [
+                            '{}-{}-{}-{}'.format(data['chrom'], *get_minimal_representation(base['pos'], base['ref'], x)) for x in alt_alleles
+                        ]
+
 
                         if len(rsids) <= i:
                             data['rsid'] = rsids[-1]  # same id as the last alternate
@@ -304,7 +305,7 @@ class RawDataImporter(DataImporter):
                             genes.append(list(set({annotation['Gene'] for annotation in vep_annotations if annotation['Gene'][:4] == 'ENSG'})))
                             transcripts.append(list(set({annotation['Feature'] for annotation in vep_annotations if annotation['Feature'][:4] == 'ENST'})))
 
-                        data['hom_count'] = hom_counts[i]
+                        data['hom_count'] = hom_counts[i] if hom_counts else None
 
                         data['variant_id'] = '{}-{}-{}-{}'.format(data['chrom'], data['pos'], data['ref'], data['alt'])
                         data['quality_metrics'] = dict([(x, info[x]) for x in METRICS if x in info])
