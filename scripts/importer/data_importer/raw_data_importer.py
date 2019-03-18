@@ -260,11 +260,11 @@ class RawDataImporter(DataImporter):
                         rsids = [None]
 
                     try:
-                        hom_counts = tuple(int(info['AC_Hom']))
+                        hom_counts = [int(info['AC_Hom'])]
                     except KeyError:
                         hom_counts = None # null is better than 0, as 0 has a meaning
                     except ValueError:
-                        hom_counts = tuple(int(count) for count in info['AC_Hom'].split(','))
+                        hom_counts = [int(count) for count in info['AC_Hom'].split(',')]
 
                     fmt_alleles = ['{}-{}-{}-{}'
                                    .format(data['chrom'],
