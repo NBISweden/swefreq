@@ -4,6 +4,7 @@
 cp settings_sample.json settings.json
 sed -i.tmp 's/"postgresHost" : "postgres host"/"postgresHost" : "127.0.0.1"/' settings.json
 sed -i.tmp 's/"postgresPort" : 5432/"postgresPort" : 5433/' settings.json
+sed -i.tmp 's/"postgresName" : "swefreq"/"postgresName" : ""/' settings.json
 
 echo 'SETTINGS'
 cat settings.json

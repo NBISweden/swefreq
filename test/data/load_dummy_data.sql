@@ -1,14 +1,8 @@
--- dbSNP tables.
-
-INSERT INTO data.dbsnp_versions (id, version_id)
-    VALUES (1000001, 'dummy 1'),
-           (1000002, 'dummy 2');
-
 -- Reference Set tables
 
-INSERT INTO data.reference_sets (id, dbsnp_version, reference_build, reference_name, ensembl_version, gencode_version, dbnsfp_version, omim_version)
-    VALUES (1000001, 1000002, 'GRCh1p2', 'Dummyman', 'homo_sapiens_core_0_3', '11', 'b142', 'ominfo'),
-           (1000002, 1000001, 'GRCh2p1', 'Mummydam', 'homo_sapiens_core_1_2', '23', 'b131', 'omimeme');
+INSERT INTO data.reference_sets (id, reference_build, reference_name, ensembl_version, gencode_version, dbnsfp_version)
+    VALUES (1000001, 'GRCh1p2', 'Dummyman', 'homo_sapiens_core_0_3', '11', 'b142'),
+           (1000002, 'GRCh2p1', 'Mummydam', 'homo_sapiens_core_1_2', '23', 'b131');
 
 -- Study and Dataset fields
 
@@ -21,20 +15,20 @@ INSERT INTO data.collections (id, study_name, ethnicity) VALUES
     (1000002, 'Collection2', 'CollEth2'),
     (1000003, 'Collection3', 'CollEth3');
 
-INSERT INTO data.datasets (id, study, reference_set, short_name, full_name, browser_uri, beacon_uri, beacon_description, avg_seq_depth, seq_type, seq_tech, seq_center, dataset_size)
-    VALUES (1000001, 1000001, 1000001, 'Dataset 1', 'Dataset 1 Long name', 'http://example.com/browser1', 'http://example.com/beacon1', 'Dummy Dataset 1', 1.0, 'SeqType1', 'SeqTech1', 'SeqCenter1', 1001),
-           (1000002, 1000002, 1000002, 'Dataset 2', 'Dataset 2 Long name', 'http://example.com/browser2', 'http://example.com/beacon2', 'Dummy Dataset 2', 2.0, 'SeqType2', 'SeqTech2', 'SeqCenter2', 1002);
+INSERT INTO data.datasets (id, study, short_name, full_name, browser_uri, beacon_uri, beacon_description, avg_seq_depth, seq_type, seq_tech, seq_center, dataset_size)
+    VALUES (1000001, 1000001, 'Dataset 1', 'Dataset 1 Long name', 'http://example.com/browser1', 'http://example.com/beacon1', 'Dummy Dataset 1', 1.0, 'SeqType1', 'SeqTech1', 'SeqCenter1', 1001),
+           (1000002, 1000002, 'Dataset 2', 'Dataset 2 Long name', 'http://example.com/browser2', 'http://example.com/beacon2', 'Dummy Dataset 2', 2.0, 'SeqType2', 'SeqTech2', 'SeqCenter2', 1002);
 
 INSERT INTO data.sample_sets (id, dataset, "collection", sample_size, phenotype)
     VALUES (1000001, 1000001, 1000001, 10, 'SamplePheno1'),
            (1000002, 1000001, 1000002, 15, 'SamplePheno2 Coll1'),
            (1000003, 1000002, 1000003, 20, 'SamplePheno2 Coll2');
 
-INSERT INTO data.dataset_versions (id, dataset, dataset_version, dataset_description, terms, var_call_ref, available_from, ref_doi, data_contact_name, data_contact_link, num_variants, coverage_levels)
-    VALUES (1000001, 1000001, 'Version 1-1', 'Dataset 1-1, description', 'Dataset 1-1, terms', 'CallRef11', '2017-01-01', 'datset11DOI', 'Gunnar Green',     'gunnar.green@example.com', 10, ARRAY[1,5,10]),
-           (1000002, 1000002, 'Version 2-1', 'Dataset 2-1, description', 'Dataset 2-1, terms', 'CallRef21', '2017-02-01', 'datset21DOI', NULL, NULL, 100, ARRAY[1,5,10]),
-           (1000003, 1000002, 'Version 2-2', 'Dataset 2-2, description', 'Dataset 2-2, terms', 'CallRef22', '2017-02-02', 'datset22DOI', 'Strummer project', 'https://example.com/strummer', 1000, ARRAY[1,5,10]),
-           (1000004, 1000002, 'InvVer  2-3', 'Dataset 2-3, description', 'Dataset 2-3, terms', 'CallRef23', '2030-02-03', 'datset23DOI', 'Drummer project',  'https://example.com/drummer', 10000, ARRAY[1,5,10]);
+INSERT INTO data.dataset_versions (id, dataset, reference_set, dataset_version, dataset_description, terms, var_call_ref, available_from, ref_doi, data_contact_name, data_contact_link, num_variants, coverage_levels)
+    VALUES (1000001, 1000001, 1000001, 'Version 1-1', 'Dataset 1-1, description', 'Dataset 1-1, terms', 'CallRef11', '2017-01-01', 'datset11DOI', 'Gunnar Green',     'gunnar.green@example.com', 10, ARRAY[1,5,10]),
+           (1000002, 1000002, 1000001, 'Version 2-1', 'Dataset 2-1, description', 'Dataset 2-1, terms', 'CallRef21', '2017-02-01', 'datset21DOI', NULL, NULL, 100, ARRAY[1,5,10]),
+           (1000003, 1000002, 1000002, 'Version 2-2', 'Dataset 2-2, description', 'Dataset 2-2, terms', 'CallRef22', '2017-02-02', 'datset22DOI', 'Strummer project', 'https://example.com/strummer', 1000, ARRAY[1,5,10]),
+           (1000004, 1000002, 1000002, 'InvVer  2-3', 'Dataset 2-3, description', 'Dataset 2-3, terms', 'CallRef23', '2030-02-03', 'datset23DOI', 'Drummer project',  'https://example.com/drummer', 10000, ARRAY[1,5,10]);
 
 INSERT INTO data.dataset_files(id, dataset_version, basename, uri, file_size)
     VALUES (1000001, 1000001, 'File11-1', '/release/file111.txt', 100),
