@@ -267,7 +267,7 @@ class RawDataImporter(DataImporter):
                         hom_counts = [int(count) for count in info['AC_Hom'].split(',')]
 
                     fmt_alleles = ['{}-{}-{}-{}'
-                                   .format(data['chrom'],
+                                   .format(base['chrom'],
                                            *get_minimal_representation(base['pos'],
                                                                        base['ref'],
                                                                        x))
@@ -313,7 +313,6 @@ class RawDataImporter(DataImporter):
                         data['variant_id'] = '{}-{}-{}-{}'.format(data['chrom'], data['pos'], data['ref'], data['alt'])
                         data['quality_metrics'] = dict([(x, info[x]) for x in METRICS if x in info])
                         batch += [data]
-                    print(batch)
                     counter += 1
 
                     if len(batch) >= self.settings.batch_size:
