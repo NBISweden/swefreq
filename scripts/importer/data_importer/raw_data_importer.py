@@ -131,7 +131,7 @@ class RawDataImporter(DataImporter):
                   ('cov30', float), ('cov50', float), ('cov100', float)]
         logging.info("Inserting Coverage")
         batch = []
-        last_progress = 0.0
+        last_progress = -1.0
         counter = 0
         with db.database.atomic():
             for filename in self.settings.coverage_file:
@@ -190,7 +190,7 @@ class RawDataImporter(DataImporter):
         genes = []
         transcripts = []
 
-        last_progress = 0.0
+        last_progress = -1.0
         counter = 0
         samples = 0
         vep_field_names = None
