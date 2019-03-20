@@ -147,9 +147,9 @@ class RawDataImporter(DataImporter):
                         data[header[i][0]] = header[i][1](item)
 
                     # re-format coverage for batch
-                    data['coverage'] = [item['cov1'], item['cov5'], item['cov10'],
-                                            item['cov15'], item['cov20'], item['cov25'],
-                                            item['cov30'], item['cov50'], item['cov100']]
+                    data['coverage'] = [data['cov1'], data['cov5'], data['cov10'],
+                                        data['cov15'], data['cov20'], data['cov25'],
+                                        data['cov30'], data['cov50'], data['cov100']]
                     del data['cov1']
                     del data['cov5']
                     del data['cov10']
