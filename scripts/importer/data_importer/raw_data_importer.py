@@ -146,26 +146,25 @@ class RawDataImporter(DataImporter):
                             data['dataset_version'] = self.dataset_version
                         data[header[i][0]] = header[i][1](item)
 
+                    # re-format coverage for batch
+                    data['coverage'] = [item['cov1'], item['cov5'], item['cov10'],
+                                            item['cov15'], item['cov20'], item['cov25'],
+                                            item['cov30'], item['cov50'], item['cov100']]
+                    del data['cov1']
+                    del data['cov5']
+                    del data['cov10']
+                    del data['cov15']
+                    del data['cov20']
+                    del data['cov25']
+                    del data['cov30']
+                    del data['cov50']
+                    del data['cov100']
+
                     if self.counter['coverage'] != None:
                         counter += 1
 
                     batch += [data]
                     if len(batch) >= self.settings.batch_size:
-                        # re-format coverage for batch
-                        for i, item in enumerate(batch):
-                            batch[i]['coverage'] = [item['cov1'], item['cov5'], item['cov10'],
-                                                    item['cov15'], item['cov20'], item['cov25'],
-                                                    item['cov30'], item['cov50'], item['cov100']]
-                            del batch[i]['cov1']
-                            del batch[i]['cov5']
-                            del batch[i]['cov10']
-                            del batch[i]['cov15']
-                            del batch[i]['cov20']
-                            del batch[i]['cov25']
-                            del batch[i]['cov30']
-                            del batch[i]['cov50']
-                            del batch[i]['cov100']
-
                         if not self.settings.dry_run:
                             db.Coverage.insert_many(batch).execute()
                         batch = []
