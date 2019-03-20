@@ -89,20 +89,6 @@ class DataImporter( object ):
         except IOError as e:
             logging.error("IOERROR: {}".format(e))
 
-    def _print_progress_bar(self):
-        if logging.getLogger().getEffectiveLevel() < 30:
-            sys.stderr.write("".join(["{:<10}".format(i) for i in range(0,101,10)]) + "\n")
-            sys.stderr.write("| ------- "*10 + "|\n")
-
-    def _tick(self, finished = False):
-        """
-        Prints a single progress tick, and a newline if finished is True.
-        """
-        sys.stderr.write("=")
-        if finished:
-            sys.stderr.write("\n")
-        sys.stderr.flush()
-
     def _time_format(self, seconds):
         h, rem = divmod(seconds, 3600)
         mins, secs = divmod(rem, 60)
@@ -119,3 +105,21 @@ class DataImporter( object ):
 
     def _time_to(self, start, progress = 0.01):
         return self._time_format( (time.time() - start)/progress )
+
+    def _update_progress_bar(self, current_count, total, last_progress, finished=False):
+        if not finished:
+            progress = current_count/total
+        else:
+            progress = 1.001
+        if last_progress < 0:
+            if logging.getLogger().getEffectiveLevel() < 30:
+                sys.stderr.write("".join(["{:<10}".format(i) for i in range(0,101,10)]) + "\n")
+                sys.stderr.write("| ------- "*10 + "|\n")
+            last_progress = 0
+        while progress > last_progress + 0.01:
+            last_progress += 0.01
+            sys.stderr.write("=")
+            sys.stderr.flush()
+        if finished:
+            sys.stderr.write("\n")
+        return last_progress

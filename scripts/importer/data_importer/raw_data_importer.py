@@ -170,17 +170,11 @@ class RawDataImporter(DataImporter):
                         batch = []
                         # Update progress
                         if self.counter['coverage'] != None:
-                            progress = counter / self.counter['coverage']
-                            while progress > last_progress + 0.01:
-                                if not last_progress:
-                                    logging.info("Estimated time to completion: {}".format(self._time_to(start, progress)))
-                                    self._print_progress_bar()
-                                self._tick()
-                                last_progress += 0.01
+                            last_progress = self._update_progress_bar(counter, self.counter['coverage'], last_progress)
             if batch and not self.settings.dry_run:
                 db.Coverage.insert_many(batch)
         if self.counter['coverage'] != None:
-            self._tick(True)
+            last_progress = self._update_progress_bar(counter, self.counter['coverage'], last_progress, finished=True)
         if not self.settings.dry_run:
             logging.info("Inserted {} coverage records in {}".format(counter, self._time_since(start)))
 
@@ -341,13 +335,7 @@ class RawDataImporter(DataImporter):
                         batch = []
                         # Update progress
                         if self.counter['variants'] != None:
-                            progress = counter / self.counter['variants']
-                            while progress > last_progress + 0.01:
-                                if not last_progress:
-                                    self._print_progress_bar()
-                                self._tick()
-                                last_progress += 0.01
-
+                            last_progress = self._update_progress_bar(counter, self.counter['variants'], last_progress)
 
             if batch and not self.settings.dry_run:
                 if not self.settings.dry_run:
@@ -378,7 +366,7 @@ class RawDataImporter(DataImporter):
         self.dataset_version.num_variants = counter
         self.dataset_version.save()
         if self.counter['variants'] != None:
-            self._tick(True)
+            last_progress = self._update_progress_bar(counter, self.counter['variants'], last_progress, finished=True)
         if not self.settings.dry_run:
             logging.info("Inserted {} variant records in {}".format(counter, self._time_since(start)))
 

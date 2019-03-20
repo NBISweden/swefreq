@@ -41,8 +41,7 @@ class ReferenceSetImporter( DataImporter ):
     def _insert_features(self):
         logging.info("Inserting features into database")
         start = time.time()
-        self._print_progress_bar()
-        last_progress = 0
+        last_progress = -1
         batch = []
         with db.database.atomic():
             for i, feature in enumerate(self.features):
@@ -59,14 +58,11 @@ class ReferenceSetImporter( DataImporter ):
                         db.Feature.insert_many(batch).execute()
                     batch = []
 
-                progress = i / len(self.features)
-                while progress - last_progress > 0.01:
-                    last_progress += 0.01
-                    self._tick()
+                last_progress = self._update_progress_bar(i, len(self.features), last_progress)
             if batch:
                 if not self.settings.dry_run:
                     db.Feature.insert_many(batch).execute()
-        self._tick(True)
+        last_progress = self._update_progress_bar(i, len(self.features), last_progress, finished=True)
 
         logging.info("Features inserted in {}".format(self._time_since(start)))
 
@@ -74,8 +70,7 @@ class ReferenceSetImporter( DataImporter ):
         logging.info("Inserting genes into database")
         start = time.time()
         self.gene_db_ids = {}
-        self._print_progress_bar()
-        last_progress = 0
+        last_progress = -1
         for i, gene in enumerate(self.genes):
             # As far as I know I can't batch insert these and still get the id's back
             db_gene = db.Gene(  reference_set = self.db_reference,
@@ -101,11 +96,9 @@ class ReferenceSetImporter( DataImporter ):
                     self.add_other_names(db_gene.id, other_names)
             except KeyError:
                 pass
-            progress = i / len(self.genes)
-            while progress - last_progress > 0.01:
-                last_progress += 0.01
-                self._tick()
-        self._tick(True)
+
+            last_progress = self._update_progress_bar(i, len(self.genes), last_progress)
+        last_progress = self._update_progress_bar(i, len(self.genes), last_progress, finished=True)
 
         logging.info("Genes inserted in {}".format( self._time_since(start) ))
 
@@ -132,8 +125,7 @@ class ReferenceSetImporter( DataImporter ):
         start = time.time()
 
         self.transcript_db_ids = {}
-        self._print_progress_bar()
-        last_progress = 0
+        last_progress = -1
         for i, transcript in enumerate(self.transcripts):
             db_transcript = db.Transcript( transcript_id = transcript['transcript_id'],
                                             gene = self.gene_db_ids[transcript['gene_id']],
@@ -152,11 +144,8 @@ class ReferenceSetImporter( DataImporter ):
                 db_transcript.save()
                 self.transcript_db_ids[transcript['transcript_id']] = db_transcript.id
 
-            progress = i / len(self.transcripts)
-            while progress - last_progress > 0.01:
-                last_progress += 0.01
-                self._tick()
-        self._tick(True)
+            last_progress = self._update_progress_bar(i, len(self.transcripts), last_progress)
+        last_progress = self._update_progress_bar(i, len(self.transcripts), last_progress, finished=True)
 
         logging.info("Transcripts inserted in {}".format( self._time_since(start) ))
 
@@ -269,23 +258,17 @@ class ReferenceSetImporter( DataImporter ):
         for transcript in self.ensembl.fetchall():
             canonical_dict[transcript[0]] = transcript[1]
 
-        last_progress = 0.0
-        if self.numbers['genes'] != None:
-            self._print_progress_bar()
-
+        last_progress = -1.0
         for i, gene in enumerate(self.genes):
             if gene['gene_id'] in canonical_dict:
                 self.genes[i]['canonical_transcript'] = canonical_dict[gene['gene_id']]
 
             self.counters['genes'] += 1
             if self.numbers['genes'] != None:
-                progress = i / self.numbers['genes']
-                while progress - last_progress > 0.01:
-                    last_progress += 0.01
-                    self._tick()
+                last_progress = self._update_progress_bar(i, self.numbers['genes'], last_progress)
         if self.numbers['genes'] != None:
-            self._tick(True)
-        logging.info("Canonical transcript information from ensembl added in {}.".format( self._time_since(start) ))
+            last_progress = self._update_progress_bar(i, self.numbers['genes'], last_progress, finished=True)
+        logging.info("Canonical transcript information from ensembl added in {}.".format(self._time_since(start)))
 
     def count_entries(self):
         logging.info("Counting features in gencode file (for progress bar)")
@@ -327,9 +310,7 @@ class ReferenceSetImporter( DataImporter ):
     def start_import(self):
         start = time.time()
         logging.info("Reading gencode data into buffers.")
-        last_progress = 0.0
-        if self.numbers['genes'] != None:
-            self._print_progress_bar()
+        last_progress = -1.0
         for line in self.gencode:
             line = bytes(line).decode('ascii').strip()
             if line.startswith("#"):
@@ -352,9 +333,7 @@ class ReferenceSetImporter( DataImporter ):
                 # only progress for genes to keep it simple
                 if self.numbers['genes'] != None:
                     progress = self.counters['genes'] / self.numbers['genes']
-                    while progress - last_progress > 0.01:
-                        last_progress += 0.01
-                        self._tick()
+                    last_progress = self._update_progress_bar(self.counters['genes'], self.numbers['genes'], last_progress)
                 if values[2] == 'gene':
                     data['name'] = info['gene_name']
                     self.genes += [data]
@@ -377,7 +356,7 @@ class ReferenceSetImporter( DataImporter ):
                 logging.error("{}".format(e))
                 break
         if self.numbers['genes'] != None:
-            self._tick(True)
+            last_progress = self._update_progress_bar(self.counters['genes'], self.numbers['genes'], last_progress, finished=True)
         logging.info("Gencode data read into buffers in {}.".format( self._time_since(start) ))
         self._read_ensembl()
         self._read_dbnsfp()
