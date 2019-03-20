@@ -24,7 +24,7 @@ class OldDbImporter( DataImporter ):
 
     def _select_reference_set(self, short_name):
         if len(self.reference_sets) == 1:
-            logging.info(("Only one reference set is available, %s,"
+            logging.info(("Only one reference set is available, %s, "
                           "will default to this set for all datasets"),
                          self.reference_sets[0].name)
             return self.reference_sets[0].id
