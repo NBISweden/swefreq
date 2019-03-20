@@ -54,7 +54,7 @@ class ReferenceSetImporter( DataImporter ):
                         'strand':feature['strand'],
                         'feature_type':feature['feature_type']}]
 
-                if len(batch) % self.batch_size == 0:
+                if len(batch) >= self.batch_size:
                     if not self.settings.dry_run:
                         db.Feature.insert_many(batch).execute()
                     batch = []
@@ -63,13 +63,12 @@ class ReferenceSetImporter( DataImporter ):
                 while progress - last_progress > 0.01:
                     last_progress += 0.01
                     self._tick()
-            if len(batch):
+            if batch:
                 if not self.settings.dry_run:
                     db.Feature.insert_many(batch).execute()
-                batch = []
         self._tick(True)
 
-        logging.info("Features inserted in {}".format( self._time_since(start) ))
+        logging.info("Features inserted in {}".format(self._time_since(start)))
 
     def _insert_genes(self):
         logging.info("Inserting genes into database")
