@@ -128,7 +128,7 @@ CREATE TABLE IF NOT EXISTS data.dataset_versions (
     data_contact_name   varchar(100)    DEFAULT NULL,
     data_contact_link   varchar(100)    DEFAULT NULL,
     num_variants        integer         DEFAULT NULL,
-    coverage_levels     integer[]       DEFAULT NULL -- Levels used for coverage.coverage
+    coverage_levels     integer[]       DEFAULT NULL -- Levels used for data.coverage.coverage
 );
 
 CREATE TABLE IF NOT EXISTS data.dataset_files (
@@ -183,7 +183,7 @@ CREATE TABLE IF NOT EXISTS data.coverage (
     pos integer,
     mean real,
     median real,
-    coverage real[] -- These are the coverage values, for the levels defined in dataset_versions.coverage_levels
+    coverage real[] -- These are the coverage values, for the levels defined in data.dataset_versions.coverage_levels
 );
 
 CREATE TABLE IF NOT EXISTS data.metrics (
