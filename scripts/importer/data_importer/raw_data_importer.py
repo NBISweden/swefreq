@@ -401,8 +401,9 @@ class RawDataImporter(DataImporter):
 
     def start_import(self):
         self._set_dataset_info()
-        self._insert_variants()
-        if not self.settings.beacon_only:
+        if self.settings.variant_file:
+            self._insert_variants()
+        if not self.settings.beacon_only and self.settings.coverage_file:
             self._insert_coverage()
 
     def add_variant_genes(self, variant_indexes:list, genes_to_add:list, ref_genes:dict):
