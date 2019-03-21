@@ -299,30 +299,14 @@ def test_get_variants_by_rsid():
     # normal
     result = lookups.get_variants_by_rsid('SweGen', 'rs185758992')
     assert result[0]['pos'] == 38481311
-    assert set(result[0]['genes']) == set(['ENSG00000100156', 'ENSG00000128298', 'ENSG00000272720'])
-    assert len(result[0]['genes']) == 3
-    assert len(result[0]['transcripts']) == 6
     assert not lookups.get_variants_by_rsid('SweGen', 'rs76676778')
     # with version
     assert not lookups.get_variants_by_rsid('SweGen', 'rs185758992', '20161223')
     result = lookups.get_variants_by_rsid('SweGen', 'rs76676778', '20161223')
     assert result[0]['variant_id'] == '21-9411609-G-T'
 
-    # by position
-    result = lookups.get_variants_by_rsid('SweGen', 'rs185758992', check_position=True)
-    assert result[0]['pos'] == 38481311
-    assert set(result[0]['genes']) == set(['ENSG00000100156', 'ENSG00000128298', 'ENSG00000272720'])
-    assert len(result[0]['genes']) == 3
-    assert len(result[0]['transcripts']) == 6
-    assert not lookups.get_variants_by_rsid('SweGen', 'rs76676778', check_position=True)
-    # with version
-    assert not lookups.get_variants_by_rsid('SweGen', 'rs185758992', '20161223', check_position=True)
-    result = lookups.get_variants_by_rsid('SweGen', 'rs76676778', '20161223', check_position=True)
-    assert result[0]['variant_id'] == '21-9411609-G-T'
-
     # errors
     assert lookups.get_variants_by_rsid('incorrect_name', 'rs373706802') is None
-    assert lookups.get_variants_by_rsid('SweGen', 'rs37356766700', check_position=True) is None
     assert lookups.get_variants_by_rsid('SweGen', '373706802') is None
     assert lookups.get_variants_by_rsid('SweGen', 'rs3737o68o2') is None
 

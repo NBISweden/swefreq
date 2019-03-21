@@ -10,15 +10,20 @@ SEARCH_LIMIT = 10000
 REGION_REGEX = re.compile(r'^\s*(\d+|X|Y|M|MT)\s*([-:]?)\s*(\d*)-?([\dACTG]*)-?([ACTG]*)')
 
 
-def get_autocomplete(dataset, query:str):
+def get_autocomplete(dataset:str, query:str, ds_version:str=None):
     """
     Provide autocomplete suggestions based on the query
     Args:
+        dataset (str): short name of dataset
         query (str): the query to compare to the available gene names
+        ds_version (str): the dataset version
     Returns:
         list: A list of genes names whose beginning matches the query
     """
-    ref_set = db.get_reference_set_for_dataset(dataset)
+    try:
+        ref_set = db.get_dataset_version(dataset, ds_version).reference_set
+    except AttributeError:
+        return None
     query = (db.Gene.select(db.Gene.name)
              .where(((db.Gene.name.startswith(query)) &
                       (db.Gene.reference_set == ref_set))))
@@ -59,9 +64,6 @@ def get_awesomebar_result(dataset:str, query:str, ds_version:str=None):
 
     # Parse Variant types
     variant = get_variants_by_rsid(dataset, query.lower(), ds_version=ds_version)
-    if not variant:
-        variant = get_variants_by_rsid(dataset, query.lower(), check_position=True, ds_version=ds_version)
-
     if variant:
         if len(variant) == 1:
             retval = ('variant', variant[0]['variant_id'])
@@ -160,19 +162,21 @@ def get_coverage_for_transcript(dataset:str, chrom:str, start_pos:int, end_pos:i
     return covered
 
 
-def get_exons_in_transcript(dataset:str, transcript_id:str):
+def get_exons_in_transcript(dataset:str, transcript_id:str, ds_version=None):
     """
     Retrieve exons associated with the given transcript id
 
     Args:
         dataset (str): short name of the dataset
         transcript_id (str): the id of the transcript
+        ds_version (str): dataset version
 
     Returns:
         list: dicts with values for each exon sorted by start position
     """
-    ref_set = db.get_reference_set_for_dataset(dataset)
-    if not ref_set:
+    try:
+        ref_set = db.get_dataset_version(dataset, ds_version).reference_set
+    except AttributeError:
         logging.info('get_exons_in_transcript({}, {}): unable to find dataset dbid'.format(dataset, transcript_id))
         return None
     try:
@@ -191,19 +195,21 @@ def get_exons_in_transcript(dataset:str, transcript_id:str):
                   key=lambda k: k['start'])
 
 
-def get_gene(dataset:str, gene_id:str):
+def get_gene(dataset:str, gene_id:str, ds_version:str=None):
     """
     Retrieve gene by gene id
 
     Args:
         dataset (str): short name of the dataset
         gene_id (str): the id of the gene
+        ds_version (str): dataset version
 
     Returns:
         dict: values for the gene; None if not found
     """
-    ref_set = db.get_reference_set_for_dataset(dataset)
-    if not ref_set:
+    try:
+        ref_set = db.get_dataset_version(dataset, ds_version).reference_set
+    except AttributeError:
         return None
     try:
         return db.Gene.select().where((db.Gene.gene_id == gene_id) &
@@ -230,19 +236,22 @@ def get_gene_by_dbid(gene_dbid:str):
         return {}
 
 
-def get_gene_by_name(dataset:str, gene_name:str):
+def get_gene_by_name(dataset:str, gene_name:str, ds_version=None):
     """
     Retrieve gene by gene_name.
     First checks gene_name, then other_names.
 
     Args:
+        dataset (str): short name of the dataset
         gene_name (str): the id of the gene
+        ds_version (str): dataset version
 
     Returns:
         dict: values for the gene; empty if not found
     """
-    ref_set = db.get_reference_set_for_dataset(dataset)
-    if not ref_set:
+    try:
+        ref_set = db.get_dataset_version(dataset, ds_version).reference_set
+    except AttributeError:
         return {}
     try:
         return (db.Gene.select()
@@ -263,7 +272,7 @@ def get_gene_by_name(dataset:str, gene_name:str):
             return {}
 
 
-def get_genes_in_region(dataset:str, chrom:str, start_pos:int, stop_pos:int):
+def get_genes_in_region(dataset:str, chrom:str, start_pos:int, stop_pos:int, ds_version:str=None):
     """
     Retrieve genes located within a region
 
@@ -272,12 +281,14 @@ def get_genes_in_region(dataset:str, chrom:str, start_pos:int, stop_pos:int):
         chrom (str): chromosome name
         start_pos (int): start of region
         stop_pos (int): end of region
+        ds_version (str): dataset version
 
     Returns:
         dict: values for the gene; empty if not found
     """
-    ref_set = db.get_reference_set_for_dataset(dataset)
-    if not ref_set:
+    try:
+        ref_set = db.get_dataset_version(dataset, ds_version).reference_set
+    except AttributeError:
         return {}
 
     gene_query = db.Gene.select().where((db.Gene.reference_set == ref_set) &
@@ -333,7 +344,7 @@ def get_raw_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_versio
         return None
 
 
-def get_transcript(dataset:str, transcript_id:str):
+def get_transcript(dataset:str, transcript_id:str, ds_version:str=None):
     """
     Retrieve transcript by transcript id
     Also includes exons as ['exons']
@@ -341,12 +352,14 @@ def get_transcript(dataset:str, transcript_id:str):
     Args:
         dataset (str): short name of the dataset
         transcript_id (str): the id of the transcript
+        ds_version (str): dataset version
 
     Returns:
         dict: values for the transcript, including exons; None if not found
     """
-    ref_set = db.get_reference_set_for_dataset(dataset)
-    if not ref_set:
+    try:
+        ref_set = db.get_dataset_version(dataset, ds_version).reference_set
+    except AttributeError:
         return None
     try:
         transcript = (db.Transcript
@@ -362,17 +375,19 @@ def get_transcript(dataset:str, transcript_id:str):
         return None
 
 
-def get_transcripts_in_gene(dataset:str, gene_id:str):
+def get_transcripts_in_gene(dataset:str, gene_id:str, ds_version:str=None):
     """
     Get the transcripts associated with a gene
     Args:
         dataset (str): short name of the reference set
         gene_id (str): id of the gene
+        ds_version (str): dataset version
     Returns:
         list: transcripts (dict) associated with the gene; empty if no hits
     """
-    ref_set = db.get_reference_set_for_dataset(dataset)
-    if not ref_set:
+    try:
+        ref_set = db.get_dataset_version(dataset, ds_version).reference_set
+    except AttributeError:
         logging.error('get_transcripts_in_gene({}, {}): unable to get referenceset dbid'.format(dataset, gene_id))
         return []
     try:
@@ -399,7 +414,6 @@ def get_transcripts_in_gene_by_dbid(gene_dbid:int):
 def get_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_version:str=None):
     """
     Retrieve variant by position and change
-    Retrieves rsid from db (if available) if not present in variant
 
     Args:
         dataset (str): short name of the dataset
@@ -439,15 +453,13 @@ def get_variant_genes(dataset:str, variant:dict):
             .dicts()]
 
 
-def get_variants_by_rsid(dataset:str, rsid:str, ds_version:str=None, check_position:str=False):
+def get_variants_by_rsid(dataset:str, rsid:str, ds_version:str=None):
     """
     Retrieve variants by their associated rsid
-    May also look up rsid and search for variants at the position
 
     Args:
         dataset (str): short name of dataset
         rsid (str): rsid of the variant (starting with rs)
-        check_position (bool): check for variants at the position of the rsid instead of by rsid
         ds_version (str): version of the dataset
 
     Returns:
@@ -466,36 +478,11 @@ def get_variants_by_rsid(dataset:str, rsid:str, ds_version:str=None, check_posit
     except ValueError:
         logging.error('get_variants_by_rsid({}, {}): not an integer after rs'.format(dataset, rsid))
         return None
-    if check_position:
-        refset = (db.Dataset
-                  .select(db.ReferenceSet)
-                  .join(db.ReferenceSet)
-                  .where(db.Dataset.short_name == dataset)
-                  .dicts()
-                  .get())
-        dbsnp_version = refset['dbsnp_version']
-        try:
-            rsid_dbsnp = (db.DbSNP
-                          .select()
-                          .where((db.DbSNP.rsid == rsid) &
-                                 (db.DbSNP.version_id == dbsnp_version))
-                          .dicts()
-                          .get())
-        except db.DbSNP.DoesNotExist:
-            logging.error('get_variants_by_rsid({}, {}): rsid not in dbsnp'.format(dataset, rsid))
-            return None
-        query = (db.Variant
-                 .select()
-                 .where((db.Variant.pos == rsid_dbsnp['pos']) &
-                        (db.Variant.chrom == rsid_dbsnp['chrom']) &
-                        (db.Variant.dataset_version == dataset_version))
-                 .dicts())
-    else:
-        query = (db.Variant
-                 .select()
-                 .where((db.Variant.rsid == rsid) &
-                        (db.Variant.dataset_version == dataset_version))
-                 .dicts())
+    query = (db.Variant
+             .select()
+             .where((db.Variant.rsid == rsid) &
+                    (db.Variant.dataset_version == dataset_version))
+             .dicts())
 
     variants = [variant for variant in query]
     return variants
@@ -513,8 +500,9 @@ def get_variants_in_gene(dataset:str, gene_id:str, ds_version:str=None):
     Returns:
         list: values for the variants
     """
-    ref_set = db.get_reference_set_for_dataset(dataset)
-    if not ref_set:
+    try:
+        ref_set = db.get_dataset_version(dataset, ds_version).reference_set
+    except AttributeError:
         return None
     dataset_version = db.get_dataset_version(dataset, ds_version)
     if not dataset_version:
@@ -590,8 +578,9 @@ def get_variants_in_transcript(dataset:str, transcript_id:str, ds_version:str=No
     Returns:
         dict: values for the variant; None if not found
     """
-    ref_set = db.get_reference_set_for_dataset(dataset)
-    if not ref_set:
+    try:
+        ref_set = db.get_dataset_version(dataset, ds_version).reference_set
+    except AttributeError:
         return None
     dataset_version = db.get_dataset_version(dataset, ds_version)
 

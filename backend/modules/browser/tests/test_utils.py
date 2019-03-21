@@ -12,7 +12,7 @@ def test_add_consequence_to_variants():
     """
     variants = []
     variants.append(lookups.get_variant('SweGen', 38481311, '22', 'C', 'T'))
-    variants.append(lookups.get_variant('SweGen', 38480546, '22', 'TG', 'TGG'))
+    variants.append(lookups.get_variant('SweGen', 38480546, '22', 'T', 'TG'))
 
     utils.add_consequence_to_variants(variants)
     assert variants[0]['major_consequence'] == 'missense_variant'
@@ -27,7 +27,7 @@ def test_add_consequence_to_variant():
     utils.add_consequence_to_variant(variant)
     assert variant['major_consequence'] == 'missense_variant'
 
-    variant = lookups.get_variant('SweGen', 38480546, '22', 'TG', 'TGG')
+    variant = lookups.get_variant('SweGen', 38480546, '22', 'T', 'TG')
     utils.add_consequence_to_variant(variant)
     assert variant['major_consequence'] == 'upstream_gene_variant'
 
