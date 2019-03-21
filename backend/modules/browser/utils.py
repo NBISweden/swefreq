@@ -87,7 +87,6 @@ def add_consequence_to_variants(variant_list:list):
         datatype (str): type of data
         item (str): query item
     """
-    
     for variant in variant_list:
         add_consequence_to_variant(variant)
 
@@ -100,7 +99,7 @@ def add_consequence_to_variant(variant:dict):
         variant (dict): variant information
     """
     if not variant:
-        return None
+        return
     worst_csq = worst_csq_with_vep(variant['vep_annotations'])
     variant['major_consequence'] = ''
     if worst_csq is None:
@@ -126,6 +125,7 @@ def add_consequence_to_variant(variant:dict):
     else:
         variant['category'] = 'other_variant'
     variant['flags'] = get_flags_from_variant(variant)
+    return
 
 
 def annotation_severity(annotation:dict):
@@ -322,17 +322,17 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
                ['hom_count','Number of Homozygous Alleles'], ['allele_freq','Allele Frequency']]
 
     if datatype == 'gene':
-        variants = lookups.get_variants_in_gene(dataset, item)
+        variants = lookups.get_variants_in_gene(dataset, item, ds_version)
     elif datatype == 'region':
         chrom, start, stop = item.split('-')
         if is_region_too_large(start, stop):
             return {'variants': [], 'headers': [], 'region_too_large': True}
-        variants = lookups.get_variants_in_region(dataset, chrom, start, stop)
+        variants = lookups.get_variants_in_region(dataset, chrom, start, stop, ds_version)
     elif datatype == 'transcript':
-        variants = lookups.get_variants_in_transcript(dataset, item)
+        variants = lookups.get_variants_in_transcript(dataset, item, ds_version)
 
     if datatype == 'transcript':
-        refgene = lookups.get_transcript(dataset, item)
+        refgene = lookups.get_transcript(dataset, item, ds_version)
         refgene = refgene['gene_id']
     for variant in variants:
         if datatype in ('gene', 'transcript'):
@@ -345,12 +345,12 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
                 anno = [ann for ann in variant['vep_annotations'] if ann['Gene'] == item]
             if anno:
                 variant['vep_annotations'] = anno
-            
+
     add_consequence_to_variants(variants)
 
     for variant in variants:
         remove_extraneous_information(variant)
-    
+
     # Format output
     def format_variant(variant):
         variant['major_consequence'] = (variant['major_consequence'].replace('_variant','')

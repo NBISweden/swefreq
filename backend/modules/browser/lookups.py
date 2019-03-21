@@ -3,8 +3,6 @@ import re
 
 import db
 
-from . import utils
-
 SEARCH_LIMIT = 10000
 
 REGION_REGEX = re.compile(r'^\s*(\d+|X|Y|M|MT)\s*([-:]?)\s*(\d*)-?([\dACTG]*)-?([ACTG]*)')
@@ -435,24 +433,6 @@ def get_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_version:st
     return variant
 
 
-def get_variant_genes(dataset:str, variant:dict):
-    """
-    Get a list of genes associated with a variant.
-
-    Args: 
-        dataset (str): short name of the dataset
-        variant (dict): variant information
-
-    Returns:
-        list: gene ids associated with the variant
-    """
-    return [gene['gene_id'] for gene in
-            db.VariantGenes.select(db.Gene.gene_id)
-            .join(db.Gene)
-            .where(db.VariantGenes.variant == variant['id'])
-            .dicts()]
-
-
 def get_variants_by_rsid(dataset:str, rsid:str, ds_version:str=None):
     """
     Retrieve variants by their associated rsid
@@ -500,14 +480,10 @@ def get_variants_in_gene(dataset:str, gene_id:str, ds_version:str=None):
     Returns:
         list: values for the variants
     """
-    try:
-        ref_set = db.get_dataset_version(dataset, ds_version).reference_set
-    except AttributeError:
-        return None
     dataset_version = db.get_dataset_version(dataset, ds_version)
     if not dataset_version:
         return None
-    gene = get_gene(dataset, gene_id)
+    gene = get_gene(dataset, gene_id, ds_version)
 
     variants = [variant for variant in db.Variant.select()
                                                  .join(db.VariantGenes)
@@ -578,13 +554,9 @@ def get_variants_in_transcript(dataset:str, transcript_id:str, ds_version:str=No
     Returns:
         dict: values for the variant; None if not found
     """
-    try:
-        ref_set = db.get_dataset_version(dataset, ds_version).reference_set
-    except AttributeError:
-        return None
     dataset_version = db.get_dataset_version(dataset, ds_version)
 
-    transcript = get_transcript(dataset, transcript_id)
+    transcript = get_transcript(dataset, transcript_id, ds_version)
     if not transcript:
         return None
 
@@ -606,21 +578,3 @@ def get_variants_in_transcript(dataset:str, transcript_id:str, ds_version:str=No
         if variant['rsid']:
             variant['rsid'] = 'rs{}'.format(variant['rsid'])
     return variants
-
-
-def get_variant_transcripts(dataset:str, variant:dict):
-    """
-    Get a list of transcripts associated with a variant.
-
-    Args: 
-        dataset (str): short name of the dataset
-        variant (dict): variant information
-
-    Returns:
-        list: transcript ids associated with the variant
-    """
-    return [transcript['transcript_id'] for transcript in
-            db.VariantTranscripts.select(db.Transcript.transcript_id)
-            .join(db.Transcript)
-            .where(db.VariantTranscripts.variant == variant['id'])
-            .dicts()]
