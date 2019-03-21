@@ -14,7 +14,7 @@ class Autocomplete(handlers.UnsafeHandler):
     def get(self, dataset:str, query:str, ds_version:str=None):
         ret = {}
 
-        results = lookups.get_autocomplete(dataset, query)
+        results = lookups.get_autocomplete(dataset, query, ds_version)
         ret = {'values': sorted(list(set(results)))[:20]}
 
         self.finish(ret)
@@ -35,7 +35,7 @@ class Download(handlers.UnsafeHandler):
         self.set_header('Content-Type','text/csv')
         self.set_header('content-Disposition','attachement; filename={}'.format(filename))
 
-        data = utils.get_variant_list(dataset, datatype, item)
+        data = utils.get_variant_list(dataset, datatype, item, ds_version)
         # Write header
         self.write(','.join([h[1] for h in data['headers']]) + '\n')
 
@@ -64,7 +64,7 @@ class GetCoveragePos(handlers.UnsafeHandler):
     Retrieve coverage range
     """
     def get(self, dataset:str, datatype:str, item:str, ds_version:str=None):
-        ret = utils.get_coverage_pos(dataset, datatype, item)
+        ret = utils.get_coverage_pos(dataset, datatype, item, ds_version)
         self.finish(ret)
 
 
@@ -85,19 +85,19 @@ class GetGene(handlers.UnsafeHandler):
         ret = {'gene':{'gene_id': gene_id}}
 
         # Gene
-        gene = lookups.get_gene(dataset, gene_id)
+        gene = lookups.get_gene(dataset, gene_id, ds_version)
         if not gene:
             self.send_error(status_code=404, reason='Gene not found')
         ret['gene'] = gene
 
         # Add exons from transcript
-        transcript = lookups.get_transcript(dataset, gene['canonical_transcript'])
+        transcript = lookups.get_transcript(dataset, gene['canonical_transcript'], ds_version)
         ret['exons'] = []
         for exon in sorted(transcript['exons'], key=lambda k: k['start']):
             ret['exons'] += [{'start':exon['start'], 'stop':exon['stop'], 'type':exon['feature_type']}]
 
         # Transcripts
-        transcripts_in_gene = lookups.get_transcripts_in_gene(dataset, gene_id)
+        transcripts_in_gene = lookups.get_transcripts_in_gene(dataset, gene_id, ds_version)
         if transcripts_in_gene:
             ret['transcripts'] = []
             for transcript in transcripts_in_gene:
@@ -161,7 +161,7 @@ class GetRegion(handlers.UnsafeHandler):
             self.send_error(status_code=400, reason="The region is too large")
             return
 
-        genes_in_region = lookups.get_genes_in_region(dataset, chrom, start, stop)
+        genes_in_region = lookups.get_genes_in_region(dataset, chrom, start, stop, ds_version)
         if genes_in_region:
             ret['region']['genes'] = []
             for gene in genes_in_region:
@@ -193,7 +193,7 @@ class GetTranscript(handlers.UnsafeHandler):
               }
 
         # Add transcript information
-        transcript = lookups.get_transcript(dataset, transcript_id)
+        transcript = lookups.get_transcript(dataset, transcript_id, ds_version)
         if not transcript:
             self.send_error(status_code=404, reason='Transcript not found')
         ret['transcript']['id'] = transcript['transcript_id']
@@ -329,7 +329,7 @@ class GetVariants(handlers.UnsafeHandler):
             datatype (str): gene, region, or transcript
             item (str): item to query
         """
-        ret = utils.get_variant_list(dataset, datatype, item)
+        ret = utils.get_variant_list(dataset, datatype, item, ds_version)
         if 'region_too_large' in ret:
             self.send_error(status_code=400, reason="The region is too large")
             return

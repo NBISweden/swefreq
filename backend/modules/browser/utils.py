@@ -186,7 +186,7 @@ def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
     return ret
 
 
-def get_coverage_pos(dataset:str, datatype:str, item:str):
+def get_coverage_pos(dataset:str, datatype:str, item:str, ds_version:str=None):
     """
     Retrieve coverage range
 
@@ -209,9 +209,9 @@ def get_coverage_pos(dataset:str, datatype:str, item:str):
     else:
         if datatype == 'gene':
             gene = lookups.get_gene(dataset, item)
-            transcript = lookups.get_transcript(dataset, gene['canonical_transcript'])
+            transcript = lookups.get_transcript(dataset, gene['canonical_transcript'], ds_version)
         elif datatype == 'transcript':
-            transcript = lookups.get_transcript(dataset, item)
+            transcript = lookups.get_transcript(dataset, item, ds_version)
         if transcript:
             ret['start'] = transcript['start'] - EXON_PADDING
             ret['stop']  = transcript['stop'] + EXON_PADDING
