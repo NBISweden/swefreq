@@ -172,7 +172,7 @@ class RawDataImporter(DataImporter):
                         if self.counter['coverage'] != None:
                             last_progress = self._update_progress_bar(counter, self.counter['coverage'], last_progress)
             if batch and not self.settings.dry_run:
-                db.Coverage.insert_many(batch)
+                db.Coverage.insert_many(batch).execute()
         if self.counter['coverage'] != None:
             last_progress = self._update_progress_bar(counter, self.counter['coverage'], last_progress, finished=True)
         if not self.settings.dry_run:
