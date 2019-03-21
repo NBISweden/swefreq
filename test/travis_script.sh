@@ -60,7 +60,7 @@ python backend/test.py -v
 RETURN_VALUE=$((RETURN_VALUE + $?))
 
 # test browser
-COVERAGE_FILE=.coverage_pytest PYTHONPATH=$PYTHONPATH:backend/ py.test -vv backend/ --cov=backend/
+COVERAGE_FILE=.coverage_pytest PYTHONPATH=$PYTHONPATH:backend/ py.test backend/ --cov=backend/
 RETURN_VALUE=$((RETURN_VALUE + $?))
 
 # Quit the app
