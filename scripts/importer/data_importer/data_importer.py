@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
+'''
+Baseclass for the data importers
+'''
 
 import os
 import sys
 import gzip
 import time
 import logging
-import MySQLdb
 import urllib.request
 
-class DataImporter( object ):
+import MySQLdb
 
+class DataImporter():
+    '''
+    Baseclass for the data importers
+    '''
     BLOCKSIZE = 1024
 
     def __init__(self, settings):
@@ -23,19 +29,19 @@ class DataImporter( object ):
     def _connect(self, host, user, passwd, database):
         try:
             logging.info("Connecting to database {}".format(database))
-            db = MySQLdb.connect(host=host,
-                                 user=user,
-                                 passwd=passwd,
-                                 db  =database)
-            return db.cursor()
-        except MySQLdb.Error as e:
-            logging.error("Error connecting: {}".format(e))
+            database = MySQLdb.connect(host=host,
+                                       user=user,
+                                       passwd=passwd,
+                                       db=database)
+            return database.cursor()
+        except MySQLdb.Error as error:
+            logging.error("Error connecting: {}".format(error))
 
-    def _download(self, base_url, version = None):
+    def _download(self, base_url, version=None):
         """
         Download a file into the download_dir.
         """
-        url = base_url.format(version = version)
+        url = base_url.format(version=version)
         filename = os.path.join(self.download_dir, url.split("/")[-1])
         if not os.path.exists(self.download_dir):
             os.makedirs(self.download_dir)
@@ -55,27 +61,26 @@ class DataImporter( object ):
             logging.info("response lacks content-length header, but will still download.")
         downloaded = 0
         logging.info("Downloading file {}".format(url))
-        if filesize and self.progress_bar:
-            self._print_progress_bar()
         with open(filename, 'wb') as out:
+            last_progress = -1.0
+            if filesize and self.progress_bar:
+                last_progress = self._update_progress_bar(downloaded, filesize, last_progress)
+
             block = response.read(DataImporter.BLOCKSIZE)
-            last_progress = 0
+
             while block:
                 downloaded += len(block)
                 if self.progress_bar and logging.getLogger().getEffectiveLevel() < 30 and filesize:
-                    progress = downloaded / filesize
-                    while progress -last_progress > 0.01:
-                        last_progress += 0.01
-                        self._tick()
+                    last_progress = self._update_progress_bar(downloaded, filesize, last_progress)
                 out.write(block)
                 block = response.read(DataImporter.BLOCKSIZE)
         response.close()
         if self.progress_bar and logging.getLogger().getEffectiveLevel() < 30 and filesize:
-            self._tick(True)
-            sys.stderr.write("=\n")
+            last_progress = self._update_progress_bar(downloaded, filesize,
+                                                      last_progress, finished=True)
         return filename
 
-    def _download_and_open(self, base_url, version = None):
+    def _download_and_open(self, base_url, version=None):
         """
         Downloads a file and returns an open file handle
         """
@@ -85,16 +90,16 @@ class DataImporter( object ):
     def _open(self, filename):
         try:
             logging.debug("Opening file {}".format(filename))
-            return gzip.open(filename,'rb') if filename.endswith(".gz") else open(filename)
-        except IOError as e:
-            logging.error("IOERROR: {}".format(e))
+            return gzip.open(filename, 'rb') if filename.endswith(".gz") else open(filename)
+        except IOError as error:
+            logging.error("IOERROR: {}".format(error))
 
     def _time_format(self, seconds):
-        h, rem = divmod(seconds, 3600)
+        hour, rem = divmod(seconds, 3600)
         mins, secs = divmod(rem, 60)
         retval = ""
-        if h:
-            retval += "{:d} hours, ".format(int(h))
+        if hour:
+            retval += "{:d} hours, ".format(int(hour))
         if mins:
             retval += "{:d} mins, ".format(int(mins))
         retval += "{:3.1f} secs".format(secs)
@@ -103,8 +108,8 @@ class DataImporter( object ):
     def _time_since(self, start):
         return self._time_format(time.time() - start)
 
-    def _time_to(self, start, progress = 0.01):
-        return self._time_format( (time.time() - start)/progress )
+    def _time_to(self, start, progress=0.01):
+        return self._time_format((time.time() - start)/progress)
 
     def _update_progress_bar(self, current_count, total, last_progress, finished=False):
         if not finished:
@@ -113,7 +118,7 @@ class DataImporter( object ):
             progress = 1.001
         if last_progress < 0:
             if logging.getLogger().getEffectiveLevel() < 30:
-                sys.stderr.write("".join(["{:<10}".format(i) for i in range(0,101,10)]) + "\n")
+                sys.stderr.write("".join(["{:<10}".format(i) for i in range(0, 101, 10)]) + "\n")
                 sys.stderr.write("| ------- "*10 + "|\n")
             last_progress = 0
         while progress > last_progress + 0.01:

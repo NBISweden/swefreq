@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 import re
 import sys
-import json
 import time
 import logging
 
-from datetime import datetime
-
-import modules.browser.lookups
 import db
 from .data_importer import DataImporter
 
@@ -42,17 +38,16 @@ def get_minimal_representation(pos, ref, alt):
     # If it's a simple SNV, don't remap anything
     if len(ref) == 1 and len(alt) == 1:
         return pos, ref, alt
-    else:
-        # strip off identical suffixes
-        while(alt[-1] == ref[-1] and min(len(alt), len(ref)) > 1):
-            alt = alt[:-1]
-            ref = ref[:-1]
-        # strip off identical prefixes and increment position
-        while(alt[0] == ref[0] and min(len(alt), len(ref)) > 1):
-            alt = alt[1:]
-            ref = ref[1:]
-            pos += 1
-        return pos, ref, alt
+    # strip off identical suffixes
+    while(alt[-1] == ref[-1] and min(len(alt), len(ref)) > 1):
+        alt = alt[:-1]
+        ref = ref[:-1]
+    # strip off identical prefixes and increment position
+    while(alt[0] == ref[0] and min(len(alt), len(ref)) > 1):
+        alt = alt[1:]
+        ref = ref[1:]
+        pos += 1
+    return pos, ref, alt
 
 
 class RawDataImporter(DataImporter):
@@ -160,7 +155,7 @@ class RawDataImporter(DataImporter):
                     del data['cov50']
                     del data['cov100']
 
-                    if self.counter['coverage'] != None:
+                    if self.counter['coverage'] is not None:
                         counter += 1
 
                     batch += [data]
@@ -169,11 +164,11 @@ class RawDataImporter(DataImporter):
                             db.Coverage.insert_many(batch).execute()
                         batch = []
                         # Update progress
-                        if self.counter['coverage'] != None:
+                        if self.counter['coverage'] is not None:
                             last_progress = self._update_progress_bar(counter, self.counter['coverage'], last_progress)
             if batch and not self.settings.dry_run:
                 db.Coverage.insert_many(batch).execute()
-        if self.counter['coverage'] != None:
+        if self.counter['coverage'] is not None:
             last_progress = self._update_progress_bar(counter, self.counter['coverage'], last_progress, finished=True)
         if not self.settings.dry_run:
             logging.info("Inserted {} coverage records in {}".format(counter, self._time_since(start)))

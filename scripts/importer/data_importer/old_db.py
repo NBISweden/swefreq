@@ -56,11 +56,11 @@ class User(MySQLModel):
     country       = CharField(null=True)
 
     def is_admin(self, dataset):
-        return DatasetAccess.select().where(
-                DatasetAccess.dataset == dataset,
-                DatasetAccess.user == self,
-                DatasetAccess.is_admin
-            ).count()
+        return (DatasetAccess.select()
+                .where(DatasetAccess.dataset == dataset,
+                       DatasetAccess.user == self,
+                       DatasetAccess.is_admin)
+                .count())
 
     def has_access(self, dataset):
         return DatasetAccessCurrent.select().where(
