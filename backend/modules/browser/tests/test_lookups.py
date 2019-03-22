@@ -19,8 +19,8 @@ def test_get_awesomebar_result():
     """
     Test get_awesomebar_result()
     """
-    result = lookups.get_awesomebar_result('SweGen', 'rs373706802')
-    assert result == ('dbsnp_variant_set', 373706802)
+    result = lookups.get_awesomebar_result('SweGen', 'rs142856307')
+    assert result == ('dbsnp_variant_set', 142856307)
     result = lookups.get_awesomebar_result('SweGen', 'rs783')
     assert result == ('variant', '22-29461622-G-A')
     result = lookups.get_awesomebar_result('SweGen', 'NF1P3')
@@ -253,9 +253,9 @@ def test_get_raw_variant():
     """
     Test get_raw_variant
     """
-    result = lookups.get_variant('SweGen', 16057464, '22', 'G', 'A')
-    assert result['genes'] == ['ENSG00000233866']
-    assert result['transcripts'] == ['ENST00000424770']
+    result = lookups.get_raw_variant('SweGen', 16080482, '22', 'CAT', 'C')
+    assert result['genes'] == ['ENSG00000229286', 'ENSG00000235265']
+    assert result['transcripts'] == ['ENST00000448070', 'ENST00000413156']
     assert not lookups.get_raw_variant('SweGen', 55500281, '1', 'A', 'T')
     assert not lookups.get_raw_variant('bad_dataset', 55500283, '1', 'A', 'T')
 
@@ -275,11 +275,11 @@ def test_get_variant():
     """
     Test get_variant()
     """
-    result = lookups.get_variant('SweGen', 16057464, '22', 'G', 'A')
-    assert result['variant_id'] == '22-16057464-G-A'
-    assert result['genes'] == ['ENSG00000233866']
-    assert result['transcripts'] == ['ENST00000424770']
-    result = lookups.get_variant('SweGen', 9435852, '21', 'T', 'C')
+    result = lookups.get_variant('SweGen', 16080482, '22', 'CAT', 'C')
+    assert result['variant_id'] == '22-16080482-CAT-C'
+    assert result['genes'] == ['ENSG00000229286', 'ENSG00000235265']
+    assert result['transcripts'] == ['ENST00000448070', 'ENST00000413156']
+    result = lookups.get_variant('SweGen', 9411609, '21', 'G', 'T')
     assert not result
 
     # incorrect position
@@ -288,8 +288,8 @@ def test_get_variant():
     # with version
     result = lookups.get_variant('SweGen', 16057464, '22', 'G', 'A', "20161223")
     assert not result
-    result = lookups.get_variant('SweGen', 9435852, '21', 'T', 'C', "20161223")
-    assert result['variant_id'] == '21-9435852-T-C'
+    result = lookups.get_variant('SweGen', 9411609, '21', 'G', 'T', "20161223")
+    assert result['variant_id'] == '21-9411609-G-T'
 
 
 def test_get_variants_by_rsid():
@@ -297,8 +297,9 @@ def test_get_variants_by_rsid():
     Test get_variants_by_rsid()
     '''
     # normal
-    result = lookups.get_variants_by_rsid('SweGen', 'rs185758992')
-    assert result[0]['pos'] == 38481311
+    result = lookups.get_variants_by_rsid('SweGen', 'rs142856307')
+    assert result[0]['pos'] == 16285954
+    assert len(result) == 5
     assert not lookups.get_variants_by_rsid('SweGen', 'rs76676778')
     # with version
     assert not lookups.get_variants_by_rsid('SweGen', 'rs185758992', '20161223')
@@ -319,10 +320,11 @@ def test_get_variants_in_gene():
     Test get_variants_in_gene()
     """
     res = lookups.get_variants_in_gene('SweGen', 'ENSG00000198062')
-    assert len(res) == 1185
+    assert len(res) == 512
     assert not lookups.get_variants_in_gene('bad_dataset', 'ENSG00000198062')
     assert not lookups.get_variants_in_gene('bad_dataset', 'ENSGASDFG')
     assert not lookups.get_variants_in_gene('SweGen', 'ENSG00000198062', "BAD_VERSION")
+
 
 def test_get_variants_in_region():
     """
@@ -330,7 +332,7 @@ def test_get_variants_in_region():
     """
     # normal
     result = lookups.get_variants_in_region('SweGen', '22', 16079200, 16079400)
-    expected_pos = [16079227, 16079234, 16079289, 16079350]
+    expected_pos = [16079227, 16079289]
     assert [res['pos'] for res in result] == expected_pos
 
     # no positions covered
@@ -347,6 +349,6 @@ def test_get_variants_in_transcript():
     Test get_variants_in_transcript()
     """
     res = lookups.get_variants_in_transcript('SweGen', 'ENST00000452800')
-    assert len(res) == 1174
+    assert len(res) == 508
     assert not lookups.get_variants_in_transcript('BAD_DATASET', 'ENST00000452800')
     assert not lookups.get_variants_in_transcript('SweGen', 'ENST123')
