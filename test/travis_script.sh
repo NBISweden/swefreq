@@ -28,6 +28,7 @@ echo '>>> Test 2. Load the swefreq schema'
 psql -U postgres -h 127.0.0.1 -p 5433 -f sql/data_schema.sql
 psql -U postgres -h 127.0.0.1 -p 5433 -f sql/user_schema.sql
 psql -U postgres -h 127.0.0.1 -p 5433 -f test/data/load_dummy_data.sql
+psql -U postgres -h 127.0.0.1 -p 5433 -f test/data/browser_test_data.sql
 
 echo '>>> Test 3. Check that the backend starts'
 
