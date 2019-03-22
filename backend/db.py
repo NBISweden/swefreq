@@ -1,28 +1,30 @@
-from peewee import (
-        BlobField,
-        CharField,
-        DateTimeField,
-        Field,
-        FloatField,
-        ForeignKeyField,
-        IntegerField,
-        Model,
-        MySQLDatabase,
-        PrimaryKeyField,
-        TextField,
-        fn,
-    )
-import logging
+#!/usr/bin/env python3
+
 import settings
+from peewee import (BigIntegerField,
+                    BlobField,
+                    BooleanField,
+                    CharField,
+                    DateTimeField,
+                    IntegerField,
+                    Field,
+                    FloatField,
+                    ForeignKeyField,
+                    Model,
+                    PostgresqlDatabase,
+                    PrimaryKeyField,
+                    SQL,
+                    TextField,
+                    fn,
+                )
+from playhouse.postgres_ext import ArrayField, BinaryJSONField, PostgresqlExtDatabase
 
-database = MySQLDatabase(
-        settings.mysql_schema,
-        host=settings.mysql_host,
-        user=settings.mysql_user,
-        password=settings.mysql_passwd,
-        port=settings.mysql_port
-    )
-
+database = PostgresqlExtDatabase(settings.psql_name,
+                                 user            = settings.psql_user,
+                                 password        = settings.psql_pass,
+                                 host            = settings.psql_host,
+                                 port            = settings.psql_port,
+                                 register_hstore = False)
 
 class BaseModel(Model):
     class Meta:
@@ -32,8 +34,8 @@ class BaseModel(Model):
 class EnumField(Field):
     db_field = 'string' # The same as for CharField
 
-    def __init__(self, values=None, *args, **kwargs):
-        self.values = values or []
+    def __init__(self, choices=None, *args, **kwargs):
+        self.values = choices or []
         super().__init__(*args, **kwargs)
 
     def db_value(self, value):
@@ -46,13 +48,281 @@ class EnumField(Field):
             raise ValueError("Illegal value for '{}'".format(self.db_column))
         return value
 
+###
+# Reference Tables
+##
+
+
+class ReferenceSet(BaseModel):
+    """
+    The gencode, ensembl, dbNSFP and omim data are combined to fill out the
+    Gene, Transcript and Feature tables. DbSNP data is separate, and may be
+    shared between reference sets, so it uses a foreign key instead.
+    """
+    class Meta:
+        db_table = 'reference_sets'
+        schema = 'data'
+
+    name = CharField(db_column="reference_name", null=True)
+    ensembl_version = CharField()
+    gencode_version = CharField()
+    dbnsfp_version = CharField()
+
+
+class Gene(BaseModel):
+    class Meta:
+        db_table = 'genes'
+        schema = 'data'
+
+    reference_set = ForeignKeyField(ReferenceSet, db_column="reference_set", related_name="genes")
+    gene_id = CharField(unique=True, max_length=15)
+    name = CharField(db_column="gene_name", null=True)
+    full_name = CharField(null=True)
+    canonical_transcript = CharField(null=True, max_length=15)
+    chrom = CharField(max_length=10)
+    start = IntegerField(db_column="start_pos")
+    stop = IntegerField(db_column="end_pos")
+    strand = EnumField(choices=['+','-'])
+
+class GeneOtherNames(BaseModel):
+    class Meta:
+        db_table = 'gene_other_names'
+        schema = 'data'
+
+    gene = ForeignKeyField(Gene, db_column="gene", related_name="other_names")
+    name = CharField(null=True)
+
+class Transcript(BaseModel):
+    class Meta:
+        db_table = 'transcripts'
+        schema = 'data'
+
+    transcript_id = CharField(max_length=15)
+    gene = ForeignKeyField(Gene, db_column="gene", related_name="transcripts")
+    mim_gene_accession = IntegerField()
+    mim_annotation = CharField()
+    chrom = CharField(max_length=10)
+    start = IntegerField(db_column="start_pos")
+    stop = IntegerField(db_column="stop_pos")
+    strand = EnumField(choices = ['+', '-'])
+
+
+class Feature(BaseModel):
+    class Meta:
+        db_table = 'features'
+        schema = 'data'
+
+    gene = ForeignKeyField(Gene, db_column="gene", related_name='exons')
+    transcript = ForeignKeyField(Transcript, db_column="transcript", related_name='transcripts')
+    chrom = CharField(max_length=10)
+    start = IntegerField(db_column="start_pos")
+    stop = IntegerField(db_column="stop_pos")
+    strand = EnumField(choices = ['+', '-'])
+    feature_type = CharField()
+
+###
+# Study and Dataset fields
+##
+
+class Collection(BaseModel):
+    """
+    A collection is a source of data which can be sampled into a SampleSet.
+    """
+    class Meta:
+        db_table = 'collections'
+        schema = 'data'
+
+    name       = CharField(db_column="study_name", null = True)
+    ethnicity  = CharField(null = True)
+
+
+class Study(BaseModel):
+    """
+    A study is a scientific study with a PI and a description, and may include
+    one or more datasets.
+    """
+    class Meta:
+        db_table = 'studies'
+        schema = 'data'
+
+    pi_name          = CharField()
+    pi_email         = CharField()
+    contact_name     = CharField()
+    contact_email    = CharField()
+    title            = CharField()
+    description      = TextField(db_column="study_description", null=True)
+    publication_date = DateTimeField()
+    ref_doi          = CharField(null=True)
+
+
+class Dataset(BaseModel):
+    """
+    A dataset is part of a study, and usually include a certain population.
+    Most studies only have a single dataset, but multiple are allowed.
+    """
+    class Meta:
+        db_table = 'datasets'
+        schema = 'data'
+
+    study              = ForeignKeyField(Study, db_column="study", related_name='datasets')
+    short_name         = CharField()
+    full_name          = CharField()
+    browser_uri        = CharField(null=True)
+    beacon_uri         = CharField(null=True)
+    description        = TextField(db_column="beacon_description", null=True)
+    avg_seq_depth      = FloatField(null=True)
+    seq_type           = CharField(null=True)
+    seq_tech           = CharField(null=True)
+    seq_center         = CharField(null=True)
+    dataset_size       = IntegerField()
+
+    def has_image(self):
+        try:
+            DatasetLogo.get(DatasetLogo.dataset == self)
+            return True
+        except DatasetLogo.DoesNotExist:
+            return False
+
+
+class SampleSet(BaseModel):
+    class Meta:
+        db_table = 'sample_sets'
+        schema = 'data'
+
+    dataset     = ForeignKeyField(Dataset, db_column="dataset", related_name='sample_sets')
+    collection  = ForeignKeyField(Collection, db_column="collection", related_name='sample_sets')
+    sample_size = IntegerField()
+    phenotype   = CharField(null=True)
+
+
+class DatasetVersion(BaseModel):
+    class Meta:
+        db_table = 'dataset_versions'
+        schema = 'data'
+
+    dataset           = ForeignKeyField(Dataset, db_column="dataset", related_name='versions')
+    reference_set     = ForeignKeyField(ReferenceSet, db_column="reference_set", related_name='dataset_versions')
+    version           = CharField(db_column="dataset_version")
+    description       = TextField(db_column="dataset_description")
+    terms             = TextField()
+    var_call_ref      = CharField(null=True)
+    available_from    = DateTimeField()
+    ref_doi           = CharField(null=True)
+    data_contact_name = CharField(null=True)
+    data_contact_link = CharField(null=True)
+    num_variants      = IntegerField(null=True)
+    coverage_levels   = ArrayField(IntegerField, null=True)
+
+
+class DatasetFile(BaseModel):
+    class Meta:
+        db_table = 'dataset_files'
+        schema = 'data'
+
+    dataset_version = ForeignKeyField(DatasetVersion, db_column="dataset_version", related_name='files')
+    name            = CharField(db_column="basename")
+    uri             = CharField()
+    file_size       = IntegerField()
+
+
+class DatasetLogo(BaseModel):
+    class Meta:
+        db_table = 'dataset_logos'
+        schema = 'data'
+
+    dataset      = ForeignKeyField(Dataset, db_column="dataset", related_name='logo')
+    mimetype     = CharField()
+    data         = BlobField(db_column="bytes")
+
+
+###
+# Variant and coverage data fields
+##
+
+class Variant(BaseModel):
+    class Meta:
+        db_table = "variants"
+        schema = 'data'
+
+    dataset_version = ForeignKeyField(DatasetVersion, db_column="dataset_version", related_name="variants")
+    rsid = IntegerField()
+    chrom = CharField(max_length=10)
+    pos = IntegerField()
+    ref = CharField()
+    alt = CharField()
+    site_quality = FloatField()
+    orig_alt_alleles = ArrayField(CharField)
+    hom_count = IntegerField()
+    allele_freq = FloatField()
+    filter_string = CharField()
+    variant_id = CharField()
+    allele_count = IntegerField()
+    allele_num = IntegerField()
+    quality_metrics = BinaryJSONField()
+    vep_annotations = BinaryJSONField()
+
+
+class VariantGenes(BaseModel):
+    class Meta:
+        db_table = 'variant_genes'
+        schema = 'data'
+
+    variant = ForeignKeyField(Variant, db_column="variant", related_name="genes")
+    gene = ForeignKeyField(Gene, db_column="gene", related_name="variants")
+
+
+class VariantTranscripts(BaseModel):
+    class Meta:
+        db_table = 'variant_transcripts'
+        schema = 'data'
+
+    variant = ForeignKeyField(Variant, db_column="variant", related_name="transcripts")
+    transcript = ForeignKeyField(Transcript, db_column="transcript", related_name="variants")
+
+
+class Coverage(BaseModel):
+    """
+    Coverage statistics are pre-calculated for each variant for a given
+    dataset.
+
+    The fields show the fraction of a population that reaches the
+    mapping coverages given by the variable names.
+
+    ex. cov20 = 0.994 means that 99.4% of the population had at a mapping
+        coverage of at least 20 in this position.
+    """
+    class Meta:
+        db_table = "coverage"
+        schema = 'data'
+
+    dataset_version = ForeignKeyField(DatasetVersion, db_column="dataset_version")
+    chrom = CharField(max_length=10)
+    pos = IntegerField()
+    mean = FloatField()
+    median = FloatField()
+    coverage = ArrayField(FloatField, null=True)
+
+
+class Metrics(BaseModel):
+    class Meta:
+        db_table = "metrics"
+        schema = 'data'
+
+    dataset_version = ForeignKeyField(DatasetVersion, db_column="dataset_version")
+    metric = CharField()
+    mids = ArrayField(IntegerField)
+    hist = ArrayField(IntegerField)
+
 
 class User(BaseModel):
-    user          = PrimaryKeyField(db_column='user_pk')
-    name          = CharField(null=True)
+    class Meta:
+        db_table = "users"
+        schema = 'users'
+
+    name          = CharField(db_column="username", null=True)
     email         = CharField(unique=True)
     identity      = CharField(unique=True)
-    identity_type = EnumField(null=False, values=['google', 'elixir'])
+    identity_type = EnumField(null=False, choices=['google', 'elixir'])
     affiliation   = CharField(null=True)
     country       = CharField(null=True)
 
@@ -75,198 +345,108 @@ class User(BaseModel):
                 DatasetAccessPending.user    == self
             ).count()
 
-    class Meta:
-        db_table = 'user'
-
-
-class Study(BaseModel):
-    study            = PrimaryKeyField(db_column='study_pk')
-    pi_name          = CharField()
-    pi_email         = CharField()
-    contact_name     = CharField()
-    contact_email    = CharField()
-    title            = CharField()
-    description      = TextField(null=True)
-    publication_date = DateTimeField()
-    ref_doi          = CharField(null=True)
-
-    class Meta:
-        db_table = 'study'
-
-
-class Dataset(BaseModel):
-    dataset            = PrimaryKeyField(db_column='dataset_pk')
-    study              = ForeignKeyField(db_column='study_pk', rel_model=Study, to_field='study', related_name='datasets')
-    short_name         = CharField()
-    full_name          = CharField()
-    browser_uri        = CharField(null=True)
-    beacon_uri         = CharField(null=True)
-    avg_seq_depth      = FloatField(null=True)
-    seq_type           = CharField(null=True)
-    seq_tech           = CharField(null=True)
-    seq_center         = CharField(null=True)
-    dataset_size       = IntegerField()
-    mongodb_collection = CharField(null=False)
-
-    def has_image(self):
-        try:
-            DatasetLogo.get(DatasetLogo.dataset == self)
-            return True
-        except DatasetLogo.DoesNotExist:
-            return False
-
-    class Meta:
-        db_table = 'dataset'
-
-
-class DatasetVersion(BaseModel):
-    dataset_version   = PrimaryKeyField(db_column='dataset_version_pk')
-    dataset           = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='versions')
-    version           = CharField()
-    description       = TextField()
-    terms             = TextField()
-    var_call_ref      = CharField(null=True)
-    available_from    = DateTimeField()
-    ref_doi           = CharField(null=True)
-    data_contact_name = CharField(null=True)
-    data_contact_link = CharField(null=True)
-
-    class Meta:
-        db_table = 'dataset_version'
-
-
-class Collection(BaseModel):
-    collection = PrimaryKeyField(db_column = 'collection_pk')
-    name       = CharField(null = True)
-    ethnicity  = CharField(null = True)
-
-    class Meta:
-        db_table = 'collection'
-
-
-class SampleSet(BaseModel):
-    sample_set  = PrimaryKeyField(db_column='sample_set_pk')
-    dataset     = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='sample_sets')
-    collection  = ForeignKeyField(db_column='collection_pk', rel_model=Collection, to_field='collection', related_name='sample_sets')
-    sample_size = IntegerField()
-    phenotype   = CharField(null=True)
-
-    class Meta:
-        db_table = 'sample_set'
-
-
-class DatasetFile(BaseModel):
-    dataset_file    = PrimaryKeyField(db_column='dataset_file_pk')
-    dataset_version = ForeignKeyField(db_column='dataset_version_pk', rel_model=DatasetVersion, to_field='dataset_version', related_name='files')
-    name            = CharField()
-    uri             = CharField()
-    bytes           = IntegerField()
-
-    class Meta:
-        db_table = 'dataset_file'
-
-
-class UserAccessLog(BaseModel):
-    user_access_log = PrimaryKeyField(db_column='user_access_log_pk')
-    user            = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='access_logs')
-    dataset         = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='access_logs')
-    action          = EnumField(null=True, values=['access_requested','access_granted','access_revoked','private_link'])
-    ts              = DateTimeField()
-
-    class Meta:
-        db_table = 'user_access_log'
-
-
-class UserConsentLog(BaseModel):
-    user_consent_log = PrimaryKeyField(db_column='user_access_log_pk')
-    user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='consent_logs')
-    dataset_version  = ForeignKeyField(db_column='dataset_version_pk', rel_model=DatasetVersion, to_field='dataset_version', related_name='consent_logs')
-    ts               = DateTimeField()
-
-    class Meta:
-        db_table = 'user_consent_log'
-
-
-class UserDownloadLog(BaseModel):
-    user_download_log = PrimaryKeyField(db_column='user_download_log_pk')
-    user              = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='download_logs')
-    dataset_file      = ForeignKeyField(db_column='dataset_file_pk', rel_model=DatasetFile, to_field='dataset_file', related_name='download_logs')
-    ts                = DateTimeField()
-
-    class Meta:
-        db_table = 'user_download_log'
-
-
-class DatasetAccess(BaseModel):
-    dataset_access   = PrimaryKeyField(db_column='dataset_access_pk')
-    dataset          = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='access')
-    user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='access')
-    wants_newsletter = IntegerField(null=True)
-    is_admin         = IntegerField(null=True)
-
-    class Meta:
-        db_table = 'dataset_access'
-
-
-class DatasetAccessCurrent(DatasetAccess):
-    dataset          = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='access_current')
-    user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='access_current')
-    has_access       = IntegerField()
-    access_requested = DateTimeField()
-
-    class Meta:
-        db_table = 'dataset_access_current'
-
-
-class DatasetAccessPending(DatasetAccess):
-    dataset          = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='access_pending')
-    user             = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='access_pending')
-    has_access       = IntegerField()
-    access_requested = DateTimeField()
-
-    class Meta:
-        db_table = 'dataset_access_pending'
-
-
-class DatasetLogo(BaseModel):
-    dataset_logo = PrimaryKeyField(db_column='dataset_logo_pk')
-    dataset      = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='logo')
-    mimetype     = CharField()
-    data         = BlobField()
-
-    class Meta:
-        db_table = 'dataset_logo'
-
-
-class Linkhash(BaseModel):
-    linkhash        = PrimaryKeyField(db_column='linkhash_pk')
-    dataset_version = ForeignKeyField(db_column='dataset_version_pk', rel_model=DatasetVersion, to_field='dataset_version', related_name='link_hashes')
-    user            = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='link_hashes')
-    hash            = CharField()
-    expires_on      = DateTimeField()
-
-    class Meta:
-        db_table = 'linkhash'
-
-
-class DatasetVersionCurrent(DatasetVersion):
-    dataset = ForeignKeyField(db_column='dataset_pk', rel_model=Dataset, to_field='dataset', related_name='current_version')
-
-    class Meta:
-        db_table = 'dataset_version_current'
-
 
 class SFTPUser(BaseModel):
-    sftp_user     = PrimaryKeyField(db_column='sftp_user_pk')
-    user          = ForeignKeyField(db_column='user_pk', rel_model=User, to_field='user', related_name='sftp_user')
+    class Meta:
+        db_table = "sftp_users"
+        schema = 'users'
+
+    user          = ForeignKeyField(User, related_name='sftp_user')
     user_uid      = IntegerField(unique=True)
     user_name     = CharField(null=False)
     password_hash = CharField(null=False)
     account_expires = DateTimeField(null=False)
 
-    class Meta:
-        db_table = 'sftp_user'
 
+class UserAccessLog(BaseModel):
+    class Meta:
+        db_table = "user_access_log"
+        schema = 'users'
+
+    user            = ForeignKeyField(User, related_name='access_logs')
+    dataset         = ForeignKeyField(Dataset, db_column='dataset', related_name='access_logs')
+    action          = EnumField(null=True, choices=['access_granted','access_revoked','access_requested','private_link'])
+    ts              = DateTimeField()
+
+
+class UserConsentLog(BaseModel):
+    class Meta:
+        db_table = "user_consent_log"
+        schema = 'users'
+
+    user             = ForeignKeyField(User, related_name='consent_logs')
+    dataset_version  = ForeignKeyField(DatasetVersion, db_column='dataset_version', related_name='consent_logs')
+    ts               = DateTimeField()
+
+
+class UserDownloadLog(BaseModel):
+    class Meta:
+        db_table = "user_download_log"
+        schema = 'users'
+
+    user              = ForeignKeyField(User, related_name='download_logs')
+    dataset_file      = ForeignKeyField(DatasetFile, db_column='dataset_file', related_name='download_logs')
+    ts                = DateTimeField()
+
+
+class DatasetAccess(BaseModel):
+    class Meta:
+        db_table = "dataset_access"
+        schema = 'users'
+
+    dataset          = ForeignKeyField(Dataset, db_column='dataset', related_name='access')
+    user             = ForeignKeyField(User, related_name='dataset_access')
+    wants_newsletter = BooleanField(null=True)
+    is_admin         = BooleanField(null=True)
+
+
+class Linkhash(BaseModel):
+    class Meta:
+        db_table = "linkhash"
+        schema = 'users'
+
+    dataset_version = ForeignKeyField(DatasetVersion, db_column='dataset_version', related_name='link_hashes')
+    user            = ForeignKeyField(User, related_name='link_hashes')
+    hash            = CharField()
+    expires_on      = DateTimeField()
+
+#####
+# Views
+##
+
+class DatasetVersionCurrent(DatasetVersion):
+    class Meta:
+        db_table = 'dataset_version_current'
+        schema = 'data'
+
+    dataset           = ForeignKeyField(Dataset, db_column="dataset", related_name='current_version')
+    reference_set     = ForeignKeyField(ReferenceSet, db_column="reference_set", related_name='current_version')
+
+
+class DatasetAccessCurrent(DatasetAccess):
+    class Meta:
+        db_table = 'dataset_access_current'
+        schema = 'users'
+
+    dataset          = ForeignKeyField(Dataset, db_column='dataset', related_name='access_current')
+    user             = ForeignKeyField(User, related_name='access_current')
+    has_access       = IntegerField()
+    access_requested = DateTimeField()
+
+
+class DatasetAccessPending(DatasetAccess):
+    class Meta:
+        db_table = 'dataset_access_pending'
+        schema = 'users'
+
+    dataset          = ForeignKeyField(Dataset, db_column='dataset', related_name='access_pending')
+    user             = ForeignKeyField(User, related_name='access_pending')
+    has_access       = IntegerField()
+    access_requested = DateTimeField()
+
+#####
+# Help functions
+##
 
 def get_next_free_uid():
     """
@@ -284,46 +464,32 @@ def get_next_free_uid():
 
     return next_uid
 
-
 def get_admin_datasets(user):
     return DatasetAccess.select().where( DatasetAccess.user == user, DatasetAccess.is_admin)
-
 
 def get_dataset(dataset):
     dataset = Dataset.select().where( Dataset.short_name == dataset).get()
     return dataset
 
-
 def get_dataset_version(dataset, version=None):
     if version:
-        try:
-            dataset_version = (DatasetVersion
-                               .select(DatasetVersion, Dataset)
-                               .join(Dataset)
-                               .where(DatasetVersion.version == version,
-                                      Dataset.short_name == dataset)).get()
-        except DatasetVersion.DoesNotExist:
-            logging.error("get_dataset_version({}, {}): ".format(dataset, version) +
-                          "cannot retrieve dataset version")
-            return
+        dataset_version = (DatasetVersion
+                            .select(DatasetVersion, Dataset)
+                            .join(Dataset)
+                            .where(DatasetVersion.version == version,
+                                   Dataset.short_name == dataset)).get()
     else:
-        try:
-            dataset_version = (DatasetVersionCurrent
-                               .select(DatasetVersionCurrent, Dataset)
-                               .join(Dataset)
-                               .where(Dataset.short_name == dataset)).get()
-        except DatasetVersionCurrent.DoesNotExist:
-            logging.error("get_dataset_version({}, version=None): ".format(dataset) +
-                          "cannot retrieve dataset version")
-            return
+        dataset_version = (DatasetVersionCurrent
+                            .select(DatasetVersionCurrent, Dataset)
+                            .join(Dataset)
+                            .where(Dataset.short_name == dataset)).get()
     return dataset_version
-
 
 def build_dict_from_row(row):
     d = {}
-    for field in row._meta.sorted_fields: #pylint: disable=protected-access
-        column = field.db_column
-        if column.endswith("_pk"):
+
+    for field, value in row.__dict__['_data'].items():
+        if field == "id":
             continue
-        d[column] = getattr(row, column)
+        d[field] = value
     return d

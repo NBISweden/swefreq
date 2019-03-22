@@ -15,3 +15,13 @@ tornado/static/js/app.min.js
 backend/static
 backend/templates
 static
+# importer and config stuff
+mysql-data*
+scripts/importer/downloaded_files
+# docker stuff
+postgres-data
+# local personal things
+personal
+# travis test remnants
+master-schema.sql
+settings.json.tmp

@@ -11,6 +11,12 @@
     "mysqlUser" : "swefreq",
     "mysqlPort" : 3306,
 
+    "postgresHost" : "postgres host",
+    "postgresPort" : 5432,
+    "postgresUser" : "postgres",
+    "postgresPass" : "",
+    "postgresName" : "swefreq",
+
     "mongoHost" : "mongodb host",
     "mongoPassword" : "password",
     "mongoPort" : 27017,

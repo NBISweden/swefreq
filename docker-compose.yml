@@ -1,5 +1,14 @@
 version: "3.2"
 services:
+  db:
+    build:
+      context: ./
+      dockerfile: Dockerfile-database
+    restart: on-failure
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
   web:
     build:
       context: ./
@@ -13,12 +22,6 @@ services:
       - type: bind
         source: .
         target: /code
-  db:
-    image: "mysql:5.7"
-    volumes:
-      - type: volume
-        source: mysql-data-volume
-        target: /var/lib/mysql/
   rebuilder:
     build:
       context: ./
@@ -27,8 +30,3 @@ services:
       - type: bind
         source: .
         target: /code
-
-
-volumes:
-  mysql-data-volume:
-    external: true
