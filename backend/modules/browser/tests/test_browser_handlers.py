@@ -29,7 +29,7 @@ def test_download():
     data_type = 'transcript'
     data_item = 'ENST00000438441'
     response = requests.get('{}/api/datasets/{}/browser/download/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
-    assert len(response.text.split('\n')) == 407
+    assert len(response.text.split('\n')) == 180
 
 
 def test_get_coverage():
@@ -161,21 +161,21 @@ def test_get_variant():
     Test GetVariant.get()
     """
     dataset = 'SweGen'
-    variant_id = '22-16057464-G-A'
+    variant_id = '22-16080482-CAT-C'
     response = requests.get('{}/api/datasets/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
     variant = json.loads(response.text)
 
-    assert variant['variant']['variantId'] == '22-16057464-G-A'
-    assert variant['variant']['genes'] == ['ENSG00000233866']
-    assert variant['variant']['transcripts'] == ['ENST00000424770']
+    assert variant['variant']['variantId'] == '22-16080482-CAT-C'
+    assert variant['variant']['genes'] == ['ENSG00000229286', 'ENSG00000235265']
+    assert variant['variant']['transcripts'] == ['ENST00000448070', 'ENST00000413156']
 
-    variant_id = '21-9435852-T-C'
+    variant_id = '21-9411609-G-T'
     version = '20161223'
     response = requests.get('{}/api/datasets/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
     assert response.status_code == 404
     response = requests.get('{}/api/datasets/{}/version/{}/browser/variant/{}'.format(BASE_URL, dataset, version, variant_id))
     variant = json.loads(response.text)
-    assert variant['variant']['variantId'] == '21-9435852-T-C'
+    assert variant['variant']['variantId'] == '21-9411609-G-T'
 
     variant_id = '22-94358sfsdfsdf52-T-C'
     response = requests.get('{}/api/datasets/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
@@ -192,13 +192,13 @@ def test_get_variants():
     data_item = 'ENSG00000231565'
     response = requests.get('{}/api/datasets/{}/browser/variants/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
     data = json.loads(response.text)
-    assert len(data['variants']) == 405
+    assert len(data['variants']) == 178
 
     data_type = 'region'
-    data_item = '22-46615715-46615880'
+    data_item = '22-16360000-16361200'
     response = requests.get('{}/api/datasets/{}/browser/variants/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
     data = json.loads(response.text)
-    assert len(data['variants']) == 3
+    assert len(data['variants']) == 13
 
     data_type = 'region'
     data_item = '22-46615715-46715880'
@@ -209,9 +209,7 @@ def test_get_variants():
     data_item = 'ENST00000438441'
     response = requests.get('{}/api/datasets/{}/browser/variants/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
     data = json.loads(response.text)
-    assert len(data['variants']) == 405
-
-    
+    assert len(data['variants']) == 178
 
 
 def test_search():
