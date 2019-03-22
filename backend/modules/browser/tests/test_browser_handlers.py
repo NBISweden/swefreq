@@ -164,10 +164,16 @@ def test_get_variant():
     variant_id = '22-16080482-CAT-C'
     response = requests.get('{}/api/datasets/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
     variant = json.loads(response.text)
-
     assert variant['variant']['variantId'] == '22-16080482-CAT-C'
     assert variant['variant']['genes'] == ['ENSG00000229286', 'ENSG00000235265']
     assert variant['variant']['transcripts'] == ['ENST00000448070', 'ENST00000413156']
+
+    variant_id = '22-16269941-G-C'
+    response = requests.get('{}/api/datasets/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
+    variant = json.loads(response.text)
+    assert variant['variant']['variantId'] == '22-16269941-G-C'
+    assert variant['variant']['genes'] == ['ENSG00000198062', 'ENSG00000236666']
+    assert variant['variant']['transcripts'] == ['ENST00000452800', 'ENST00000343518', 'ENST00000422014']
 
     variant_id = '21-9411609-G-T'
     version = '20161223'
@@ -223,6 +229,12 @@ def test_search():
     data = json.loads(response.text)
     assert data['type'] == 'gene'
     assert data['value'] == 'ENSG00000183249'
+
+    query = 'rs142856307'
+    response = requests.get('{}/api/datasets/{}/browser/search/{}'.format(BASE_URL, dataset, query))
+    data = json.loads(response.text)
+    assert data['type'] == 'dbsnp'
+    assert data['value'] == 142856307
 
     query = '21-9411281-T-C'
     version = '20161223'

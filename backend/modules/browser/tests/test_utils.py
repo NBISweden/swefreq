@@ -27,8 +27,24 @@ def test_add_consequence_to_variant():
     utils.add_consequence_to_variant(variant)
     assert variant['major_consequence'] == 'downstream_gene_variant'
 
+    variant['vep_annotations'][0]['Consequence'] = "stop_gained"
+    utils.add_consequence_to_variant(variant)
+    assert variant['category'] == 'lof_variant'
+    assert variant['major_consequence'] == 'stop_gained'
+
+    variant = lookups.get_variant('SweGen', 16269985, '22', 'C', 'G')
+    utils.add_consequence_to_variant(variant)
+    assert variant['category'] == 'other_variant'
+    assert variant['major_consequence'] == 'intron_variant'
+
+    variant = lookups.get_variant('SweGen', 16277852, '22', 'C', 'T')
+    utils.add_consequence_to_variant(variant)
+    assert variant['major_consequence'] == 'synonymous_variant'
+    assert variant['category'] == 'synonymous_variant'
+
     variant = lookups.get_variant('SweGen', 16269934, '22', 'A', 'G')
     utils.add_consequence_to_variant(variant)
+    assert variant['category'] == 'missense_variant'
     assert variant['major_consequence'] == 'missense_variant'
 
     variant['vep_annotations'] = []

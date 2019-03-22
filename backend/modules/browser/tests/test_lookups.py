@@ -13,6 +13,8 @@ def test_get_autocomplete():
     expected = set(["PABPC1P9", "PACSIN2", "PANX2", "PARP4P3",
                 "PARVB", "PARVG", "PATZ1", "PAXBP1", "PAXBP1-AS1"])
     assert set(res) == expected
+    res = lookups.get_autocomplete('Bad_dataset', 'PA')
+    assert not res
 
 
 def test_get_awesomebar_result():
