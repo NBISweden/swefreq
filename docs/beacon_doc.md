@@ -9,6 +9,23 @@
 - `info` is an object instead of array
 - diff: https://github.com/ga4gh-beacon/specification/compare/develop
 
+
+## Handover
+
+Current handovers:
+- Beacon handover (in info call):
+   - link to each available dataset https://swefreq.nbis.se/dataset/SweGen
+- Dataset handover (for each match in queries):
+   - to the matching variant https://swefreq.nbis.se/dataset/SweGen/browser/variant/22-46615880-T-C
+   - to the region https://swefreq.nbis.se/dataset/SweGen/browser/region/22-46615715-46615880
+   - to the browser https://swefreq.nbis.se/dataset/SweGen/browser
+   
+- Questions:
+  - other handovers?
+  - can we use the datasetid directly in the link? eg https://swefreq.nbis.se/dataset/GRCh37:SweGen:20180409 ?
+  - more helpful messages when variant is not found https://swefreq.nbis.se/dataset/SweGen/browser/variant/22-46615880-T-G
+  
+  
 ## Variant types
 
 - Supported and existing in our current Beacon: `INS, DEL, SNP`
