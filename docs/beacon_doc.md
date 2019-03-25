@@ -3,8 +3,8 @@
 
 ## TODOs for nex api-version
 
-- next version: 1.1.0
-- handover (implementation started)
+- next version: [1.1.0](https://github.com/ga4gh-beacon/specification/blob/develop/beacon.yaml)
+- [handover](https://github.com/ga4gh-beacon/specification/pull/230) ([implementation started](https://github.com/NBISweden/beacon-python/tree/feature/add_handover), [see issue](https://github.com/CSCfi/beacon-python/issues/38))
 - mateNames for fusions (https://github.com/ga4gh-beacon/specification/pull/256)
 - `info` is an object instead of array
 - diff: https://github.com/ga4gh-beacon/specification/compare/develop
