@@ -212,6 +212,9 @@ CREATE OR REPLACE VIEW data.dataset_version_current AS
 CREATE INDEX coverage_pos_chrom ON data.coverage (chrom, pos);
 CREATE INDEX features_gene ON data.features (gene);
 CREATE INDEX features_transcript ON data.features (transcript);
+CREATE INDEX features_transcript_type ON data.features (transcript, feature_type);
+CREATE INDEX gene_other_names_name ON data.gene_other_names (name);
+CREATE INDEX gene_other_names_gene ON data.gene_other_names (gene);
 CREATE INDEX genes_gene_id ON data.genes (gene_id);
 CREATE INDEX transcripts_transcript_id ON data.transcripts (transcript_id);
 CREATE INDEX variants_chrom_pos ON data.variants (chrom, pos);
