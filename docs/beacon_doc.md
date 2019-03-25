@@ -1,3 +1,14 @@
+## Current api-version
+1.0.1
+
+## TODOs for nex api-version
+
+- next version: 1.1.0
+- handover (implementation started)
+- mateNames for fusions (https://github.com/ga4gh-beacon/specification/pull/256)
+- `info` is an object instead of array
+- diff: https://github.com/ga4gh-beacon/specification/compare/develop
+
 ## Variant types
 
 - Supported and existing in our current Beacon: `INS, DEL, SNP`
