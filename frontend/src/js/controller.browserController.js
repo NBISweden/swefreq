@@ -133,9 +133,15 @@
 		   });
             }
             if ($routeParams.variant) {
-                Browser.getVariant($routeParams.dataset, $routeParams.version, $routeParams.variant).then( function(data) {
-                    localThis.variant = data.variant;
-                });
+                Browser.getVariant($routeParams.dataset, $routeParams.version, $routeParams.variant)
+		    .then( function(data) {
+			localThis.variant = data.variant;
+                    })
+		    .catch((err) => {
+			localThis.variant = {"statusCode": err.status,
+					     "statusText": err.statusText};
+		    });
+
             }
             Dataset.getDataset($routeParams.dataset, $routeParams.version, $routeParams.version)
                 .then(function(data) {

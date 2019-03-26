@@ -2,7 +2,11 @@
 [% extends "ng-templates/dataset-base.jj2" %]
 [% block controller %]browserController[% endblock %]
 [% block contents %]
-<div class="container" ng-if="ctrl.variant">
+
+<div ng-if="ctrl.variant.statusCode">
+  <p> Unable to load variant. Code: {{ ctrl.coverage.statusCode }} Status text: {{ ctrl.coverage.statusText }}</p>
+</div>
+<div class="container" ng-if="ctrl.variant && !ctrl.variant.statusCode">
 
     <!-- HEADER -->
     <div class="col-md-12">
