@@ -51,7 +51,7 @@ def test_get_coverage():
     response = requests.get('{}/api/datasets/{}/browser/coverage/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
     assert response.status_code == 404
 
-    
+
 def test_get_coverage_pos():
     """
     Test GetCoveragePos.get()
@@ -91,7 +91,7 @@ def test_get_gene():
     gene_id = 'BAD_GENE_ID'
     response = requests.get('{}/api/datasets/{}/browser/gene/{}'.format(BASE_URL, dataset, gene_id))
     assert response.status_code == 404
-    
+
 
 def test_get_region():
     """
@@ -108,7 +108,7 @@ def test_get_region():
                                       'geneId': 'ENSG00000186951',
                                       'geneName': 'PPARA'}]}}
     assert region == expected
-    
+
     region_def = '22'
     response = requests.get('{}/api/datasets/{}/browser/region/{}'.format(BASE_URL, dataset, region_def))
     region = json.loads(response.text)
@@ -210,7 +210,7 @@ def test_get_variants():
     data_item = '22-46615715-46715880'
     response = requests.get('{}/api/datasets/{}/browser/variants/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
     assert response.status_code == 400
-    
+
     data_type = 'transcript'
     data_item = 'ENST00000438441'
     response = requests.get('{}/api/datasets/{}/browser/variants/{}/{}'.format(BASE_URL, dataset, data_type, data_item))

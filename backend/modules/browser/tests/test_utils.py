@@ -50,7 +50,7 @@ def test_add_consequence_to_variant():
     variant['vep_annotations'] = []
     utils.add_consequence_to_variant(variant)
     assert variant['major_consequence'] == ''
-    
+
     # bad variant
     variant = lookups.get_variant('SweGen', 38481311, '444', 'C', 'T')
     utils.add_consequence_to_variant(variant)
@@ -77,7 +77,7 @@ def test_get_coverage():
     res = utils.get_coverage('SweGen', 'region', '22:46615715-46615880')
     assert not res['coverage']
     assert res['bad_region']
-    res = utils.get_coverage('SweGen', 'region', '22-46615715asd-46615880')    
+    res = utils.get_coverage('SweGen', 'region', '22-46615715asd-46615880')
     assert not res['coverage']
     assert res['bad_region']
     res = utils.get_coverage('SweGen', 'transcript', 'ENST00000438441')
