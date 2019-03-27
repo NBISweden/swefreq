@@ -213,8 +213,12 @@ class GetVariant(handlers.UnsafeHandler):
             dataset (str): short name of the dataset
             variant (str): variant in the format chrom-pos-ref-alt
         """
-        ret = {'variant':{}}
+        beacon_style = dataset.split(':')
+        if len(beacon_style) == 3:
+            dataset = beacon_style[1]
+            ds_version = beacon_style[2]
 
+        ret = {'variant':{}}
         # Variant
         v = variant.split('-')
         try:

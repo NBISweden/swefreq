@@ -471,6 +471,10 @@ def get_admin_datasets(user):
 
 
 def get_dataset(dataset):
+    beacon_style = dataset.split(':')
+    if len(beacon_style) == 3:
+        dataset = beacon_style[1]
+
     dataset = Dataset.select().where( Dataset.short_name == dataset).get()
     return dataset
 
@@ -483,6 +487,10 @@ def get_dataset_version(dataset, version=None):
     Returns:
         DatasetVersionCurrent: the corresponding DatasetVersion entry
     """
+    beacon_style = dataset.split(':')
+    if len(beacon_style) == 3:
+        dataset = beacon_style[1]
+        version = beacon_style[2]
     if version:
         try:
             dataset_version = (DatasetVersion
