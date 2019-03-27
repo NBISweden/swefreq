@@ -4,7 +4,7 @@
 [% block contents %]
 
 <div ng-if="ctrl.variant.statusCode">
-  <p> Unable to load variant. Code: {{ ctrl.coverage.statusCode }} Status text: {{ ctrl.coverage.statusText }}</p>
+  <p> Unable to load variant. Code: {{ ctrl.variant.statusCode }} Status text: {{ ctrl.variant.statusText }}</p>
 </div>
 <div class="container" ng-if="ctrl.variant && !ctrl.variant.statusCode">
 
