@@ -148,9 +148,6 @@ class GetRegion(handlers.UnsafeHandler):
             start = 0
         if not stop:
             stop = start
-        if start == stop:
-            start -= min(start, 20)
-            stop += 20
         ret = {'region':{'chrom': chrom,
                          'start': start,
                          'stop':  stop,
