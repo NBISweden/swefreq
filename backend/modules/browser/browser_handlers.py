@@ -180,6 +180,7 @@ class GetTranscript(handlers.UnsafeHandler):
         transcript = lookups.get_transcript(dataset, transcript_id, ds_version)
         if not transcript:
             self.send_error(status_code=404, reason='Transcript not found')
+            return
         ret['transcript']['id'] = transcript['transcript_id']
         ret['transcript']['number_of_CDS'] = len([t for t in transcript['exons'] if t['feature_type'] == 'CDS'])
 
@@ -317,6 +318,9 @@ class GetVariants(handlers.UnsafeHandler):
             item (str): item to query
         """
         ret = utils.get_variant_list(dataset, datatype, item, ds_version)
+        if not ret:
+            self.send_error(status_code=500, reason='Unable to retrieve variants')
+            return
         if 'region_too_large' in ret:
             self.send_error(status_code=400, reason="The region is too large")
             return

@@ -329,8 +329,7 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
             start = int(start)
             stop = int(stop)
         except ValueError:
-            self.send_error(status_code=400, reason='Unable to parse region')
-            return
+            return None
 
         if is_region_too_large(start, stop):
             return {'variants': [], 'headers': [], 'region_too_large': True}
@@ -339,8 +338,11 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
         variants = lookups.get_variants_in_transcript(dataset, item, ds_version)
 
     if datatype == 'transcript':
-        refgene = lookups.get_transcript(dataset, item, ds_version)
-        refgene = refgene['gene_id']
+        transcript = lookups.get_transcript(dataset, item, ds_version)
+        if not transcript:
+            return None
+        refgene = transcript['gene_id']
+
     for variant in variants:
         if datatype in ('gene', 'transcript'):
             anno = None
