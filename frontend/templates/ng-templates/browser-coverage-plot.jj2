@@ -1,6 +1,6 @@
 <div ng-if="ctrl.coverage.statusCode">
-  <p>Trouble loading the coverage information.</p>
-  <p>Code: {{ ctrl.coverage.statusCode }} Status text: {{ ctrl.coverage.statusText }}</p>
+  <p>Unable to load the coverage information.</p>
+  <p>Reason: {{ ctrl.coverage.statusCode }} {{ ctrl.coverage.statusText }}</p>
 </div>
 
 <div ng-if="ctrl.coverage.data.length">

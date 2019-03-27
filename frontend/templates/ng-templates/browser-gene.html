@@ -3,8 +3,8 @@
 [% block controller %]browserController[% endblock %]
 [% block contents %]
 <div ng-if="ctrl.gene.statusCode">
-  <p>Trouble loading the gene information.</p>
-  <p>Code: {{ ctrl.gene.statusCode }} Status text: {{ ctrl.gene.statusText }}</p>
+  <p>Unable to load the gene information.</p>
+  <p>Reason: {{ ctrl.gene.statusCode }} {{ ctrl.gene.statusText }}</p>
 </div>
 
 <div class="container-fluid" ng-if="ctrl.gene && !ctrl.gene.statusCode">

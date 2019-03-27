@@ -1,6 +1,6 @@
 <div ng-if="ctrl.variants.statusCode">
-  <p>Trouble loading the variants.</p>
-  <p>Code: {{ ctrl.variants.statusCode }} Status text: {{ ctrl.variants.statusText }}</p>
+  <p>Unable to load the variants.</p>
+  <p>Reason: {{ ctrl.variants.statusCode }} {{ ctrl.variants.statusText }}</p>
 </div>
 
 <div class="container" ng-if="!ctrl.variants.statusCode">

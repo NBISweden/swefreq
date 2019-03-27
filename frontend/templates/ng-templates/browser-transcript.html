@@ -4,8 +4,8 @@
 [% block contents %]
 
 <div ng-if="ctrl.transcript.statusCode">
-  <p>Trouble loading the transcript information.</p>
-  <p>Code: {{ ctrl.transcript.statusCode }} Status text: {{ ctrl.transcript.statusText }}</p>
+  <p>Unable to load the transcript information.</p>
+  <p>Reason: {{ ctrl.transcript.statusCode }} {{ ctrl.transcript.statusText }}</p>
 </div>
 
 <div class="container" ng-if="ctrl.transcript.id">
