@@ -50,7 +50,9 @@ CREATE OR REPLACE VIEW beacon.beacon_dataset_counts_table AS
     SELECT concat_ws(':', r.reference_build,
                           d.short_name,
                           v.dataset_version) AS datasetId,      -- varchar(128)
-           COUNT(DISTINCT(dv.ref, dv.pos)) AS callCount,        -- integer
+           COUNT(DISTINCT(dv.chrom,
+                          dv.ref,
+                          dv.pos)) AS callCount,                -- integer
            COUNT(dv)       AS variantCount                      -- integer
       FROM data.datasets as d
       JOIN data.dataset_version_current AS v
