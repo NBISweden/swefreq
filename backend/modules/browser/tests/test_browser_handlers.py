@@ -109,16 +109,6 @@ def test_get_region():
                                       'geneName': 'PPARA'}]}}
     assert region == expected
 
-    region_def = '22'
-    response = requests.get('{}/api/datasets/{}/browser/region/{}'.format(BASE_URL, dataset, region_def))
-    region = json.loads(response.text)
-    assert region == {'region': {'chrom': '22', 'start': 0, 'stop': 20}}
-
-    region_def = '22-1000'
-    response = requests.get('{}/api/datasets/{}/browser/region/{}'.format(BASE_URL, dataset, region_def))
-    region = json.loads(response.text)
-    assert region == {'region': {'chrom': '22', 'start': 980, 'stop': 1020}}
-
     region_def = '22-16364870-16366200'
     response = requests.get('{}/api/datasets/{}/browser/region/{}'.format(BASE_URL, dataset, region_def))
     region = json.loads(response.text)

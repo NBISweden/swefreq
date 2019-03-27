@@ -126,28 +126,15 @@ class GetRegion(handlers.UnsafeHandler):
         Returns:
             dict: information about the region and the genes found there
         """
-        region = region.split('-')
-
-        chrom = region[0]
-        start = None
-        stop = None
-
         try:
-            if len(region) > 1:
-                start = int(region[1])
-            if len(region) > 2:
-                stop = int(region[2])
-
+            chrom, start, stop = region.split('-')
+            start = int(start)
+            stop = int(stop)
         except ValueError:
             logging.error('GetRegion: unable to parse region ({})'.format(region))
-            self.send_error(status_code=400)
-            self.set_user_msg('Unable to parse region', 'error')
+            self.send_error(status_code=400, reason='Unable to parse region')
             return
 
-        if not start:
-            start = 0
-        if not stop:
-            stop = start
         ret = {'region':{'chrom': chrom,
                          'start': start,
                          'stop':  stop,
@@ -241,8 +228,7 @@ class GetVariant(handlers.UnsafeHandler):
 
         if not variant:
             logging.error('Variant not found ({})'.format(orig_variant))
-            self.send_error(status_code=404)
-            self.set_user_msg('Variant not found', 'error')
+            self.send_error(status_code=404, reason='Variant not found')
             return
 
         # Just get the information we need

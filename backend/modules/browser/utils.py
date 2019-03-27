@@ -324,7 +324,14 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
     if datatype == 'gene':
         variants = lookups.get_variants_in_gene(dataset, item, ds_version)
     elif datatype == 'region':
-        chrom, start, stop = item.split('-')
+        try:
+            chrom, start, stop = item.split('-')
+            start = int(start)
+            stop = int(stop)
+        except ValueError:
+            self.send_error(status_code=400, reason='Unable to parse region')
+            return
+
         if is_region_too_large(start, stop):
             return {'variants': [], 'headers': [], 'region_too_large': True}
         variants = lookups.get_variants_in_region(dataset, chrom, start, stop, ds_version)
