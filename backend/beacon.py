@@ -129,7 +129,6 @@ def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset): #pyli
                           (db.Variant.alt == allele) &
                           (db.Variant.chrom == chrom) &
                           (db.Variant.dataset_version == dataset_version))
-                   .dicts()
                    .get())
         return True
     except db.Variant.DoesNotExist:
