@@ -1,6 +1,6 @@
 import db
 import handlers
-import pymongo
+
 import tornado.web
 
 class Query(handlers.UnsafeHandler):
