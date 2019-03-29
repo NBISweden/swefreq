@@ -7,7 +7,7 @@
                  <div class="dataset-heading {{ dataset.future ? 'future-title' : ''}}">{{ dataset.fullName }}</div>
                  <div class="dataset-body">
                      <div ng-if="dataset.hasImage">
-                         <img ng-src="/api/datasets/{{dataset.shortName}}/logo" class="dataset-logo" alt='{{ dataset.shortName }} logo' />
+                         <img ng-src="/api/dataset/{{dataset.shortName}}/logo" class="dataset-logo" alt='{{ dataset.shortName }} logo' />
                      </div>
                      <div ng-if="dataset.future" class='future-blurb'>This version will become public at {{ dataset.version.availableFrom }}.</div>
                      <div ng-bind-html="dataset.version.description" />

@@ -8,7 +8,7 @@
 
          function consent(dataset, version) {
             return $http.post(
-                "/api/datasets/" + dataset + "/log/consent/" + version,
+                "/api/dataset/" + dataset + "/log/consent/" + version,
                 $.param({"_xsrf": $cookies.get("_xsrf")})
             );
         }

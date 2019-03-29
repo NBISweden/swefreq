@@ -13,12 +13,12 @@
             var defer = $q.defer();
             var users = {"pending": [], "current": []};
             $q.all([
-                $http.get( "/api/datasets/" + dataset + "/users_pending" )
+                $http.get( "/api/dataset/" + dataset + "/users_pending" )
                     .then(function(data) {
                         users.pending = data.data.data;
                     }
                 ),
-                $http.get( "/api/datasets/" + dataset + "/users_current" )
+                $http.get( "/api/dataset/" + dataset + "/users_current" )
                     .then(function(data) {
                         users.current = data.data.data;
                     }
@@ -31,20 +31,20 @@
 
          function approveUser(dataset, email) {
             return $http.post(
-                    "/api/datasets/" + dataset + "/users/" + email + "/approve",
+                    "/api/dataset/" + dataset + "/users/" + email + "/approve",
                     $.param({"_xsrf": $cookies.get("_xsrf")})
                 );
         }
 
          function revokeUser(dataset, email) {
             return $http.post(
-                    "/api/datasets/" + dataset + "/users/" + email + "/revoke",
+                    "/api/dataset/" + dataset + "/users/" + email + "/revoke",
                     $.param({"_xsrf": $cookies.get("_xsrf")})
                 );
         }
 
          function requestAccess(dataset, user) {
-            return $http({url:"/api/datasets/" + dataset + "/users/" + user.email + "/request",
+            return $http({url:"/api/dataset/" + dataset + "/users/" + user.email + "/request",
                    method:"POST",
                    data:$.param({
                            "email":       user.email,
