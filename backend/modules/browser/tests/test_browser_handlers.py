@@ -155,15 +155,19 @@ def test_get_variant():
     response = requests.get('{}/api/datasets/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
     variant = json.loads(response.text)
     assert variant['variant']['variantId'] == '22-16080482-CAT-C'
-    assert variant['variant']['genes'] == ['ENSG00000229286', 'ENSG00000235265']
-    assert variant['variant']['transcripts'] == ['ENST00000448070', 'ENST00000413156']
+    assert set(variant['variant']['genes']) == set(['ENSG00000229286', 'ENSG00000235265'])
+    assert len(variant['variant']['genes']) == len(['ENSG00000229286', 'ENSG00000235265'])
+    assert set(variant['variant']['transcripts']) == set(['ENST00000448070', 'ENST00000413156'])
+    assert len(variant['variant']['transcripts']) == len(['ENST00000448070', 'ENST00000413156'])
 
     variant_id = '22-16269941-G-C'
     response = requests.get('{}/api/datasets/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
     variant = json.loads(response.text)
     assert variant['variant']['variantId'] == '22-16269941-G-C'
-    assert variant['variant']['genes'] == ['ENSG00000198062', 'ENSG00000236666']
-    assert variant['variant']['transcripts'] == ['ENST00000452800', 'ENST00000343518', 'ENST00000422014']
+    assert set(variant['variant']['genes']) == set(['ENSG00000198062', 'ENSG00000236666'])
+    assert len(variant['variant']['genes']) == len(['ENSG00000198062', 'ENSG00000236666'])
+    assert set(variant['variant']['transcripts']) == set(['ENST00000452800', 'ENST00000343518', 'ENST00000422014'])
+    assert len(variant['variant']['transcripts']) == len(['ENST00000452800', 'ENST00000343518', 'ENST00000422014'])
 
     variant_id = '21-9411609-G-T'
     version = '20161223'

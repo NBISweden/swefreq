@@ -85,6 +85,9 @@ def test_get_coverage():
 
     assert not utils.get_coverage('BAD_SET', 'transcript', 'ENST00000438441')['coverage']
 
+    res = utils.get_coverage('SweGen', 'region', '22-1-1000000')
+    assert res['region_too_large']
+
 
 def test_get_coverage_pos():
     """
@@ -189,8 +192,13 @@ def test_get_variant_list():
     assert len(res['variants']) == 13
     res = utils.get_variant_list('SweGen', 'transcript', 'ENST00000438441')
     assert len(res['variants']) == 178
+    res = utils.get_variant_list('SweGen', 'transcript', 'ENSTWEIRD')
+    assert not res
     res = utils.get_variant_list('SweGen', 'region', '22-1-1000000')
     assert res['region_too_large']
+
+    res = utils.get_variant_list('SweGen', 'region', '22-11000000')
+    assert not res
 
 
 def test_order_vep_by_csq():

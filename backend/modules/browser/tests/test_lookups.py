@@ -256,8 +256,10 @@ def test_get_raw_variant():
     Test get_raw_variant
     """
     result = lookups.get_raw_variant('SweGen', 16080482, '22', 'CAT', 'C')
-    assert result['genes'] == ['ENSG00000229286', 'ENSG00000235265']
-    assert result['transcripts'] == ['ENST00000448070', 'ENST00000413156']
+    assert set(result['genes']) == set(['ENSG00000229286', 'ENSG00000235265'])
+    assert len(result['genes']) == len(['ENSG00000229286', 'ENSG00000235265'])
+    assert set(result['transcripts']) == set(['ENST00000448070', 'ENST00000413156'])
+    assert len(result['transcripts']) == len(['ENST00000448070', 'ENST00000413156'])
     assert not lookups.get_raw_variant('SweGen', 55500281, '1', 'A', 'T')
     assert not lookups.get_raw_variant('bad_dataset', 55500283, '1', 'A', 'T')
 
@@ -279,8 +281,10 @@ def test_get_variant():
     """
     result = lookups.get_variant('SweGen', 16080482, '22', 'CAT', 'C')
     assert result['variant_id'] == '22-16080482-CAT-C'
-    assert result['genes'] == ['ENSG00000229286', 'ENSG00000235265']
-    assert result['transcripts'] == ['ENST00000448070', 'ENST00000413156']
+    assert set(result['genes']) == set(['ENSG00000229286', 'ENSG00000235265'])
+    assert len(result['genes']) == len(['ENSG00000229286', 'ENSG00000235265'])
+    assert set(result['transcripts']) == set(['ENST00000448070', 'ENST00000413156'])
+    assert len(result['transcripts']) == len(['ENST00000448070', 'ENST00000413156'])
     result = lookups.get_variant('SweGen', 9411609, '21', 'G', 'T')
     assert not result
 
