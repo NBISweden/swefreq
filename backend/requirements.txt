@@ -6,7 +6,6 @@ chardet==3.0.4
 idna==2.6
 packaging==16.8
 peewee==2.9.2
-pymongo==3.4.0
 pyparsing==2.2.0
 requests==2.18.4
 six==1.10.0
