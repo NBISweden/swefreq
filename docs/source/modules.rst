@@ -1,5 +1,5 @@
-The SweFreq Backend
-===================
+Backend
+=======
 
 .. toctree::
    :maxdepth: 6

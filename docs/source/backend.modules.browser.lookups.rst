@@ -1,5 +1,5 @@
-backend.modules.browser.lookups module
-======================================
+lookups
+=======
 
 Lookups for a PostgreSQL database with genomic data.
 

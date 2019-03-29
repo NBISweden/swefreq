@@ -1,5 +1,6 @@
-backend.modules.browser.route module
-====================================
+route
+=====
+Routing definitions
 
 .. automodule:: backend.modules.browser.route
     :members:

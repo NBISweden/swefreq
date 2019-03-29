@@ -1,5 +1,5 @@
-backend.modules.browser.utils module
-====================================
+utils
+=====
 
 .. automodule:: backend.modules.browser.utils
     :members:

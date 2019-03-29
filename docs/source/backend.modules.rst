@@ -1,4 +1,2 @@
 .. toctree::
-
     backend.modules.browser
-

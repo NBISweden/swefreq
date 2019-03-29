@@ -9,9 +9,4 @@
    backend.settings
    backend.test
 
-Extra modules
-=============
-
-.. toctree::
-
-    backend.modules
+   backend.modules

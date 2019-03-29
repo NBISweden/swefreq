@@ -1,5 +1,5 @@
-backend.modules.browser.browser\_handlers module
-================================================
+browser\_handlers
+=================
 
 .. automodule:: backend.modules.browser.browser_handlers
     :members:
