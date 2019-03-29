@@ -10,7 +10,8 @@ Welcome to SweFreq's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   modules.rst
+   code
+   docs
 
 Indices and tables
 ==================

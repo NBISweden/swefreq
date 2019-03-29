@@ -1,5 +1,5 @@
-Backend
-=======
+Code
+====
 
 .. toctree::
    :maxdepth: 6
