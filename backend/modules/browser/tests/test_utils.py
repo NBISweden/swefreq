@@ -219,6 +219,12 @@ def test_order_vep_by_csq():
     assert utils.order_vep_by_csq([dict()]) == [{'major_consequence': ''}]
 
 
+def test_parse_dataset():
+    assert utils.parse_dataset('SweGen') == ('SweGen', None)
+    assert utils.parse_dataset('SweGen', '180101') == ('SweGen', '180101')
+    assert utils.parse_dataset('hg19:SweGen:180101') == ('SweGen', '180101')
+
+
 def test_remove_extraneous_vep_annotations():
     """
     Test remove_extraneous_vep_annotations()
