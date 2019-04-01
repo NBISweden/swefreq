@@ -108,11 +108,12 @@
                        localThis.variants.map(mapFunction);
 
                        localThis.filterVariants();
+		       localThis.variants.loaded = true;
                    })
 	       	   .catch((err) => {
 		       localThis.variants = {"statusCode": err.status,
-					     "statusText": err.statusText};
-		       localThis.filteredVariants = "done";
+					     "statusText": err.statusText,
+					     "loaded": true,};
 		   });
                Browser.getCoveragePos($routeParams.dataset, $routeParams.version, localThis.itemType, localThis.item)
 		   .then( function(data) {
@@ -124,12 +125,11 @@
 		   .then(function(data) {
                        localThis.coverage.data = data.coverage;
                        localThis.coverage.loaded = true;
-		       console.log("loaded correctly");
                    })
 		   .catch((err) => {
 		       localThis.coverage = {"statusCode": err.status,
 					     "statusText": err.statusText,
-					     "loaded": true};
+					     "loaded": true,};
 		   });
             }
             if ($routeParams.variant) {

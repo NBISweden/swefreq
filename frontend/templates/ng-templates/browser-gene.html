@@ -138,11 +138,11 @@
 </div>
 
 <!-- Variant list -->
-<div ng-if="ctrl.filteredVariants">
+<div ng-if="ctrl.variants.loaded">
     [% include "ng-templates/browser-variant-list.jj2" %]
 </div>
 <!-- Loading message -->
-<div ng-if="!ctrl.filteredVariants" class="alert alert-info col-md-4 col-md-offset-4 text-center" >
+<div ng-if="!ctrl.variants.loaded" class="alert alert-info col-md-4 col-md-offset-4 text-center" >
     <strong>Loading Variant List</strong>
 </div>
 [% endblock %]
