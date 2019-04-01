@@ -451,8 +451,11 @@ class DatasetAccessPending(DatasetAccess):
 
 def get_next_free_uid():
     """
-    Returns the next free uid >= 10000, and higher than the current uid's
-    from the sftp_user table in the database.
+    Get the next free uid >= 10000 and > than the current uids 
+    from the sftp_user table in the db.
+
+    Returns:
+        int: the next free uid
     """
     default = 10000
     next_uid = default
@@ -467,10 +470,29 @@ def get_next_free_uid():
 
 
 def get_admin_datasets(user):
+    """
+    Get a list of datasets where user is admin
+
+    Args:
+        user (User): Peewee User object for the user of interest
+
+    Returns:
+        DataSetAccess:
+    """
     return DatasetAccess.select().where( DatasetAccess.user == user, DatasetAccess.is_admin)
 
 
-def get_dataset(dataset):
+def get_dataset(dataset:str):
+    """
+    Given dataset name get Dataset
+
+    Args:
+        dataset (str): short name of the dataset
+
+    Returns:
+        Dataset: the corresponding DatasetVersion entry
+    """
+
     beacon_style = dataset.split(':')
     if len(beacon_style) == 3:
         dataset = beacon_style[1]
@@ -479,13 +501,15 @@ def get_dataset(dataset):
     return dataset
 
 
-def get_dataset_version(dataset, version=None):
+def get_dataset_version(dataset:str, version:str=None):
     """
     Given dataset get DatasetVersion
+
     Args:
         dataset (str): short name of the dataset
+
     Returns:
-        DatasetVersionCurrent: the corresponding DatasetVersion entry
+        DatasetVersion: the corresponding DatasetVersion entry
     """
     beacon_style = dataset.split(':')
     if len(beacon_style) == 3:
