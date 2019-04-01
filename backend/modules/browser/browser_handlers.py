@@ -6,6 +6,7 @@ import logging
 
 import db
 import handlers
+import db
 
 from . import lookups
 from . import utils
@@ -311,8 +312,19 @@ class GetVariant(handlers.UnsafeHandler):
 
         # Dataset frequencies.
         # This is reported per variable in the database data, with dataset
-        # information inside the variables,  so here we reorder to make the
+        # information inside the variables, so here we reorder to make the
         # data easier to use in the template
+
+        # get the variant for other datasets with the same reference_set
+        curr_dsv = db.get_dataset_version(dataset, ds_version)
+        dsvs = [db.get_dataset_version(dset.short_name) for dset in db.Dataset.select() if dset.short_name != dataset]
+        dsvs = [dsv for dsv in dsvs if dsv.reference_set == curr_dsv.reference_set]
+        dsv_groups = [(curr_dsv, variant)]
+        for dsv in dsvs:
+            hit = lookups.get_variant(dsv.dataset.short_name, v[1], v[0], v[2], v[3], dsv.version)
+            if hit:
+                dsv_groups.append((dsv, hit))
+
         frequencies = {'headers':[['Population','pop'],
                                ['Allele Count','acs'],
                                ['Allele Number', 'ans'],
@@ -321,20 +333,23 @@ class GetVariant(handlers.UnsafeHandler):
                     'datasets':{},
                     'total':{}}
         term_map = {'allele_num':'ans', 'allele_count':'acs', 'allele_freq':'freq', 'hom_count':'homs'}
-        if dataset not in frequencies['datasets']:
-            frequencies['datasets'][dataset] = {'pop':dataset}
-        for item in term_map:
-            if item not in frequencies['total']:
-                frequencies['total'][term_map[item]] = 0
-            if variant[item] is None:
-                frequencies['datasets'][dataset][term_map[item]] = 0
-                frequencies['total'][term_map[item]] += 0
-            else:
-                frequencies['datasets'][dataset][term_map[item]] = variant[item]
-                frequencies['total'][term_map[item]] += variant[item]
-        if 'freq' in frequencies['total']:
-            frequencies['total']['freq'] /= len(frequencies['datasets'].keys())
 
+        for dsv_group in dsv_groups:
+            ds_name = dsv_group[0].dataset.short_name
+
+            if ds_name not in frequencies['datasets']:
+                frequencies['datasets'][ds_name] = {'pop': ds_name}
+            for item in term_map:
+                if term_map[item] not in frequencies['total']:
+                    frequencies['total'][term_map[item]] = 0
+                if dsv_group[1][item] is None:
+                    frequencies['datasets'][ds_name][term_map[item]] = 0
+                else:
+                    frequencies['datasets'][ds_name][term_map[item]] = dsv_group[1][item]
+                    frequencies['total'][term_map[item]] += dsv_group[1][item]
+
+            if 'freq' in frequencies['total']:
+                frequencies['total']['freq'] = frequencies['total']['acs']/frequencies['total']['ans']
         ret['variant']['pop_freq'] = frequencies
 
         self.finish(ret)
