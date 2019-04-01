@@ -167,12 +167,12 @@ class BaseStaticNginxFileHandler(UnsafeHandler):
 
     Requires a ``path`` argument in constructor which should be the root of
     the nginx frontend where the files can be found. Then configure the nginx
-    frontend something like this
+    frontend something like this: ::
 
-    location <path> { \
-        internal; \
-        alias <location of files>; \
-    }
+        location <path> {
+            internal;
+            alias <location of files>;
+        }
     """
     def initialize(self, path):
         if not path.startswith("/"):
@@ -208,12 +208,12 @@ class AuthorizedStaticNginxFileHandler(AuthorizedHandler, BaseStaticNginxFileHan
 
     Requires a "path" argument in constructor which should be the root of
     the nginx frontend where the files can be found. Then configure the nginx
-    frontend something like this
+    frontend something like this: ::
 
-    location <path> { \
-        internal; \
-        alias <location of files>; \
-    }
+        location <path> {
+            internal;
+            alias <location of files>;
+        }
     """
 
 
