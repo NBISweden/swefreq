@@ -4,6 +4,7 @@ Request handlers for the browser
 
 import logging
 
+import db
 import handlers
 
 from . import lookups
@@ -126,6 +127,11 @@ class GetRegion(handlers.UnsafeHandler):
         Returns:
             dict: information about the region and the genes found there
         """
+        beacon = db.parse_beacon_dataset(dataset)
+        if beacon:
+            dataset = beacon['dataset']
+            version = beacon['version']
+
         try:
             chrom, start, stop = region.split('-')
             start = int(start)
@@ -171,6 +177,11 @@ class GetTranscript(handlers.UnsafeHandler):
         Returns:
             dict: transcript (transcript and exons), gene (gene information)
         """
+        beacon = db.parse_beacon_dataset(dataset)
+        if beacon:
+            dataset = beacon['dataset']
+            version = beacon['version']
+
         transcript_id = transcript
         ret = {'transcript':{},
                'gene':{},
@@ -214,10 +225,10 @@ class GetVariant(handlers.UnsafeHandler):
             dataset (str): short name of the dataset
             variant (str): variant in the format chrom-pos-ref-alt
         """
-        beacon_style = dataset.split(':')
-        if len(beacon_style) == 3:
-            dataset = beacon_style[1]
-            ds_version = beacon_style[2]
+        beacon = db.parse_beacon_dataset(dataset)
+        if beacon:
+            dataset = beacon['dataset']
+            version = beacon['version']
 
         ret = {'variant':{}}
         # Variant

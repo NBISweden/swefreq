@@ -492,10 +492,9 @@ def get_dataset(dataset:str):
     Returns:
         Dataset: the corresponding DatasetVersion entry
     """
-
-    beacon_style = dataset.split(':')
-    if len(beacon_style) == 3:
-        dataset = beacon_style[1]
+    beacon = parse_beacon_dataset(dataset)
+    if beacon:
+        dataset = beacon['dataset']
 
     dataset = Dataset.select().where( Dataset.short_name == dataset).get()
     return dataset
@@ -511,10 +510,11 @@ def get_dataset_version(dataset:str, version:str=None):
     Returns:
         DatasetVersion: the corresponding DatasetVersion entry
     """
-    beacon_style = dataset.split(':')
-    if len(beacon_style) == 3:
-        dataset = beacon_style[1]
-        version = beacon_style[2]
+    beacon = parse_beacon_dataset(dataset)
+    if beacon:
+        dataset = beacon['dataset']
+        version = beacon['version']
+
     if version:
         try:
             dataset_version = (DatasetVersion
@@ -547,3 +547,23 @@ def build_dict_from_row(row):
             continue
         d[field] = value
     return d
+
+
+def parse_beacon_dataset(dataset):
+    """
+    Check/parse if the dataset name is in the beacon form:
+    ``reference:dataset:version``
+
+    Args:
+        dataset (str): short name of the dataset
+
+    Returns:
+        dict: {dataset:, version:, reference:}, None if not Beacon style
+    """
+    beacon_style = dataset.split(':')
+    if len(beacon_style) == 3:
+        return {'dataset': beacon_style[1],
+                'version': beacon_style[2],
+                'reference': beacon_style[0]}
+    else:
+        return None
