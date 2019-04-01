@@ -50,7 +50,7 @@
             User.getUser().then(function(data) {
                 localThis.user = data;
             });
-	    
+
             if ($routeParams.transcript) {
                 localThis.itemType = "transcript";
                 localThis.item = $routeParams.transcript;
