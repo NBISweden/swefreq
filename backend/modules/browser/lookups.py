@@ -425,11 +425,9 @@ def get_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_version:st
         dict: values for the variant; None if not found
     """
     variant = get_raw_variant(dataset, pos, chrom, ref, alt, ds_version)
-    if not variant or 'rsid' not in variant:
-        return variant
-    if variant['rsid']:
-        if not str(variant['rsid']).startswith('rs'):
-            variant['rsid'] = 'rs{}'.format(variant['rsid'])
+    variant = get_raw_variant(dataset, pos, chrom, ref, alt, ds_version)
+    if variant and 'rsid' in variant and not str(variant['rsid']).startswith('rs'):
+        variant['rsid'] = 'rs{}'.format(variant['rsid'])
     return variant
 
 
