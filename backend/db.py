@@ -538,23 +538,3 @@ def build_dict_from_row(row):
             continue
         d[field] = value
     return d
-
-
-def parse_beacon_dataset(dataset):
-    """
-    Check/parse if the dataset name is in the beacon form:
-    ``reference:dataset:version``
-
-    Args:
-        dataset (str): short name of the dataset
-
-    Returns:
-        dict: {dataset:, version:, reference:}, None if not Beacon style
-    """
-    beacon_style = dataset.split(':')
-    if len(beacon_style) == 3:
-        return {'dataset': beacon_style[1],
-                'version': beacon_style[2],
-                'reference': beacon_style[0]}
-    else:
-        return None

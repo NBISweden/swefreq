@@ -406,6 +406,25 @@ def is_region_too_large(start:int, stop:int):
     return int(stop)-int(start) > region_limit
 
 
+def parse_dataset(dataset, ds_version=None):
+    """
+    Check/parse if the dataset name is in the beacon form:
+    ``reference:dataset:version``
+
+    Args:
+        dataset (str): short name of the dataset
+        ds_version (str): the dataset version
+
+    Returns:
+        tuple: (dataset, version)
+    """
+    beacon_style = dataset.split(':')
+    if len(beacon_style) == 3:
+        return (beacon_style[1], beacon_style[2])
+    else:
+        return (dataset, ds_version)
+
+
 def remove_extraneous_information(variant:dict):
     '''
     Remove information that is not used in the frontend from a variant
