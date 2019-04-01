@@ -8,7 +8,6 @@
     <div class="col-md-12">
         <h1 ng-if="ctrl.rsid">{{ ctrl.rsid }}</h1>
         <h1 ng-if="!ctrl.rsid">Region: {{ ctrl.region.chrom }}
-	    <span ng-if="ctrl.region.statusCode">{{ ctrl.region.variantId }}</span>
             <span ng-if="ctrl.region.stop"> / {{ ctrl.region.start }} / {{ ctrl.region.stop }}</span>
         </h1>
     </div>
