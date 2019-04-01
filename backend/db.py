@@ -492,10 +492,6 @@ def get_dataset(dataset:str):
     Returns:
         Dataset: the corresponding DatasetVersion entry
     """
-    beacon = parse_beacon_dataset(dataset)
-    if beacon:
-        dataset = beacon['dataset']
-
     dataset = Dataset.select().where( Dataset.short_name == dataset).get()
     return dataset
 
@@ -510,11 +506,6 @@ def get_dataset_version(dataset:str, version:str=None):
     Returns:
         DatasetVersion: the corresponding DatasetVersion entry
     """
-    beacon = parse_beacon_dataset(dataset)
-    if beacon:
-        dataset = beacon['dataset']
-        version = beacon['version']
-
     if version:
         try:
             dataset_version = (DatasetVersion

@@ -13,6 +13,11 @@ from . import utils
 
 class Autocomplete(handlers.UnsafeHandler):
     def get(self, dataset:str, query:str, ds_version:str=None):
+        beacon = db.parse_beacon_dataset(dataset)
+        if beacon:
+            dataset = beacon['dataset']
+            ds_version = beacon['version']
+
         ret = {}
 
         results = lookups.get_autocomplete(dataset, query, ds_version)
@@ -32,6 +37,11 @@ class Download(handlers.UnsafeHandler):
             item (str): query item
             ds_version (str): dataset version
         """
+        beacon = db.parse_beacon_dataset(dataset)
+        if beacon:
+            dataset = beacon['dataset']
+            ds_version = beacon['version']
+
         filename = "{}_{}_{}.csv".format(dataset, datatype, item)
         self.set_header('Content-Type','text/csv')
         self.set_header('content-Disposition','attachement; filename={}'.format(filename))
@@ -50,6 +60,11 @@ class GetCoverage(handlers.UnsafeHandler):
     Retrieve coverage
     """
     def get(self, dataset:str, datatype:str, item:str, ds_version:str=None):
+        beacon = db.parse_beacon_dataset(dataset)
+        if beacon:
+            dataset = beacon['dataset']
+            ds_version = beacon['version']
+
         ret = utils.get_coverage(dataset, datatype, item, ds_version)
         if 'region_too_large' in ret:
             self.send_error(status_code=400, reason="The region is too large")
@@ -65,6 +80,11 @@ class GetCoveragePos(handlers.UnsafeHandler):
     Retrieve coverage range
     """
     def get(self, dataset:str, datatype:str, item:str, ds_version:str=None):
+        beacon = db.parse_beacon_dataset(dataset)
+        if beacon:
+            dataset = beacon['dataset']
+            ds_version = beacon['version']
+
         ret = utils.get_coverage_pos(dataset, datatype, item, ds_version)
         self.finish(ret)
 
@@ -81,6 +101,11 @@ class GetGene(handlers.UnsafeHandler):
             dataset (str): short name of the dataset
             gene (str): the gene id
         """
+        beacon = db.parse_beacon_dataset(dataset)
+        if beacon:
+            dataset = beacon['dataset']
+            ds_version = beacon['version']
+
         gene_id = gene
 
         ret = {'gene':{'gene_id': gene_id}}
@@ -130,7 +155,7 @@ class GetRegion(handlers.UnsafeHandler):
         beacon = db.parse_beacon_dataset(dataset)
         if beacon:
             dataset = beacon['dataset']
-            version = beacon['version']
+            ds_version = beacon['version']
 
         try:
             chrom, start, stop = region.split('-')
@@ -180,7 +205,7 @@ class GetTranscript(handlers.UnsafeHandler):
         beacon = db.parse_beacon_dataset(dataset)
         if beacon:
             dataset = beacon['dataset']
-            version = beacon['version']
+            ds_version = beacon['version']
 
         transcript_id = transcript
         ret = {'transcript':{},
@@ -228,7 +253,7 @@ class GetVariant(handlers.UnsafeHandler):
         beacon = db.parse_beacon_dataset(dataset)
         if beacon:
             dataset = beacon['dataset']
-            version = beacon['version']
+            ds_version = beacon['version']
 
         ret = {'variant':{}}
         # Variant
@@ -312,7 +337,7 @@ class GetVariant(handlers.UnsafeHandler):
 
         ret['variant']['pop_freq'] = frequencies
 
-        self.finish( ret )
+        self.finish(ret)
 
 
 class GetVariants(handlers.UnsafeHandler):
@@ -328,6 +353,11 @@ class GetVariants(handlers.UnsafeHandler):
             datatype (str): gene, region, or transcript
             item (str): item to query
         """
+        beacon = db.parse_beacon_dataset(dataset)
+        if beacon:
+            dataset = beacon['dataset']
+            ds_version = beacon['version']
+
         ret = utils.get_variant_list(dataset, datatype, item, ds_version)
         if not ret:
             self.send_error(status_code=500, reason='Unable to retrieve variants')
@@ -357,6 +387,11 @@ class Search(handlers.UnsafeHandler):
             dataset (str): short name of the dataset
             query (str): search query
         """
+        beacon = db.parse_beacon_dataset(dataset)
+        if beacon:
+            dataset = beacon['dataset']
+            ds_version = beacon['version']
+
         ret = {"dataset": dataset, "value": None, "type": None}
 
         datatype, identifier = lookups.get_awesomebar_result(dataset, query, ds_version)
