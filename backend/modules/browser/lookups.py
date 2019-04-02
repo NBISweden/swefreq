@@ -11,10 +11,12 @@ REGION_REGEX = re.compile(r'^\s*(\d+|X|Y|M|MT)\s*([-:]?)\s*(\d*)-?([\dACTG]*)-?(
 def get_autocomplete(dataset:str, query:str, ds_version:str=None):
     """
     Provide autocomplete suggestions based on the query
+
     Args:
         dataset (str): short name of dataset
         query (str): the query to compare to the available gene names
         ds_version (str): the dataset version
+
     Returns:
         list: A list of genes names whose beginning matches the query
     """
@@ -426,7 +428,7 @@ def get_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_version:st
     """
     variant = get_raw_variant(dataset, pos, chrom, ref, alt, ds_version)
     variant = get_raw_variant(dataset, pos, chrom, ref, alt, ds_version)
-    if variant and 'rsid' in variant and not str(variant['rsid']).startswith('rs'):
+    if variant and 'rsid' in variant and variant['rsid'] and not str(variant['rsid']).startswith('rs'):
         variant['rsid'] = 'rs{}'.format(variant['rsid'])
     return variant
 
