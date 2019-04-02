@@ -49,7 +49,7 @@
                         {{ ctrl.variant.rsid }}
                     </a>
                 </dd>
-                <dd ng-if="!ctrl.variant.rsid || ctrl.variant.rsid == '.'">Not found in dbSNP</dd>
+                <dd ng-if="!ctrl.variant.rsid || ctrl.variant.rsid == '.'">rsID not available</dd>
             <dt>Allele Frequency</dt>
                 <dd ng-if="ctrl.variant.alleleFreq">{{ ctrl.variant.alleleFreq | number : 4 }}</dd>
                 <dd ng-if="!ctrl.variant.alleleFreq">NA (Allele Number = 0)</dd>
