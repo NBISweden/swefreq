@@ -13,56 +13,65 @@
             getCoveragePos:getCoveragePos,
         };
 
-        function getGene(dataset, gene) {
-            return $http.get("/api/datasets/" + dataset + "/browser/gene/" + gene).then(function(data) {
+	function baseUrl(dataset, version) {
+	    var url = "/api/datasets/" + dataset + "/";
+	    if ( version ) {
+		url += "version/" + version + "/"
+	    }
+	    url += 'browser/';
+	    return url;
+	}
+	
+        function getGene(dataset, version, gene) {
+	    return $http.get(baseUrl(dataset, version) + "gene/" + gene).then(function(data) {
                 return data.data;
             });
         }
 
-        function getRegion(dataset, region) {
-            return $http.get("/api/datasets/" + dataset + "/browser/region/" + region).then(function(data) {
+        function getRegion(dataset, version, region) {
+            return $http.get(baseUrl(dataset, version) + "region/" + region).then(function(data) {
                 return data.data;
             });
         }
 
-        function getTranscript(dataset, transcript) {
-            return $http.get("/api/datasets/" + dataset + "/browser/transcript/" + transcript).then(function(data) {
+        function getTranscript(dataset, version, transcript) {
+            return $http.get(baseUrl(dataset, version) + "transcript/" + transcript).then(function(data) {
                 return data.data;
             });
         }
 
-        function getVariant(dataset, variant) {
-            return $http.get("/api/datasets/" + dataset + "/browser/variant/" + variant).then(function(data) {
+        function getVariant(dataset, version, variant) {
+	    return $http.get(baseUrl(dataset, version) + "variant/" + variant).then(function(data) {
+                return data.data;
+	    });
+        }
+
+        function search(dataset, version, query) {
+            return $http.get(baseUrl(dataset, version) + "search/" + query).then(function(data) {
                 return data.data;
             });
         }
 
-        function search(dataset, query) {
-            return $http.get("/api/datasets/" + dataset + "/browser/search/" + query).then(function(data) {
+        function autocomplete(dataset, version, query) {
+            return $http.get(baseUrl(dataset, version) + "autocomplete/" + query).then(function(data) {
                 return data.data;
             });
         }
 
-        function autocomplete(dataset, query) {
-            return $http.get("/api/datasets/" + dataset + "/browser/autocomplete/" + query).then(function(data) {
+        function getVariants(dataset, version, datatype, item) {
+            return $http.get(baseUrl(dataset, version) +  "variants/" + datatype + "/" + item).then(function(data) {
                 return data.data;
             });
         }
 
-        function getVariants(dataset, datatype, item) {
-            return $http.get("api/datasets/" + dataset + "/browser/variants/" + datatype + "/" + item).then(function(data) {
+        function getCoverage(dataset, version, datatype, item) {
+            return $http.get(baseUrl(dataset, version) + "coverage/" + datatype + "/" + item).then(function(data) {
                 return data.data;
             });
         }
 
-        function getCoverage(dataset, datatype, item) {
-            return $http.get("api/datasets/" + dataset + "/browser/coverage/" + datatype + "/" + item).then(function(data) {
-                return data.data;
-            });
-        }
-
-        function getCoveragePos(dataset, datatype, item) {
-            return $http.get("api/datasets/" + dataset + "/browser/coverage_pos/" + datatype + "/" + item).then(function(data) {
+        function getCoveragePos(dataset, version, datatype, item) {
+            return $http.get(baseUrl(dataset, version) + "coverage_pos/" + datatype + "/" + item).then(function(data) {
                 return data.data;
             });
         }

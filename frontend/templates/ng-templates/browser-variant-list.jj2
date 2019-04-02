@@ -1,4 +1,9 @@
-<div class="container">
+<div ng-if="ctrl.variants.statusCode">
+  <p>Unable to load the variants.</p>
+  <p>Reason: {{ ctrl.variants.statusCode }} {{ ctrl.variants.statusText }}</p>
+</div>
+
+<div class="container" ng-if="!ctrl.variants.statusCode">
     <div class="row">
         <div class="col-md-12">
             <span class="btn-group radio-button-group" ng-click="ctrl.filterVariants()">
@@ -28,7 +33,11 @@
             <span class="label label-info">&dagger; denotes a consequence that is for a non-canonical transcript</span>
         </div>
     </div>
-
+    <div class="row">
+	<div class="col-md-12">
+            Number of variants: {{ctrl.filteredVariants.length}} (including filtered: {{ctrl.variants.length}})
+	</div>
+    </div>
     <div class="row">
         <div class="col-md-12">
         <table class="table table-sm table-condensed small variant-table">

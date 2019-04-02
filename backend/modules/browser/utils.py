@@ -1,152 +1,18 @@
 import logging
-from operator import itemgetter
 
+from . import lookups
+
+# for coverage
 AF_BUCKETS = [0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1]
-METRICS = [
-    'BaseQRankSum',
-    'ClippingRankSum',
-    'DP',
-    'FS',
-    'InbreedingCoeff',
-    'MQ',
-    'MQRankSum',
-    'QD',
-    'ReadPosRankSum',
-    'VQSLOD'
-]
+EXON_PADDING = 50
 
-
-def add_transcript_coordinate_to_variants(sdb, variant_list, transcript_id):
-    """
-    Each variant has a 'xpos' and 'pos' positional attributes.
-    This method takes a list of variants and adds a third position: the "transcript coordinates".
-    This is defined as the distance from the start of the transcript, in coding bases.
-    So a variant in the 7th base of the 6th exon of a transcript will have a transcript coordinate of
-    the sum of the size of the first 5 exons) + 7
-    This is 0-based, so a variant in the first base of the first exon has a transcript coordinate of 0.
-
-    You may want to add transcript coordinates for multiple transcripts, so this is stored in a variant as
-    variant['transcript_coordinates'][transcript_id]
-
-    If a variant in variant_list does not have a `transcript_coordinates` dictionary, we create one
-
-    If a variant start position for some reason does not fall in any exons in this transcript, its coordinate is 0.
-    This is perhaps logically inconsistent,
-    but it allows you to spot errors quickly if there's a pileup at the first base.
-    `None` would just break things.
-
-    Consider the behavior if a 20 base deletion deletes parts of two exons.
-    I think the behavior in this method is consistent, but beware that it might break things downstream.
-
-    Edits variant_list in place; no return val
-    """
-
-    import lookups
-    # make sure exons is sorted by (start, end)
-    exons = sorted(lookups.get_exons_in_transcript(sdb, transcript_id), key=itemgetter('start', 'stop'))
-
-    # offset from start of base for exon in ith position (so first item in this list is always 0)
-    exon_offsets = [0 for i in range(len(exons))]
-    for i, exon in enumerate(exons):
-        for j in range(i+1, len(exons)):
-            exon_offsets[j] += exon['stop'] - exon['start']
-
-    for variant in variant_list:
-        if 'transcript_coordinates' not in variant:
-            variant['transcript_coordinates'] = {}
-        variant['transcript_coordinates'][transcript_id] = 0
-        for i, exon in enumerate(exons):
-            if exon['start'] <= variant['pos'] <= exon['stop']:
-                variant['transcript_coordinates'][transcript_id] = exon_offsets[i] + variant['pos'] - exon['start']
-
-
-def xpos_to_pos(xpos):
-    return int(xpos % 1e9)
-
-
-def add_consequence_to_variants(variant_list):
-    for variant in variant_list:
-        add_consequence_to_variant(variant)
-
-
-def add_consequence_to_variant(variant):
-    worst_csq = worst_csq_with_vep(variant['vep_annotations'])
-    variant['major_consequence'] = ''
-    if worst_csq is None:
-        return
-
-    variant['major_consequence'] = worst_csq['major_consequence']
-    variant['HGVSp'] = get_protein_hgvs(worst_csq)
-    variant['HGVSc'] = get_transcript_hgvs(worst_csq)
-    variant['HGVS'] = get_proper_hgvs(worst_csq)
-    variant['CANONICAL'] = worst_csq['CANONICAL']
-
-    if csq_order_dict[variant['major_consequence']] <= csq_order_dict["frameshift_variant"]:
-        variant['category'] = 'lof_variant'
-        for annotation in variant['vep_annotations']:
-            if annotation['LoF'] == '':
-                annotation['LoF'] = 'NC'
-                annotation['LoF_filter'] = 'Non-protein-coding gene'
-    elif csq_order_dict[variant['major_consequence']] <= csq_order_dict["missense_variant"]:
-        # Should be noted that this grabs inframe deletion, etc.
-        variant['category'] = 'missense_variant'
-    elif csq_order_dict[variant['major_consequence']] <= csq_order_dict["synonymous_variant"]:
-        variant['category'] = 'synonymous_variant'
-    else:
-        variant['category'] = 'other_variant'
-    variant['flags'] = get_flags_from_variant(variant)
-
-
-def get_flags_from_variant(variant):
-    flags = []
-    if 'mnps' in variant:
-        flags.append('MNP')
-    lof_annotations = [x for x in variant['vep_annotations'] if x['LoF'] != '']
-    if not lof_annotations:
-        return flags
-    if all([x['LoF'] != 'HC' for x in lof_annotations]):
-        flags.append('LC LoF')
-    if all([x['LoF_flags'] != '' for x in lof_annotations]):
-        flags.append('LoF flag')
-    return flags
-
-
-protein_letters_1to3 = {
-    'A': 'Ala', 'C': 'Cys', 'D': 'Asp', 'E': 'Glu',
-    'F': 'Phe', 'G': 'Gly', 'H': 'His', 'I': 'Ile',
-    'K': 'Lys', 'L': 'Leu', 'M': 'Met', 'N': 'Asn',
-    'P': 'Pro', 'Q': 'Gln', 'R': 'Arg', 'S': 'Ser',
-    'T': 'Thr', 'V': 'Val', 'W': 'Trp', 'Y': 'Tyr',
-    'X': 'Ter', '*': 'Ter', 'U': 'Sec'
-}
-
-
-def get_proper_hgvs(csq):
-    # Needs major_consequence
-    if csq['major_consequence'] in ('splice_donor_variant', 'splice_acceptor_variant', 'splice_region_variant'):
-        return get_transcript_hgvs(csq)
-
-    return get_protein_hgvs(csq)
-
-
-def get_transcript_hgvs(csq):
-    return csq['HGVSc'].split(':')[-1]
-
-
-def get_protein_hgvs(annotation):
-    """
-    Takes consequence dictionary, returns proper variant formatting for synonymous variants
-    """
-    if '%3D' in annotation['HGVSp']: # "%3D" is "="
-        try:
-            amino_acids = ''.join([protein_letters_1to3[x] for x in annotation['Amino_acids']])
-            return "p." + amino_acids + annotation['Protein_position'] + amino_acids
-        except KeyError:
-            logging.error("Could not fetch protein hgvs - unknown amino acid")
-    return annotation['HGVSp'].split(':')[-1]
+CHROMOSOMES = ['chr%s' % x for x in range(1, 23)]
+CHROMOSOMES.extend(['chrX', 'chrY', 'chrM'])
+CHROMOSOME_TO_CODE = { item: i+1 for i, item in enumerate(CHROMOSOMES) }
 
 # Note that this is the current as of v81 with some included for backwards compatibility (VEP <= 75)
-csq_order = ["transcript_ablation",
+
+CSQ_ORDER = ["transcript_ablation",
 "splice_acceptor_variant",
 "splice_donor_variant",
 "stop_gained",
@@ -185,123 +51,461 @@ csq_order = ["transcript_ablation",
 "feature_truncation",
 "intergenic_variant",
 ""]
-assert len(csq_order) == len(set(csq_order)) # No dupes!
 
-csq_order_dict = {csq:i for i,csq in enumerate(csq_order)}
-rev_csq_order_dict = dict(enumerate(csq_order))
-assert all(csq == rev_csq_order_dict[csq_order_dict[csq]] for csq in csq_order)
+CSQ_ORDER_DICT = {csq:i for i,csq in enumerate(CSQ_ORDER)}
+REV_CSQ_ORDER_DICT = dict(enumerate(CSQ_ORDER))
+
+METRICS = [
+    'BaseQRankSum',
+    'ClippingRankSum',
+    'DP',
+    'FS',
+    'InbreedingCoeff',
+    'MQ',
+    'MQRankSum',
+    'QD',
+    'ReadPosRankSum',
+    'VQSLOD'
+]
+
+PROTEIN_LETTERS_1TO3 = {
+    'A': 'Ala', 'C': 'Cys', 'D': 'Asp', 'E': 'Glu',
+    'F': 'Phe', 'G': 'Gly', 'H': 'His', 'I': 'Ile',
+    'K': 'Lys', 'L': 'Leu', 'M': 'Met', 'N': 'Asn',
+    'P': 'Pro', 'Q': 'Gln', 'R': 'Arg', 'S': 'Ser',
+    'T': 'Thr', 'V': 'Val', 'W': 'Trp', 'Y': 'Tyr',
+    'X': 'Ter', '*': 'Ter', 'U': 'Sec'
+}
 
 
-def remove_extraneous_vep_annotations(annotation_list):
-    return [ann for ann in annotation_list if worst_csq_index(ann['Consequence'].split('&')) <= csq_order_dict['intron_variant']]
-
-
-def worst_csq_index(csq_list):
+def add_consequence_to_variants(variant_list:list):
     """
-    Input list of consequences (e.g. ['frameshift_variant', 'missense_variant'])
-    Return index of the worst consequence (In this case, index of 'frameshift_variant', so 4)
-    Works well with worst_csq_index('non_coding_exon_variant&nc_transcript_variant'.split('&'))
+    Add information about variant consequence to multiple variants
+
+    Args:
+        variant_list (list): list of variants
+        datatype (str): type of data
+        item (str): query item
     """
-    return min([csq_order_dict[csq] for csq in csq_list])
+    for variant in variant_list:
+        add_consequence_to_variant(variant)
 
 
-def worst_csq_from_list(csq_list):
+def add_consequence_to_variant(variant:dict):
     """
-    Input list of consequences (e.g. ['frameshift_variant', 'missense_variant'])
-    Return the worst consequence (In this case, 'frameshift_variant')
-    Works well with worst_csq_from_list('non_coding_exon_variant&nc_transcript_variant'.split('&'))
+    Add information about variant consequence to a variant
+
+    Args:
+        variant (dict): variant information
     """
-    return rev_csq_order_dict[worst_csq_index(csq_list)]
+    if not variant:
+        return
+    worst_csq = worst_csq_with_vep(variant['vep_annotations'])
+    variant['major_consequence'] = ''
+    if worst_csq is None:
+        return
+
+    variant['major_consequence'] = worst_csq['major_consequence']
+    variant['HGVSp'] = get_protein_hgvs(worst_csq)
+    variant['HGVSc'] = get_transcript_hgvs(worst_csq)
+    variant['HGVS'] = get_proper_hgvs(worst_csq)
+    variant['CANONICAL'] = worst_csq['CANONICAL']
+
+    if CSQ_ORDER_DICT[variant['major_consequence']] <= CSQ_ORDER_DICT["frameshift_variant"]:
+        variant['category'] = 'lof_variant'
+        for annotation in variant['vep_annotations']:
+            if annotation['LoF'] == '':
+                annotation['LoF'] = 'NC'
+                annotation['LoF_filter'] = 'Non-protein-coding gene'
+    elif CSQ_ORDER_DICT[variant['major_consequence']] <= CSQ_ORDER_DICT["missense_variant"]:
+        # Should be noted that this grabs inframe deletion, etc.
+        variant['category'] = 'missense_variant'
+    elif CSQ_ORDER_DICT[variant['major_consequence']] <= CSQ_ORDER_DICT["synonymous_variant"]:
+        variant['category'] = 'synonymous_variant'
+    else:
+        variant['category'] = 'other_variant'
+    variant['flags'] = get_flags_from_variant(variant)
+    return
 
 
-def worst_csq_from_csq(csq):
+def annotation_severity(annotation:dict):
     """
-    Input possibly &-filled csq string (e.g. 'non_coding_exon_variant&nc_transcript_variant')
-    Return the worst consequence (In this case, 'non_coding_exon_variant')
+    Evaluate severity of the consequences; "bigger is more important".
+
+    Args:
+        annotation (dict): vep_annotation from a variant
+
+    Returns:
+        float: severity score
     """
-    return rev_csq_order_dict[worst_csq_index(csq.split('&'))]
+    rv = -CSQ_ORDER_DICT[worst_csq_from_csq(annotation['Consequence'])]
+    if annotation['CANONICAL'] == 'YES':
+        rv += 0.1
+    return rv
 
 
-def order_vep_by_csq(annotation_list):
+def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
     """
-    Adds "major_consequence" to each annotation.
-    Returns them ordered from most deleterious to least.
+    Retrieve coverage for a gene/region/transcript
+
+    Args:
+        dataset (str): short name of the dataset
+        datatype (str): type of "region" (gene/region/transcript)
+        item (str): the datatype item to look up
+        ds_version (str): the dataset version
+
+    Returns:
+        dict: start, stop, coverage list
+    """
+    ret = {'coverage':[]}
+
+    if datatype == 'gene':
+        gene = lookups.get_gene(dataset, item)
+        if gene:
+            transcript = lookups.get_transcript(dataset, gene['canonical_transcript'])
+            if transcript:
+                start = transcript['start'] - EXON_PADDING
+                stop  = transcript['stop'] + EXON_PADDING
+                ret['coverage'] = lookups.get_coverage_for_transcript(dataset, transcript['chrom'], start, stop, ds_version)
+    elif datatype == 'region':
+        try:
+            chrom, start, stop = item.split('-')
+            start = int(start)
+            stop = int(stop)
+        except ValueError:
+            return {'coverage': [], 'bad_region':True}
+        if is_region_too_large(start, stop):
+            return {'coverage': [], 'region_too_large': True}
+        ret['coverage'] = lookups.get_coverage_for_bases(dataset, chrom, start, stop, ds_version)
+    elif datatype == 'transcript':
+        transcript = lookups.get_transcript(dataset, item)
+        if transcript:
+            start = transcript['start'] - EXON_PADDING
+            stop  = transcript['stop'] + EXON_PADDING
+            ret['coverage'] = lookups.get_coverage_for_transcript(dataset, transcript['chrom'], start, stop, ds_version)
+    return ret
+
+
+def get_coverage_pos(dataset:str, datatype:str, item:str, ds_version:str=None):
+    """
+    Retrieve coverage range
+
+    Args:
+        dataset (str): short name of the dataset
+        datatype (str): type of "region" (gene/region/transcript)
+        item (str): the datatype item to look up
+
+    Returns:
+        dict: start, stop, chromosome
+    """
+    ret = {'start':None, 'stop':None, 'chrom':None}
+
+    if datatype == 'region':
+        chrom, start, stop = item.split('-')
+        if start and stop and chrom:
+            ret['start'] = int(start)
+            ret['stop'] = int(stop)
+            ret['chrom'] = chrom
+    else:
+        if datatype == 'gene':
+            gene = lookups.get_gene(dataset, item)
+            transcript = lookups.get_transcript(dataset, gene['canonical_transcript'], ds_version)
+        elif datatype == 'transcript':
+            transcript = lookups.get_transcript(dataset, item, ds_version)
+        if transcript:
+            ret['start'] = transcript['start'] - EXON_PADDING
+            ret['stop']  = transcript['stop'] + EXON_PADDING
+            ret['chrom'] = transcript['chrom']
+
+    return ret
+
+
+def get_flags_from_variant(variant:dict):
+    """
+    Get flags from variant.
+    Checks for:
+    - MNP (identical length of reference and variant)
+    - LoF (loss of function)
+
+    Args:
+        variant (dict): a variant
+
+    Returns:
+        list: flags for the variant
+    """
+    flags = []
+    if 'mnps' in variant:
+        flags.append('MNP')
+    lof_annotations = [x for x in variant['vep_annotations'] if x['LoF'] != '']
+    if not lof_annotations:
+        return flags
+    if all([x['LoF'] != 'HC' for x in lof_annotations]):
+        flags.append('LC LoF')
+    if all([x['LoF_flags'] != '' for x in lof_annotations]):
+        flags.append('LoF flag')
+    return flags
+
+
+def get_proper_hgvs(annotation:dict):
+    """
+    Get HGVS for change, either at transcript or protein level.
+
+    Args:
+        annotation (dict): VEP annotation with HGVS information
+
+    Returns:
+        str: variant effect at aa level in HGVS format (p.), None if parsing fails
+    """
+    # Needs major_consequence
+    try:
+        if annotation['major_consequence'] in ('splice_donor_variant',
+                                               'splice_acceptor_variant',
+                                               'splice_region_variant'):
+            return get_transcript_hgvs(annotation)
+        return get_protein_hgvs(annotation)
+    except KeyError:
+        return None
+
+
+def get_protein_hgvs(annotation):
+    """
+    Aa changes in HGVS format.
+
+    Args:
+        annotation (dict): VEP annotation with HGVS information
+
+    Returns:
+        str: variant effect at aa level in HGVS format (p.), None if parsing fails
+    """
+    try:
+        if '%3D' in annotation['HGVSp']: # "%3D" is "="
+            amino_acids = ''.join([PROTEIN_LETTERS_1TO3[aa] for aa in annotation['Amino_acids']])
+            return "p." + amino_acids + annotation['Protein_position'] + amino_acids
+        return annotation['HGVSp'].split(':')[-1]
+    except KeyError:
+        logging.error("Could not fetch protein hgvs")
+        return None
+
+
+def get_transcript_hgvs(annotation:dict):
+    """
+    Nucleotide change in HGVS format.
+
+    Args:
+        annotation (dict): VEP annotation with HGVS information
+
+    Returns:
+        str: variant effect at nucleotide level in HGVS format (c.), None if parsing fails
+    """
+    try:
+        return annotation['HGVSc'].split(':')[-1]
+    except KeyError:
+        return None
+
+
+def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
+    """
+    Retrieve variants for a datatype
+
+    Args:
+        dataset (str): dataset short name
+        datatype (str): type of data
+        item (str): query item
+        ds_version (str): dataset version
+
+    Returns:
+        dict: {variants:list, headers:list}
+    """
+    headers = [['variant_id','Variant'], ['chrom','Chrom'], ['pos','Position'],
+               ['HGVS','Consequence'], ['filter','Filter'], ['major_consequence','Annotation'],
+               ['flags','Flags'], ['allele_count','Allele Count'], ['allele_num','Allele Number'],
+               ['hom_count','Number of Homozygous Alleles'], ['allele_freq','Allele Frequency']]
+
+    if datatype == 'gene':
+        variants = lookups.get_variants_in_gene(dataset, item, ds_version)
+    elif datatype == 'region':
+        try:
+            chrom, start, stop = item.split('-')
+            start = int(start)
+            stop = int(stop)
+        except ValueError:
+            return None
+
+        if is_region_too_large(start, stop):
+            return {'variants': [], 'headers': [], 'region_too_large': True}
+        variants = lookups.get_variants_in_region(dataset, chrom, start, stop, ds_version)
+    elif datatype == 'transcript':
+        variants = lookups.get_variants_in_transcript(dataset, item, ds_version)
+
+    if datatype == 'transcript':
+        transcript = lookups.get_transcript(dataset, item, ds_version)
+        if not transcript:
+            return None
+        refgene = transcript['gene_id']
+
+    for variant in variants:
+        if datatype in ('gene', 'transcript'):
+            anno = None
+            if datatype == 'transcript':
+                anno = [ann for ann in variant['vep_annotations'] if ann['Feature'] == item]
+                if not anno:
+                    anno = [ann for ann in variant['vep_annotations'] if ann['Gene'] == refgene]
+            else:
+                anno = [ann for ann in variant['vep_annotations'] if ann['Gene'] == item]
+            if anno:
+                variant['vep_annotations'] = anno
+
+    add_consequence_to_variants(variants)
+
+    for variant in variants:
+        remove_extraneous_information(variant)
+
+    # Format output
+    def format_variant(variant):
+        variant['major_consequence'] = (variant['major_consequence'].replace('_variant','')
+                                        .replace('_prime_', '\'')
+                                        .replace('_', ' '))
+
+        # This is so an array values turns into a comma separated string instead
+        return {k: ", ".join(v) if isinstance(v,list) else v for k, v in variant.items()}
+
+    variants = list(map(format_variant, variants))
+
+    return {'variants': variants, 'headers': headers}
+
+
+def order_vep_by_csq(annotation_list:list):
+    """
+    Adds "major_consequence" to each annotation, orders by severity.
+
+    Args:
+        annotation_list (list): VEP annotations (as dict)
+
+    Returns:
+        list: annotations ordered by major consequence severity
     """
     for ann in annotation_list:
-        ann['major_consequence'] = worst_csq_from_csq(ann['Consequence'])
-    return sorted(annotation_list, key=(lambda ann:csq_order_dict[ann['major_consequence']]))
+        try:
+            ann['major_consequence'] = worst_csq_from_csq(ann['Consequence'])
+        except KeyError:
+            ann['major_consequence'] = ''
+    return sorted(annotation_list, key=(lambda ann:CSQ_ORDER_DICT[ann['major_consequence']]))
 
 
-def worst_csq_with_vep(annotation_list):
+def is_region_too_large(start:int, stop:int):
+    '''
+    Evaluates whether the size of a region is larger than maximum query
+    Args:
+        start (int): Start position of the region
+        stop (int): End position of the region
+
+    Returns:
+        bool: True if too large
+    '''
+    region_limit = 100000
+    return int(stop)-int(start) > region_limit
+
+
+def parse_dataset(dataset, ds_version=None):
     """
-    Takes list of VEP annotations [{'Consequence': 'frameshift', Feature: 'ENST'}, ...]
-    Returns most severe annotation (as full VEP annotation [{'Consequence': 'frameshift', Feature: 'ENST'}])
-    Also tacks on "major_consequence" for that annotation (i.e. worst_csq_from_csq)
+    Check/parse if the dataset name is in the beacon form:
+    ``reference:dataset:version``
+
+    Args:
+        dataset (str): short name of the dataset
+        ds_version (str): the dataset version
+
+    Returns:
+        tuple: (dataset, version)
+    """
+    beacon_style = dataset.split(':')
+    if len(beacon_style) == 3:
+        return (beacon_style[1], beacon_style[2])
+    else:
+        return (dataset, ds_version)
+
+
+def remove_extraneous_information(variant:dict):
+    '''
+    Remove information that is not used in the frontend from a variant
+
+    Args:
+        variant (dict): variant data from database
+    '''
+    del variant['id']
+    del variant['dataset_version']
+    del variant['orig_alt_alleles']
+    del variant['site_quality']
+    del variant['vep_annotations']
+
+
+def remove_extraneous_vep_annotations(annotation_list:list):
+    """
+    Remove annotations with low-impact consequences (less than intron variant)
+
+    Args:
+        annotation_list (list): VEP annotations (as dict)
+
+    Returns:
+        list: VEP annotations with higher impact
+    """
+    return [ann for ann in annotation_list
+            if worst_csq_index(ann['Consequence'].split('&')) <= CSQ_ORDER_DICT['intron_variant']]
+
+
+def worst_csq_from_list(csq_list:list):
+    """
+    Choose the worst consequence
+
+    Args:
+        csq_list (list): list of consequences
+
+    Returns:
+        str: the worst consequence
+    """
+    return REV_CSQ_ORDER_DICT[worst_csq_index(csq_list)]
+
+
+def worst_csq_from_csq(csq:str):
+    """
+    Find worst consequence in a possibly &-filled consequence string
+
+    Args:
+        csq (str): string of consequences, seperated with & (if multiple)
+
+    Returns:
+        str: the worst consequence
+    """
+    return REV_CSQ_ORDER_DICT[worst_csq_index(csq.split('&'))]
+
+
+def worst_csq_index(csq_list:list):
+    """
+    Find the index of the worst consequence.
+    Corresponds to the lowest value (index) from CSQ_ORDER_DICT
+
+    Args:
+        csq_list (list): consequences
+
+    Returns:
+        int: index in CSQ_ODER_DICT of the worst consequence
+    """
+    return min([CSQ_ORDER_DICT[csq] for csq in csq_list])
+
+
+def worst_csq_with_vep(annotation_list:list):
+    """
+    Choose the vep annotation with the most severe consequence
+    Adds a"major_consequence" field for that annotation
+
+    Args:
+        annotation_list (list): VEP annotations
+
+    Returns:
+        dict: the annotation with the most severe consequence
     """
     if not annotation_list:
         return None
     worst = max(annotation_list, key=annotation_severity)
     worst['major_consequence'] = worst_csq_from_csq(worst['Consequence'])
     return worst
-
-
-def annotation_severity(annotation):
-    "Bigger is more important."
-    rv = -csq_order_dict[worst_csq_from_csq(annotation['Consequence'])]
-    if annotation['CANONICAL'] == 'YES':
-        rv += 0.1
-    return rv
-
-CHROMOSOMES = ['chr%s' % x for x in range(1, 23)]
-CHROMOSOMES.extend(['chrX', 'chrY', 'chrM'])
-CHROMOSOME_TO_CODE = { item: i+1 for i, item in enumerate(CHROMOSOMES) }
-
-
-def get_single_location(chrom, pos):
-    """
-    Gets a single location from chromosome and position
-    chr must be actual chromosme code (chrY) and pos must be integer
-
-    Borrowed from xbrowse
-    """
-    return CHROMOSOME_TO_CODE[chrom] * int(1e9) + pos
-
-
-def get_xpos(chrom, pos):
-    """
-    Borrowed from xbrowse
-    """
-    if not chrom.startswith('chr'):
-        chrom = 'chr{}'.format(chrom)
-    return get_single_location(chrom, int(pos))
-
-
-def get_minimal_representation(pos, ref, alt):
-    """
-    Get the minimal representation of a variant, based on the ref + alt alleles in a VCF
-    This is used to make sure that multiallelic variants in different datasets,
-    with different combinations of alternate alleles, can always be matched directly.
-
-    Note that chromosome is ignored here - in xbrowse, we'll probably be dealing with 1D coordinates
-    Args:
-        pos (int): genomic position in a chromosome (1-based)
-        ref (str): ref allele string
-        alt (str): alt allele string
-    Returns:
-        tuple: (pos, ref, alt) of remapped coordinate
-    """
-    pos = int(pos)
-    # If it's a simple SNV, don't remap anything
-    if len(ref) == 1 and len(alt) == 1:
-        return pos, ref, alt
-
-    # strip off identical suffixes
-    while(alt[-1] == ref[-1] and min(len(alt),len(ref)) > 1):
-        alt = alt[:-1]
-        ref = ref[:-1]
-    # strip off identical prefixes and increment position
-    while(alt[0] == ref[0] and min(len(alt),len(ref)) > 1):
-        alt = alt[1:]
-        ref = ref[1:]
-        pos += 1
-    return pos, ref, alt

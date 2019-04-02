@@ -17,17 +17,6 @@
     "postgresPass" : "",
     "postgresName" : "swefreq",
 
-    "mongoHost" : "mongodb host",
-    "mongoPassword" : "password",
-    "mongoPort" : 27017,
-    "mongoUser" : "exac",
-    "mongoDatabases": {
-        "Dataset": {
-          "db":     "db-name",
-          "shared": "shared-db-name"
-        }
-    },
-
     "replyToAddress" : "no-reply@example.com",
     "fromAddress" : "no-reply@example.com",
     "mailServer" : "smtp.example.com",

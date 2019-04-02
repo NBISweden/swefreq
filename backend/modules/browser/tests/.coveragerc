@@ -1,0 +1,15 @@
+[run]
+omit =
+    # omit anything in a .local directory anywhere
+    */tests/*
+    */__init__.py
+    */venv/*
+    */virtualenv/*
+
+[report]
+omit =
+    # omit anything in a .local directory anywhere
+    */tests/*
+    */__init__.py
+    */venv/*
+    */virtualenv/*

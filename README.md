@@ -58,25 +58,14 @@ The application has only been tested with python 3.5.2. It will most likely work
 Quick development mode
 ----------------------
 
-1. Install docker (and docker-compose in case it's not included in the installation)
-2. Create test database
-
-    1. Initiate a mysql data volume by running `./scripts/create_docker_db_volume_tarball.sh` or 
-         `./scripts/download_and_create_docker_db_volume.sh`
-  
-    2. Load mysql dummy data by running `./scripts/load_mysql_dummy_data.sh`
-  
-3. Copy `settings_sample.json` into `settings.json` and
-    - Update the credentials for elixir and google oauth.
-        - Elixir/redirectUri: http://localhost:4000/elixir/login
-        - redirectUri: http://localhost:4000/login
-    - Set `mysqlHost` to `db`
-    - Set `mysqlSchema` to `swefreq_test`
-    - Clear `mysqlPasswd` (set it to empty `""`)
-4. Make a symbolic link from `backend/static` to `static`.
-5. Run the server:
+1. Install docker (and docker-compose in case it's not included in the installation) 
+2. Run the server:
 ```bash
 $ docker-compose up
+```
+3. Add test data to db:
+```bash
+$ psql -h localhost -U postgres swefreq -f test/data/browser_test_data.sql
 ```
 
 [travis-badge]: https://travis-ci.org/NBISweden/swefreq.svg?branch=develop

@@ -1,6 +1,6 @@
+import db
 import handlers
-import pymongo
-import settings
+
 import tornado.web
 
 class Query(handlers.UnsafeHandler):
@@ -65,6 +65,7 @@ class Query(handlers.UnsafeHandler):
                 'beacon': 'swefreq-beacon'
                 })
 
+
 class Info(handlers.UnsafeHandler):
     def get(self):
         query_uri = "%s://%s/query?" % ('https', self.request.host)
@@ -97,17 +98,11 @@ class Info(handlers.UnsafeHandler):
                 ] #
             })
 
-def connect_mongo(dataset):
-    client = pymongo.MongoClient(host=settings.mongo_host, port=settings.mongo_port)
-
-    auth_db = client['exac-user']
-    auth_db.authenticate(settings.mongo_user, settings.mongo_password)
-
-    return client[dataset]
-
 
 def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset): #pylint: disable=too-many-arguments, unused-argument
-    """CHeck if an allele is present in the database
+    """
+    Check if an allele is present in the database
+
     Args:
         chrom: The chromosome, format matches [1-22XY]
         pos: Coordinate within a chromosome. Position is a number and is 0-based
@@ -115,21 +110,26 @@ def lookupAllele(chrom, pos, referenceAllele, allele, reference, dataset): #pyli
         alternate: Any string of nucleotides A,C,T,G
         reference: The human reference build that was used
         dataset: Dataset to look in (currently used to select Mongo database)
+
     Returns:
         The string 'true' if the allele was found, otherwise the string 'false'
     """
-    if reference == 'hg19':
-        reference = 'GRChg37'
-
-    dataset = "exac-{}-{}".format(dataset.lower(), reference)
-
-    mdb = connect_mongo(dataset)
-
+    # must add support for reference build
     # Beacon is 0-based, our database is 1-based in coords.
+    
     pos += 1
-    res = mdb.variants.find({'chrom': chrom, 'pos': pos})
-    for r in res:
-        if r['alt'] == allele and r['ref'] == referenceAllele:
-            return True
-
-    return False
+    dataset_version = db.get_dataset_version(dataset)
+    if not dataset_version:
+        return None
+    try:
+        variant = (db.Variant
+                   .select()
+                   .where((db.Variant.pos == pos) &
+                          (db.Variant.ref == referenceAllele) &
+                          (db.Variant.alt == allele) &
+                          (db.Variant.chrom == chrom) &
+                          (db.Variant.dataset_version == dataset_version))
+                   .get())
+        return True
+    except db.Variant.DoesNotExist:
+        return False

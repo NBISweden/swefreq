@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 import settings
 from peewee import (BigIntegerField,
                     BlobField,
@@ -450,8 +451,11 @@ class DatasetAccessPending(DatasetAccess):
 
 def get_next_free_uid():
     """
-    Returns the next free uid >= 10000, and higher than the current uid's
-    from the sftp_user table in the database.
+    Get the next free uid >= 10000 and > than the current uids 
+    from the sftp_user table in the db.
+
+    Returns:
+        int: the next free uid
     """
     default = 10000
     next_uid = default
@@ -464,26 +468,67 @@ def get_next_free_uid():
 
     return next_uid
 
+
 def get_admin_datasets(user):
+    """
+    Get a list of datasets where user is admin
+
+    Args:
+        user (User): Peewee User object for the user of interest
+
+    Returns:
+        DataSetAccess:
+    """
     return DatasetAccess.select().where( DatasetAccess.user == user, DatasetAccess.is_admin)
 
-def get_dataset(dataset):
+
+def get_dataset(dataset:str):
+    """
+    Given dataset name get Dataset
+
+    Args:
+        dataset (str): short name of the dataset
+
+    Returns:
+        Dataset: the corresponding DatasetVersion entry
+    """
     dataset = Dataset.select().where( Dataset.short_name == dataset).get()
     return dataset
 
-def get_dataset_version(dataset, version=None):
+
+def get_dataset_version(dataset:str, version:str=None):
+    """
+    Given dataset get DatasetVersion
+
+    Args:
+        dataset (str): short name of the dataset
+
+    Returns:
+        DatasetVersion: the corresponding DatasetVersion entry
+    """
     if version:
-        dataset_version = (DatasetVersion
-                            .select(DatasetVersion, Dataset)
-                            .join(Dataset)
-                            .where(DatasetVersion.version == version,
-                                   Dataset.short_name == dataset)).get()
+        try:
+            dataset_version = (DatasetVersion
+                               .select(DatasetVersion, Dataset)
+                               .join(Dataset)
+                               .where(DatasetVersion.version == version,
+                                      Dataset.short_name == dataset)).get()
+        except DatasetVersion.DoesNotExist:
+            logging.error("get_dataset_version({}, {}): ".format(dataset, version) +
+                          "cannot retrieve dataset version")
+            return
     else:
-        dataset_version = (DatasetVersionCurrent
-                            .select(DatasetVersionCurrent, Dataset)
-                            .join(Dataset)
-                            .where(Dataset.short_name == dataset)).get()
+        try:
+            dataset_version = (DatasetVersionCurrent
+                               .select(DatasetVersionCurrent, Dataset)
+                               .join(Dataset)
+                               .where(Dataset.short_name == dataset)).get()
+        except DatasetVersionCurrent.DoesNotExist:
+            logging.error("get_dataset_version({}, version=None): ".format(dataset) +
+                          "cannot retrieve dataset version")
+            return
     return dataset_version
+
 
 def build_dict_from_row(row):
     d = {}
