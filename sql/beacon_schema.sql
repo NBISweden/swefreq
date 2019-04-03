@@ -39,9 +39,7 @@ CREATE OR REPLACE VIEW beacon.beacon_dataset_table AS           -- original type
            v.dataset_version AS "version",                      -- varchar(8)
            s.sample_size AS sampleCount,                        -- integer
            d.browser_uri AS externalUrl,                        -- varchar(256)
-           CASE WHEN v.available_from < now() THEN 'PUBLIC'
-                WHEN v.available_from > now() THEN 'CONTROLLED'
-           END AS accessType                                    -- varchar(10)
+           d.access_level as accessType                         -- PUBLIC, REGISTERED or CONTROLLED
       FROM data.datasets AS d
       JOIN data.dataset_version_current AS v
         ON v.dataset = d.id
