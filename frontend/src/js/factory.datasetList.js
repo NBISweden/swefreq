@@ -6,7 +6,7 @@
         };
 
         function getDatasetList() {
-            return $http.get("/api/datasets").then(function(data) {
+            return $http.get("/api/dataset").then(function(data) {
                 data = data.data.data;
                 var len = data.length;
                 var datasets = [];

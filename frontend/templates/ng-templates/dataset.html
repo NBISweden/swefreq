@@ -7,7 +7,7 @@
         <div class="dataset-panel">
              <div class="dataset-body">
                  <div ng-if="ctrl.dataset.hasImage">
-                     <img ng-src="/api/datasets/{{ctrl.dataset.shortName}}/logo" class="dataset-logo" alt='{{ dataset.shortName }} logo' />
+                     <img ng-src="/api/dataset/{{ctrl.dataset.shortName}}/logo" class="dataset-logo" alt='{{ dataset.shortName }} logo' />
                  </div>
                  <div ng-bind-html="ctrl.dataset.version.description" />
              </div>

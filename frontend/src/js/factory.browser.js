@@ -14,7 +14,7 @@
         };
 
 	function baseUrl(dataset, version) {
-	    var url = "/api/datasets/" + dataset + "/";
+	    var url = "/api/dataset/" + dataset + "/";
 	    if ( version ) {
 		url += "version/" + version + "/"
 	    }

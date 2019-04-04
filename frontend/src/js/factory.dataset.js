@@ -12,7 +12,7 @@
             if (dataset === undefined) {
                 return defer.reject("No dataset provided");
             }
-            var datasetUri = "/api/datasets/" + dataset;
+            var datasetUri = "/api/dataset/" + dataset;
             if (version) {
                 datasetUri += "/versions/" + version;
             }
@@ -24,7 +24,7 @@
                     d.version.terms       = $sce.trustAsHtml( d.version.terms );
                     state.dataset = d;
                 }),
-                $http.get("/api/datasets/" + dataset + "/collection").then(function(data){
+                $http.get(datasetUri + "/collection").then(function(data){
                     state.collections = data.data.collections;
                     state.study = data.data.study;
 

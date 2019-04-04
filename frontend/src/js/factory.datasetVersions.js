@@ -5,7 +5,7 @@
             getDatasetVersions: getDatasetVersions,
         };
         function getDatasetVersions(dataset) {
-            return $http.get("/api/datasets/" + dataset + "/versions")
+            return $http.get("/api/dataset/" + dataset + "/versions")
                 .then(function(data) {
                     return data.data.data;
                 }

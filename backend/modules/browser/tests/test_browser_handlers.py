@@ -14,7 +14,7 @@ def test_get_autocomplete():
     dataset = 'SweGen'
 
     query = 'PA'
-    response = requests.get('{}/api/datasets/{}/browser/autocomplete/{}'.format(BASE_URL, dataset, query))
+    response = requests.get('{}/api/dataset/{}/browser/autocomplete/{}'.format(BASE_URL, dataset, query))
     data = json.loads(response.text)
     assert set(data["values"]) == set(["PABPC1P9", "PACSIN2", "PANX2", "PARP4P3",
                                        "PARVB", "PARVG", "PATZ1", "PAXBP1", "PAXBP1-AS1"])
@@ -28,7 +28,7 @@ def test_download():
 
     data_type = 'transcript'
     data_item = 'ENST00000438441'
-    response = requests.get('{}/api/datasets/{}/browser/download/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
+    response = requests.get('{}/api/dataset/{}/browser/download/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
     assert len(response.text.split('\n')) == 180
 
 
@@ -40,15 +40,15 @@ def test_get_coverage():
 
     data_type = 'transcript'
     data_item = 'ENST00000438441'
-    response = requests.get('{}/api/datasets/{}/browser/coverage/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
+    response = requests.get('{}/api/dataset/{}/browser/coverage/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
     data = json.loads(response.text)
     assert len(data['coverage']) == 144
     data_type = 'region'
     data_item = '1-1-1000000'
-    response = requests.get('{}/api/datasets/{}/browser/coverage/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
+    response = requests.get('{}/api/dataset/{}/browser/coverage/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
     assert response.status_code == 400
     data_item = '1-1-5'
-    response = requests.get('{}/api/datasets/{}/browser/coverage/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
+    response = requests.get('{}/api/dataset/{}/browser/coverage/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
     assert response.status_code == 404
 
 
@@ -59,7 +59,7 @@ def test_get_coverage_pos():
     dataset = 'SweGen'
     data_type = 'region'
     data_item = '22-100001-100101'
-    response = requests.get('{}/api/datasets/{}/browser/coverage_pos/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
+    response = requests.get('{}/api/dataset/{}/browser/coverage_pos/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
     cov_pos = json.loads(response.text)
     assert cov_pos['start'] == 100001
     assert cov_pos['stop'] == 100101
@@ -72,7 +72,7 @@ def test_get_gene():
     """
     dataset = 'SweGen'
     gene_id = 'ENSG00000015475'
-    response = requests.get('{}/api/datasets/{}/browser/gene/{}'.format(BASE_URL, dataset, gene_id))
+    response = requests.get('{}/api/dataset/{}/browser/gene/{}'.format(BASE_URL, dataset, gene_id))
     expected = {"name": "BID", "canonicalTranscript": "ENST00000317361", "chrom": "22", "strand": "-", "geneName": "BID"}
     gene = json.loads(response.text)
 
@@ -83,13 +83,13 @@ def test_get_gene():
 
     dataset = 'SweGen'
     gene_id = 'ENSG00000015475'
-    response = requests.get('{}/api/datasets/{}/browser/gene/{}'.format(BASE_URL, dataset, gene_id))
+    response = requests.get('{}/api/dataset/{}/browser/gene/{}'.format(BASE_URL, dataset, gene_id))
     expected = {"name": "BID", "canonicalTranscript": "ENST00000317361", "chrom": "22", "strand": "-", "geneName": "BID"}
     gene = json.loads(response.text)
 
     dataset = 'SweGen'
     gene_id = 'BAD_GENE_ID'
-    response = requests.get('{}/api/datasets/{}/browser/gene/{}'.format(BASE_URL, dataset, gene_id))
+    response = requests.get('{}/api/dataset/{}/browser/gene/{}'.format(BASE_URL, dataset, gene_id))
     assert response.status_code == 404
 
 
@@ -99,7 +99,7 @@ def test_get_region():
     """
     dataset = 'SweGen'
     region_def = '22-46615715-46615880'
-    response = requests.get('{}/api/datasets/{}/browser/region/{}'.format(BASE_URL, dataset, region_def))
+    response = requests.get('{}/api/dataset/{}/browser/region/{}'.format(BASE_URL, dataset, region_def))
     region = json.loads(response.text)
     expected = {'region': {'chrom': '22',
                            'start': 46615715,
@@ -110,7 +110,7 @@ def test_get_region():
     assert region == expected
 
     region_def = '22-16364870-16366200'
-    response = requests.get('{}/api/datasets/{}/browser/region/{}'.format(BASE_URL, dataset, region_def))
+    response = requests.get('{}/api/dataset/{}/browser/region/{}'.format(BASE_URL, dataset, region_def))
     region = json.loads(response.text)
     expected = {'region': {'chrom': '22',
                            'start': 16364870,
@@ -121,11 +121,11 @@ def test_get_region():
     assert region == expected
 
     region_def = '22-46A1615715-46615880'
-    response = requests.get('{}/api/datasets/{}/browser/region/{}'.format(BASE_URL, dataset, region_def))
+    response = requests.get('{}/api/dataset/{}/browser/region/{}'.format(BASE_URL, dataset, region_def))
     assert response.status_code == 400
 
     region_def = '22-1-1000000'
-    response = requests.get('{}/api/datasets/{}/browser/region/{}'.format(BASE_URL, dataset, region_def))
+    response = requests.get('{}/api/dataset/{}/browser/region/{}'.format(BASE_URL, dataset, region_def))
     assert response.status_code == 400
 
 
@@ -135,14 +135,14 @@ def test_get_transcript():
     """
     dataset = 'SweGen'
     transcript_id = 'ENST00000317361'
-    response = requests.get('{}/api/datasets/{}/browser/transcript/{}'.format(BASE_URL, dataset, transcript_id))
+    response = requests.get('{}/api/dataset/{}/browser/transcript/{}'.format(BASE_URL, dataset, transcript_id))
     transcript = json.loads(response.text)
     assert transcript['gene']['id'] == 'ENSG00000015475'
     assert len(transcript['exons']) == 14
 
     dataset = 'SweGen'
     transcript_id = 'BAD_TRANSCRIPT'
-    response = requests.get('{}/api/datasets/{}/browser/transcript/{}'.format(BASE_URL, dataset, transcript_id))
+    response = requests.get('{}/api/dataset/{}/browser/transcript/{}'.format(BASE_URL, dataset, transcript_id))
     assert response.status_code == 404
 
 
@@ -152,7 +152,7 @@ def test_get_variant():
     """
     dataset = 'SweGen'
     variant_id = '22-16080482-CAT-C'
-    response = requests.get('{}/api/datasets/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
+    response = requests.get('{}/api/dataset/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
     variant = json.loads(response.text)
     assert variant['variant']['variantId'] == '22-16080482-CAT-C'
     assert set(variant['variant']['genes']) == set(['ENSG00000229286', 'ENSG00000235265'])
@@ -161,7 +161,7 @@ def test_get_variant():
     assert len(variant['variant']['transcripts']) == len(['ENST00000448070', 'ENST00000413156'])
 
     variant_id = '22-16269941-G-C'
-    response = requests.get('{}/api/datasets/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
+    response = requests.get('{}/api/dataset/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
     variant = json.loads(response.text)
     assert variant['variant']['variantId'] == '22-16269941-G-C'
     assert set(variant['variant']['genes']) == set(['ENSG00000198062', 'ENSG00000236666'])
@@ -171,14 +171,14 @@ def test_get_variant():
 
     variant_id = '21-9411609-G-T'
     version = '20161223'
-    response = requests.get('{}/api/datasets/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
+    response = requests.get('{}/api/dataset/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
     assert response.status_code == 404
-    response = requests.get('{}/api/datasets/{}/version/{}/browser/variant/{}'.format(BASE_URL, dataset, version, variant_id))
+    response = requests.get('{}/api/dataset/{}/version/{}/browser/variant/{}'.format(BASE_URL, dataset, version, variant_id))
     variant = json.loads(response.text)
     assert variant['variant']['variantId'] == '21-9411609-G-T'
 
     variant_id = '22-94358sfsdfsdf52-T-C'
-    response = requests.get('{}/api/datasets/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
+    response = requests.get('{}/api/dataset/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
     assert response.status_code == 400
 
 
@@ -190,24 +190,24 @@ def test_get_variants():
 
     data_type = 'gene'
     data_item = 'ENSG00000231565'
-    response = requests.get('{}/api/datasets/{}/browser/variants/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
+    response = requests.get('{}/api/dataset/{}/browser/variants/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
     data = json.loads(response.text)
     assert len(data['variants']) == 178
 
     data_type = 'region'
     data_item = '22-16360000-16361200'
-    response = requests.get('{}/api/datasets/{}/browser/variants/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
+    response = requests.get('{}/api/dataset/{}/browser/variants/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
     data = json.loads(response.text)
     assert len(data['variants']) == 13
 
     data_type = 'region'
     data_item = '22-46615715-46715880'
-    response = requests.get('{}/api/datasets/{}/browser/variants/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
+    response = requests.get('{}/api/dataset/{}/browser/variants/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
     assert response.status_code == 400
 
     data_type = 'transcript'
     data_item = 'ENST00000438441'
-    response = requests.get('{}/api/datasets/{}/browser/variants/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
+    response = requests.get('{}/api/dataset/{}/browser/variants/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
     data = json.loads(response.text)
     assert len(data['variants']) == 178
 
@@ -219,20 +219,20 @@ def test_search():
     dataset = 'SweGen'
 
     query = 'NF1P3'
-    response = requests.get('{}/api/datasets/{}/browser/search/{}'.format(BASE_URL, dataset, query))
+    response = requests.get('{}/api/dataset/{}/browser/search/{}'.format(BASE_URL, dataset, query))
     data = json.loads(response.text)
     assert data['type'] == 'gene'
     assert data['value'] == 'ENSG00000183249'
 
     query = 'rs142856307'
-    response = requests.get('{}/api/datasets/{}/browser/search/{}'.format(BASE_URL, dataset, query))
+    response = requests.get('{}/api/dataset/{}/browser/search/{}'.format(BASE_URL, dataset, query))
     data = json.loads(response.text)
     assert data['type'] == 'dbsnp'
     assert data['value'] == 142856307
 
     query = '21-9411281-T-C'
     version = '20161223'
-    response = requests.get('{}/api/datasets/{}/version/{}/browser/search/{}'.format(BASE_URL, dataset, version, query))
+    response = requests.get('{}/api/dataset/{}/version/{}/browser/search/{}'.format(BASE_URL, dataset, version, query))
     data = json.loads(response.text)
     assert data['type'] == 'variant'
     assert data['value'] == '21-9411281-T-C'
