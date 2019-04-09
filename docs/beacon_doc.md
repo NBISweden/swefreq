@@ -58,6 +58,8 @@ Current handovers:
 
      From the VCF spec:
      > The ‘*’ allele is reserved to indicate that the allele is missing due to an overlapping deletion.
+     
+     See also: https://software.broadinstitute.org/gatk/documentation/article.php?id=6926
 
      Should rather be shown as (?):
      ```"referenceName": "22",
