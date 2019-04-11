@@ -10,5 +10,5 @@ routes = [(r"/api/dataset/(?P<dataset>[^/]+)/(?:version/(?P<ds_version>[^/]+)/)?
           (r"/api/dataset/(?P<dataset>[^/]+)/(?:version/(?P<ds_version>[^/]+)/)?browser/coverage_pos/(?P<datatype>[^/]+)/(?P<item>[^/]+)",   handlers.GetCoveragePos),
           (r"/api/dataset/(?P<dataset>[^/]+)/(?:version/(?P<ds_version>[^/]+)/)?browser/autocomplete/(?P<query>[^/]+)",                      handlers.Autocomplete),
           (r"/api/dataset/(?P<dataset>[^/]+)/(?:version/(?P<ds_version>[^/]+)/)?browser/search/(?P<query>[^/]+)",                            handlers.Search),
-          (r"/api/dataset/(?P<dataset>[^/]+)/(?:version/(?P<ds_version>[^/]+)/)?browser/download/(?P<datatype>[^/]+)/(?P<item>[^/]+)",       handlers.Download),
+          (r"/api/dataset/(?P<dataset>[^/]+)/(?:version/(?P<ds_version>[^/]+)/)?browser/download/(?P<datatype>[^/]+)/(?P<item>[^/]+)(?:/filter/(?P<filter_type>[^/]+))?",       handlers.Download),
         ]
