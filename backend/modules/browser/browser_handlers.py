@@ -35,21 +35,23 @@ class Download(handlers.UnsafeHandler):
             filter_type (str): type of filter to apply
         """
         # ctrl.filterVariantsBy~ctrl.filterIncludeNonPass
-        filters = filter_type.split('~')
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         filename = "{}_{}_{}.csv".format(dataset, datatype, item)
         self.set_header('Content-Type','text/csv')
         self.set_header('content-Disposition','attachement; filename={}'.format(filename))
 
         data = utils.get_variant_list(dataset, datatype, item, ds_version)
-        logging.error(data)
         # filter variants based on what is shown
-        if filters[1] == 'false':
-            data = [variant for variant in data if variant['filter_string'] == 'PASS']
-        if filters[0] == 'mislof':
-            data = [variant for variant in data if variant['major_consequence'] == 'missense']
-        if 'lof' in filters[0]:
-            data = [variant for variant in data if 'LoF' in variant['filter']]
+        if filter_type:
+            filters = filter_type.split('~')
+            if filters[1] == 'false':
+                data['variants'] = [variant for variant in data['variants'] if variant['filter_string'] == 'PASS']
+            if filters[0] == 'mislof':
+                data['variants'] = [variant for variant in data['variants']
+                                    if variant['major_consequence'] == 'missense'
+                                    or 'LoF' in variant['flags']]
+            elif 'lof' in filters[0]:
+                data['variants'] = [variant for variant in data['variants'] if 'LoF' in variant['flags']]
 
         # Write header
         self.write(','.join([h[1] for h in data['headers']]) + '\n')
