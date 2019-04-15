@@ -29,7 +29,7 @@
                 </input>
             </label>
             <br />
-            <a ng-if="ctrl.item" class="btn btn-success" href="/api/dataset/{{ctrl.dataset.shortName}}/browser/download/{{ctrl.itemType}}/{{ctrl.item}}/filter/{{ctrl.filterVariantsBy}}~{{ctrl.filterIncludeNonPass}}">Export table to CSV</a><br/>
+            <a ng-if="ctrl.item" class="btn btn-success" href="/api/dataset/{{ctrl.dataset.shortName}}/browser/download/{{ctrl.itemType}}/{{ctrl.item}}/filter/{{ctrl.filterVariantsBy}}~{{ctrl.filterIncludeNonPass}}" target="_self">Export table to CSV</a><br/>
             <span class="label label-info">&dagger; denotes a consequence that is for a non-canonical transcript</span>
         </div>
     </div>
