@@ -102,7 +102,7 @@
                        // TODO Move to function later
                        let mapFunction = function(variant) {
                            variant.isPass     = variant.filter == "PASS";
-			   if (variant.flags.indexOf("LoF" == -1))
+			   if (variant.flags.indexOf("LoF") === -1)
 			       variant.isLof = false;
 			   else
 			       variant.isLof = true;
