@@ -132,7 +132,7 @@ def test_get_flags_from_variant():
     fake_variant = {'vep_annotations':[{'LoF': 'LC', 'LoF_flags': 'something'},
                                        {'LoF': 'HC', 'LoF_flags': 'something'}]}
     flags = utils.get_flags_from_variant(fake_variant)
-    assert flags == ['LoF flag']
+    assert flags == ['LoF', 'LoF flag']
 
     fake_variant = {'mnps': 'no idea', 'vep_annotations':[]}
     flags = utils.get_flags_from_variant(fake_variant)

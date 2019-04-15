@@ -102,7 +102,10 @@
                        // TODO Move to function later
                        let mapFunction = function(variant) {
                            variant.isPass     = variant.filter == "PASS";
-                           variant.isLof      = variant.flags == "LC LoF";
+			   if (variant.flags.indexOf("LoF" == -1))
+			       variant.isLof = false;
+			   else
+			       variant.isLof = true;
                            variant.isMissense = variant.majorConsequence == "missense";
                        };
                        localThis.variants.map(mapFunction);

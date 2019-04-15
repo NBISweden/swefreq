@@ -239,6 +239,8 @@ def get_flags_from_variant(variant:dict):
     lof_annotations = [x for x in variant['vep_annotations'] if x['LoF'] != '']
     if not lof_annotations:
         return flags
+    if any([x['LoF'] == 'HC' for x in lof_annotations]):
+        flags.append('LoF')
     if all([x['LoF'] != 'HC' for x in lof_annotations]):
         flags.append('LC LoF')
     if all([x['LoF_flags'] != '' for x in lof_annotations]):
