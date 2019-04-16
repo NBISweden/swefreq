@@ -175,7 +175,8 @@
     <!-- Right middle pane -->
     <div class="col-md-6">
 
-        <h2>Population Frequencies</h2>
+      <h2>Dataset Frequencies</h2>
+      For all available datasets using the same reference set as {{ ctrl.dataset.shortName }}.
         <div ng-if="ctrl.variant.popFreq">
             <table class="table table-sm table-striped table-condensed small">
                 <thead>
@@ -202,7 +203,7 @@
         </div> <!-- if popFreq -->
 
         <div ng-if="!ctrl.variant.popFreq">
-            <p>No Population Frequencies available</p>
+            <p>No Dataset Frequencies available</p>
         </div> <!-- if popFreq -->
     </div>
 

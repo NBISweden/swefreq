@@ -307,7 +307,7 @@ class GetVariant(handlers.UnsafeHandler):
             if hit:
                 dsv_groups.append((dsv, hit))
 
-        frequencies = {'headers':[['Population','pop'],
+        frequencies = {'headers':[['Dataset','pop'],
                                ['Allele Count','acs'],
                                ['Allele Number', 'ans'],
                                ['Number of Homozygotes', 'homs'],
