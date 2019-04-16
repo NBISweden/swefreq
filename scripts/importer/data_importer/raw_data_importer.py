@@ -266,7 +266,7 @@ class RawDataImporter(DataImporter):
                             vep_annotations = [ann for ann in annotations if int(ann['ALLELE_NUM']) == i + 1]
 
                         data = dict(base)
-                        data['pos'], data['ref'], data['alt'] = get_minimal_representation(base['pos'], base['ref'], alt)
+                        data['pos'], data['ref'], data['alt'] = base['pos'], base['ref'], alt
                         data['orig_alt_alleles'] = fmt_alleles
 
                         if len(rsids) <= i:
