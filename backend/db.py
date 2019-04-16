@@ -68,6 +68,7 @@ class ReferenceSet(BaseModel):
     ensembl_version = CharField()
     gencode_version = CharField()
     dbnsfp_version = CharField()
+    reference_build = CharField(unique=True)
 
 
 class Gene(BaseModel):
@@ -433,6 +434,17 @@ class Linkhash(BaseModel):
     user            = ForeignKeyField(User, related_name='link_hashes')
     hash            = CharField()
     expires_on      = DateTimeField()
+
+
+class BeaconCounts(BaseModel):
+    class Meta:
+        db_table = "beacon_dataset_counts_table"
+        schema = 'beacon'
+
+    datasetid    = CharField(primary_key=True)
+    callcount    = IntegerField()
+    variantcount = IntegerField()
+
 
 #####
 # Views
