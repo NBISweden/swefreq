@@ -18,11 +18,12 @@ The application is targeted at python 3.6. It will most likely work with later v
 3. Rename the file `settings_sample.json` into `settings.json` and edit all
    the values.
 
-5. If you have `venv` and `pip` installed then you can do the following
-   to install the required Python packages.
+4. If you have `venv` and `pip` available you can do the following
+   to install the required Python packages:
 
    ```
-   source /path/to/bin/activate             # activate your virtual environment
+   python -m venv venv-folder
+   source /path/to/venv-folder/bin/activate             # activate your virtual environment
    pip install -r /path/to/requrements.txt  # install the required Python packages
    ```
 
@@ -31,7 +32,7 @@ The application is targeted at python 3.6. It will most likely work with later v
    * documentation: `docs/requirements.txt`
 
 
-6. Create the PostgreSQL database and its tables with the following command:
+5. Create the PostgreSQL database and its tables with the following command:
 
    ```
    psql -U postgres -h 127.0.0.1 -f sql/data_schema.sql
@@ -41,7 +42,7 @@ The application is targeted at python 3.6. It will most likely work with later v
    To experience the full site you need to manually add a dataset and a user to the database.
    You can use the test data in `test/data/browser_test_data.sql` as reference.
 
-7. Add reference data and variants using the import scripts found in `scripts/`, e.g.:
+6. Add reference data and variants using the import scripts found in `scripts/`, e.g.:
 
    ```
    ./manage.sh import --add_reference \
