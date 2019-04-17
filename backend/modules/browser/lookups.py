@@ -1,3 +1,6 @@
+"""Lookup functions for the variant browser."""
+
+
 import logging
 import re
 
@@ -10,7 +13,7 @@ REGION_REGEX = re.compile(r'^\s*(\d+|X|Y|M|MT)\s*([-:]?)\s*(\d*)-?([\dACTG]*)-?(
 
 def get_autocomplete(dataset:str, query:str, ds_version:str=None):
     """
-    Provide autocomplete suggestions based on the query
+    Provide autocomplete suggestions based on the query.
 
     Args:
         dataset (str): short name of dataset
@@ -19,6 +22,7 @@ def get_autocomplete(dataset:str, query:str, ds_version:str=None):
 
     Returns:
         list: A list of genes names whose beginning matches the query
+
     """
     try:
         ref_set = db.get_dataset_version(dataset, ds_version).reference_set
@@ -33,24 +37,24 @@ def get_autocomplete(dataset:str, query:str, ds_version:str=None):
 
 def get_awesomebar_result(dataset:str, query:str, ds_version:str=None):
     """
-    Parse the search input
+    Parse the search input.
 
     Datatype is one of:
-    - 'gene'
-    - 'transcript'
-    - 'variant'
-    - 'dbsnp_variant_set'
-    - 'region'
+    * `gene`
+    * `transcript`
+    * `variant`
+    * `dbsnp_variant_set`
+    * `region`
 
     Identifier is one of:
-    - ensembl ID for gene
-    - variant ID string for variant (eg. 1-1000-A-T)
-    - region ID string for region (eg. 1-1000-2000)
+    * ensembl ID for gene
+    * variant ID string for variant (eg. 1-1000-A-T)
+    * region ID string for region (eg. 1-1000-2000)
 
     Follow these steps:
-    - if query is an ensembl ID, return it
-    - if a gene symbol, return that gene's ensembl ID
-    - if an RSID, return that variant's string
+    * if query is an ensembl ID, return it
+    * if a gene symbol, return that gene's ensembl ID
+    * if an RSID, return that variant's string
 
     Args:
         dataset (str): short name of dataset
@@ -59,6 +63,7 @@ def get_awesomebar_result(dataset:str, query:str, ds_version:str=None):
 
     Returns:
         tuple: (datatype, identifier)
+
     """
     query = query.strip()
 
@@ -110,7 +115,7 @@ def get_awesomebar_result(dataset:str, query:str, ds_version:str=None):
 
 def get_coverage_for_bases(dataset:str, chrom:str, start_pos:int, end_pos:int=None, ds_version:str=None):
     """
-    Get the coverage for the list of bases given by start_pos->end_pos, inclusive
+    Get the coverage for the list of bases given by start_pos->end_pos, inclusive.
 
     Args:
         dataset (str): short name for the dataset
@@ -121,6 +126,7 @@ def get_coverage_for_bases(dataset:str, chrom:str, start_pos:int, end_pos:int=No
 
     Returns:
         list: coverage dicts for the region of interest. None if failed
+
     """
     dataset_version = db.get_dataset_version(dataset, ds_version)
     if not dataset_version:
@@ -139,7 +145,7 @@ def get_coverage_for_bases(dataset:str, chrom:str, start_pos:int, end_pos:int=No
 
 def get_coverage_for_transcript(dataset:str, chrom:str, start_pos:int, end_pos:int=None, ds_version:str=None):
     """
-    Get the coverage for the list of bases given by start_pos->end_pos, inclusive
+    Get the coverage for the list of bases given by start_pos->end_pos, inclusive.
 
     Args:
         dataset (str): short name for the dataset
@@ -150,6 +156,7 @@ def get_coverage_for_transcript(dataset:str, chrom:str, start_pos:int, end_pos:i
 
     Returns:
         list: coverage dicts for the region of interest
+
     """
     # Is this function still relevant with postgres?
     # Only entries with reported cov are in database
@@ -164,7 +171,7 @@ def get_coverage_for_transcript(dataset:str, chrom:str, start_pos:int, end_pos:i
 
 def get_exons_in_transcript(dataset:str, transcript_id:str, ds_version=None):
     """
-    Retrieve exons associated with the given transcript id
+    Retrieve exons associated with the given transcript id.
 
     Args:
         dataset (str): short name of the dataset
@@ -173,6 +180,7 @@ def get_exons_in_transcript(dataset:str, transcript_id:str, ds_version=None):
 
     Returns:
         list: dicts with values for each exon sorted by start position
+
     """
     try:
         ref_set = db.get_dataset_version(dataset, ds_version).reference_set
@@ -197,7 +205,7 @@ def get_exons_in_transcript(dataset:str, transcript_id:str, ds_version=None):
 
 def get_gene(dataset:str, gene_id:str, ds_version:str=None):
     """
-    Retrieve gene by gene id
+    Retrieve gene by gene id.
 
     Args:
         dataset (str): short name of the dataset
@@ -206,6 +214,7 @@ def get_gene(dataset:str, gene_id:str, ds_version:str=None):
 
     Returns:
         dict: values for the gene; None if not found
+
     """
     try:
         ref_set = db.get_dataset_version(dataset, ds_version).reference_set
@@ -220,13 +229,14 @@ def get_gene(dataset:str, gene_id:str, ds_version:str=None):
 
 def get_gene_by_dbid(gene_dbid:str):
     """
-    Retrieve gene by gene database id
+    Retrieve gene by gene database id.
 
     Args:
         gene_dbid (str): the database id of the gene
 
     Returns:
         dict: values for the gene; empty if not found
+
     """
     try:
         return db.Gene.select().where(db.Gene.id == gene_dbid).dicts().get()
@@ -239,7 +249,6 @@ def get_gene_by_dbid(gene_dbid:str):
 def get_gene_by_name(dataset:str, gene_name:str, ds_version=None):
     """
     Retrieve gene by gene_name.
-    First checks gene_name, then other_names.
 
     Args:
         dataset (str): short name of the dataset
@@ -248,6 +257,7 @@ def get_gene_by_name(dataset:str, gene_name:str, ds_version=None):
 
     Returns:
         dict: values for the gene; empty if not found
+
     """
     try:
         ref_set = db.get_dataset_version(dataset, ds_version).reference_set
@@ -274,7 +284,7 @@ def get_gene_by_name(dataset:str, gene_name:str, ds_version=None):
 
 def get_genes_in_region(dataset:str, chrom:str, start_pos:int, stop_pos:int, ds_version:str=None):
     """
-    Retrieve genes located within a region
+    Retrieve genes located within a region.
 
     Args:
         dataset (str): short name of the dataset
@@ -285,6 +295,7 @@ def get_genes_in_region(dataset:str, chrom:str, start_pos:int, stop_pos:int, ds_
 
     Returns:
         dict: values for the gene; empty if not found
+
     """
     try:
         ref_set = db.get_dataset_version(dataset, ds_version).reference_set
@@ -300,7 +311,7 @@ def get_genes_in_region(dataset:str, chrom:str, start_pos:int, stop_pos:int, ds_
 
 def get_raw_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_version:str=None):
     """
-    Retrieve variant by position and change
+    Retrieve variant by position and change.
 
     Args:
         dataset (str): short name of the reference set
@@ -312,6 +323,7 @@ def get_raw_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_versio
 
     Returns:
         dict: values for the variant; None if not found
+
     """
     dataset_version = db.get_dataset_version(dataset, ds_version)
     if not dataset_version:
@@ -346,7 +358,8 @@ def get_raw_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_versio
 
 def get_transcript(dataset:str, transcript_id:str, ds_version:str=None):
     """
-    Retrieve transcript by transcript id
+    Retrieve transcript by transcript id.
+
     Also includes exons as ['exons']
 
     Args:
@@ -356,6 +369,7 @@ def get_transcript(dataset:str, transcript_id:str, ds_version:str=None):
 
     Returns:
         dict: values for the transcript, including exons; None if not found
+
     """
     try:
         ref_set = db.get_dataset_version(dataset, ds_version).reference_set
@@ -377,13 +391,16 @@ def get_transcript(dataset:str, transcript_id:str, ds_version:str=None):
 
 def get_transcripts_in_gene(dataset:str, gene_id:str, ds_version:str=None):
     """
-    Get the transcripts associated with a gene
+    Get the transcripts associated with a gene.
+
     Args:
         dataset (str): short name of the reference set
         gene_id (str): id of the gene
         ds_version (str): dataset version
+
     Returns:
         list: transcripts (dict) associated with the gene; empty if no hits
+
     """
     try:
         ref_set = db.get_dataset_version(dataset, ds_version).reference_set
@@ -402,18 +419,21 @@ def get_transcripts_in_gene(dataset:str, gene_id:str, ds_version:str=None):
 
 def get_transcripts_in_gene_by_dbid(gene_dbid:int):
     """
-    Get the transcripts associated with a gene
+    Get the transcripts associated with a gene.
+
     Args:
         gene_dbid (int): database id of the gene
+
     Returns:
         list: transcripts (dict) associated with the gene; empty if no hits
+
     """
     return [transcript for transcript in db.Transcript.select().where(db.Transcript.gene == gene_dbid).dicts()]
 
 
 def get_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_version:str=None):
     """
-    Retrieve variant by position and change
+    Retrieve variant by position and change.
 
     Args:
         dataset (str): short name of the dataset
@@ -425,6 +445,7 @@ def get_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_version:st
 
     Returns:
         dict: values for the variant; None if not found
+
     """
     variant = get_raw_variant(dataset, pos, chrom, ref, alt, ds_version)
     variant = get_raw_variant(dataset, pos, chrom, ref, alt, ds_version)
@@ -435,7 +456,7 @@ def get_variant(dataset:str, pos:int, chrom:str, ref:str, alt:str, ds_version:st
 
 def get_variants_by_rsid(dataset:str, rsid:str, ds_version:str=None):
     """
-    Retrieve variants by their associated rsid
+    Retrieve variants by their associated rsid.
 
     Args:
         dataset (str): short name of dataset
@@ -444,6 +465,7 @@ def get_variants_by_rsid(dataset:str, rsid:str, ds_version:str=None):
 
     Returns:
         list: variants as dict; no hits returns None
+
     """
     dataset_version = db.get_dataset_version(dataset, ds_version)
     if not dataset_version:
@@ -470,7 +492,7 @@ def get_variants_by_rsid(dataset:str, rsid:str, ds_version:str=None):
 
 def get_variants_in_gene(dataset:str, gene_id:str, ds_version:str=None):
     """
-    Retrieve variants present inside a gene
+    Retrieve variants present inside a gene.
 
     Args:
         dataset (str): short name of the dataset
@@ -479,6 +501,7 @@ def get_variants_in_gene(dataset:str, gene_id:str, ds_version:str=None):
 
     Returns:
         list: values for the variants
+
     """
     dataset_version = db.get_dataset_version(dataset, ds_version)
     if not dataset_version:
@@ -504,7 +527,7 @@ def get_variants_in_gene(dataset:str, gene_id:str, ds_version:str=None):
 
 def get_variants_in_region(dataset:str, chrom:str, start_pos:int, end_pos:int, ds_version:str=None):
     """
-    Variants that overlap a region
+    Variants that overlap a region.
 
     Args:
         dataset (str): short name of the dataset
@@ -515,6 +538,7 @@ def get_variants_in_region(dataset:str, chrom:str, start_pos:int, end_pos:int, d
 
     Returns:
         list: variant dicts, None if no hits
+
     """
     dataset_version = db.get_dataset_version(dataset, ds_version)
     if not dataset_version:
@@ -544,7 +568,7 @@ def get_variants_in_region(dataset:str, chrom:str, start_pos:int, end_pos:int, d
 
 def get_variants_in_transcript(dataset:str, transcript_id:str, ds_version:str=None):
     """
-    Retrieve variants inside a transcript
+    Retrieve variants inside a transcript.
 
     Args:
         dataset (str): short name of the dataset
@@ -553,6 +577,7 @@ def get_variants_in_transcript(dataset:str, transcript_id:str, ds_version:str=No
 
     Returns:
         dict: values for the variant; None if not found
+
     """
     dataset_version = db.get_dataset_version(dataset, ds_version)
 

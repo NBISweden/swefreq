@@ -1,3 +1,5 @@
+"""Utility functions for lookups and browser_handlers."""
+
 import logging
 
 from . import lookups
@@ -80,7 +82,7 @@ PROTEIN_LETTERS_1TO3 = {
 
 def add_consequence_to_variants(variant_list:list):
     """
-    Add information about variant consequence to multiple variants
+    Add information about variant consequence to multiple variants.
 
     Args:
         variant_list (list): list of variants
@@ -93,7 +95,7 @@ def add_consequence_to_variants(variant_list:list):
 
 def add_consequence_to_variant(variant:dict):
     """
-    Add information about variant consequence to a variant
+    Add information about variant consequence to a variant.
 
     Args:
         variant (dict): variant information
@@ -137,6 +139,7 @@ def annotation_severity(annotation:dict):
 
     Returns:
         float: severity score
+
     """
     rv = -CSQ_ORDER_DICT[worst_csq_from_csq(annotation['Consequence'])]
     if annotation['CANONICAL'] == 'YES':
@@ -146,7 +149,7 @@ def annotation_severity(annotation:dict):
 
 def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
     """
-    Retrieve coverage for a gene/region/transcript
+    Retrieve coverage for a gene/region/transcript.
 
     Args:
         dataset (str): short name of the dataset
@@ -156,6 +159,7 @@ def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
 
     Returns:
         dict: start, stop, coverage list
+
     """
     ret = {'coverage':[]}
 
@@ -188,7 +192,7 @@ def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
 
 def get_coverage_pos(dataset:str, datatype:str, item:str, ds_version:str=None):
     """
-    Retrieve coverage range
+    Retrieve coverage range.
 
     Args:
         dataset (str): short name of the dataset
@@ -197,6 +201,7 @@ def get_coverage_pos(dataset:str, datatype:str, item:str, ds_version:str=None):
 
     Returns:
         dict: start, stop, chromosome
+
     """
     ret = {'start':None, 'stop':None, 'chrom':None}
 
@@ -223,15 +228,17 @@ def get_coverage_pos(dataset:str, datatype:str, item:str, ds_version:str=None):
 def get_flags_from_variant(variant:dict):
     """
     Get flags from variant.
+
     Checks for:
-    - MNP (identical length of reference and variant)
-    - LoF (loss of function)
+    * MNP
+    * LoF (loss of function)
 
     Args:
         variant (dict): a variant
 
     Returns:
         list: flags for the variant
+
     """
     flags = []
     if 'mnps' in variant:
@@ -257,6 +264,7 @@ def get_proper_hgvs(annotation:dict):
 
     Returns:
         str: variant effect at aa level in HGVS format (p.), None if parsing fails
+
     """
     # Needs major_consequence
     try:
@@ -278,6 +286,7 @@ def get_protein_hgvs(annotation):
 
     Returns:
         str: variant effect at aa level in HGVS format (p.), None if parsing fails
+
     """
     try:
         if '%3D' in annotation['HGVSp']: # "%3D" is "="
@@ -298,6 +307,7 @@ def get_transcript_hgvs(annotation:dict):
 
     Returns:
         str: variant effect at nucleotide level in HGVS format (c.), None if parsing fails
+
     """
     try:
         return annotation['HGVSc'].split(':')[-1]
@@ -307,7 +317,7 @@ def get_transcript_hgvs(annotation:dict):
 
 def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
     """
-    Retrieve variants for a datatype
+    Retrieve variants for a datatype.
 
     Args:
         dataset (str): dataset short name
@@ -317,6 +327,7 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
 
     Returns:
         dict: {variants:list, headers:list}
+
     """
     headers = [['variant_id','Variant'], ['chrom','Chrom'], ['pos','Position'],
                ['HGVS','Consequence'], ['filter','Filter'], ['major_consequence','Annotation'],
@@ -378,13 +389,14 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
 
 def order_vep_by_csq(annotation_list:list):
     """
-    Adds "major_consequence" to each annotation, orders by severity.
+    Will add "major_consequence" to each annotation and order by severity.
 
     Args:
         annotation_list (list): VEP annotations (as dict)
 
     Returns:
         list: annotations ordered by major consequence severity
+
     """
     for ann in annotation_list:
         try:
@@ -395,23 +407,24 @@ def order_vep_by_csq(annotation_list:list):
 
 
 def is_region_too_large(start:int, stop:int):
-    '''
-    Evaluates whether the size of a region is larger than maximum query
+    """
+    Evaluate whether the size of a region is larger than maximum query.
+
     Args:
         start (int): Start position of the region
         stop (int): End position of the region
 
     Returns:
         bool: True if too large
-    '''
+
+    """
     region_limit = 100000
     return int(stop)-int(start) > region_limit
 
 
 def parse_dataset(dataset, ds_version=None):
     """
-    Check/parse if the dataset name is in the beacon form:
-    ``reference:dataset:version``
+    Check/parse if the dataset name is in the beacon form (``reference:dataset:version``).
 
     Args:
         dataset (str): short name of the dataset
@@ -419,21 +432,22 @@ def parse_dataset(dataset, ds_version=None):
 
     Returns:
         tuple: (dataset, version)
+
     """
     beacon_style = dataset.split(':')
     if len(beacon_style) == 3:
         return (beacon_style[1], beacon_style[2])
-    else:
-        return (dataset, ds_version)
+    return (dataset, ds_version)
 
 
 def remove_extraneous_information(variant:dict):
-    '''
-    Remove information that is not used in the frontend from a variant
+    """
+    Remove information that is not used in the frontend from a variant.
 
     Args:
         variant (dict): variant data from database
-    '''
+
+    """
     del variant['id']
     del variant['dataset_version']
     del variant['orig_alt_alleles']
@@ -443,13 +457,14 @@ def remove_extraneous_information(variant:dict):
 
 def remove_extraneous_vep_annotations(annotation_list:list):
     """
-    Remove annotations with low-impact consequences (less than intron variant)
+    Remove annotations with low-impact consequences (less than intron variant).
 
     Args:
         annotation_list (list): VEP annotations (as dict)
 
     Returns:
         list: VEP annotations with higher impact
+
     """
     return [ann for ann in annotation_list
             if worst_csq_index(ann['Consequence'].split('&')) <= CSQ_ORDER_DICT['intron_variant']]
@@ -457,26 +472,28 @@ def remove_extraneous_vep_annotations(annotation_list:list):
 
 def worst_csq_from_list(csq_list:list):
     """
-    Choose the worst consequence
+    Choose the worst consequence.
 
     Args:
         csq_list (list): list of consequences
 
     Returns:
         str: the worst consequence
+
     """
     return REV_CSQ_ORDER_DICT[worst_csq_index(csq_list)]
 
 
 def worst_csq_from_csq(csq:str):
     """
-    Find worst consequence in a possibly &-filled consequence string
+    Find worst consequence in a possibly &-filled consequence string.
 
     Args:
         csq (str): string of consequences, seperated with & (if multiple)
 
     Returns:
         str: the worst consequence
+
     """
     return REV_CSQ_ORDER_DICT[worst_csq_index(csq.split('&'))]
 
@@ -484,27 +501,31 @@ def worst_csq_from_csq(csq:str):
 def worst_csq_index(csq_list:list):
     """
     Find the index of the worst consequence.
-    Corresponds to the lowest value (index) from CSQ_ORDER_DICT
+
+    Corresponds to the lowest value (index) from CSQ_ORDER_DICT.
 
     Args:
         csq_list (list): consequences
 
     Returns:
         int: index in CSQ_ODER_DICT of the worst consequence
+
     """
     return min([CSQ_ORDER_DICT[csq] for csq in csq_list])
 
 
 def worst_csq_with_vep(annotation_list:list):
     """
-    Choose the vep annotation with the most severe consequence
-    Adds a"major_consequence" field for that annotation
+    Choose the vep annotation with the most severe consequence.
+
+    Add a"major_consequence" field for that annotation.
 
     Args:
         annotation_list (list): VEP annotations
 
     Returns:
         dict: the annotation with the most severe consequence
+
     """
     if not annotation_list:
         return None
