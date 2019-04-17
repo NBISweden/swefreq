@@ -52,7 +52,7 @@ CREATE OR REPLACE VIEW beacon.beacon_dataset_table AS           -- original type
 ;
 
 
-CREATE MATERIALIZED VIEW beacon.beacon_data_table AS
+CREATE VIEW beacon.beacon_data_table AS
     SELECT dv.id AS index,                                      -- serial
            concat_ws(':', r.reference_build,
                           d.short_name,
