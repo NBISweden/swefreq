@@ -30,7 +30,10 @@ class RawDataImporter(DataImporter):
         self.counter = {'coverage': None,
                         'variants': None,
                         'beaconvariants': 0,
-                        'calls': {}}
+                        'calls': 0,
+                        'tmp_calls': {}}
+        self.lastpos = 0
+        self.chrom = None
 
     def _set_dataset_info(self):
         """ Save dataset information given as parameters """
@@ -94,12 +97,14 @@ class RawDataImporter(DataImporter):
         and the datasetid (eg GRCh37:swegen:2019-01-01)
         to the beacon_dataset_counts_table.
         """
-        callcount = sum(len(refs) for refs in self.counter['calls'].values())
-        logging.info('Number of calls: %s', callcount)
+        # count the last calls at the last position
+        self.counter['calls'] += sum(len(refs) for refs in self.counter['tmp_calls'].values())
 
         ref_build = self.dataset_version.reference_set.reference_build
         datasetid = ':'.join([ref_build, self.dataset.short_name, self.dataset_version.version])
-        datarow = {'datasetid': datasetid, 'callcount': callcount, 'variantcount': self.counter['beaconvariants']}
+        datarow = {'datasetid': datasetid,
+                   'callcount': self.counter['calls'],
+                   'variantcount': self.counter['beaconvariants']}
         logging.info('Dataset counts: %s', datarow)
         if not self.settings.dry_run:
             db.BeaconCounts.insert(datarow).execute()
@@ -287,7 +292,7 @@ class RawDataImporter(DataImporter):
                         data['quality_metrics'] = dict([(x, info[x]) for x in METRICS if x in info])
                         batch += [data]
                         if self.settings.count_calls:
-                            self.get_callcount(data)
+                            self.get_callcount(data)  # count calls (one per reference)
                             self.counter['beaconvariants'] += 1  # count variants (one per alternate)
                     counter += 1  # count variants (one per vcf row)
 
@@ -354,12 +359,25 @@ class RawDataImporter(DataImporter):
             logging.info("Inserted {} variant records in {}".format(counter, self._time_since(start)))
 
     def get_callcount(self, data):
-        """Save all references at this position, in order to compute the number of calls later"""
-        chrompos = '%s-%s' % (data['chrom'], data['pos'])
-        if chrompos not in self.counter['calls']:
-            self.counter['calls'][chrompos] = set()
+        """Increament the call count by the calls found at this position."""
+        chrompos = f'{data["chrom"]}-{data["pos"]}'
 
-        self.counter['calls'][chrompos].add(data['ref'])
+        if data['chrom'] == self.chrom and data['pos'] < self.lastpos:
+            # TODO check this earlier, to avoid partial data to be inserted in the DB
+            raise Exception(f"Variant file corrupt, variants not given in incremental order.")
+
+        if data['chrom'] != self.chrom or data['pos'] > self.lastpos:
+            # count the calls for the last position
+            callcount = sum(len(refs) for refs in self.counter['tmp_calls'].values())
+            self.counter['calls'] += callcount
+
+            # reset the counters
+            self.counter['tmp_calls'] = {chrompos: set()}
+            self.lastpos = data['pos']
+            self.chrom = data['chrom']
+
+        # save the references for this position
+        self.counter['tmp_calls'][chrompos].add(data['ref'])
 
     def count_entries(self):
         start = time.time()
