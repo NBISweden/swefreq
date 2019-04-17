@@ -218,7 +218,7 @@ CREATE OR REPLACE VIEW data.dataset_version_current AS
 -- Indexes
 --
 
-CREATE INDEX coverage_pos_chrom ON data.coverage (chrom, pos);
+CREATE INDEX coverage_chrom_pos ON data.coverage (chrom, pos);
 CREATE INDEX features_gene ON data.features (gene);
 CREATE INDEX features_transcript ON data.features (transcript);
 CREATE INDEX features_transcript_type ON data.features (transcript, feature_type);
