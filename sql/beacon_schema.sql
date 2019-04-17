@@ -17,6 +17,15 @@ CREATE SCHEMA IF NOT EXISTS beacon;
 -- These tables need to be represented as semi-complex views, as to avoid
 -- storing redundant data.
 
+
+CREATE TABLE IF NOT EXISTS beacon.beacon_dataset_counts_table (
+    datasetid       varchar(128) PRIMARY KEY,
+    dataset         integer      REFERENCES data.dataset_versions,
+    callCount       integer      DEFAULT NULL,
+    variantCount    integer      DEFAULT NULL
+);
+
+
 CREATE OR REPLACE VIEW beacon.beacon_dataset_table AS           -- original type
     SELECT v.id AS index,                                       -- serial
            d.short_name AS name,                                -- varchar(128)
@@ -41,13 +50,6 @@ CREATE OR REPLACE VIEW beacon.beacon_dataset_table AS           -- original type
       JOIN data.sample_sets AS s
         ON s.dataset = d.id
 ;
-
-
-CREATE TABLE IF NOT EXISTS beacon.beacon_dataset_counts_table (
-    datasetid       varchar(128) PRIMARY KEY,
-    callCount       integer      DEFAULT NULL,
-    variantCount    integer      DEFAULT NULL
-);
 
 
 CREATE MATERIALIZED VIEW beacon.beacon_data_table AS
@@ -80,13 +82,6 @@ CREATE MATERIALIZED VIEW beacon.beacon_data_table AS
 --------------------------------------------------------------------------------
 -- Beacon views.
 --
--- These are kept as-is from the reference.
-
--- This index is part of the finnish schema, but I deactivated it so that I don't have to materialize the views
--- CREATE UNIQUE INDEX data_conflict ON beacon_data_table (datasetId, chromosome, start, reference, alternate);
--- CREATE UNIQUE INDEX metadata_conflict ON beacon_dataset_table (name, datasetId);
--- This gets really, really slow if not materialized. (TODO why?)
-
 CREATE VIEW beacon.dataset_metadata(name, datasetId, description, assemblyId,
                                     createDateTime, updateDateTime, version,
                                     callCount, variantCount, sampleCount, externalUrl, accessType)
@@ -95,9 +90,7 @@ AS SELECT a.name, a.datasetId, a.description, a.assemblyId, a.createDateTime,
           b.variantCount,
           a.sampleCount, a.externalUrl, a.accessType
 FROM beacon.beacon_dataset_table a, beacon.beacon_dataset_counts_table b
-WHERE a.datasetId=b.datasetId
-GROUP BY a.name, a.datasetId, a.description, a.assemblyId, a.createDateTime,
-a.updateDateTime, a.version, a.sampleCount, a.externalUrl, a.accessType, b.callCount, b.variantCount;
+WHERE a.datasetId=b.datasetId;
 
 --------------------------------------------------------------------------------
 -- Indexes
