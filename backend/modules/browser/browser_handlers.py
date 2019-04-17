@@ -1,6 +1,4 @@
-"""
-Request handlers for the browser
-"""
+"""Request handlers for the variant browser."""
 
 import logging
 
@@ -12,7 +10,17 @@ from . import utils
 
 
 class Autocomplete(handlers.UnsafeHandler):
+    """Provide autocompletion for protein names based on current query."""
+
     def get(self, dataset:str, query:str, ds_version:str=None):
+        """
+        Provide autocompletion for protein names based on current query.
+
+        Args:
+            dataset (str): dataset short name
+            query (str): query
+            ds_version (str): dataset version
+        """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         ret = {}
 
@@ -23,9 +31,13 @@ class Autocomplete(handlers.UnsafeHandler):
 
 
 class Download(handlers.UnsafeHandler):
+    """Download variants in CSV format."""
+
     def get(self, dataset:str, datatype:str, item:str, ds_version:str=None, filter_type:str=None):
         """
-        Download variants as csv
+        Download variants in CSV format.
+
+        Will filter the variants if filter_type is provided.
 
         Args:
             dataset (str): dataset short name
@@ -62,10 +74,18 @@ class Download(handlers.UnsafeHandler):
 
 
 class GetCoverage(handlers.UnsafeHandler):
-    """
-    Retrieve coverage
-    """
+    """Retrieve coverage."""
+
     def get(self, dataset:str, datatype:str, item:str, ds_version:str=None):
+        """
+        Retrieve coverage.
+
+        Args:
+            dataset (str): dataset short name
+            datatype (str): type of data
+            item (str): query item
+            ds_version (str): dataset version
+        """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         ret = utils.get_coverage(dataset, datatype, item, ds_version)
         if 'region_too_large' in ret:
@@ -78,26 +98,34 @@ class GetCoverage(handlers.UnsafeHandler):
 
 
 class GetCoveragePos(handlers.UnsafeHandler):
-    """
-    Retrieve coverage range
-    """
+    """Retrieve coverage range."""
+
     def get(self, dataset:str, datatype:str, item:str, ds_version:str=None):
+        """
+        Retrieve coverage range.
+
+        Args:
+            dataset (str): dataset short name
+            datatype (str): type of data
+            item (str): query item
+            ds_version (str): dataset version
+        """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         ret = utils.get_coverage_pos(dataset, datatype, item, ds_version)
         self.finish(ret)
 
 
 class GetGene(handlers.UnsafeHandler):
-    """
-    Request information about a gene
-    """
+    """Request information about a gene."""
+
     def get(self, dataset:str, gene:str, ds_version:str=None):
         """
-        Request information about a gene
+        Request information about a gene.
 
         Args:
             dataset (str): short name of the dataset
             gene (str): the gene id
+            ds_version (str): dataset version
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         gene_id = gene
@@ -123,7 +151,6 @@ class GetGene(handlers.UnsafeHandler):
             for transcript in transcripts_in_gene:
                 ret['transcripts'] += [{'transcript_id':transcript['transcript_id']}]
 
-
         # temporary fix for names
         gene['gene_name'] = gene['name']
         gene['full_gene_name'] = gene['full_name']
@@ -132,19 +159,16 @@ class GetGene(handlers.UnsafeHandler):
 
 
 class GetRegion(handlers.UnsafeHandler):
-    """
-    Request information about genes in a region
-    """
+    """Request information about genes in a region."""
+
     def get(self, dataset:str, region:str, ds_version:str=None):
         """
-        Request information about genes in a region
+        Request information about genes in a region.
 
         Args:
             dataset (str): short name of the dataset
             region (str): the region in the format chr-startpos-endpos
-
-        Returns:
-            dict: information about the region and the genes found there
+            ds_version (str): dataset version
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         try:
@@ -178,12 +202,11 @@ class GetRegion(handlers.UnsafeHandler):
 
 
 class GetTranscript(handlers.UnsafeHandler):
-    """
-    Request information about a transcript
-    """
+    """Request information about a transcript."""
+
     def get(self, dataset:str, transcript:str, ds_version:str=None):
         """
-        Request information about a transcript
+        Request information about a transcript.
 
         Args:
             dataset (str): short name of the dataset
@@ -191,6 +214,7 @@ class GetTranscript(handlers.UnsafeHandler):
 
         Returns:
             dict: transcript (transcript and exons), gene (gene information)
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         transcript_id = transcript
@@ -225,12 +249,11 @@ class GetTranscript(handlers.UnsafeHandler):
 
 
 class GetVariant(handlers.UnsafeHandler):
-    """
-    Request information about a gene
-    """
+    """Request information about a gene."""
+
     def get(self, dataset:str, variant:str, ds_version:str=None):
         """
-        Request information about a gene
+        Request information about a gene.
 
         Args:
             dataset (str): short name of the dataset
@@ -338,12 +361,11 @@ class GetVariant(handlers.UnsafeHandler):
 
 
 class GetVariants(handlers.UnsafeHandler):
-    """
-    Retrieve variants
-    """
+    """Retrieve variants."""
+
     def get(self, dataset:str, datatype:str, item:str, ds_version:str=None):
         """
-        Retrieve variants
+        Retrieve variants.
 
         Args:
             dataset (str): short name of the dataset
@@ -369,12 +391,11 @@ class GetVariants(handlers.UnsafeHandler):
 
 
 class Search(handlers.UnsafeHandler):
-    """
-    Perform a search for the wanted object
-    """
+    """Perform a search for the wanted object."""
+
     def get(self, dataset:str, query:str, ds_version:str=None):
         """
-        Perform a search for the wanted object
+        Perform a search for the wanted object.
 
         Args:
             dataset (str): short name of the dataset
