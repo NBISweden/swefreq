@@ -213,6 +213,9 @@ class DatasetVersion(BaseModel):
     data_contact_link = CharField(null=True)
     num_variants      = IntegerField(null=True)
     coverage_levels   = ArrayField(IntegerField, null=True)
+    portal_avail = BooleanField(null=True)
+    file_access = EnumField(null=False, choices=['None', 'Controlled', 'Registered', 'Private'])
+    beacon_access = EnumField(null=False, choices=['None', 'Controlled', 'Registered', 'Private'])
 
 
 class DatasetFile(BaseModel):
