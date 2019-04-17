@@ -24,11 +24,11 @@ COPY data.reference_sets (id, reference_build, reference_name, ensembl_version, 
 1	\N	swegen	homo_sapiens_core_75_37	19	2.9.3
 \.
 
-COPY data.dataset_versions (id, dataset, reference_set, dataset_version, dataset_description, terms, var_call_ref, available_from, ref_doi, data_contact_name, data_contact_link, num_variants, coverage_levels) FROM stdin;
-2	1	1	20170823	desc	terms	hg19	2001-01-01 00:00:00	doi	place	email	\N	{1,5,10,15,20,25,30,50,100}
-3	1	1	20171025	desc	terms	hg19	2001-01-01 00:00:00	doi	place	email	\N	{1,5,10,15,20,25,30,50,100}
-1	1	1	20161223	desc	terms	hg19	2001-01-01 00:00:00	doi	place	email	\N	{1,5,10,15,20,25,30,50,100}
-4	1	1	20180409	desc	terms	hg19	2001-01-01 00:00:00	doi	place	email	\N	{1,5,10,15,20,25,30,50,100}
+COPY data.dataset_versions (id, dataset, reference_set, dataset_version, dataset_description, terms, var_call_ref, available_from, ref_doi, data_contact_name, data_contact_link, num_variants, coverage_levels, portal_avail, file_access, beacon_access) FROM stdin;
+2	1	1	20170823	desc	terms	hg19	2001-01-01 00:00:00	doi	place	email	\N	{1,5,10,15,20,25,30,50,100}	TRUE	Registered	Public
+3	1	1	20171025	desc	terms	hg19	2001-01-01 00:00:00	doi	place	email	\N	{1,5,10,15,20,25,30,50,100}	TRUE	Registered	Public
+1	1	1	20161223	desc	terms	hg19	2001-01-01 00:00:00	doi	place	email	\N	{1,5,10,15,20,25,30,50,100}	TRUE	Registered	Public
+4	1	1	20180409	desc	terms	hg19	2001-01-01 00:00:00	doi	place	email	\N	{1,5,10,15,20,25,30,50,100}	TRUE	Registered	Public
 \.
 
 COPY data.coverage (id, dataset_version, chrom, pos, mean, median, coverage) FROM stdin;
