@@ -218,10 +218,10 @@ class ListDatasetVersions(handlers.UnsafeHandler):
 
 
 class GenerateTemporaryLink(handlers.AuthorizedHandler):
-    def post(self, dataset, version=None):
-        dataset, version = utils.parse_dataset(dataset, version)
+    def post(self, dataset, ds_version=None):
+        dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         user = self.current_user
-        dataset_version = db.get_dataset_version(dataset, version)
+        dataset_version = db.get_dataset_version(dataset, ds_version)
         if dataset_version is None:
             self.send_error(status_code=404)
             return
@@ -248,9 +248,9 @@ class GenerateTemporaryLink(handlers.AuthorizedHandler):
 
 
 class DatasetFiles(handlers.AuthorizedHandler):
-    def get(self, dataset, version=None):
-        dataset, version = utils.parse_dataset(dataset, version)
-        dataset_version = db.get_dataset_version(dataset, version)
+    def get(self, dataset, ds_version=None):
+        dataset, ds_version = utils.parse_dataset(dataset, ds_version)
+        dataset_version = db.get_dataset_version(dataset, ds_version)
         if dataset_version is None:
             self.send_error(status_code=404)
             return
@@ -263,6 +263,7 @@ class DatasetFiles(handlers.AuthorizedHandler):
             ret.append(d)
 
         self.finish({'files': ret})
+
 
 def format_bytes(nbytes):
     postfixes = ['b', 'Kb', 'Mb', 'Gb', 'Tb', 'Pb', 'Eb']
