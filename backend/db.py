@@ -214,8 +214,8 @@ class DatasetVersion(BaseModel):
     num_variants      = IntegerField(null=True)
     coverage_levels   = ArrayField(IntegerField, null=True)
     portal_avail = BooleanField(null=True)
-    file_access = EnumField(null=False, choices=['None', 'Controlled', 'Registered', 'Private'])
-    beacon_access = EnumField(null=False, choices=['None', 'Controlled', 'Registered', 'Private'])
+    file_access = EnumField(null=False, choices=['None', 'Controlled', 'Registered', 'Public'])
+    beacon_access = EnumField(null=False, choices=['None', 'Controlled', 'Registered', 'Public'])
 
 
 class DatasetFile(BaseModel):
@@ -337,16 +337,35 @@ class User(BaseModel):
                 DatasetAccess.is_admin
             ).count()
 
-    def has_access(self, dataset):
-        return DatasetAccessCurrent.select().where(
-                DatasetAccessCurrent.dataset == dataset,
-                DatasetAccessCurrent.user    == self,
-            ).count()
+    def has_access(self, dataset, ds_version=None):
+        """
+        Check whether user has permission to access a dataset
+
+        Args:
+            dataset (str): short name of dataset
+            ds_version (str): the dataset version
+
+        Returns:
+            bool: allowed to access
+
+        """
+        dsv = get_dataset_version(dataset, ds_version)
+        if not dsv:
+            return False
+        if dsv.file_access in ('Registered', 'Public'):
+            return True
+        elif dsv.file_access == 'None':
+            return False
+
+        return (DatasetAccessCurrent.select()
+                .where(DatasetAccessCurrent.dataset == dataset,
+                       DatasetAccessCurrent.user == self)
+                .count()) > 0
 
     def has_requested_access(self, dataset):
         return DatasetAccessPending.select().where(
                 DatasetAccessPending.dataset == dataset,
-                DatasetAccessPending.user    == self
+                DatasetAccessPending.user == self
             ).count()
 
 
