@@ -272,7 +272,7 @@ def format_bytes(nbytes):
 
 
 class Collection(handlers.UnsafeHandler):
-    def get(self, dataset):
+    def get(self, dataset, ds_version=None):
         dataset, _ = utils.parse_dataset(dataset)
         dataset = db.get_dataset(dataset)
 
