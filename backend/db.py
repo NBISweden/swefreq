@@ -159,6 +159,7 @@ class Study(BaseModel):
 class Dataset(BaseModel):
     """
     A dataset is part of a study, and usually include a certain population.
+
     Most studies only have a single dataset, but multiple are allowed.
     """
     class Meta:
@@ -342,14 +343,14 @@ class User(BaseModel):
         Check whether user has permission to access a dataset
 
         Args:
-            dataset (Dataset): peewee Dataset object
+            dataset (str): dataset short name
             ds_version (str): the dataset version
 
         Returns:
             bool: allowed to access
 
         """
-        dsv = get_dataset_version(dataset.short_name, ds_version)
+        dsv = get_dataset_version(dataset, ds_version)
         if not dsv:
             return False
         if dsv.file_access in ('Registered', 'Public'):
@@ -357,6 +358,7 @@ class User(BaseModel):
         elif dsv.file_access == 'None':
             return False
 
+        dataset = get_dataset(dataset)
         return (DatasetAccessCurrent.select()
                 .where(DatasetAccessCurrent.dataset == dataset,
                        DatasetAccessCurrent.user == self)
