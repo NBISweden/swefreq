@@ -130,10 +130,11 @@ class AuthorizedHandler(SafeHandler):
             return
 
         kwargs = self.path_kwargs
-        if not kwargs['dataset']:
+        if not 'dataset' in kwargs:
             logging.debug("No dataset: Send error 403")
             self.send_error(status_code=403)
-        if not self.current_user.has_access( db.get_dataset(kwargs['dataset']) ):
+        ds_version = kwargs['ds_version'] if ds_version in kwargs else None
+        if not self.current_user.has_access(kwargs['dataset'], ds_version):
             logging.debug("No user access: Send error 403")
             self.send_error(status_code=403)
         logging.debug("User is authorized")
