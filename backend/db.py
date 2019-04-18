@@ -343,14 +343,14 @@ class User(BaseModel):
         Check whether user has permission to access a dataset
 
         Args:
-            dataset (str): dataset short name
+            dataset (Database): peewee Database object
             ds_version (str): the dataset version
 
         Returns:
             bool: allowed to access
 
         """
-        dsv = get_dataset_version(dataset, ds_version)
+        dsv = get_dataset_version(dataset.short_name, ds_version)
         if not dsv:
             return False
         if dsv.file_access in ('Registered', 'Public'):
@@ -358,7 +358,6 @@ class User(BaseModel):
         elif dsv.file_access == 'None':
             return False
 
-        dataset = get_dataset(dataset)
         return (DatasetAccessCurrent.select()
                 .where(DatasetAccessCurrent.dataset == dataset,
                        DatasetAccessCurrent.user == self)
