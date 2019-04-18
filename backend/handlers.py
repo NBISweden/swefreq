@@ -180,7 +180,7 @@ class BaseStaticNginxFileHandler(UnsafeHandler):
             path = "/" + path
         self.root = path
 
-    def get(self, dataset, file, user=None):
+    def get(self, dataset, file, ds_version=None, user=None):
         logging.debug("Want to download dataset {} ({})".format(dataset, file))
 
         if not user:
