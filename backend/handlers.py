@@ -197,7 +197,7 @@ class BaseStaticNginxFileHandler(UnsafeHandler):
                              (db.DatasetVersion.version == ds_version))
                       .get())
         except db.DatasetFile.DoesNotExist:
-            send_error(status_code=403)
+            self.send_error(status_code=403)
             return
 
         db.UserDownloadLog.create(user = user, dataset_file = dbfile)
