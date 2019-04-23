@@ -153,9 +153,11 @@ class AdminHandler(SafeHandler):
         if not kwargs['dataset']:
             logging.debug("No dataset: Send error 403")
             self.send_error(status_code=403)
+            return
         if not self.current_user.is_admin( db.get_dataset(kwargs['dataset']) ):
             logging.debug("No user admin: Send error 403")
             self.send_error(status_code=403)
+            return
 
 
 class SafeStaticFileHandler(tornado.web.StaticFileHandler, SafeHandler):
@@ -188,11 +190,15 @@ class BaseStaticNginxFileHandler(UnsafeHandler):
         if not user:
             user = self.current_user
 
-        dbfile = (db.DatasetFile.select()
-                  .join(db.DatasetVersion)
-                  .where((db.DatasetFile.name == file) &
-                         (db.DatasetVersion.version == ds_version))
-                  .get())
+        try:
+            dbfile = (db.DatasetFile.select()
+                      .join(db.DatasetVersion)
+                      .where((db.DatasetFile.name == file) &
+                             (db.DatasetVersion.version == ds_version))
+                      .get())
+        except db.DatasetFile.DoesNotExist:
+            send_error(status_code=403)
+            return
 
         db.UserDownloadLog.create(user = user, dataset_file = dbfile)
 
