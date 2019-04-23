@@ -183,15 +183,13 @@ class ListDatasetVersions(handlers.UnsafeHandler):
         user = self.current_user
         dataset = db.get_dataset(dataset)
 
-        versions = db.DatasetVersion.select(
-                db.DatasetVersion.version, db.DatasetVersion.available_from
-            ).where(
-                db.DatasetVersion.dataset == dataset
-            )
+        versions = [ver for ver in (db.DatasetVersion.select(db.DatasetVersion.version,
+                                                             db.DatasetVersion.available_from)
+                                    .where(db.DatasetVersion.dataset == dataset))]
         logging.info("ListDatasetVersions")
-
         data = []
         found_current = False
+        versions = sorted(versions, key=lambda version: version.version)
         for v in reversed(versions):
             current = False
             future  = False
