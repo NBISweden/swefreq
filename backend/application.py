@@ -33,9 +33,9 @@ def build_dataset_structure(dataset_version, user=None, dataset=None):
 
     if user:
         r['is_admin'] = user.is_admin(dataset)
-        if user.has_access(dataset):
+        if user.has_access(dataset, dataset_version.version):
             r['authorization_level'] = 'has_access'
-        elif user.has_requested_access(dataset, dataset_version.version):
+        elif user.has_requested_access(dataset):
             r['authorization_level'] = 'has_requested_access'
         else:
             r['authorization_level'] = 'no_access'
