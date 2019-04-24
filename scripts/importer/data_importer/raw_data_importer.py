@@ -361,10 +361,12 @@ class RawDataImporter(DataImporter):
     def get_callcount(self, data):
         """Increment the call count by the calls found at this position."""
         if data['chrom'] == self.chrom and data['pos'] < self.lastpos:
-            # TODO check this earlier, to avoid partial data to be inserted in the DB
-            raise Exception(f"Variant file corrupt, variants not given in incremental order.")
+            # If this position is smaller than the last, the file order might be invalid.
+            # Give a warning, but keep on counting.
+            msg = "VCF file not ok, variants not given in incremental order. Callcount may not be valid!!!\n\n"
+            logging.warning(msg)
 
-        if data['chrom'] != self.chrom or data['pos'] > self.lastpos:
+        if data['chrom'] != self.chrom or data['pos'] != self.lastpos:
             # We are at a new position, count and save the calls for the last position
             self.counter['calls'] += len(self.counter['tmp_calls'])
 
