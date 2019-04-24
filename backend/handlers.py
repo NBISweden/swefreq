@@ -130,12 +130,15 @@ class AuthorizedHandler(SafeHandler):
             return
 
         kwargs = self.path_kwargs
-        if not kwargs['dataset']:
+        if not 'dataset' in kwargs:
             logging.debug("No dataset: Send error 403")
             self.send_error(status_code=403)
-        if not self.current_user.has_access( db.get_dataset(kwargs['dataset']) ):
+            return
+        ds_version = kwargs['ds_version'] if 'ds_version' in kwargs else None
+        if not self.current_user.has_access(db.get_dataset(kwargs['dataset']), ds_version):
             logging.debug("No user access: Send error 403")
             self.send_error(status_code=403)
+            return
         logging.debug("User is authorized")
 
 
@@ -150,9 +153,11 @@ class AdminHandler(SafeHandler):
         if not kwargs['dataset']:
             logging.debug("No dataset: Send error 403")
             self.send_error(status_code=403)
+            return
         if not self.current_user.is_admin( db.get_dataset(kwargs['dataset']) ):
             logging.debug("No user admin: Send error 403")
             self.send_error(status_code=403)
+            return
 
 
 class SafeStaticFileHandler(tornado.web.StaticFileHandler, SafeHandler):
@@ -179,20 +184,23 @@ class BaseStaticNginxFileHandler(UnsafeHandler):
             path = "/" + path
         self.root = path
 
-    def get(self, dataset, file, user=None):
+    def get(self, dataset, file, ds_version=None, user=None):
         logging.debug("Want to download dataset {} ({})".format(dataset, file))
 
         if not user:
             user = self.current_user
 
-        dbfile = (db.DatasetFile
-                  .select()
-                  .where(db.DatasetFile.name == file)
-                  .get())
-        db.UserDownloadLog.create(
-                user = user,
-                dataset_file = dbfile
-            )
+        try:
+            dbfile = (db.DatasetFile.select()
+                      .join(db.DatasetVersion)
+                      .where((db.DatasetFile.name == file) &
+                             (db.DatasetVersion.version == ds_version))
+                      .get())
+        except db.DatasetFile.DoesNotExist:
+            self.send_error(status_code=403)
+            return
+
+        db.UserDownloadLog.create(user = user, dataset_file = dbfile)
 
         abspath = os.path.abspath(os.path.join(self.root, file))
         self.set_header("X-Accel-Redirect", abspath)

@@ -33,7 +33,7 @@ def build_dataset_structure(dataset_version, user=None, dataset=None):
 
     if user:
         r['is_admin'] = user.is_admin(dataset)
-        if user.has_access(dataset):
+        if user.has_access(dataset, dataset_version.version):
             r['authorization_level'] = 'has_access'
         elif user.has_requested_access(dataset):
             r['authorization_level'] = 'has_requested_access'
@@ -183,15 +183,13 @@ class ListDatasetVersions(handlers.UnsafeHandler):
         user = self.current_user
         dataset = db.get_dataset(dataset)
 
-        versions = db.DatasetVersion.select(
-                db.DatasetVersion.version, db.DatasetVersion.available_from
-            ).where(
-                db.DatasetVersion.dataset == dataset
-            )
+        versions = (db.DatasetVersion.select(db.DatasetVersion.version,
+                                             db.DatasetVersion.available_from)
+                    .where(db.DatasetVersion.dataset == dataset))
         logging.info("ListDatasetVersions")
-
         data = []
         found_current = False
+        versions = sorted(versions, key=lambda version: version.version)
         for v in reversed(versions):
             current = False
             future  = False
@@ -218,10 +216,10 @@ class ListDatasetVersions(handlers.UnsafeHandler):
 
 
 class GenerateTemporaryLink(handlers.AuthorizedHandler):
-    def post(self, dataset, version=None):
-        dataset, version = utils.parse_dataset(dataset, version)
+    def post(self, dataset, ds_version=None):
+        dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         user = self.current_user
-        dataset_version = db.get_dataset_version(dataset, version)
+        dataset_version = db.get_dataset_version(dataset, ds_version)
         if dataset_version is None:
             self.send_error(status_code=404)
             return
@@ -248,9 +246,9 @@ class GenerateTemporaryLink(handlers.AuthorizedHandler):
 
 
 class DatasetFiles(handlers.AuthorizedHandler):
-    def get(self, dataset, version=None):
-        dataset, version = utils.parse_dataset(dataset, version)
-        dataset_version = db.get_dataset_version(dataset, version)
+    def get(self, dataset, ds_version=None):
+        dataset, ds_version = utils.parse_dataset(dataset, ds_version)
+        dataset_version = db.get_dataset_version(dataset, ds_version)
         if dataset_version is None:
             self.send_error(status_code=404)
             return
@@ -264,6 +262,7 @@ class DatasetFiles(handlers.AuthorizedHandler):
 
         self.finish({'files': ret})
 
+
 def format_bytes(nbytes):
     postfixes = ['b', 'Kb', 'Mb', 'Gb', 'Tb', 'Pb', 'Eb']
     exponent = math.floor( math.log(nbytes) / math.log(1000) )
@@ -271,7 +270,7 @@ def format_bytes(nbytes):
 
 
 class Collection(handlers.UnsafeHandler):
-    def get(self, dataset):
+    def get(self, dataset, ds_version=None):
         dataset, _ = utils.parse_dataset(dataset)
         dataset = db.get_dataset(dataset)
 
