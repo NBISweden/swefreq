@@ -359,7 +359,7 @@ class RawDataImporter(DataImporter):
             logging.info("Inserted {} variant records in {}".format(counter, self._time_since(start)))
 
     def get_callcount(self, data):
-        """Increament the call count by the calls found at this position."""
+        """Increment the call count by the calls found at this position."""
         if data['chrom'] == self.chrom and data['pos'] < self.lastpos:
             # TODO check this earlier, to avoid partial data to be inserted in the DB
             raise Exception(f"Variant file corrupt, variants not given in incremental order.")
