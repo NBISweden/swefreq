@@ -122,4 +122,5 @@ WHERE a.datasetId=b.datasetId;
 -- Indexes
 --
 CREATE INDEX beacon_data_chrpos ON data.variants ((substr(chrom, 1, 2)),(pos-1));
-CREATE INDEX beacon_data_chrref ON data.variants ((substr(chrom, 1, 2)),ref);
+-- Use if needed:
+-- CREATE INDEX beacon_data_chrref ON data.variants ((substr(chrom, 1, 2)),ref);
