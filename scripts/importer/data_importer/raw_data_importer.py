@@ -31,7 +31,7 @@ class RawDataImporter(DataImporter):
                         'variants': None,
                         'beaconvariants': 0,
                         'calls': 0,
-                        'tmp_calls': {}}
+                        'tmp_calls': set()}
         self.lastpos = 0
         self.chrom = None
 
@@ -97,8 +97,8 @@ class RawDataImporter(DataImporter):
         and the datasetid (eg GRCh37:swegen:2019-01-01)
         to the beacon_dataset_counts_table.
         """
-        # count the last calls at the last position
-        self.counter['calls'] += sum(len(refs) for refs in self.counter['tmp_calls'].values())
+        # count the calls at the last position
+        self.counter['calls'] += len(self.counter['tmp_calls'])
 
         ref_build = self.dataset_version.reference_set.reference_build
         datasetid = ':'.join([ref_build, self.dataset.short_name, self.dataset_version.version])
@@ -360,24 +360,21 @@ class RawDataImporter(DataImporter):
 
     def get_callcount(self, data):
         """Increament the call count by the calls found at this position."""
-        chrompos = f'{data["chrom"]}-{data["pos"]}'
-
         if data['chrom'] == self.chrom and data['pos'] < self.lastpos:
             # TODO check this earlier, to avoid partial data to be inserted in the DB
             raise Exception(f"Variant file corrupt, variants not given in incremental order.")
 
         if data['chrom'] != self.chrom or data['pos'] > self.lastpos:
-            # count the calls for the last position
-            callcount = sum(len(refs) for refs in self.counter['tmp_calls'].values())
-            self.counter['calls'] += callcount
+            # We are at a new position, count and save the calls for the last position
+            self.counter['calls'] += len(self.counter['tmp_calls'])
 
             # reset the counters
-            self.counter['tmp_calls'] = {chrompos: set()}
+            self.counter['tmp_calls'] = set()
             self.lastpos = data['pos']
             self.chrom = data['chrom']
 
         # save the references for this position
-        self.counter['tmp_calls'][chrompos].add(data['ref'])
+        self.counter['tmp_calls'].add(data['ref'])
 
     def count_entries(self):
         start = time.time()
