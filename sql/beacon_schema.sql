@@ -52,7 +52,7 @@ CREATE OR REPLACE VIEW beacon.beacon_dataset_table AS           -- original type
 ;
 
 
-CREATE VIEW beacon.beacon_data_table AS
+CREATE OR REPLACE VIEW beacon.beacon_data_table AS
     SELECT dv.id AS index,                                      -- serial
            concat_ws(':', r.reference_build,
                           d.short_name,
@@ -82,9 +82,9 @@ CREATE VIEW beacon.beacon_data_table AS
 --------------------------------------------------------------------------------
 -- Beacon views.
 --
-CREATE VIEW beacon.dataset_metadata(name, datasetId, description, assemblyId,
-                                    createDateTime, updateDateTime, version,
-                                    callCount, variantCount, sampleCount, externalUrl, accessType)
+CREATE OR REPLACE VIEW beacon.dataset_metadata(name, datasetId, description, assemblyId,
+                                               createDateTime, updateDateTime, version,
+                                               callCount, variantCount, sampleCount, externalUrl, accessType)
 AS SELECT a.name, a.datasetId, a.description, a.assemblyId, a.createDateTime,
           a.updateDateTime, a.version, b.callCount,
           b.variantCount,
