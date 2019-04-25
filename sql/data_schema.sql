@@ -128,7 +128,6 @@ CREATE TABLE IF NOT EXISTS data.dataset_versions (
     dataset_version     varchar(20)     NOT NULL,
     dataset_description text            NOT NULL,
     terms               text            NOT NULL,
-    var_call_ref        varchar(50)     DEFAULT NULL,
     available_from      timestamp       DEFAULT current_timestamp,
     ref_doi             varchar(100)    DEFAULT NULL,
     data_contact_name   varchar(100)    DEFAULT NULL,
