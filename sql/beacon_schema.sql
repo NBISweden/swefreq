@@ -17,6 +17,15 @@ CREATE SCHEMA IF NOT EXISTS beacon;
 -- These tables need to be represented as semi-complex views, as to avoid
 -- storing redundant data.
 
+
+CREATE TABLE IF NOT EXISTS beacon.beacon_dataset_counts_table (
+    datasetid       varchar(128) PRIMARY KEY,
+    dataset         integer      REFERENCES data.dataset_versions,
+    callCount       integer      DEFAULT NULL,
+    variantCount    integer      DEFAULT NULL
+);
+
+
 CREATE OR REPLACE VIEW beacon.beacon_dataset_table AS           -- original type
     SELECT v.id AS index,                                       -- serial
            d.short_name AS name,                                -- varchar(128)
@@ -43,29 +52,7 @@ CREATE OR REPLACE VIEW beacon.beacon_dataset_table AS           -- original type
 ;
 
 
--- This seems to return correct values except that it seems to
--- _always_ return 1 for callCount, even when there's no data.
--- TODO: make sure that callCount can handle zero values.
-CREATE OR REPLACE VIEW beacon.beacon_dataset_counts_table AS
-    SELECT concat_ws(':', r.reference_build,
-                          d.short_name,
-                          v.dataset_version) AS datasetId,      -- varchar(128)
-           COUNT(DISTINCT(dv.chrom,
-                          dv.ref,
-                          dv.pos)) AS callCount,                -- integer
-           COUNT(dv)       AS variantCount                      -- integer
-      FROM data.datasets as d
-      JOIN data.dataset_version_current AS v
-        ON v.dataset = d.id
-      JOIN data.reference_sets AS r
-        ON v.reference_set = r.id
- LEFT JOIN data.variants AS dv
-        ON dv.dataset_version = v.id
-      GROUP BY r.reference_build, d.short_name, v.dataset_version
-;
-
-
-CREATE MATERIALIZED VIEW beacon.beacon_data_table AS
+CREATE OR REPLACE VIEW beacon.beacon_data_table AS
     SELECT dv.id AS index,                                      -- serial
            concat_ws(':', r.reference_build,
                           d.short_name,
@@ -95,28 +82,19 @@ CREATE MATERIALIZED VIEW beacon.beacon_data_table AS
 --------------------------------------------------------------------------------
 -- Beacon views.
 --
--- These are kept as-is from the reference.
-
--- This index is part of the finnish schema, but I deactivated it so that I don't have to materialize the views
--- CREATE UNIQUE INDEX data_conflict ON beacon_data_table (datasetId, chromosome, start, reference, alternate);
--- CREATE UNIQUE INDEX metadata_conflict ON beacon_dataset_table (name, datasetId);
--- This gets really, really slow if not materialized. (TODO why?)
-
-CREATE MATERIALIZED VIEW beacon.dataset_metadata(name, datasetId, description, assemblyId,
-                                        createDateTime, updateDateTime, version,
-                                        callCount, variantCount, sampleCount, externalUrl, accessType)
+CREATE OR REPLACE VIEW beacon.dataset_metadata(name, datasetId, description, assemblyId,
+                                               createDateTime, updateDateTime, version,
+                                               callCount, variantCount, sampleCount, externalUrl, accessType)
 AS SELECT a.name, a.datasetId, a.description, a.assemblyId, a.createDateTime,
           a.updateDateTime, a.version, b.callCount,
           b.variantCount,
           a.sampleCount, a.externalUrl, a.accessType
 FROM beacon.beacon_dataset_table a, beacon.beacon_dataset_counts_table b
-WHERE a.datasetId=b.datasetId
-GROUP BY a.name, a.datasetId, a.description, a.assemblyId, a.createDateTime,
-a.updateDateTime, a.version, a.sampleCount, a.externalUrl, a.accessType, b.callCount, b.variantCount;
+WHERE a.datasetId=b.datasetId;
 
 --------------------------------------------------------------------------------
 -- Indexes
 --
-
-CREATE INDEX beacon_data_chrpos ON beacon.beacon_data_table (chromosome,start);
-CREATE INDEX beacon_data_chrref ON beacon.beacon_data_table (chromosome,reference);
+CREATE INDEX beacon_data_chrpos ON data.variants ((substr(chrom, 1, 2)),(pos-1));
+-- Use if needed:
+-- CREATE INDEX beacon_data_chrref ON data.variants ((substr(chrom, 1, 2)),ref);

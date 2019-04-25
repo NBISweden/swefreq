@@ -91,6 +91,9 @@ if __name__ == '__main__':
     PARSER.add_argument("-q", "--quiet", action="count", default=0,
                         help="Decrease output Verbosity.")
 
+    PARSER.add_argument("--count_calls", action="store_true",
+                        help=("Count calls for the dataset (used by Beacon)"))
+
     # Beacon-only variants
     PARSER.add_argument("--beacon-only", action="store_true",
                         help=("Variants are intended only for Beacon, loosening"

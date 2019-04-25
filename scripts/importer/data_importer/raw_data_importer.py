@@ -27,8 +27,13 @@ class RawDataImporter(DataImporter):
         self.dataset_version = None
         self.dataset = None
         self.sampleset = None
-        self.counter = {'coverage':None,
-                        'variants':None}
+        self.counter = {'coverage': None,
+                        'variants': None,
+                        'beaconvariants': 0,
+                        'calls': 0,
+                        'tmp_calls': set()}
+        self.lastpos = 0
+        self.chrom = None
 
     def _set_dataset_info(self):
         """ Save dataset information given as parameters """
@@ -84,6 +89,28 @@ class RawDataImporter(DataImporter):
                 logging.warning("Sample size will not be set")
                 self.settings.set_vcf_sampleset_size = False
                 self.settings.sampleset_size = 0
+
+    def _create_beacon_counts(self):
+        """
+        Add the number of unique references at each position (callcount),
+        the number of unique ref-alt pairs at each position (variantount)
+        and the datasetid (eg GRCh37:swegen:2019-01-01)
+        to the beacon_dataset_counts_table.
+        """
+        # count the calls at the last position
+        self.counter['calls'] += len(self.counter['tmp_calls'])
+
+        ref_build = self.dataset_version.reference_set.reference_build
+        if not ref_build:
+            logging.warning('Reference build not set for dataset version.')
+            ref_build = ''  # avoid None
+        datasetid = ':'.join([ref_build, self.dataset.short_name, self.dataset_version.version])
+        datarow = {'datasetid': datasetid,
+                   'callcount': self.counter['calls'],
+                   'variantcount': self.counter['beaconvariants']}
+        logging.info('Dataset counts: callcount: %s, variantcount: %s', datarow['callcount'], datarow['variantcount'])
+        if not self.settings.dry_run:
+            db.BeaconCounts.insert(datarow).execute()
 
     def _insert_coverage(self):
         """
@@ -267,7 +294,10 @@ class RawDataImporter(DataImporter):
                         data['variant_id'] = '{}-{}-{}-{}'.format(data['chrom'], data['pos'], data['ref'], data['alt'])
                         data['quality_metrics'] = dict([(x, info[x]) for x in METRICS if x in info])
                         batch += [data]
-                    counter += 1
+                        if self.settings.count_calls:
+                            self.get_callcount(data)  # count calls (one per reference)
+                            self.counter['beaconvariants'] += 1  # count variants (one per alternate)
+                    counter += 1  # count variants (one per vcf row)
 
                     if len(batch) >= self.settings.batch_size:
                         if not self.settings.dry_run:
@@ -331,6 +361,26 @@ class RawDataImporter(DataImporter):
         if not self.settings.dry_run:
             logging.info("Inserted {} variant records in {}".format(counter, self._time_since(start)))
 
+    def get_callcount(self, data):
+        """Increment the call count by the calls found at this position."""
+        if data['chrom'] == self.chrom and data['pos'] < self.lastpos:
+            # If this position is smaller than the last, the file order might be invalid.
+            # Give a warning, but keep on counting.
+            msg = "VCF file not ok, variants not given in incremental order. Callcount may not be valid!!!\n\n"
+            logging.warning(msg)
+
+        if data['chrom'] != self.chrom or data['pos'] != self.lastpos:
+            # We are at a new position, count and save the calls for the last position
+            self.counter['calls'] += len(self.counter['tmp_calls'])
+
+            # reset the counters
+            self.counter['tmp_calls'] = set()
+            self.lastpos = data['pos']
+            self.chrom = data['chrom']
+
+        # save the references for this position
+        self.counter['tmp_calls'].add(data['ref'])
+
     def count_entries(self):
         start = time.time()
         if self.settings.coverage_file:
@@ -364,6 +414,8 @@ class RawDataImporter(DataImporter):
         self._set_dataset_info()
         if self.settings.variant_file:
             self._insert_variants()
+            if self.settings.count_calls:
+                self._create_beacon_counts()
         if not self.settings.beacon_only and self.settings.coverage_file:
             self._insert_coverage()
 
