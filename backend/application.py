@@ -172,6 +172,7 @@ class GetDataset(handlers.UnsafeHandler):
             future_version = True
 
         ret = build_dataset_structure(version, user)
+        ret['version']['var_call_ref'] = version.reference_set.reference_build
         ret['future'] = future_version
 
         self.finish(ret)

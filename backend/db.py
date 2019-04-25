@@ -208,7 +208,6 @@ class DatasetVersion(BaseModel):
     version           = CharField(db_column="dataset_version")
     description       = TextField(db_column="dataset_description")
     terms             = TextField()
-    var_call_ref      = CharField(null=True)
     available_from    = DateTimeField()
     ref_doi           = CharField(null=True)
     data_contact_name = CharField(null=True)
