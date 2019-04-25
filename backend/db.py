@@ -215,8 +215,8 @@ class DatasetVersion(BaseModel):
     num_variants      = IntegerField(null=True)
     coverage_levels   = ArrayField(IntegerField, null=True)
     portal_avail = BooleanField(null=True)
-    file_access = EnumField(null=False, choices=['None', 'Controlled', 'Registered', 'Public'])
-    beacon_access = EnumField(null=False, choices=['None', 'Controlled', 'Registered', 'Public'])
+    file_access = EnumField(null=False, choices=['PRIVATE', 'CONTROLLED', 'REGISTERED', 'PUBLIC'])
+    beacon_access = EnumField(null=False, choices=['PRIVATE', 'CONTROLLED', 'REGISTERED', 'PUBLIC'])
 
 
 class DatasetFile(BaseModel):
@@ -353,9 +353,9 @@ class User(BaseModel):
         dsv = get_dataset_version(dataset.short_name, ds_version)
         if not dsv:
             return False
-        if dsv.file_access in ('Registered', 'Public'):
+        if dsv.file_access in ('REGISTERED', 'PUBLIC'):
             return True
-        elif dsv.file_access == 'None':
+        elif dsv.file_access == 'PRIVATE':
             return False
 
         return (DatasetAccessCurrent.select()
