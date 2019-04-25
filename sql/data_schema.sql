@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS data.sample_sets (
     phenotype       varchar(50) NOT NULL
 );
 
-CREATE TYPE access_levels AS enum('None', 'Controlled', 'Registered', 'Public');
+CREATE TYPE access_levels AS enum('PRIVATE', 'CONTROLLED', 'REGISTERED', 'PUBLIC');
 -- None - do not make available
 -- Controlled - access must be permitted "manually"
 -- Registered - free access after registration
