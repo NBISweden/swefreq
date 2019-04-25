@@ -26,27 +26,30 @@ CREATE TABLE IF NOT EXISTS beacon.beacon_dataset_counts_table (
 );
 
 
+CREATE OR REPLACE VIEW beacon.available_datasets AS
+    SELECT * FROM data.dataset_versions
+     WHERE available_from < now() AND beacon_access != 'None';
+
+
 CREATE OR REPLACE VIEW beacon.beacon_dataset_table AS           -- original type
-    SELECT v.id AS index,                                       -- serial
+    SELECT av.id AS index,                                      -- serial
            d.short_name AS name,                                -- varchar(128)
            concat_ws(':', r.reference_build,
                           d.short_name,
-                          v.dataset_version) AS datasetId,      -- varchar(128)
+                          av.dataset_version) AS datasetId,     -- varchar(128)
            d.beacon_description AS "description",               -- varchar(512)
            substr(r.reference_build, 0,  7) AS assemblyId,      -- varchar(16)
-           v.available_from AS createDateTime,                  -- timestamp
-           v.available_from AS updateDateTime,                  -- timstamp
-           v.dataset_version AS "version",                      -- varchar(8)
+           av.available_from AS createDateTime,                 -- timestamp
+           av.available_from AS updateDateTime,                 -- timstamp
+           av.dataset_version AS "version",                     -- varchar(8)
            s.sample_size AS sampleCount,                        -- integer
            d.browser_uri AS externalUrl,                        -- varchar(256)
-           CASE WHEN v.available_from < now() THEN 'PUBLIC'
-                WHEN v.available_from > now() THEN 'CONTROLLED'
-           END AS accessType                                    -- varchar(10)
+           av.beacon_access as accessType                       -- PUBLIC, REGISTERED or CONTROLLED
       FROM data.datasets AS d
-      JOIN data.dataset_version_current AS v
-        ON v.dataset = d.id
+      JOIN beacon.available_datasets AS av
+        ON av.dataset = d.id
       JOIN data.reference_sets AS r
-        ON v.reference_set = r.id
+        ON av.reference_set = r.id
       JOIN data.sample_sets AS s
         ON s.dataset = d.id
 ;
@@ -56,7 +59,7 @@ CREATE OR REPLACE VIEW beacon.beacon_data_table AS
     SELECT dv.id AS index,                                      -- serial
            concat_ws(':', r.reference_build,
                           d.short_name,
-                          v.dataset_version) AS datasetId,      -- varchar(128)
+                          av.dataset_version) AS datasetId,      -- varchar(128)
            dv.pos - 1 AS "start",                                -- integer
            substr(dv.chrom, 1, 2) AS chromosome,                -- varchar(2)
            dv.ref AS reference,                                 -- varchar(8192)
@@ -70,12 +73,12 @@ CREATE OR REPLACE VIEW beacon.beacon_data_table AS
                 WHEN length(dv.ref) < length(dv.alt) THEN 'INS'
            END AS variantType                                   -- varchar(16)
      FROM data.variants AS dv
-      JOIN data.dataset_version_current as v
-        ON dv.dataset_version = v.id
+      JOIN beacon.available_datasets as av
+        ON dv.dataset_version = av.id
       JOIN data.datasets as d
-        ON v.dataset = d.id
+        ON av.dataset = d.id
       JOIN data.reference_sets AS r
-        ON v.reference_set = r.id
+        ON av.reference_set = r.id
 ;
 
 
