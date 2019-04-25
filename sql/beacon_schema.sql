@@ -39,7 +39,7 @@ CREATE OR REPLACE VIEW beacon.beacon_dataset_table AS           -- original type
            v.dataset_version AS "version",                      -- varchar(8)
            s.sample_size AS sampleCount,                        -- integer
            d.browser_uri AS externalUrl,                        -- varchar(256)
-           d.access_level as accessType                         -- PUBLIC, REGISTERED or CONTROLLED
+           dv.beacon_access as accessType                       -- PUBLIC, REGISTERED or CONTROLLED
       FROM data.datasets AS d
       JOIN data.dataset_version_current AS v
         ON v.dataset = d.id
@@ -47,6 +47,9 @@ CREATE OR REPLACE VIEW beacon.beacon_dataset_table AS           -- original type
         ON v.reference_set = r.id
       JOIN data.sample_sets AS s
         ON s.dataset = d.id
+      JOIN data.dataset_versions AS dv
+        ON dv.dataset = d.id
+      WHERE dv.beacon_access != 'PRIVATE'
 ;
 
 
