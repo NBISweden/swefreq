@@ -79,32 +79,6 @@ CREATE VIEW beacon.beacon_data_table AS
 ;
 
 
-CREATE VIEW beacon.beacon_data_table AS
-    SELECT dv.id AS index,                                      -- serial
-           concat_ws(':', r.reference_build,
-                          d.short_name,
-                          v.dataset_version) AS datasetId,      -- varchar(128)
-           dv.pos AS "start",                                -- integer
-           substr(dv.chrom, 1, 2) AS chromosome,                -- varchar(2)
-           dv.ref AS reference,                                 -- varchar(8192)
-           dv.alt AS alternate,                                 -- varchar(8192)
-           dv.pos - 1 + char_length(dv.ref) AS "end",           -- integer
-           dv.allele_num AS callCount,                          -- integer
-           dv.allele_freq AS frequency,                         -- integer
-           dv.allele_count AS alleleCount,                      -- integer
-           CASE WHEN length(dv.ref) = length(dv.alt) THEN 'SNP'
-                WHEN length(dv.ref) > length(dv.alt) THEN 'DEL'
-                WHEN length(dv.ref) < length(dv.alt) THEN 'INS'
-           END AS variantType                                   -- varchar(16)
-     FROM data.variants AS dv
-      JOIN data.dataset_version_current as v
-        ON dv.dataset_version = v.id
-      JOIN data.datasets as d
-        ON v.dataset = d.id
-      JOIN data.reference_sets AS r
-        ON v.reference_set = r.id
-;
-
 --------------------------------------------------------------------------------
 -- Beacon views.
 --
