@@ -27,29 +27,28 @@ CREATE TABLE IF NOT EXISTS beacon.beacon_dataset_counts_table (
 
 
 CREATE OR REPLACE VIEW beacon.beacon_dataset_table AS           -- original type
-    SELECT v.id AS index,                                       -- serial
+    SELECT dv.id AS index,                                      -- serial
            d.short_name AS name,                                -- varchar(128)
            concat_ws(':', r.reference_build,
                           d.short_name,
-                          v.dataset_version) AS datasetId,      -- varchar(128)
+                          dv.dataset_version) AS datasetId,     -- varchar(128)
            d.beacon_description AS "description",               -- varchar(512)
            substr(r.reference_build, 0,  7) AS assemblyId,      -- varchar(16)
-           v.available_from AS createDateTime,                  -- timestamp
-           v.available_from AS updateDateTime,                  -- timstamp
-           v.dataset_version AS "version",                      -- varchar(8)
+           dv.available_from AS createDateTime,                 -- timestamp
+           dv.available_from AS updateDateTime,                 -- timstamp
+           dv.dataset_version AS "version",                     -- varchar(8)
            s.sample_size AS sampleCount,                        -- integer
            d.browser_uri AS externalUrl,                        -- varchar(256)
            dv.beacon_access as accessType                       -- PUBLIC, REGISTERED or CONTROLLED
       FROM data.datasets AS d
-      JOIN data.dataset_version_current AS v
-        ON v.dataset = d.id
-      JOIN data.reference_sets AS r
-        ON v.reference_set = r.id
-      JOIN data.sample_sets AS s
-        ON s.dataset = d.id
       JOIN data.dataset_versions AS dv
         ON dv.dataset = d.id
+      JOIN data.reference_sets AS r
+        ON dv.reference_set = r.id
+      JOIN data.sample_sets AS s
+        ON s.dataset = d.id
       WHERE dv.beacon_access != 'PRIVATE'
+      AND   dv.available_from < now()
 ;
 
 
@@ -71,7 +70,7 @@ CREATE OR REPLACE VIEW beacon.beacon_data_table AS
                 WHEN length(dv.ref) < length(dv.alt) THEN 'INS'
            END AS variantType                                   -- varchar(16)
      FROM data.variants AS dv
-      JOIN data.dataset_version_current as v
+      JOIN data.dataset_versions as v
         ON dv.dataset_version = v.id
       JOIN data.datasets as d
         ON v.dataset = d.id
