@@ -101,11 +101,14 @@ class RawDataImporter(DataImporter):
         self.counter['calls'] += len(self.counter['tmp_calls'])
 
         ref_build = self.dataset_version.reference_set.reference_build
+        if not ref_build:
+            logging.warning('Reference build not set for dataset version.')
+            ref_build = ''  # avoid None
         datasetid = ':'.join([ref_build, self.dataset.short_name, self.dataset_version.version])
         datarow = {'datasetid': datasetid,
                    'callcount': self.counter['calls'],
                    'variantcount': self.counter['beaconvariants']}
-        logging.info('Dataset counts: %s', datarow)
+        logging.info('Dataset counts: callcount: %s, variantcount: %s', datarow['callcount'], datarow['variantcount'])
         if not self.settings.dry_run:
             db.BeaconCounts.insert(datarow).execute()
 
