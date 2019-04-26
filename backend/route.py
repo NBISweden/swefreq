@@ -9,8 +9,6 @@ import application
 import handlers
 import auth
 import settings as swefreq_settings
-import beacon
-#import template
 
 from modules.browser.route import routes as browser_routes
 
