@@ -8,13 +8,13 @@
 
         activate();
 
-
         function activate() {
-            Beacon.getBeaconReferences($routeParams.dataset).then(
-                    function(data) {
-                        localThis.references = data;
-                    }
-                );
+            Beacon.getBeaconReferences($routeParams.dataset, $routeParams.version)
+		.then(function(data) {
+		    if (data) {
+			localThis.references = data;
+		    }
+                });
 
             User.getUser().then(function(data) {
                 localThis.user = data;
@@ -33,10 +33,30 @@
         function search() {
             Beacon.queryBeacon(localThis)
                 .then(function(response) {
-                    var d = response.data;
-                    d.query.position += 1; // Beacon is 0-based
-                    d.response.state = d.response.exists ? "Present" : "Absent";
-                    localThis.queryResponses.push(d);
+		    if (!response.data.datasetAlleleResponses[0]) {
+			localThis.queryResponses.push({
+                            "response": { "state": "Absent" },
+                            "query": {
+				"chromosome":      localThis.chromosome,
+				"position":        localThis.position,
+				"allele":          localThis.allele,
+				"referenceAllele": localThis.referenceAllele,
+				"reference":       localThis.reference
+                            }
+			});
+		    }
+		    else {
+			localThis.queryResponses.push({
+			    "response": { "state": "Present" },
+			    "query": {
+				"chromosome": response.data.datasetAlleleResponses[0].referenceName,
+				"position": response.data.datasetAlleleResponses[0].start + 1, // Beacon is 0-based
+				"allele": response.data.datasetAlleleResponses[0].alternateBases,
+				"referenceAllele": response.data.datasetAlleleResponses[0].referenceBases,
+				"reference": response.data.datasetAlleleResponses[0].datasetId.substring(0, 6),
+			    }
+			});
+		    }
                 },
                 function() {
                     localThis.queryResponses.push({

@@ -9,8 +9,6 @@ import application
 import handlers
 import auth
 import settings as swefreq_settings
-import beacon
-#import template
 
 from modules.browser.route import routes as browser_routes
 
@@ -43,7 +41,7 @@ class Application(tornado.web.Application):
                                                                                          {"path": "static/"}),
             (r'/(favicon.ico)',                                                      tornado.web.StaticFileHandler,
                                                                                          {"path": "static/img/"}),
-            (r"/release/(?P<dataset>[^\/]+)/(?P<hash_value>[^\/]+)/(?P<file>[^\/]+)",handlers.TemporaryStaticNginxFileHandler,
+            (r"/release/(?P<dataset>[^\/]+)/(?P<hash_value>[^\/]+)/(?P<file>[^\/]+)", handlers.TemporaryStaticNginxFileHandler,
                                                                                          {"path": "/release-files/"}),
             (r"/release/(?P<dataset>[^\/]+)/versions/(?P<ds_version>[^/]+)/(?P<file>[^\/]+)", handlers.AuthorizedStaticNginxFileHandler,
                                                                                          {"path": "/release-files/"}),
@@ -66,7 +64,7 @@ class Application(tornado.web.Application):
             (r"/api/dataset/(?P<dataset>[^\/]+)/log/(?P<event>[^\/]+)/(?P<target>[^\/]+)", application.LogEvent),
             (r"/api/dataset/(?P<dataset>[^\/]+)/logo",                               application.ServeLogo),
             (r"/api/dataset/(?P<dataset>[^\/]+)/(?:versions/(?P<ds_version>[^/]+)/)?files", application.DatasetFiles),
-            (r"/api/dataset/(?P<dataset>[^\/]+)/(?:versions/(?P<ds_version>[^/]+)/)?collection",                         application.Collection),
+            (r"/api/dataset/(?P<dataset>[^\/]+)/(?:versions/(?P<ds_version>[^/]+)/)?collection", application.Collection),
             (r"/api/dataset/(?P<dataset>[^\/]+)/users_current",                      application.DatasetUsersCurrent),
             (r"/api/dataset/(?P<dataset>[^\/]+)/users_pending",                      application.DatasetUsersPending),
             (r"/api/dataset/(?P<dataset>[^\/]+)/(?:versions/(?P<ds_version>[^/]+)/)?temporary_link", application.GenerateTemporaryLink),
@@ -77,13 +75,6 @@ class Application(tornado.web.Application):
             (r"/api/dataset/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)",       application.GetDataset),
             (r"/api/dataset/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)/files", application.DatasetFiles),
             (r"/api/dataset/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)/temporary_link", application.GenerateTemporaryLink),
-            ### Beacon API
-            (r"/api/beacon/query",                                                    beacon.Query),
-            (r"/api/beacon/info",                                                     beacon.Info),
-            # # # # # Legacy beacon URIs # # # # #
-            (r"/query",                                                               beacon.Query),
-            (r"/info",                                                                tornado.web.RedirectHandler,
-                                                                                         {"url": "/api/beacon/info"}),
         ]
 
         ## Adding module handlers
