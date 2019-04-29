@@ -33,7 +33,6 @@
         function search() {
             Beacon.queryBeacon(localThis)
                 .then(function(response) {
-		    console.log(response.data);
 		    if (!response.data.datasetAlleleResponses[0]) {
 			localThis.queryResponses.push({
                             "response": { "state": "Absent" },
