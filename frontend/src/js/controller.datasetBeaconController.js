@@ -5,6 +5,7 @@
         var localThis = this;
         localThis.queryResponses = [];
         localThis.search = search;
+        localThis.fillExample = fillExample;
 
         activate();
 
@@ -80,5 +81,11 @@
                 }
             );
         }
+	function fillExample() {
+	    localThis.chromosome = "22";
+	    localThis.position = 46615880;
+	    localThis.referenceAllele = "T";
+	    localThis.allele = "C";
+	}
     }]);
 })();
