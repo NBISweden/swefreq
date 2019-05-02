@@ -18,7 +18,7 @@
 
     <label for="position" class="col-sm-3 control-label">Position</label>
     <div class="col-sm-3">
-      <input type="number" required class="form-control" id="position" ng-model="ctrl.position" placeholder="Position" ng-disabled="!ctrl.beaconInfo.reference">
+      <input type="number" min="0" required class="form-control" id="position" ng-model="ctrl.position" placeholder="Position" ng-disabled="!ctrl.beaconInfo.reference">
     </div>
   </div>
 
