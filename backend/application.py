@@ -632,10 +632,12 @@ class SFTPAccess(handlers.SafeHandler):
         expires = datetime.today() + timedelta(days=30)
 
         # Check if an sFTP user exists for the current user when the database is ready
+        passwd_hash = fn.encode(fn.digest(password, 'sha256'), 'hex')
+
         try:
             self.current_user.sftp_user.get()
             # if we have a user, update it
-            db.SFTPUser.update(password_hash = fn.SHA2(password, 256),
+            db.SFTPUser.update(password_hash = passwd_hash,
                                account_expires = expires
                                ).where(db.SFTPUser.user == self.current_user).execute()
         except db.SFTPUser.DoesNotExist:
@@ -643,7 +645,7 @@ class SFTPAccess(handlers.SafeHandler):
             db.SFTPUser.insert(user = self.current_user,
                                user_uid = db.get_next_free_uid(),
                                user_name = username,
-                               password_hash = fn.SHA2(password, 256),
+                               password_hash = passwd_hash,
                                account_expires = expires
                                ).execute()
 
