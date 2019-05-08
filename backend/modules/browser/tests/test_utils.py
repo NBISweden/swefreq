@@ -76,7 +76,6 @@ def test_get_coverage():
     assert len(res['coverage']) == 17
     res = utils.get_coverage('SweGen', 'region', '22:46615715-46615880')
     assert not res['coverage']
-    assert res['bad_region']
     res = utils.get_coverage('SweGen', 'region', '22-46615715asd-46615880')
     assert not res['coverage']
     assert res['bad_region']
@@ -197,8 +196,8 @@ def test_get_variant_list():
     res = utils.get_variant_list('SweGen', 'region', '22-1-1000000')
     assert res['region_too_large']
 
-    res = utils.get_variant_list('SweGen', 'region', '22-11000000')
-    assert not res
+    res = utils.get_variant_list('SweGen', 'region', '22-16272587')
+    assert len(res['variants']) == 4
 
 
 def test_order_vep_by_csq():

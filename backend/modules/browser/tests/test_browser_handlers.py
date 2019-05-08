@@ -63,7 +63,7 @@ def test_get_coverage():
     assert response.status_code == 400
     data_item = '1-1-5'
     response = requests.get('{}/api/dataset/{}/browser/coverage/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
-    assert response.status_code == 404
+    assert response.status_code == 200
 
 
 def test_get_coverage_pos():
