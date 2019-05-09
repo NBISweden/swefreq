@@ -174,22 +174,23 @@ def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
                 start = transcript['start'] - EXON_PADDING
                 stop  = transcript['stop'] + EXON_PADDING
                 ret['coverage'] = lookups.get_coverage_for_transcript(dataset, transcript['chrom'], start, stop, ds_version)
+
     elif datatype == 'region':
         try:
-            chrom, start, stop = item.split('-')
-            start = int(start)
-            stop = int(stop)
+            chrom, start, stop = parse_region(item)
         except ValueError:
             return {'coverage': [], 'bad_region':True}
         if is_region_too_large(start, stop):
             return {'coverage': [], 'region_too_large': True}
         ret['coverage'] = lookups.get_coverage_for_bases(dataset, chrom, start, stop, ds_version)
+
     elif datatype == 'transcript':
         transcript = lookups.get_transcript(dataset, item)
         if transcript:
             start = transcript['start'] - EXON_PADDING
             stop  = transcript['stop'] + EXON_PADDING
             ret['coverage'] = lookups.get_coverage_for_transcript(dataset, transcript['chrom'], start, stop, ds_version)
+
     return ret
 
 
@@ -203,17 +204,16 @@ def get_coverage_pos(dataset:str, datatype:str, item:str, ds_version:str=None):
         item (str): the datatype item to look up
 
     Returns:
-        dict: start, stop, chromosome
+        dict: start, stop, chrom
 
     """
     ret = {'start':None, 'stop':None, 'chrom':None}
 
     if datatype == 'region':
-        chrom, start, stop = item.split('-')
-        if start and stop and chrom:
-            ret['start'] = int(start)
-            ret['stop'] = int(stop)
-            ret['chrom'] = chrom
+        chrom, start, stop = parse_region(item)
+        ret['start'] = start
+        ret['stop'] = stop
+        ret['chrom'] = chrom
     else:
         if datatype == 'gene':
             gene = lookups.get_gene(dataset, item)
@@ -339,9 +339,10 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
 
     if datatype == 'gene':
         variants = lookups.get_variants_in_gene(dataset, item, ds_version)
+
     elif datatype == 'region':
         try:
-            chrom, start, stop = item.split('-')
+            chrom, start, stop = parse_region(item)
             start = int(start)
             stop = int(stop)
         except ValueError:
@@ -350,6 +351,7 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
         if is_region_too_large(start, stop):
             return {'variants': [], 'headers': [], 'region_too_large': True}
         variants = lookups.get_variants_in_region(dataset, chrom, start, stop, ds_version)
+
     elif datatype == 'transcript':
         variants = lookups.get_variants_in_transcript(dataset, item, ds_version)
 
@@ -425,7 +427,7 @@ def is_region_too_large(start:int, stop:int):
     return int(stop)-int(start) > region_limit
 
 
-def parse_dataset(dataset, ds_version=None):
+def parse_dataset(dataset:str, ds_version:str=None):
     """
     Check/parse if the dataset name is in the beacon form (``reference:dataset:version``).
 
@@ -441,6 +443,31 @@ def parse_dataset(dataset, ds_version=None):
     if len(beacon_style) == 3:
         return (beacon_style[1], beacon_style[2])
     return (dataset, ds_version)
+
+
+def parse_region(region:str):
+    """
+    Parse a region with either one or two positions
+
+    Args:
+        region (str): region, e.g. `3:1000000` or `3:100100`
+
+    Returns:
+        tuple: (chrom, start, pos)
+    """
+    parts = region.split('-')
+    if len(parts) == 2:
+        chrom, start = parts
+        stop = start
+    elif len(parts) == 3:
+        chrom, start, stop = parts
+    else:
+        raise ValueError
+
+    start = int(start)
+    stop = int(stop)
+
+    return chrom, start, stop
 
 
 def remove_extraneous_information(variant:dict):

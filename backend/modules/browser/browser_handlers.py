@@ -88,11 +88,11 @@ class GetCoverage(handlers.UnsafeHandler):
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         ret = utils.get_coverage(dataset, datatype, item, ds_version)
+        if 'bad_region' in ret:
+            self.send_error(status_code=400, reason="Unable to parse the region")
+            return
         if 'region_too_large' in ret:
             self.send_error(status_code=400, reason="The region is too large")
-            return
-        if not ret['coverage']:
-            self.send_error(status_code=404, reason="No coverage found")
             return
         self.finish(ret)
 
@@ -111,7 +111,13 @@ class GetCoveragePos(handlers.UnsafeHandler):
             ds_version (str): dataset version
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
-        ret = utils.get_coverage_pos(dataset, datatype, item, ds_version)
+        try:
+            ret = utils.get_coverage_pos(dataset, datatype, item, ds_version)
+        except ValueError:
+            logging.error('GetCoveragePos: unable to parse region ({})'.format(region))
+            self.send_error(status_code=400, reason='Unable to parse region')
+            return
+
         self.finish(ret)
 
 
@@ -171,10 +177,9 @@ class GetRegion(handlers.UnsafeHandler):
             ds_version (str): dataset version
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
+
         try:
-            chrom, start, stop = region.split('-')
-            start = int(start)
-            stop = int(stop)
+            chrom, start, stop = utils.parse_region(region)
         except ValueError:
             logging.error('GetRegion: unable to parse region ({})'.format(region))
             self.send_error(status_code=400, reason='Unable to parse region')
