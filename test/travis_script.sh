@@ -2,9 +2,9 @@
 
 ## SETUP SETTINGS
 cp settings_sample.json settings.json
-sed -i 's/password//' settings.json
-sed -i 's/"mysqlSchema" : "swefreq"/"mysqlSchema" : "swefreq_test"/' settings.json
-sed -i 's/"mysqlPort" : 3306/"mysqlPort" : 3366/' settings.json
+sed -i.tmp 's/"postgresHost" : "postgres host"/"postgresHost" : "127.0.0.1"/' settings.json
+sed -i.tmp 's/"postgresPort" : 5432/"postgresPort" : 5433/' settings.json
+sed -i.tmp 's/"postgresName" : "swefreq"/"postgresName" : ""/' settings.json
 
 echo 'SETTINGS'
 cat settings.json
@@ -13,26 +13,29 @@ echo '/SETTINGS'
 echo '>>> Test 1. The SQL Patch'
 
 LATEST_RELEASE=$(git tag | grep '^v' | sort -V | tail -n 1)
-git show "$LATEST_RELEASE:sql/swefreq.sql" >master-schema.sql
+git show "$LATEST_RELEASE:sql/*_schema.sql" > master-schema.sql
 
-mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test <master-schema.sql
-mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test <sql/patch-master-db.sql
+psql -U postgres -h 127.0.0.1 -p 5433 -f master-schema.sql
+psql -U postgres -h 127.0.0.1 -p 5433 -f sql/patch-master-db.sql
+
 # Empty the database
-mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test <<__END__
-DROP DATABASE swefreq_test;
-CREATE DATABASE swefreq_test;
+psql -U postgres -h 127.0.0.1 -p 5433 <<__END__
+DROP SCHEMA data;
+DROP SCHEMA users;
 __END__
 
 echo '>>> Test 2. Load the swefreq schema'
-mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test <sql/swefreq.sql
-mysql -u swefreq -h 127.0.0.1 -P 3366 swefreq_test <test/data/load_dummy_data.sql
+psql -U postgres -h 127.0.0.1 -p 5433 -f sql/data_schema.sql
+psql -U postgres -h 127.0.0.1 -p 5433 -f sql/user_schema.sql
+psql -U postgres -h 127.0.0.1 -p 5433 -f test/data/load_dummy_data.sql
+psql -U postgres -h 127.0.0.1 -p 5433 -f test/data/browser_test_data.sql
 
 echo '>>> Test 3. Check that the backend starts'
 
 (cd backend && ../test/01_daemon_starts.sh)
 
 echo '>>> Test 4. the backend API'
-coverage run backend/route.py --port=4000 --develop 1>http_log.txt 2>&1 &
+COVERAGE_FILE=.coverage_server coverage run backend/route.py --port=4000 --develop 1>http_log.txt 2>&1 &
 BACKEND_PID=$!
 
 sleep 2 # Lets wait a little bit so the server has started
@@ -48,18 +51,28 @@ exit_handler () {
     echo 'THE HTTP LOG WAS:'
     cat http_log.txt
 
-    exit $rv
+    exit "$rv"
 }
 
 trap exit_handler EXIT
 
+RETURN_VALUE=0
 python backend/test.py -v
+RETURN_VALUE=$((RETURN_VALUE + $?))
+
+# test browser
+COVERAGE_FILE=.coverage_pytest PYTHONPATH=$PYTHONPATH:backend/ py.test backend/ --cov=backend/
+RETURN_VALUE=$((RETURN_VALUE + $?))
 
 # Quit the app
 curl localhost:4000/developer/quit
 sleep 2 # Lets wait a little bit so the server has stopped
 
+coverage combine .coverage_pytest .coverage_server
+
 if [ -f .coverage ]; then
     coveralls
     coverage report
 fi
+
+exit "$RETURN_VALUE"

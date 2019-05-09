@@ -13,7 +13,8 @@ import db
 
 
 class BaseHandler(tornado.web.RequestHandler):
-    """Base Handler. Handlers should not inherit from this
+    """
+    Base Handler. Handlers should not inherit from this
     class directly but from either SafeHandler or UnsafeHandler
     to make security status explicit.
     """
@@ -66,7 +67,8 @@ class BaseHandler(tornado.web.RequestHandler):
         self.set_cookie("msg", urllib.parse.quote( json_encode({"msg":msg, "level":level}) ) )
 
     def write_error(self, status_code, **kwargs):
-        """ Overwrites write_error method to have custom error pages.
+        """
+        Overwrites write_error method to have custom error pages.
         http://tornado.readthedocs.org/en/latest/web.html#tornado.web.RequestHandler.write_error
         """
         logging.info("Error do something here again")
@@ -102,11 +104,13 @@ class UnsafeHandler(BaseHandler):
 
 
 class SafeHandler(BaseHandler):
-    """ All handlers that need authentication and authorization should inherit
+    """
+    All handlers that need authentication and authorization should inherit
     from this class.
     """
     def prepare(self):
-        """This method is called before any other method.
+        """
+        This method is called before any other method.
         Having the decorator @tornado.web.authenticated here implies that all
         the Handlers that inherit from this one are going to require
         authentication in all their methods.
@@ -126,12 +130,15 @@ class AuthorizedHandler(SafeHandler):
             return
 
         kwargs = self.path_kwargs
-        if not kwargs['dataset']:
+        if not 'dataset' in kwargs:
             logging.debug("No dataset: Send error 403")
             self.send_error(status_code=403)
-        if not self.current_user.has_access( db.get_dataset(kwargs['dataset']) ):
+            return
+        ds_version = kwargs['ds_version'] if 'ds_version' in kwargs else None
+        if not self.current_user.has_access(db.get_dataset(kwargs['dataset']), ds_version):
             logging.debug("No user access: Send error 403")
             self.send_error(status_code=403)
+            return
         logging.debug("User is authorized")
 
 
@@ -146,23 +153,26 @@ class AdminHandler(SafeHandler):
         if not kwargs['dataset']:
             logging.debug("No dataset: Send error 403")
             self.send_error(status_code=403)
+            return
         if not self.current_user.is_admin( db.get_dataset(kwargs['dataset']) ):
             logging.debug("No user admin: Send error 403")
             self.send_error(status_code=403)
+            return
 
 
 class SafeStaticFileHandler(tornado.web.StaticFileHandler, SafeHandler):
-    """ Serve static files for logged in users
     """
-    pass
+    Serve static files for logged in users
+    """
 
 
 class BaseStaticNginxFileHandler(UnsafeHandler):
-    """Serve static files for users from the nginx frontend
+    """
+    Serve static files for users from the nginx frontend
 
     Requires a ``path`` argument in constructor which should be the root of
     the nginx frontend where the files can be found. Then configure the nginx
-    frontend something like this
+    frontend something like this: ::
 
         location <path> {
             internal;
@@ -174,20 +184,23 @@ class BaseStaticNginxFileHandler(UnsafeHandler):
             path = "/" + path
         self.root = path
 
-    def get(self, dataset, file, user=None):
+    def get(self, dataset, file, ds_version=None, user=None):
         logging.debug("Want to download dataset {} ({})".format(dataset, file))
 
         if not user:
             user = self.current_user
 
-        dbfile = (db.DatasetFile
-                  .select()
-                  .where(db.DatasetFile.name == file)
-                  .get())
-        db.UserDownloadLog.create(
-                user = user,
-                dataset_file = dbfile
-            )
+        try:
+            dbfile = (db.DatasetFile.select()
+                      .join(db.DatasetVersion)
+                      .where((db.DatasetFile.name == file) &
+                             (db.DatasetVersion.version == ds_version))
+                      .get())
+        except db.DatasetFile.DoesNotExist:
+            self.send_error(status_code=403)
+            return
+
+        db.UserDownloadLog.create(user = user, dataset_file = dbfile)
 
         abspath = os.path.abspath(os.path.join(self.root, file))
         self.set_header("X-Accel-Redirect", abspath)
@@ -198,22 +211,21 @@ class BaseStaticNginxFileHandler(UnsafeHandler):
 
 
 class AuthorizedStaticNginxFileHandler(AuthorizedHandler, BaseStaticNginxFileHandler):
-    """Serve static files for authenticated users from the nginx frontend
+    """
+    Serve static files for authenticated users from the nginx frontend
 
-    Requires a ``path`` argument in constructor which should be the root of
+    Requires a "path" argument in constructor which should be the root of
     the nginx frontend where the files can be found. Then configure the nginx
-    frontend something like this
+    frontend something like this: ::
 
         location <path> {
             internal;
             alias <location of files>;
         }
     """
-    pass
 
 
 class TemporaryStaticNginxFileHandler(BaseStaticNginxFileHandler):
-
     def get(self, dataset, hash_value, file):
         logging.debug("Want to download hash {} ({})".format(hash_value, file))
         linkhash = (db.Linkhash

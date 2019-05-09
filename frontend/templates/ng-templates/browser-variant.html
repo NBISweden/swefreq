@@ -2,7 +2,12 @@
 [% extends "ng-templates/dataset-base.jj2" %]
 [% block controller %]browserController[% endblock %]
 [% block contents %]
-<div class="container" ng-if="ctrl.variant">
+
+<div ng-if="ctrl.variant.statusCode">
+  <p>Unable to load the variant.</p>
+  <p>Reason: {{ ctrl.variant.statusCode }} {{ ctrl.variant.statusText }}</p>
+</div>
+<div class="container" ng-if="ctrl.variant && !ctrl.variant.statusCode">
 
     <!-- HEADER -->
     <div class="col-md-12">
@@ -44,7 +49,7 @@
                         {{ ctrl.variant.rsid }}
                     </a>
                 </dd>
-                <dd ng-if="!ctrl.variant.rsid || ctrl.variant.rsid == '.'">Not found in dbSNP</dd>
+                <dd ng-if="!ctrl.variant.rsid || ctrl.variant.rsid == '.'">rsID not available</dd>
             <dt>Allele Frequency</dt>
                 <dd ng-if="ctrl.variant.alleleFreq">{{ ctrl.variant.alleleFreq | number : 4 }}</dd>
                 <dd ng-if="!ctrl.variant.alleleFreq">NA (Allele Number = 0)</dd>
@@ -170,7 +175,8 @@
     <!-- Right middle pane -->
     <div class="col-md-6">
 
-        <h2>Population Frequencies</h2>
+      <h2>Dataset Frequencies</h2>
+      For all available datasets using the same reference set as {{ ctrl.dataset.shortName }}.
         <div ng-if="ctrl.variant.popFreq">
             <table class="table table-sm table-striped table-condensed small">
                 <thead>
@@ -197,7 +203,7 @@
         </div> <!-- if popFreq -->
 
         <div ng-if="!ctrl.variant.popFreq">
-            <p>No Population Frequencies available</p>
+            <p>No Dataset Frequencies available</p>
         </div> <!-- if popFreq -->
     </div>
 

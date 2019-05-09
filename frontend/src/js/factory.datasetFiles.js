@@ -6,9 +6,9 @@
         };
 
         function getFiles(dataset, version) {
-            var fileUri = "/api/datasets/" + dataset + "/files";
+            var fileUri = "/api/dataset/" + dataset + "/files";
             if ( version ) {
-                fileUri = "/api/datasets/" + dataset + "/versions/" + version + "/files";
+                fileUri = "/api/dataset/" + dataset + "/versions/" + version + "/files";
             }
             return $http.get(fileUri).then(function(data) {
                 return data.data.files;

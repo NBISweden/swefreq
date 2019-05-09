@@ -18,6 +18,7 @@ import re
 import db
 import handlers
 import settings
+from modules.browser import utils
 
 
 def build_dataset_structure(dataset_version, user=None, dataset=None):
@@ -32,7 +33,7 @@ def build_dataset_structure(dataset_version, user=None, dataset=None):
 
     if user:
         r['is_admin'] = user.is_admin(dataset)
-        if user.has_access(dataset):
+        if user.has_access(dataset, dataset_version.version):
             r['authorization_level'] = 'has_access'
         elif user.has_requested_access(dataset):
             r['authorization_level'] = 'has_requested_access'
@@ -60,7 +61,6 @@ class GetSchema(handlers.UnsafeHandler):
     figure out what information to return.
     """
     def get(self):
-
         dataset = None
         version = None
         try:
@@ -137,16 +137,12 @@ class ListDatasets(handlers.UnsafeHandler):
 
         ret = []
         if user:
-            futures = db.DatasetVersion.select(
-                    ).join(
-                        db.Dataset
-                    ).join(
-                        db.DatasetAccess
-                    ).where(
-                        db.DatasetVersion.available_from > datetime.now(),
-                        db.DatasetAccess.user == user,
-                        db.DatasetAccess.is_admin
-                    )
+            futures = (db.DatasetVersion.select()
+                       .join(db.Dataset)
+                       .join(db.DatasetAccess)
+                       .where(db.DatasetVersion.available_from > datetime.now(),
+                              db.DatasetAccess.user == user,
+                              db.DatasetAccess.is_admin))
             for f in futures:
                 dataset = build_dataset_structure(f, user)
                 dataset['future'] = True
@@ -162,6 +158,7 @@ class ListDatasets(handlers.UnsafeHandler):
 
 class GetDataset(handlers.UnsafeHandler):
     def get(self, dataset, version=None):
+        dataset, version = utils.parse_dataset(dataset, version)
         user = self.current_user
 
         future_version = False
@@ -175,6 +172,7 @@ class GetDataset(handlers.UnsafeHandler):
             future_version = True
 
         ret = build_dataset_structure(version, user)
+        ret['version']['var_call_ref'] = version.reference_set.reference_build
         ret['future'] = future_version
 
         self.finish(ret)
@@ -182,18 +180,17 @@ class GetDataset(handlers.UnsafeHandler):
 
 class ListDatasetVersions(handlers.UnsafeHandler):
     def get(self, dataset):
+        dataset, _ = utils.parse_dataset(dataset)
         user = self.current_user
         dataset = db.get_dataset(dataset)
 
-        versions = db.DatasetVersion.select(
-                db.DatasetVersion.version, db.DatasetVersion.available_from
-            ).where(
-                db.DatasetVersion.dataset == dataset
-            )
+        versions = (db.DatasetVersion.select(db.DatasetVersion.version,
+                                             db.DatasetVersion.available_from)
+                    .where(db.DatasetVersion.dataset == dataset))
         logging.info("ListDatasetVersions")
-
         data = []
         found_current = False
+        versions = sorted(versions, key=lambda version: version.version)
         for v in reversed(versions):
             current = False
             future  = False
@@ -220,9 +217,10 @@ class ListDatasetVersions(handlers.UnsafeHandler):
 
 
 class GenerateTemporaryLink(handlers.AuthorizedHandler):
-    def post(self, dataset, version=None):
+    def post(self, dataset, ds_version=None):
+        dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         user = self.current_user
-        dataset_version = db.get_dataset_version(dataset, version)
+        dataset_version = db.get_dataset_version(dataset, ds_version)
         if dataset_version is None:
             self.send_error(status_code=404)
             return
@@ -249,8 +247,9 @@ class GenerateTemporaryLink(handlers.AuthorizedHandler):
 
 
 class DatasetFiles(handlers.AuthorizedHandler):
-    def get(self, dataset, version=None):
-        dataset_version = db.get_dataset_version(dataset, version)
+    def get(self, dataset, ds_version=None):
+        dataset, ds_version = utils.parse_dataset(dataset, ds_version)
+        dataset_version = db.get_dataset_version(dataset, ds_version)
         if dataset_version is None:
             self.send_error(status_code=404)
             return
@@ -259,10 +258,11 @@ class DatasetFiles(handlers.AuthorizedHandler):
         for f in dataset_version.files:
             d = db.build_dict_from_row(f)
             d['dirname'] = path.dirname(d['uri'])
-            d['human_size'] = format_bytes(d['bytes'])
+            d['human_size'] = format_bytes(d['file_size'])
             ret.append(d)
 
         self.finish({'files': ret})
+
 
 def format_bytes(nbytes):
     postfixes = ['b', 'Kb', 'Mb', 'Gb', 'Tb', 'Pb', 'Eb']
@@ -271,7 +271,8 @@ def format_bytes(nbytes):
 
 
 class Collection(handlers.UnsafeHandler):
-    def get(self, dataset):
+    def get(self, dataset, ds_version=None):
+        dataset, _ = utils.parse_dataset(dataset)
         dataset = db.get_dataset(dataset)
 
         collections = {}
@@ -376,6 +377,7 @@ class CountryList(handlers.UnsafeHandler):
 
 class RequestAccess(handlers.SafeHandler):
     def post(self, dataset):
+        dataset, _ = utils.parse_dataset(dataset)
         user    = self.current_user
         dataset = db.get_dataset(dataset)
 
@@ -408,6 +410,7 @@ class RequestAccess(handlers.SafeHandler):
 
 class LogEvent(handlers.SafeHandler):
     def post(self, dataset, event, target):
+        dataset, _ = utils.parse_dataset(dataset)
         user = self.current_user
 
         if event == 'consent':
@@ -428,6 +431,7 @@ class LogEvent(handlers.SafeHandler):
 
 class ApproveUser(handlers.AdminHandler):
     def post(self, dataset, email):
+        dataset, _ = utils.parse_dataset(dataset)
         with db.database.atomic():
             dataset = db.get_dataset(dataset)
 
@@ -470,6 +474,7 @@ class ApproveUser(handlers.AdminHandler):
 
 class RevokeUser(handlers.AdminHandler):
     def post(self, dataset, email):
+        dataset, _ = utils.parse_dataset(dataset)
         with db.database.atomic():
             dataset = db.get_dataset(dataset)
             user = db.User.select().where(db.User.email == email).get()
@@ -506,6 +511,7 @@ def _build_json_response(query, access_for):
 
 class DatasetUsersPending(handlers.AdminHandler):
     def get(self, dataset):
+        dataset, _ = utils.parse_dataset(dataset)
         dataset = db.get_dataset(dataset)
         users = db.User.select()
         access = (db.DatasetAccessPending
@@ -520,6 +526,7 @@ class DatasetUsersPending(handlers.AdminHandler):
 
 class DatasetUsersCurrent(handlers.AdminHandler):
     def get(self, dataset):
+        dataset, _ = utils.parse_dataset(dataset)
         dataset = db.get_dataset(dataset)
         users = db.User.select()
         access = (db.DatasetAccessCurrent
@@ -563,6 +570,7 @@ class UserDatasetAccess(handlers.SafeHandler):
 
 class ServeLogo(handlers.UnsafeHandler):
     def get(self, dataset):
+        dataset, _ = utils.parse_dataset(dataset)
         try:
             logo_entry = db.DatasetLogo.select(
                     db.DatasetLogo
@@ -576,7 +584,7 @@ class ServeLogo(handlers.UnsafeHandler):
             return
 
         self.set_header("Content-Type", logo_entry.mimetype)
-        self.write(logo_entry.data)
+        self.write(logo_entry.data.tobytes())
         self.finish()
 
 
@@ -624,10 +632,12 @@ class SFTPAccess(handlers.SafeHandler):
         expires = datetime.today() + timedelta(days=30)
 
         # Check if an sFTP user exists for the current user when the database is ready
+        passwd_hash = fn.encode(fn.digest(password, 'sha256'), 'hex')
+
         try:
             self.current_user.sftp_user.get()
             # if we have a user, update it
-            db.SFTPUser.update(password_hash = fn.SHA2(password, 256),
+            db.SFTPUser.update(password_hash = passwd_hash,
                                account_expires = expires
                                ).where(db.SFTPUser.user == self.current_user).execute()
         except db.SFTPUser.DoesNotExist:
@@ -635,7 +645,7 @@ class SFTPAccess(handlers.SafeHandler):
             db.SFTPUser.insert(user = self.current_user,
                                user_uid = db.get_next_free_uid(),
                                user_name = username,
-                               password_hash = fn.SHA2(password, 256),
+                               password_hash = passwd_hash,
                                account_expires = expires
                                ).execute()
 

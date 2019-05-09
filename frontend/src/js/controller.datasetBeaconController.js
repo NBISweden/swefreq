@@ -5,16 +5,17 @@
         var localThis = this;
         localThis.queryResponses = [];
         localThis.search = search;
+        localThis.fillExample = fillExample;
 
         activate();
 
-
         function activate() {
-            Beacon.getBeaconReferences($routeParams.dataset).then(
-                    function(data) {
-                        localThis.references = data;
-                    }
-                );
+            Beacon.getBeaconReferences($routeParams.dataset, $routeParams.version)
+		.then(function(data) {
+		    if (data) {
+			localThis.beaconInfo = data;
+		    }
+                });
 
             User.getUser().then(function(data) {
                 localThis.user = data;
@@ -33,11 +34,40 @@
         function search() {
             Beacon.queryBeacon(localThis)
                 .then(function(response) {
-                    var d = response.data;
-                    d.query.position += 1; // Beacon is 0-based
-                    d.response.state = d.response.exists ? "Present" : "Absent";
-                    localThis.queryResponses.push(d);
-                },
+		    if (response.data.exists===false) { // value may be null -> error
+			localThis.queryResponses.push({
+                            "response": { "state": "Absent" },
+                            "query": {
+				"chromosome":      localThis.chromosome,
+				"position":        localThis.position,
+				"allele":          localThis.allele,
+				"referenceAllele": localThis.referenceAllele,
+                            }
+			});
+		    }
+		    else if (response.data.exists===true) {
+			localThis.queryResponses.push({
+			    "response": { "state": "Present" },
+			    "query": {
+				"chromosome":      localThis.chromosome,
+				"position":        localThis.position,
+				"allele":          localThis.allele,
+				"referenceAllele": localThis.referenceAllele,
+                            }
+			});
+		    }
+		    else {
+			localThis.queryResponses.push({
+                            "response": { "state": "Error" },
+                            "query": {
+				"chromosome":      localThis.chromosome,
+				"position":        localThis.position,
+				"allele":          localThis.allele,
+				"referenceAllele": localThis.referenceAllele,
+                            }
+			});
+                    }
+		},
                 function() {
                     localThis.queryResponses.push({
                         "response": { "state": "Error" },
@@ -46,11 +76,16 @@
                             "position":        localThis.position,
                             "allele":          localThis.allele,
                             "referenceAllele": localThis.referenceAllele,
-                            "reference":       localThis.reference
                         }
                     });
                 }
             );
         }
+	function fillExample() {
+	    localThis.chromosome = "22";
+	    localThis.position = 46615880;
+	    localThis.referenceAllele = "T";
+	    localThis.allele = "C";
+	}
     }]);
 })();

@@ -13,7 +13,6 @@
                 <ul class="nav nav-tabs pull-right">
                     <li class="active"><a data-target="#pending" data-toggle="tab">Pending requests</a></li>
                     <li><a data-target="#approved" data-toggle="tab">Approved users</a></li>
-                    <li><a data-target="#sftp" data-toggle="tab">sFTP Access</a></li>
                     <li><a data-target="#emaillist" data-toggle="tab">Email list</a></li>
                 </ul>
             </div>
@@ -70,40 +69,6 @@
                         <td>{{row.applyDate}}</td>
                     </tr>
                 </table>
-            </div>
-        </div>
-
-        <div class="tab-pane" id="sftp">
-            <div class="col-sm-6 center-block" style="float:none">
-                <h3>sFTP Credentials</h3>
-                <div class="form-horizontal">
-                    <div class="form-group">
-                        <label for="sftp-user" class="col-sm-4 control-label">Username</label>
-                        <div class="col-sm-8">
-                            <input id="sftp-user" type="text" class="form-control" value="{{ ctrl.sftp.user }}" readonly>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="sftp-pass" class="col-sm-4 control-label">Password</label>
-                        <div class="col-sm-8">
-                            <input id="sftp-pass" type="text" class="form-control" value="{{ ctrl.sftp.password }}" readonly>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="sftp-expiry" class="col-sm-4 control-label">Expiry date</label>
-                        <div class="col-sm-8">
-                            <input id="sftp-expiry" type="text" class="form-control" value="{{ ctrl.sftp.expires }}" readonly>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <div class="col-sm-8 col-sm-offset-4">
-                            <button type="button" ng-click="ctrl.createSFTPCredentials()" class="btn btn-primary form-control">Generate Credentials</button>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
 

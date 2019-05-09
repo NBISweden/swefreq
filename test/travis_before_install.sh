@@ -1,12 +1,8 @@
 #!/bin/sh -x
 
-docker pull mysql:5.7
-docker pull ubuntu:16.04
+PSQL_VERSION="10"
+PSQL_PORT="5433"
 
-VOLUME='mysql-data-volume'
-MYSQL_PORT=3366
+docker pull "postgres:$PSQL_VERSION"
 
-scripts/download_and_create_docker_db_volume.sh
-
-docker run -v "$VOLUME:/var/lib/mysql" \
-    --rm --name mysql -d -p "$MYSQL_PORT:3306" mysql:5.7
+docker run --rm -d -p "$PSQL_PORT:5432" "postgres:$PSQL_VERSION"

@@ -4,12 +4,11 @@ import tornado.ioloop
 import tornado.web
 from tornado.options import define, options
 
+import sys
 import application
 import handlers
 import auth
 import settings as swefreq_settings
-import beacon
-#import template
 
 from modules.browser.route import routes as browser_routes
 
@@ -29,7 +28,6 @@ tornado_settings = {"debug": False,
                 "secret": swefreq_settings.elixir["secret"],
                 "redirect_uri": swefreq_settings.elixir["redirectUri"],
             },
-            "contact_person": 'mats.dahlberg@scilifelab.se',
             "redirect_uri": swefreq_settings.redirect_uri,
             "xsrf_cookies": True,
             "template_path": "templates/",
@@ -43,9 +41,9 @@ class Application(tornado.web.Application):
                                                                                          {"path": "static/"}),
             (r'/(favicon.ico)',                                                      tornado.web.StaticFileHandler,
                                                                                          {"path": "static/img/"}),
-            (r"/release/(?P<dataset>[^\/]+)/(?P<hash_value>[^\/]+)/(?P<file>[^\/]+)",handlers.TemporaryStaticNginxFileHandler,
+            (r"/release/(?P<dataset>[^\/]+)/(?P<hash_value>[^\/]+)/(?P<file>[^\/]+)", handlers.TemporaryStaticNginxFileHandler,
                                                                                          {"path": "/release-files/"}),
-            (r"/release/(?P<dataset>[^\/]+)/(?P<file>[^\/]+)",                       handlers.AuthorizedStaticNginxFileHandler,
+            (r"/release/(?P<dataset>[^\/]+)/versions/(?P<ds_version>[^/]+)/(?P<file>[^\/]+)", handlers.AuthorizedStaticNginxFileHandler,
                                                                                          {"path": "/release-files/"}),
             ## Authentication
             (r"/logout",                                                              auth.ElixirLogoutHandler),
@@ -61,29 +59,22 @@ class Application(tornado.web.Application):
             (r"/api/users/sftp_access",                                               application.SFTPAccess),
             (r"/api/schema",                                                          application.GetSchema),
             ### Dataset Api
-            (r"/api/datasets",                                                        application.ListDatasets),
-            (r"/api/datasets/(?P<dataset>[^\/]+)",                                    application.GetDataset),
-            (r"/api/datasets/(?P<dataset>[^\/]+)/log/(?P<event>[^\/]+)/(?P<target>[^\/]+)", application.LogEvent),
-            (r"/api/datasets/(?P<dataset>[^\/]+)/logo",                               application.ServeLogo),
-            (r"/api/datasets/(?P<dataset>[^\/]+)/files",                              application.DatasetFiles),
-            (r"/api/datasets/(?P<dataset>[^\/]+)/collection",                         application.Collection),
-            (r"/api/datasets/(?P<dataset>[^\/]+)/users_current",                      application.DatasetUsersCurrent),
-            (r"/api/datasets/(?P<dataset>[^\/]+)/users_pending",                      application.DatasetUsersPending),
-            (r"/api/datasets/(?P<dataset>[^\/]+)/temporary_link",                     application.GenerateTemporaryLink),
-            (r"/api/datasets/(?P<dataset>[^\/]+)/users/[^\/]+/request",               application.RequestAccess),
-            (r"/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/approve",    application.ApproveUser),
-            (r"/api/datasets/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/revoke",     application.RevokeUser),
-            (r"/api/datasets/(?P<dataset>[^\/]+)/versions",                           application.ListDatasetVersions),
-            (r"/api/datasets/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)",       application.GetDataset),
-            (r"/api/datasets/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)/files", application.DatasetFiles),
-            (r"/api/datasets/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)/temporary_link", application.GenerateTemporaryLink),
-            ### Beacon API
-            (r"/api/beacon/query",                                                    beacon.Query),
-            (r"/api/beacon/info",                                                     beacon.Info),
-            # # # # # Legacy beacon URIs # # # # #
-            (r"/query",                                                               beacon.Query),
-            (r"/info",                                                                tornado.web.RedirectHandler,
-                                                                                         {"url": "/api/beacon/info"}),
+            (r"/api/dataset",                                                        application.ListDatasets),
+            (r"/api/dataset/(?P<dataset>[^\/]+)",                                    application.GetDataset),
+            (r"/api/dataset/(?P<dataset>[^\/]+)/log/(?P<event>[^\/]+)/(?P<target>[^\/]+)", application.LogEvent),
+            (r"/api/dataset/(?P<dataset>[^\/]+)/logo",                               application.ServeLogo),
+            (r"/api/dataset/(?P<dataset>[^\/]+)/(?:versions/(?P<ds_version>[^/]+)/)?files", application.DatasetFiles),
+            (r"/api/dataset/(?P<dataset>[^\/]+)/(?:versions/(?P<ds_version>[^/]+)/)?collection", application.Collection),
+            (r"/api/dataset/(?P<dataset>[^\/]+)/users_current",                      application.DatasetUsersCurrent),
+            (r"/api/dataset/(?P<dataset>[^\/]+)/users_pending",                      application.DatasetUsersPending),
+            (r"/api/dataset/(?P<dataset>[^\/]+)/(?:versions/(?P<ds_version>[^/]+)/)?temporary_link", application.GenerateTemporaryLink),
+            (r"/api/dataset/(?P<dataset>[^\/]+)/users/[^\/]+/request",               application.RequestAccess),
+            (r"/api/dataset/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/approve",    application.ApproveUser),
+            (r"/api/dataset/(?P<dataset>[^\/]+)/users/(?P<email>[^\/]+)/revoke",     application.RevokeUser),
+            (r"/api/dataset/(?P<dataset>[^\/]+)/versions",                           application.ListDatasetVersions),
+            (r"/api/dataset/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)",       application.GetDataset),
+            (r"/api/dataset/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)/files", application.DatasetFiles),
+            (r"/api/dataset/(?P<dataset>[^\/]+)/versions/(?P<version>[^\/]+)/temporary_link", application.GenerateTemporaryLink),
         ]
 
         ## Adding module handlers
@@ -109,6 +100,13 @@ class Application(tornado.web.Application):
         tornado.web.Application.__init__(self, self.declared_handlers, **settings)
 
 if __name__ == '__main__':
+    # Make sure that the extra option to `settings` isn't upsetting tornado
+    if '--settings_file' in sys.argv:
+        flag_index = sys.argv.index('--settings_file')
+        # first remove flag, then argument
+        del sys.argv[flag_index]
+        del sys.argv[flag_index]
+
     tornado.log.enable_pretty_logging()
     tornado.options.parse_command_line()
 

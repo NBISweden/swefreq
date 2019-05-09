@@ -6,7 +6,7 @@
         localThis.query = "";
         localThis.suggestions = "";
         localThis.activeSuggestion = -1;
-        localThis.orderByField = "variantId";
+        localThis.orderByField = "pos";
         localThis.reverseSort = false;
 
         localThis.coverage = {};
@@ -54,62 +54,99 @@
             if ($routeParams.transcript) {
                 localThis.itemType = "transcript";
                 localThis.item = $routeParams.transcript;
-                Browser.getTranscript($routeParams.dataset, $routeParams.transcript).then( function(data) {
-                    localThis.transcript = data.transcript;
-                    localThis.gene       = data.gene;
-                    localThis.coverage.region.exons = data.exons;
-                });
+                Browser.getTranscript($routeParams.dataset, $routeParams.version, $routeParams.transcript)
+		    .then( function(data) {
+			localThis.transcript = data.transcript;
+			localThis.gene       = data.gene;
+			localThis.coverage.region.exons = data.exons;
+                    })
+		    .catch((err) => {
+			localThis.transcript = {"statusCode": err.status,
+						"statusText": err.statusText};
+		    });
+;
             }
             if ($routeParams.region) {
                 localThis.itemType = "region";
                 localThis.item = $routeParams.region;
-                Browser.getRegion($routeParams.dataset, $routeParams.region).then( function(data) {
-                    localThis.region = data.region;
-                });
+                Browser.getRegion($routeParams.dataset, $routeParams.version, $routeParams.region)
+		    .then( function(data) {
+			localThis.region = data.region;
+                    })
+		    .catch((err) => {
+			localThis.region = {"statusCode": err.status,
+					    "statusText": err.statusText,
+					    "variantId": $routeParams.region};
+		    });
             }
             if ($routeParams.gene) {
                 localThis.itemType = "gene";
                 localThis.item = $routeParams.gene;
-                Browser.getGene($routeParams.dataset, $routeParams.gene).then( function(data) {
-                    localThis.gene = data.gene;
-                    localThis.transcripts = data.transcripts;
-                    localThis.coverage.region.exons = data.exons;
-                });
+                Browser.getGene($routeParams.dataset, $routeParams.version, $routeParams.gene)
+		    .then( function(data) {
+			localThis.gene = data.gene;
+			localThis.transcripts = data.transcripts;
+			localThis.coverage.region.exons = data.exons;
+                    })
+		    .catch((err) => {
+			localThis.gene = {"statusCode": err.status,
+					  "statusText": err.statusText};
+		    });
             }
-            if (localThis.itemType) {
-                Browser.getVariants($routeParams.dataset, localThis.itemType, localThis.item).then( function(data) {
-                    localThis.variants = data.variants;
-                    localThis.headers = data.headers;
+           if (localThis.itemType) {
+               Browser.getVariants($routeParams.dataset, $routeParams.version, localThis.itemType, localThis.item)
+		   .then( function(data) {
+                       localThis.variants = data.variants;
+                       localThis.headers = data.headers;
 
-                    // TODO Move to function later
-                    let mapFunction = function(variant) {
-                        variant.isPass     = variant.filter == "PASS";
-                        variant.isLof      = variant.flags == "LC LoF";
-                        variant.isMissense = variant.majorConsequence == "missense";
-                    };
-                    localThis.variants.map(mapFunction);
+                       // TODO Move to function later
+                       let mapFunction = function(variant) {
+                           variant.isPass     = variant.filter == "PASS";
+			   if (variant.flags.indexOf("LoF") === -1)
+			       variant.isLof = false;
+			   else
+			       variant.isLof = true;
+                           variant.isMissense = variant.majorConsequence == "missense";
+                       };
+                       localThis.variants.map(mapFunction);
 
-                    localThis.filterVariants();
-
-                });
-                Browser.getCoveragePos($routeParams.dataset, localThis.itemType, localThis.item).then( function(data) {
-                    localThis.coverage.region.start = data.start;
-                    localThis.coverage.region.stop  = data.stop;
-                    localThis.coverage.region.chrom = data.chrom;
-                });
-                Browser.getCoverage($routeParams.dataset, localThis.itemType, localThis.item).then(function(data) {
-                    localThis.coverage.data = data.coverage;
-                    localThis.coverage.loaded = true;
-                }, function() {
-                    localThis.coverage.loaded = true;
-                });
+                       localThis.filterVariants();
+		       localThis.variants.loaded = true;
+                   })
+	       	   .catch((err) => {
+		       localThis.variants = {"statusCode": err.status,
+					     "statusText": err.statusText,
+					     "loaded": true,};
+		   });
+               Browser.getCoveragePos($routeParams.dataset, $routeParams.version, localThis.itemType, localThis.item)
+		   .then( function(data) {
+                       localThis.coverage.region.start = data.start;
+                       localThis.coverage.region.stop  = data.stop;
+                       localThis.coverage.region.chrom = data.chrom;
+                   });
+               Browser.getCoverage($routeParams.dataset, $routeParams.version, localThis.itemType, localThis.item)
+		   .then(function(data) {
+                       localThis.coverage.data = data.coverage;
+                       localThis.coverage.loaded = true;
+                   })
+		   .catch((err) => {
+		       localThis.coverage = {"statusCode": err.status,
+					     "statusText": err.statusText,
+					     "loaded": true,};
+		   });
             }
             if ($routeParams.variant) {
-                Browser.getVariant($routeParams.dataset, $routeParams.variant).then( function(data) {
-                    localThis.variant = data.variant;
-                });
+                Browser.getVariant($routeParams.dataset, $routeParams.version, $routeParams.variant)
+		    .then( function(data) {
+			localThis.variant = data.variant;
+                    })
+		    .catch((err) => {
+			localThis.variant = {"statusCode": err.status,
+					     "statusText": err.statusText};
+		    });
+
             }
-            Dataset.getDataset($routeParams.dataset, $routeParams.version)
+            Dataset.getDataset($routeParams.dataset, $routeParams.version, $routeParams.version)
                 .then(function(data) {
                     localThis.dataset = data.dataset;
                 },
@@ -131,7 +168,7 @@
                 localThis.query = query;
             }
             if (localThis.query) {
-                Browser.search($routeParams.dataset, localThis.query).then( function(data) {
+                Browser.search($routeParams.dataset, $routeParams.version, localThis.query).then( function(data) {
 
                     var url = browserLink(`${data.type}/${data.value}`);
                     if ( data.type == "error" || data.type == "not_found" ) {
@@ -145,7 +182,7 @@
         function autocomplete() {
             localThis.activeSuggestion = -1;
             if (localThis.query) {
-                Browser.autocomplete($routeParams.dataset, localThis.query)
+                Browser.autocomplete($routeParams.dataset, $routeParams.version, localThis.query)
                        .then( function(data) {
                             localThis.suggestions = data.values;
                         });

@@ -11,16 +11,11 @@
     "mysqlUser" : "swefreq",
     "mysqlPort" : 3306,
 
-    "mongoHost" : "mongodb host",
-    "mongoPassword" : "password",
-    "mongoPort" : 27017,
-    "mongoUser" : "exac",
-    "mongoDatabases": {
-        "Dataset": {
-          "db":     "db-name",
-          "shared": "shared-db-name"
-        }
-    },
+    "postgresHost" : "postgres host",
+    "postgresPort" : 5432,
+    "postgresUser" : "postgres",
+    "postgresPass" : "",
+    "postgresName" : "swefreq",
 
     "replyToAddress" : "no-reply@example.com",
     "fromAddress" : "no-reply@example.com",
