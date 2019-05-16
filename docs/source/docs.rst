@@ -6,3 +6,4 @@ Documentation
 
    docs.dev-setup.md
    docs.import-data.md
+   docs.merge-accounts.md
