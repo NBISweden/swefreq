@@ -5,7 +5,6 @@ Backend
 
    backend.application
    backend.auth
-   backend.beacon
    backend.db
    backend.handlers
    backend.route
