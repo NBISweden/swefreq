@@ -142,6 +142,7 @@ class GetGene(handlers.UnsafeHandler):
         gene = lookups.get_gene(dataset, gene_id, ds_version)
         if not gene:
             self.send_error(status_code=404, reason='Gene not found')
+            return
         ret['gene'] = gene
 
         # Add exons from transcript
