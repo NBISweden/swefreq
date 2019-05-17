@@ -41,7 +41,7 @@ class Application(tornado.web.Application):
                                                                                          {"path": "static/"}),
             (r'/(favicon.ico)',                                                      tornado.web.StaticFileHandler,
                                                                                          {"path": "static/img/"}),
-            (r"/release/(?P<dataset>[^\/]+)/(?P<hash_value>[^\/]+)/(?P<file>[^\/]+)", handlers.TemporaryStaticNginxFileHandler,
+            (r"/release/(?P<dataset>[^\/]+)/versions/(?P<ds_version>[^/]+)/(?P<hash_value>[^\/]+)/(?P<file>[^\/]+)", handlers.TemporaryStaticNginxFileHandler,
                                                                                          {"path": "/release-files/"}),
             (r"/release/(?P<dataset>[^\/]+)/versions/(?P<ds_version>[^/]+)/(?P<file>[^\/]+)", handlers.AuthorizedStaticNginxFileHandler,
                                                                                          {"path": "/release-files/"}),
