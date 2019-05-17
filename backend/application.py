@@ -414,6 +414,7 @@ class LogEvent(handlers.SafeHandler):
         user = self.current_user
 
         if event == 'consent':
+            user.save()
             dv = (db.DatasetVersion
                     .select()
                     .join(db.Dataset)
