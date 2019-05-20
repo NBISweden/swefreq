@@ -507,6 +507,8 @@ def get_variants_in_gene(dataset:str, gene_id:str, ds_version:str=None):
     if not dataset_version:
         return None
     gene = get_gene(dataset, gene_id, ds_version)
+    if not gene:
+        return None
 
     variants = [variant for variant in db.Variant.select()
                                                  .join(db.VariantGenes)

@@ -217,7 +217,9 @@ def get_coverage_pos(dataset:str, datatype:str, item:str, ds_version:str=None):
     else:
         if datatype == 'gene':
             gene = lookups.get_gene(dataset, item)
-            transcript = lookups.get_transcript(dataset, gene['canonical_transcript'], ds_version)
+            if gene:
+                transcript = lookups.get_transcript(dataset, gene['canonical_transcript'], ds_version)
+            else: transcript = None
         elif datatype == 'transcript':
             transcript = lookups.get_transcript(dataset, item, ds_version)
         if transcript:
@@ -361,33 +363,34 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
             return None
         refgene = transcript['gene_id']
 
-    for variant in variants:
-        if datatype in ('gene', 'transcript'):
-            anno = None
-            if datatype == 'transcript':
-                anno = [ann for ann in variant['vep_annotations'] if ann['Feature'] == item]
-                if not anno:
-                    anno = [ann for ann in variant['vep_annotations'] if ann['Gene'] == refgene]
-            else:
-                anno = [ann for ann in variant['vep_annotations'] if ann['Gene'] == item]
-            if anno:
-                variant['vep_annotations'] = anno
+    if variants:
+        for variant in variants:
+            if datatype in ('gene', 'transcript'):
+                anno = None
+                if datatype == 'transcript':
+                    anno = [ann for ann in variant['vep_annotations'] if ann['Feature'] == item]
+                    if not anno:
+                        anno = [ann for ann in variant['vep_annotations'] if ann['Gene'] == refgene]
+                else:
+                    anno = [ann for ann in variant['vep_annotations'] if ann['Gene'] == item]
+                if anno:
+                    variant['vep_annotations'] = anno
 
-    add_consequence_to_variants(variants)
+        add_consequence_to_variants(variants)
 
-    for variant in variants:
-        remove_extraneous_information(variant)
+        for variant in variants:
+            remove_extraneous_information(variant)
 
-    # Format output
-    def format_variant(variant):
-        variant['major_consequence'] = (variant['major_consequence'].replace('_variant','')
-                                        .replace('_prime_', '\'')
-                                        .replace('_', ' '))
+        # Format output
+        def format_variant(variant):
+            variant['major_consequence'] = (variant['major_consequence'].replace('_variant','')
+                                            .replace('_prime_', '\'')
+                                            .replace('_', ' '))
 
-        # This is so an array values turns into a comma separated string instead
-        return {k: ", ".join(v) if isinstance(v,list) else v for k, v in variant.items()}
+            # This is so an array values turns into a comma separated string instead
+            return {k: ", ".join(v) if isinstance(v,list) else v for k, v in variant.items()}
 
-    variants = list(map(format_variant, variants))
+        variants = list(map(format_variant, variants))
 
     return {'variants': variants, 'headers': headers}
 
