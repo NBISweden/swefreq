@@ -168,8 +168,7 @@ class RawDataImporter(DataImporter):
                 db.Coverage.insert_many(batch).execute()
         if self.counter['coverage'] is not None:
             last_progress = self._update_progress_bar(counter, self.counter['coverage'], last_progress, finished=True)
-        if not self.settings.dry_run:
-            logging.info("Inserted {} coverage records in {}".format(counter, self._time_since(start)))
+        self.log_insertion(counter, "coverage", start)
 
     def _insert_variants(self):
         """
@@ -357,8 +356,8 @@ class RawDataImporter(DataImporter):
         self.dataset_version.save()
         if self.counter['variants'] != None:
             last_progress = self._update_progress_bar(counter, self.counter['variants'], last_progress, finished=True)
-        if not self.settings.dry_run:
-            logging.info("Inserted {} variant records in {}".format(counter, self._time_since(start)))
+
+        self.log_insertion(counter, "variant", start)
 
     def get_callcount(self, data):
         """Increment the call count by the calls found at this position."""
@@ -434,3 +433,7 @@ class RawDataImporter(DataImporter):
             batch += connected_transcripts
         if not self.settings.dry_run:
             db.VariantTranscripts.insert_many(batch).execute()
+
+    def log_insertion(self, counter, type, start):
+        action = "Inserted" if not self.settings.dry_run else "Dry-ran insertion of"
+        logging.info("{} {} {} records in {}".format(action, counter, type, self._time_since(start)))
