@@ -128,8 +128,8 @@ class RawDataImporter(DataImporter):
         counter = 0
         with db.database.atomic():
             for filename in self.settings.coverage_file:
-                for line in self._open(filename):
-                    line = bytes(line).decode('utf8').strip()
+                for line in self._open(filename, binary=False):
+                    line = line.strip()
                     if line.startswith("#"):
                         continue
 
@@ -202,8 +202,8 @@ class RawDataImporter(DataImporter):
                                                                                     db.Transcript.transcript_id)
                                                                             .join(db.Gene)
                                                                             .where(db.Gene.reference_set == ref_set))}
-                for line in self._open(filename):
-                    line = bytes(line).decode('utf8').strip()
+                for line in self._open(filename, binary=False):
+                    line = line.strip()
 
                     if line.startswith("#"):
                         # Check for some information that we need
@@ -387,8 +387,8 @@ class RawDataImporter(DataImporter):
             self.counter['coverage'] = 0
             logging.info("Counting coverage lines")
             for filename in self.settings.coverage_file:
-                for line in self._open(filename):
-                    line = bytes(line).decode('utf8').strip()
+                for line in self._open(filename, binary=False):
+                    line = line.strip()
                     if line.startswith("#"):
                         continue
                     self.counter['coverage'] += 1
@@ -398,8 +398,8 @@ class RawDataImporter(DataImporter):
             self.counter['variants'] = 0
             logging.info("Counting variant lines")
             for filename in self.settings.variant_file:
-                for line in self._open(filename):
-                    line = bytes(line).decode('utf8').strip()
+                for line in self._open(filename, binary=False):
+                    line = line.strip()
                     if line.startswith("#"):
                         continue
                     self.counter['variants'] += 1
