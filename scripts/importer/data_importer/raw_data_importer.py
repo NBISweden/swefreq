@@ -329,26 +329,25 @@ class RawDataImporter(DataImporter):
                             last_progress = self._update_progress_bar(counter, self.counter['variants'], last_progress)
 
             if batch and not self.settings.dry_run:
-                if not self.settings.dry_run:
-                    if not self.settings.beacon_only:
-                        try:
-                            curr_id = db.Variant.select(db.Variant.id).order_by(db.Variant.id.desc()).limit(1).get().id
-                        except db.Variant.DoesNotExist:
-                            # assumes next id will be 1 if table is empty
-                            curr_id = 0
+                if not self.settings.beacon_only:
+                    try:
+                        curr_id = db.Variant.select(db.Variant.id).order_by(db.Variant.id.desc()).limit(1).get().id
+                    except db.Variant.DoesNotExist:
+                        # assumes next id will be 1 if table is empty
+                        curr_id = 0
 
-                    db.Variant.insert_many(batch).execute()
+                db.Variant.insert_many(batch).execute()
 
-                    if not self.settings.beacon_only:
-                        last_id = db.Variant.select(db.Variant.id).order_by(db.Variant.id.desc()).limit(1).get().id
-                        if  last_id-curr_id == len(batch):
-                            indexes = list(range(curr_id+1, last_id+1))
-                        else:
-                            indexes = []
-                            for entry in batch:
-                                indexes.append(db.Variant.select(db.Variant.id).where(db.Variant.variant_id == entry['variant_id']).get().id)
-                        self.add_variant_genes(indexes, genes, ref_genes)
-                        self.add_variant_transcripts(indexes, transcripts, ref_transcripts)
+                if not self.settings.beacon_only:
+                    last_id = db.Variant.select(db.Variant.id).order_by(db.Variant.id.desc()).limit(1).get().id
+                    if  last_id-curr_id == len(batch):
+                        indexes = list(range(curr_id+1, last_id+1))
+                    else:
+                        indexes = []
+                        for entry in batch:
+                            indexes.append(db.Variant.select(db.Variant.id).where(db.Variant.variant_id == entry['variant_id']).get().id)
+                    self.add_variant_genes(indexes, genes, ref_genes)
+                    self.add_variant_transcripts(indexes, transcripts, ref_transcripts)
 
         if self.settings.set_vcf_sampleset_size and samples:
             self.sampleset.sample_size = samples
