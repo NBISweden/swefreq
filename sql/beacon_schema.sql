@@ -26,9 +26,13 @@ CREATE TABLE IF NOT EXISTS beacon.beacon_dataset_counts_table (
 );
 
 
+--------------------------------------------------------------------------------
+-- Beacon views.
+--
+
 CREATE OR REPLACE VIEW beacon.available_datasets AS
     SELECT * FROM data.dataset_versions
-     WHERE available_from < now() AND beacon_access != 'None';
+     WHERE available_from < now() AND beacon_access != 'PRIVATE';
 
 
 CREATE OR REPLACE VIEW beacon.beacon_dataset_table AS           -- original type
@@ -81,10 +85,33 @@ CREATE OR REPLACE VIEW beacon.beacon_data_table AS
         ON av.reference_set = r.id
 ;
 
+CREATE OR REPLACE VIEW beacon.beacon_mate_table AS
+    SELECT dm.id AS index,
+           concat_ws(':', r.reference_build,
+                          d.short_name,
+                          av.dataset_version) AS datasetId,
+           substr(dm.chrom, 1, 2) AS chromosome,
+           dm.pos - 1 AS "chromosomeStart",
+           dm.chrom_id as chromosomePos,
+           dm.mate_chrom as mate,
+           dm.mate_start as mateStart,
+           dm.mate_id as matePos,
+           dm.ref as reference,
+           dm.alt as alternate,
+           dm.allele_count as alleleCount,
+           dm.allele_num as callCount,
+           dm.allele_freq as frequency,
+           dm.mate_start as "end",
+           'BND' as variantType
+     FROM data.mate AS dm
+      JOIN beacon.available_datasets as av
+        ON dm.dataset_version = av.id
+      JOIN data.datasets as d
+        ON av.dataset = d.id
+      JOIN data.reference_sets AS r
+        ON av.reference_set = r.id
+;
 
---------------------------------------------------------------------------------
--- Beacon views.
---
 CREATE OR REPLACE VIEW beacon.dataset_metadata(name, datasetId, description, assemblyId,
                                                createDateTime, updateDateTime, version,
                                                callCount, variantCount, sampleCount, externalUrl, accessType)

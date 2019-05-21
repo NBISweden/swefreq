@@ -128,8 +128,8 @@ class RawDataImporter(DataImporter):
         counter = 0
         with db.database.atomic():
             for filename in self.settings.coverage_file:
-                for line in self._open(filename):
-                    line = bytes(line).decode('utf8').strip()
+                for line in self._open(filename, binary=False):
+                    line = line.strip()
                     if line.startswith("#"):
                         continue
 
@@ -168,8 +168,85 @@ class RawDataImporter(DataImporter):
                 db.Coverage.insert_many(batch).execute()
         if self.counter['coverage'] is not None:
             last_progress = self._update_progress_bar(counter, self.counter['coverage'], last_progress, finished=True)
-        if not self.settings.dry_run:
-            logging.info("Inserted {} coverage records in {}".format(counter, self._time_since(start)))
+        self.log_insertion(counter, "coverage", start)
+
+    def _parse_manta(self):
+        header = [("chrom", str), ("pos", int), ("chrom_id", str), ("ref", str), ("alt", str)]
+
+        batch = []
+        samples = 0
+        counter = 0
+        start = time.time()
+        for filename in self.settings.variant_file:
+            for line in self._open(filename):
+                line = line.strip()
+                if line.startswith("#"):
+                    if line.startswith('#CHROM'):
+                        samples = len(line.split('\t')[9:])
+                    continue
+
+                base = {}
+                for i, item in enumerate(line.split("\t")):
+                    if i == 0:
+                        base['dataset_version'] = self.dataset_version
+                    if i < 5:
+                        base[header[i][0]] = header[i][1](item)
+                    elif i == 7:
+                        # only parse column 7 (maybe also for non-beacon-import?)
+                        info = dict([(x.split('=', 1)) if '=' in x else (x, x) for x in re.split(';(?=\w)', item)])
+
+                if info.get('SVTYPE') != 'BND':
+                    continue
+
+                if base["chrom"].startswith('GL') or base["chrom"].startswith('MT'):
+                    # TODO keep this?
+                    continue
+
+                if 'NSAMPLES' in info:
+                    # save this unless we already know the sample size
+                    samples = int(info['NSAMPLES'])
+
+                alt_alleles = base['alt'].split(",")
+                # TODO suspect for allelecount or callcount:
+                #    OCC,Number=1,Type=Integer,Description="The number of occurences of the event in the database"
+                for i, alt in enumerate(alt_alleles):
+                    data = dict(base)
+                    data['allele_freq'] = float(info.get('FRQ'))
+                    data['alt'], data['mate_chrom'], data['mate_start'] = re.search('(.+)[[\]](.*?):(\d+)[[\]]', alt).groups()
+                    if data['mate_chrom'].startswith('GL') or data['mate_chrom'].startswith('MT'):
+                        continue
+                    if 'MATEID' in info:
+                        data['mate_id'] = info['MATEID']
+                    data['variant_id'] = '{}-{}-{}-{}'.format(data['chrom'], data['pos'], data['ref'], alt)
+
+                    batch += [data]
+                    if self.settings.count_calls:
+                        self.get_callcount(data)  # count calls (one per reference)
+                        self.counter['beaconvariants'] += 1  # count variants (one per alternate)
+
+                counter += 1  # count variants (one per vcf row)
+
+                if len(batch) >= self.settings.batch_size:
+                    if not self.settings.dry_run:
+                        db.VariantMate.insert_many(batch).execute()
+
+                    batch = []
+                    # Update progress
+                    if not self.counter['variants']:
+                        last_progress = self._update_progress_bar(counter, self.counter['variants'], last_progress)
+
+        if batch and not self.settings.dry_run:
+            db.VariantMate.insert_many(batch).execute()
+
+        if self.settings.set_vcf_sampleset_size and samples:
+            self.sampleset.sample_size = samples
+            self.sampleset.save()
+
+        self.dataset_version.num_variants = counter
+        self.dataset_version.save()
+        if not self.counter['variants']:
+            last_progress = self._update_progress_bar(counter, self.counter['variants'], last_progress, finished=True)
+        self.log_insertion(counter, "breakend", start)
 
     def _insert_variants(self):
         """
@@ -202,8 +279,8 @@ class RawDataImporter(DataImporter):
                                                                                     db.Transcript.transcript_id)
                                                                             .join(db.Gene)
                                                                             .where(db.Gene.reference_set == ref_set))}
-                for line in self._open(filename):
-                    line = bytes(line).decode('utf8').strip()
+                for line in self._open(filename, binary=False):
+                    line = line.strip()
 
                     if line.startswith("#"):
                         # Check for some information that we need
@@ -329,26 +406,25 @@ class RawDataImporter(DataImporter):
                             last_progress = self._update_progress_bar(counter, self.counter['variants'], last_progress)
 
             if batch and not self.settings.dry_run:
-                if not self.settings.dry_run:
-                    if not self.settings.beacon_only:
-                        try:
-                            curr_id = db.Variant.select(db.Variant.id).order_by(db.Variant.id.desc()).limit(1).get().id
-                        except db.Variant.DoesNotExist:
-                            # assumes next id will be 1 if table is empty
-                            curr_id = 0
+                if not self.settings.beacon_only:
+                    try:
+                        curr_id = db.Variant.select(db.Variant.id).order_by(db.Variant.id.desc()).limit(1).get().id
+                    except db.Variant.DoesNotExist:
+                        # assumes next id will be 1 if table is empty
+                        curr_id = 0
 
-                    db.Variant.insert_many(batch).execute()
+                db.Variant.insert_many(batch).execute()
 
-                    if not self.settings.beacon_only:
-                        last_id = db.Variant.select(db.Variant.id).order_by(db.Variant.id.desc()).limit(1).get().id
-                        if  last_id-curr_id == len(batch):
-                            indexes = list(range(curr_id+1, last_id+1))
-                        else:
-                            indexes = []
-                            for entry in batch:
-                                indexes.append(db.Variant.select(db.Variant.id).where(db.Variant.variant_id == entry['variant_id']).get().id)
-                        self.add_variant_genes(indexes, genes, ref_genes)
-                        self.add_variant_transcripts(indexes, transcripts, ref_transcripts)
+                if not self.settings.beacon_only:
+                    last_id = db.Variant.select(db.Variant.id).order_by(db.Variant.id.desc()).limit(1).get().id
+                    if  last_id-curr_id == len(batch):
+                        indexes = list(range(curr_id+1, last_id+1))
+                    else:
+                        indexes = []
+                        for entry in batch:
+                            indexes.append(db.Variant.select(db.Variant.id).where(db.Variant.variant_id == entry['variant_id']).get().id)
+                    self.add_variant_genes(indexes, genes, ref_genes)
+                    self.add_variant_transcripts(indexes, transcripts, ref_transcripts)
 
         if self.settings.set_vcf_sampleset_size and samples:
             self.sampleset.sample_size = samples
@@ -358,8 +434,8 @@ class RawDataImporter(DataImporter):
         self.dataset_version.save()
         if self.counter['variants'] != None:
             last_progress = self._update_progress_bar(counter, self.counter['variants'], last_progress, finished=True)
-        if not self.settings.dry_run:
-            logging.info("Inserted {} variant records in {}".format(counter, self._time_since(start)))
+
+        self.log_insertion(counter, "variant", start)
 
     def get_callcount(self, data):
         """Increment the call count by the calls found at this position."""
@@ -387,8 +463,8 @@ class RawDataImporter(DataImporter):
             self.counter['coverage'] = 0
             logging.info("Counting coverage lines")
             for filename in self.settings.coverage_file:
-                for line in self._open(filename):
-                    line = bytes(line).decode('utf8').strip()
+                for line in self._open(filename, binary=False):
+                    line = line.strip()
                     if line.startswith("#"):
                         continue
                     self.counter['coverage'] += 1
@@ -398,8 +474,8 @@ class RawDataImporter(DataImporter):
             self.counter['variants'] = 0
             logging.info("Counting variant lines")
             for filename in self.settings.variant_file:
-                for line in self._open(filename):
-                    line = bytes(line).decode('utf8').strip()
+                for line in self._open(filename, binary=False):
+                    line = line.strip()
                     if line.startswith("#"):
                         continue
                     self.counter['variants'] += 1
@@ -412,7 +488,11 @@ class RawDataImporter(DataImporter):
 
     def start_import(self):
         self._set_dataset_info()
-        if self.settings.variant_file:
+        if self.settings.add_mates:
+            self._parse_manta()
+            if self.settings.count_calls:
+                self._create_beacon_counts()
+        elif self.settings.variant_file:
             self._insert_variants()
             if self.settings.count_calls:
                 self._create_beacon_counts()
@@ -435,3 +515,7 @@ class RawDataImporter(DataImporter):
             batch += connected_transcripts
         if not self.settings.dry_run:
             db.VariantTranscripts.insert_many(batch).execute()
+
+    def log_insertion(self, counter, type, start):
+        action = "Inserted" if not self.settings.dry_run else "Dry-ran insertion of"
+        logging.info("{} {} {} records in {}".format(action, counter, type, self._time_since(start)))

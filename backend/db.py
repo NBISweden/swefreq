@@ -267,6 +267,26 @@ class Variant(BaseModel):
     vep_annotations = BinaryJSONField()
 
 
+class VariantMate(BaseModel):
+    class Meta:
+        db_table = "mate"
+        schema = 'data'
+
+    dataset_version = ForeignKeyField(DatasetVersion, db_column="dataset_version", related_name="mate")
+    chrom = CharField(max_length=10)
+    pos = IntegerField()
+    ref = CharField()
+    alt = CharField()
+    chrom_id = CharField()
+    mate_chrom = CharField()
+    mate_start = IntegerField()
+    mate_id = CharField()
+    allele_freq = FloatField()
+    variant_id = CharField()
+    allele_count = IntegerField()
+    allele_num = IntegerField()
+
+
 class VariantGenes(BaseModel):
     class Meta:
         db_table = 'variant_genes'
