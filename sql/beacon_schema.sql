@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS beacon.beacon_dataset_counts_table (
 
 CREATE OR REPLACE VIEW beacon.available_datasets AS
     SELECT * FROM data.dataset_versions
-     WHERE available_from < now() AND beacon_access != 'None';
+     WHERE available_from < now() AND beacon_access != 'PRIVATE';
 
 
 CREATE OR REPLACE VIEW beacon.beacon_dataset_table AS           -- original type
