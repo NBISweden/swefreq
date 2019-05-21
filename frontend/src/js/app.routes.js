@@ -17,7 +17,6 @@
     .config(["$routeProvider", "$locationProvider", "$httpProvider", function($routeProvider, $locationProvider, $httpProvider) {
         $routeProvider
             .when("/",                                                  { templateUrl: "static/templates/ng-templates/home.html"                })
-            .when("/login",                                             { templateUrl: "static/templates/ng-templates/login.html"               })
             .when("/profile",                                           { templateUrl: "static/templates/ng-templates/profile.html"             })
             .when("/error",                                             { templateUrl: "static/templates/ng-templates/error.html"               })
             .when("/security_warning",                                  { templateUrl: "static/templates/ng-templates/security-warning.html"    })

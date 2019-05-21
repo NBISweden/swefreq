@@ -1,10 +1,6 @@
 {
     "cookieSecret" : "Something random for tornado to sign cookies with",
 
-    "googleKey" : "a key from google",
-    "googleSecret" : "a secret from google",
-    "redirectUri" : "https://google oauth redirect uri",
-
     "mysqlHost" : "127.0.0.1",
     "mysqlPasswd" : "password",
     "mysqlSchema" : "swefreq",
