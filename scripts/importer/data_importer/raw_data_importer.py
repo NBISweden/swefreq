@@ -170,6 +170,84 @@ class RawDataImporter(DataImporter):
             last_progress = self._update_progress_bar(counter, self.counter['coverage'], last_progress, finished=True)
         self.log_insertion(counter, "coverage", start)
 
+    def _parse_manta(self):
+        header = [("chrom", str), ("pos", int), ("chrom_id", str), ("ref", str), ("alt", str)]
+
+        batch = []
+        samples = 0
+        counter = 0
+        start = time.time()
+        for filename in self.settings.variant_file:
+            for line in self._open(filename):
+                line = line.strip()
+                if line.startswith("#"):
+                    if line.startswith('#CHROM'):
+                        samples = len(line.split('\t')[9:])
+                    continue
+
+                base = {}
+                for i, item in enumerate(line.split("\t")):
+                    if i == 0:
+                        base['dataset_version'] = self.dataset_version
+                    if i < 5:
+                        base[header[i][0]] = header[i][1](item)
+                    elif i == 7:
+                        # only parse column 7 (maybe also for non-beacon-import?)
+                        info = dict([(x.split('=', 1)) if '=' in x else (x, x) for x in re.split(';(?=\w)', item)])
+
+                if info.get('SVTYPE') != 'BND':
+                    continue
+
+                if base["chrom"].startswith('GL') or base["chrom"].startswith('MT'):
+                    # TODO keep this?
+                    continue
+
+                if 'NSAMPLES' in info:
+                    # save this unless we already know the sample size
+                    samples = int(info['NSAMPLES'])
+
+                alt_alleles = base['alt'].split(",")
+                # TODO suspect for allelecount or callcount:
+                #    OCC,Number=1,Type=Integer,Description="The number of occurences of the event in the database"
+                for i, alt in enumerate(alt_alleles):
+                    data = dict(base)
+                    data['allele_freq'] = float(info.get('FRQ'))
+                    data['alt'], data['mate_chrom'], data['mate_start'] = re.search('(.+)[[\]](.*?):(\d+)[[\]]', alt).groups()
+                    if data['mate_chrom'].startswith('GL') or data['mate_chrom'].startswith('MT'):
+                        continue
+                    if 'MATEID' in info:
+                        data['mate_id'] = info['MATEID']
+                    data['variant_id'] = '{}-{}-{}-{}'.format(data['chrom'], data['pos'], data['ref'], alt)
+
+                    batch += [data]
+                    if self.settings.count_calls:
+                        self.get_callcount(data)  # count calls (one per reference)
+                        self.counter['beaconvariants'] += 1  # count variants (one per alternate)
+
+                counter += 1  # count variants (one per vcf row)
+
+                if len(batch) >= self.settings.batch_size:
+                    if not self.settings.dry_run:
+                        db.VariantMate.insert_many(batch).execute()
+
+                    batch = []
+                    # Update progress
+                    if not self.counter['variants']:
+                        last_progress = self._update_progress_bar(counter, self.counter['variants'], last_progress)
+
+        if batch and not self.settings.dry_run:
+            db.VariantMate.insert_many(batch).execute()
+
+        if self.settings.set_vcf_sampleset_size and samples:
+            self.sampleset.sample_size = samples
+            self.sampleset.save()
+
+        self.dataset_version.num_variants = counter
+        self.dataset_version.save()
+        if not self.counter['variants']:
+            last_progress = self._update_progress_bar(counter, self.counter['variants'], last_progress, finished=True)
+        self.log_insertion(counter, "breakend", start)
+
     def _insert_variants(self):
         """
         Insert variants from a VCF file
@@ -410,7 +488,11 @@ class RawDataImporter(DataImporter):
 
     def start_import(self):
         self._set_dataset_info()
-        if self.settings.variant_file:
+        if self.settings.add_mates:
+            self._parse_manta()
+            if self.settings.count_calls:
+                self._create_beacon_counts()
+        elif self.settings.variant_file:
             self._insert_variants()
             if self.settings.count_calls:
                 self._create_beacon_counts()
