@@ -199,7 +199,7 @@ class RawDataImporter(DataImporter):
                     continue
 
                 if base["chrom"].startswith('GL') or base["chrom"].startswith('MT'):
-                    # TODO keep this?
+                    # A BND from GL or MT.
                     continue
 
                 if 'NSAMPLES' in info:
@@ -207,21 +207,30 @@ class RawDataImporter(DataImporter):
                     samples = int(info['NSAMPLES'])
 
                 alt_alleles = base['alt'].split(",")
-                # TODO suspect for allelecount or callcount:
-                #    OCC,Number=1,Type=Integer,Description="The number of occurences of the event in the database"
                 for i, alt in enumerate(alt_alleles):
                     data = dict(base)
                     data['allele_freq'] = float(info.get('FRQ'))
                     data['alt'], data['mate_chrom'], data['mate_start'] = re.search('(.+)[[\]](.*?):(\d+)[[\]]', alt).groups()
                     if data['mate_chrom'].startswith('GL') or data['mate_chrom'].startswith('MT'):
+                        # A BND from a chromosome to GL or MT.
+                        # TODO ask a bioinformatician if these cases should be included or not
                         continue
-                    if 'MATEID' in info:
-                        data['mate_id'] = info.get('MATEID', '')
+                    data['mate_id'] = info.get('MATEID', '')
                     data['variant_id'] = '{}-{}-{}-{}'.format(data['chrom'], data['pos'], data['ref'], alt)
                     data['allele_count'] = data.get('allele_count', 0)
                     data['allele_num'] = data.get('allele_num', 0)
-
                     batch += [data]
+                    if self.settings.add_reversed_mates:
+                        # If the vcf only contains one line per breakend, add the reversed version to the database here.
+                        reversed = dict(data)
+                        # TODO Note: in general, ref and alt cannot be assumed to be the same in the reversed direction,
+                        # but our data (so far) only contains N, so we just keep them as is for now.
+                        reversed.update({'mate_chrom': data['chrom'], 'chrom': data['mate_chrom'],
+                                         'mate_start': data['pos'], 'pos': data['mate_start'],
+                                         'chrom_id': data['mate_id'], 'mate_id': data['chrom_id']})
+                        reversed['variant_id'] = '{}-{}-{}-{}'.format(reversed['chrom'], reversed['pos'], reversed['ref'], alt)
+                        # TODO should the `counter` be increased here?
+                        batch += [reversed]
 
                 counter += 1  # count variants (one per vcf row)
 

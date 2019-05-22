@@ -100,6 +100,8 @@ if __name__ == '__main__':
                               " the requirements"))
     PARSER.add_argument("--add_mates", action="store_true",
                         help=("Parse MANTA file and add the breakends to the db"))
+    PARSER.add_argument("--add_reversed_mates", action="store_true",
+                        help=("Assume input data only contain one line per BND, covering both directions"))
 
     ARGS = PARSER.parse_args()
 
