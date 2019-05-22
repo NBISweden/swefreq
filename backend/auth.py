@@ -18,7 +18,6 @@ class DeveloperLoginHandler(BaseHandler):
         self.set_secure_cookie('user', self.get_argument("user"))
         self.set_secure_cookie('email', self.get_argument("email"))
         self.set_secure_cookie('identity', self.get_argument("email"))
-        self.set_secure_cookie('identity_type', 'google')
         self.finish()
 
 
@@ -56,16 +55,10 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
             user_token = await self.get_user_token(self.get_argument('code'))
             user       = await self.get_user(user_token["access_token"])
 
-            extra_login = None
-
             self.set_secure_cookie('access_token', user_token["access_token"])
             self.set_secure_cookie('user', user["name"])
             self.set_secure_cookie('email', user["email"])
             self.set_secure_cookie('identity', user["sub"])
-            self.set_secure_cookie('identity_type', 'elixir')
-
-            if extra_login:
-                self.set_secure_cookie('identity_type', 'elixir_%s' % extra_login)
 
             redirect = self.get_secure_cookie("login_redirect")
             self.clear_cookie("login_redirect")

@@ -35,7 +35,6 @@ class BaseHandler(tornado.web.RequestHandler):
         email = self.get_secure_cookie('email')
         name  = self.get_secure_cookie('user')
         identity = self.get_secure_cookie('identity')
-        identity_type = self.get_secure_cookie('identity_type')
 
         # Fix ridiculous bug with quotation marks showing on the web
         if name and (name[0] == '"') and (name[-1] == '"'):
@@ -49,8 +48,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 try:
                     return db.User(email = email.decode('utf-8'),
                                    name  = name.decode('utf-8'),
-                                   identity = identity.decode('utf-8'),
-                                   identity_type = identity_type.decode('utf-8'))
+                                   identity = identity.decode('utf-8'))
                 except peewee.OperationalError as e:
                     logging.error("Can't create new user: {}".format(e))
         else:
