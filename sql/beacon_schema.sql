@@ -94,14 +94,14 @@ CREATE OR REPLACE VIEW beacon.beacon_mate_table AS
            dm.pos - 1 AS chromosomeStart,
            dm.chrom_id as chromosomePos,
            dm.mate_chrom as mate,
-           dm.mate_start as mateStart,
+           dm.mate_start - 1 as mateStart,
            dm.mate_id as matePos,
            dm.ref as reference,
            dm.alt as alternate,
            dm.allele_count as alleleCount,
            dm.allele_num as callCount,
            dm.allele_freq as frequency,
-           dm.mate_start as "end",
+           dm.mate_start - 1 as "end",
            'BND' as variantType
      FROM data.mate AS dm
       JOIN beacon.available_datasets as av
