@@ -222,9 +222,6 @@ class RawDataImporter(DataImporter):
                     data['allele_num'] = data.get('allele_num', 0)
 
                     batch += [data]
-                    if self.settings.count_calls:
-                        self.get_callcount(data)  # count calls (one per reference)
-                        self.counter['beaconvariants'] += 1  # count variants (one per alternate)
 
                 counter += 1  # count variants (one per vcf row)
 
@@ -493,7 +490,7 @@ class RawDataImporter(DataImporter):
         if self.settings.add_mates:
             self._parse_manta()
             if self.settings.count_calls:
-                self._create_beacon_counts()
+                logging.warning('Do not know how to count calls in the manta file. Skipping this...')
         elif self.settings.variant_file:
             self._insert_variants()
             if self.settings.count_calls:
