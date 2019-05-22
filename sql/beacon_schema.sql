@@ -91,7 +91,7 @@ CREATE OR REPLACE VIEW beacon.beacon_mate_table AS
                           d.short_name,
                           av.dataset_version) AS datasetId,
            substr(dm.chrom, 1, 2) AS chromosome,
-           dm.pos - 1 AS "chromosomeStart",
+           dm.pos - 1 AS chromosomeStart,
            dm.chrom_id as chromosomePos,
            dm.mate_chrom as mate,
            dm.mate_start as mateStart,
