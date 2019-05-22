@@ -216,8 +216,10 @@ class RawDataImporter(DataImporter):
                     if data['mate_chrom'].startswith('GL') or data['mate_chrom'].startswith('MT'):
                         continue
                     if 'MATEID' in info:
-                        data['mate_id'] = info['MATEID']
+                        data['mate_id'] = info.get('MATEID', '')
                     data['variant_id'] = '{}-{}-{}-{}'.format(data['chrom'], data['pos'], data['ref'], alt)
+                    data['allele_count'] = data.get('allele_count', 0)
+                    data['allele_num'] = data.get('allele_num', 0)
 
                     batch += [data]
                     if self.settings.count_calls:
