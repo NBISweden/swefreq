@@ -199,7 +199,7 @@ class RawDataImporter(DataImporter):
                     continue
 
                 if base["chrom"].startswith('GL') or base["chrom"].startswith('MT'):
-                    # A BND from GL or MT.
+                    # A BND from GL or MT. GL is an unplaced scaffold, MT is mitochondria.
                     continue
 
                 if 'NSAMPLES' in info:
