@@ -347,7 +347,7 @@ class User(BaseModel):
     name          = CharField(db_column="username", null=True)
     email         = CharField(unique=True)
     identity      = CharField(unique=True)
-    identity_type = EnumField(null=False, choices=['google', 'elixir'])
+    identity_type = EnumField(null=False, choices=['google', 'elixir'], default='elixir')
     affiliation   = CharField(null=True)
     country       = CharField(null=True)
 
