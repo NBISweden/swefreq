@@ -307,7 +307,6 @@ class GetUser(handlers.UnsafeHandler):
                 'email':       user.email,
                 'affiliation': user.affiliation,
                 'country':     user.country,
-                'login_type':  self.get_secure_cookie('identity_type').decode('utf-8'),
             }
 
         self.finish(ret)
