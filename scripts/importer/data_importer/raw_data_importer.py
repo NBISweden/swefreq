@@ -223,13 +223,13 @@ class RawDataImporter(DataImporter):
                     if self.settings.add_reversed_mates:
                         # If the vcf only contains one line per breakend, add the reversed version to the database here.
                         reversed = dict(data)
-                        # TODO Note: in general, ref and alt cannot be assumed to be the same in the reversed direction,
+                        # Note: in general, ref and alt cannot be assumed to be the same in the reversed direction,
                         # but our data (so far) only contains N, so we just keep them as is for now.
                         reversed.update({'mate_chrom': data['chrom'], 'chrom': data['mate_chrom'],
                                          'mate_start': data['pos'], 'pos': data['mate_start'],
                                          'chrom_id': data['mate_id'], 'mate_id': data['chrom_id']})
                         reversed['variant_id'] = '{}-{}-{}-{}'.format(reversed['chrom'], reversed['pos'], reversed['ref'], alt)
-                        # TODO should the `counter` be increased here?
+                        counter += 1  # increase the counter; reversed BNDs are usually kept at their own vcf row
                         batch += [reversed]
 
                 counter += 1  # count variants (one per vcf row)
