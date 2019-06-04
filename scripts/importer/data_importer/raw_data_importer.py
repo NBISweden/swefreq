@@ -325,9 +325,8 @@ class RawDataImporter(DataImporter):
                         annotations = [dict(zip(vep_field_names, x.split('|'))) for x in consequence_array if len(vep_field_names) == len(x.split('|'))]
 
                     alt_alleles = base['alt'].split(",")
-                    if base['rsid'].startswith('rs'):
-                        rsids = [int(rsid.strip('rs')) for rsid in base['rsid'].split(';')]
-                    else:
+                    rsids = [int(rsid.strip('rs')) for rsid in base['rsid'].split(';') if rsid.startswith('rs')]
+                    if not rsids:
                         rsids = [None]
 
                     try:
