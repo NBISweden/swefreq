@@ -2,19 +2,22 @@
 Tests for the functions available in lookups.py
 """
 
+import pytest
+
+from .. import error
 from .. import lookups
 
 
-def test_get_autocomplete():
+def test_autocomplete():
     """
     Test get_autocomplete()
     """
-    res = lookups.get_autocomplete('SweGen', 'PA')
+    res = lookups.autocomplete('SweGen', 'PA')
     expected = set(["PABPC1P9", "PACSIN2", "PANX2", "PARP4P3",
                 "PARVB", "PARVG", "PATZ1", "PAXBP1", "PAXBP1-AS1"])
     assert set(res) == expected
-    res = lookups.get_autocomplete('Bad_dataset', 'PA')
-    assert not res
+    with pytest.raises(error.NotFoundError):
+        res = lookups.autocomplete('Bad_dataset', 'PA')
 
 
 def test_get_awesomebar_result():
@@ -33,6 +36,8 @@ def test_get_awesomebar_result():
     assert result == ('transcript', 'ENST00000457709')
     result = lookups.get_awesomebar_result('SweGen', '22-46615715-46615880')
     assert result == ('region', '22-46615715-46615880')
+    result = lookups.get_awesomebar_result('SweGen', '22-1234321-A-A')
+    assert result == ('not_found', '22-1234321-A-A')
     result = lookups.get_awesomebar_result('SweGen', 'CHR22:46615715-46615880')
     assert result == ('region', '22-46615715-46615880')
     result = lookups.get_awesomebar_result('SweGen', 'CHR22-29461622-G-A')
@@ -64,11 +69,12 @@ def test_get_coverage_for_bases():
     assert len(lookups.get_coverage_for_bases('SweGen', '22', 46615715, 46615880)) == 17
 
     # no hits
-    coverage = lookups.get_coverage_for_bases('SweGen', '1', 55500283, 55500285)
-    assert not coverage
+    with pytest.raises(error.NotFoundError):
+        lookups.get_coverage_for_bases('SweGen', '1', 55500283, 55500285)
 
     # incorrect dataset
-    assert not lookups.get_coverage_for_bases('BAD_DATASET', '1', 55500283, 55500320)
+    with pytest.raises(error.NotFoundError):
+        lookups.get_coverage_for_bases('BAD_DATASET', '1', 55500283, 55500320)
 
 
 def test_get_coverage_for_transcript():
@@ -93,11 +99,12 @@ def test_get_coverage_for_transcript():
     assert len(lookups.get_coverage_for_transcript('SweGen', '22', 46615715, 46615880)) == 17
 
     # no hits
-    coverage = lookups.get_coverage_for_transcript('SweGen', '1', 55500283, 55500285)
-    assert not coverage
+    with pytest.raises(error.NotFoundError):
+        coverage = lookups.get_coverage_for_transcript('SweGen', '1', 55500283, 55500285)
 
     # incorrect dataset
-    assert not lookups.get_coverage_for_transcript('BAD_DATASET', '1', 55500283, 55500320)
+    with pytest.raises(error.NotFoundError):
+        assert not lookups.get_coverage_for_transcript('BAD_DATASET', '1', 55500283, 55500320)
 
 
 def test_get_exons_in_transcript():
@@ -108,12 +115,12 @@ def test_get_exons_in_transcript():
     assert len(result) == 14
 
     # bad dataset
-    result = lookups.get_exons_in_transcript('NO_DATASET', 'ENST00000215855')
-    assert not result
+    with pytest.raises(error.NotFoundError):
+        result = lookups.get_exons_in_transcript('NO_DATASET', 'ENST00000215855')
 
     # bad transcript
-    result = lookups.get_exons_in_transcript('SweGen', 'BAD_TRANSCRIPT')
-    assert not result
+    with pytest.raises(error.NotFoundError):
+        result = lookups.get_exons_in_transcript('SweGen', 'BAD_TRANSCRIPT')
 
 
 def test_get_gene():
@@ -135,12 +142,12 @@ def test_get_gene():
         assert result[val] == expected[val]
 
     # non-existing gene
-    result = lookups.get_gene('SweGen', 'NOT_A_GENE')
-    assert not result
+    with pytest.raises(error.NotFoundError):
+        result = lookups.get_gene('SweGen', 'NOT_A_GENE')
 
     # non-existing dataset
-    result = lookups.get_gene('NoDataset', 'ENSG00000223972')
-    assert not result
+    with pytest.raises(error.NotFoundError):
+        result = lookups.get_gene('NoDataset', 'ENSG00000223972')
 
 
 def test_get_gene_by_dbid():
@@ -186,17 +193,15 @@ def test_get_gene_by_name(caplog):
         assert result[val] == expected[val]
 
     # non-existing gene
-    result = lookups.get_gene_by_name('SweGen', 'NOT_A_GENE')
-    assert not result
-    assert caplog.messages[0] == 'get_gene_by_name(SweGen, NOT_A_GENE): unable to retrieve gene'
+    with pytest.raises(error.NotFoundError):
+        lookups.get_gene_by_name('SweGen', 'NOT_A_GENE')
 
     # non-existing dataset
-    result = lookups.get_gene_by_name('NoDataset', 'ENSG00000223972')
-    assert not result
+    with pytest.raises(error.NotFoundError):
+        lookups.get_gene_by_name('NoDataset', 'ENSG00000223972')
 
     # name in other_names
     result = lookups.get_gene_by_name('SweGen', 'BCL8C')
-    print(result)
     assert result['gene_id'] == 'ENSG00000223875'
 
 
@@ -214,10 +219,10 @@ def test_get_genes_in_region():
     expected_ids = ['ENSG00000231565']
     assert [gene['gene_id'] for gene in res] == expected_ids
     # bad dataset
-    res = lookups.get_genes_in_region('bad_dataset', '22', 25595800, 25615800)
+    with pytest.raises(error.NotFoundError):
+        lookups.get_genes_in_region('bad_dataset', '22', 25595800, 25615800)
     # nothing found
-    res = lookups.get_genes_in_region('SweGen', '22', 25595800, 25595801)
-    assert not res
+    assert not lookups.get_genes_in_region('SweGen', '22', 25595800, 25595801)
 
 
 def test_get_transcript():
@@ -237,7 +242,8 @@ def test_get_transcript():
     assert len(result['exons']) == 1
 
     # non-existing
-    assert not lookups.get_transcript('SweGen', 'INCORRECT')
+    with pytest.raises(error.NotFoundError):
+        lookups.get_transcript('SweGen', 'INCORRECT')
 
 
 def test_get_transcripts_in_gene():
@@ -247,8 +253,10 @@ def test_get_transcripts_in_gene():
     res = lookups.get_transcripts_in_gene('SweGen', 'ENSG00000228314')
     assert len(res) == 3
 
-    assert not lookups.get_transcripts_in_gene('bad_dataset', 'ENSG00000241670')
-    assert not lookups.get_transcripts_in_gene('SweGen', 'ENSGASDFG')
+    with pytest.raises(error.NotFoundError):
+        lookups.get_transcripts_in_gene('bad_dataset', 'ENSG00000241670')
+    with pytest.raises(error.NotFoundError):
+        lookups.get_transcripts_in_gene('SweGen', 'ENSGASDFG')
 
 
 def test_get_raw_variant():
@@ -260,8 +268,10 @@ def test_get_raw_variant():
     assert len(result['genes']) == len(['ENSG00000229286', 'ENSG00000235265'])
     assert set(result['transcripts']) == set(['ENST00000448070', 'ENST00000413156'])
     assert len(result['transcripts']) == len(['ENST00000448070', 'ENST00000413156'])
-    assert not lookups.get_raw_variant('SweGen', 55500281, '1', 'A', 'T')
-    assert not lookups.get_raw_variant('bad_dataset', 55500283, '1', 'A', 'T')
+    with pytest.raises(error.NotFoundError):
+        assert not lookups.get_raw_variant('SweGen', 55500281, '1', 'A', 'T')
+    with pytest.raises(error.NotFoundError):
+        assert not lookups.get_raw_variant('bad_dataset', 55500283, '1', 'A', 'T')
 
 
 def test_get_transcripts_in_gene_by_dbid():
@@ -285,15 +295,20 @@ def test_get_variant():
     assert len(result['genes']) == len(['ENSG00000229286', 'ENSG00000235265'])
     assert set(result['transcripts']) == set(['ENST00000448070', 'ENST00000413156'])
     assert len(result['transcripts']) == len(['ENST00000448070', 'ENST00000413156'])
-    result = lookups.get_variant('SweGen', 9411609, '21', 'G', 'T')
-    assert not result
+
+    # not found
+    with pytest.raises(error.NotFoundError):
+        result = lookups.get_variant('SweGen', 12321, '21', 'G', 'G')
+    with pytest.raises(error.NotFoundError):
+        result = lookups.get_variant('SweGen', 9411609, '21', 'G', 'T')
 
     # incorrect position
-    assert not lookups.get_variant('SweGen', -1, '1', 'A', 'T')
+    with pytest.raises(error.NotFoundError):
+        assert not lookups.get_variant('SweGen', -1, '1', 'A', 'T')
 
     # with version
-    result = lookups.get_variant('SweGen', 16057464, '22', 'G', 'A', "20161223")
-    assert not result
+    with pytest.raises(error.NotFoundError):
+        result = lookups.get_variant('SweGen', 16057464, '22', 'G', 'A', "20161223")
     result = lookups.get_variant('SweGen', 9411609, '21', 'G', 'T', "20161223")
     assert result['variant_id'] == '21-9411609-G-T'
 
@@ -306,19 +321,25 @@ def test_get_variants_by_rsid():
     result = lookups.get_variants_by_rsid('SweGen', 'rs142856307')
     assert result[0]['pos'] == 16285954
     assert len(result) == 5
-    assert not lookups.get_variants_by_rsid('SweGen', 'rs76676778')
+    with pytest.raises(error.NotFoundError):
+        assert not lookups.get_variants_by_rsid('SweGen', 'rs76676778')
     # with version
-    assert not lookups.get_variants_by_rsid('SweGen', 'rs185758992', '20161223')
+    with pytest.raises(error.NotFoundError):
+        lookups.get_variants_by_rsid('SweGen', 'rs185758992', '20161223')
     result = lookups.get_variants_by_rsid('SweGen', 'rs76676778', '20161223')
     assert result[0]['variant_id'] == '21-9411609-G-T'
 
     # errors
-    assert lookups.get_variants_by_rsid('incorrect_name', 'rs373706802') is None
-    assert lookups.get_variants_by_rsid('SweGen', '373706802') is None
-    assert lookups.get_variants_by_rsid('SweGen', 'rs3737o68o2') is None
+    with pytest.raises(error.NotFoundError):
+        lookups.get_variants_by_rsid('incorrect_name', 'rs373706802')
+    with pytest.raises(error.ParsingError):
+        lookups.get_variants_by_rsid('SweGen', '373706802')
+    with pytest.raises(error.ParsingError):
+        lookups.get_variants_by_rsid('SweGen', 'rs3737o68o2')
 
     # no variants with rsid available
-    assert not lookups.get_variants_by_rsid('SweGen', 'rs1')
+    with pytest.raises(error.NotFoundError):
+        lookups.get_variants_by_rsid('SweGen', 'rs1')
 
 
 def test_get_variants_in_gene():
@@ -327,9 +348,17 @@ def test_get_variants_in_gene():
     """
     res = lookups.get_variants_in_gene('SweGen', 'ENSG00000198062')
     assert len(res) == 512
-    assert not lookups.get_variants_in_gene('bad_dataset', 'ENSG00000198062')
-    assert not lookups.get_variants_in_gene('bad_dataset', 'ENSGASDFG')
-    assert not lookups.get_variants_in_gene('SweGen', 'ENSG00000198062', "BAD_VERSION")
+
+    # existing gene without variants
+    assert not lookups.get_variants_in_gene('SweGen', 'ENSG00000128298')
+
+    # bad requests
+    with pytest.raises(error.NotFoundError):
+        lookups.get_variants_in_gene('bad_dataset', 'ENSG00000198062')
+    with pytest.raises(error.NotFoundError):
+        lookups.get_variants_in_gene('bad_dataset', 'ENSGASDFG')
+    with pytest.raises(error.NotFoundError):
+        lookups.get_variants_in_gene('SweGen', 'ENSG00000198062', "BAD_VERSION")
 
 
 def test_get_variants_in_region():
@@ -342,12 +371,14 @@ def test_get_variants_in_region():
     assert [res['pos'] for res in result] == expected_pos
 
     # no positions covered
-    result = lookups.get_variants_in_region('SweGen', '22', 16079200, 16079000)
-    assert not result
+    assert not lookups.get_variants_in_region('SweGen', '22', 16079200, 16079000)
+
+    # no variants found
+    assert not lookups.get_variants_in_region('SweGen', '22', 106079000, 106079200)
 
     # incorrect dataset
-    result = lookups.get_variants_in_region('Incorrect_dataset', '22', 16079200, 16079400)
-    assert not result
+    with pytest.raises(error.NotFoundError):
+        lookups.get_variants_in_region('Incorrect_dataset', '22', 16079200, 16079400)
 
 
 def test_get_variants_in_transcript():
@@ -356,5 +387,9 @@ def test_get_variants_in_transcript():
     """
     res = lookups.get_variants_in_transcript('SweGen', 'ENST00000452800')
     assert len(res) == 508
-    assert not lookups.get_variants_in_transcript('BAD_DATASET', 'ENST00000452800')
-    assert not lookups.get_variants_in_transcript('SweGen', 'ENST123')
+
+    # bad requests
+    with pytest.raises(error.NotFoundError):
+        assert not lookups.get_variants_in_transcript('BAD_DATASET', 'ENST00000452800')
+    with pytest.raises(error.NotFoundError):
+        assert not lookups.get_variants_in_transcript('SweGen', 'ENST123')

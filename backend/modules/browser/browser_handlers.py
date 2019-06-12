@@ -5,6 +5,7 @@ import logging
 import db
 import handlers
 
+from . import error
 from . import lookups
 from . import utils
 
@@ -24,7 +25,7 @@ class Autocomplete(handlers.UnsafeHandler):
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         ret = {}
 
-        results = lookups.get_autocomplete(dataset, query, ds_version)
+        results = lookups.autocomplete(dataset, query, ds_version)
         ret = {'values': sorted(list(set(results)))[:20]}
 
         self.finish(ret)
@@ -87,12 +88,13 @@ class GetCoverage(handlers.UnsafeHandler):
             ds_version (str): dataset version
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
-        ret = utils.get_coverage(dataset, datatype, item, ds_version)
-        if 'bad_region' in ret:
-            self.send_error(status_code=400, reason="Unable to parse the region")
+        try:
+            ret = utils.get_coverage(dataset, datatype, item, ds_version)
+        except error.NotFoundError as err:
+            self.send_error(status_code=404, reason=str(err))
             return
-        if 'region_too_large' in ret:
-            self.send_error(status_code=400, reason="The region is too large")
+        except (error.ParsingError, error.MalformedRequest) as err:
+            self.send_error(status_code=400, reason=str(err))
             return
         self.finish(ret)
 
@@ -114,7 +116,7 @@ class GetCoveragePos(handlers.UnsafeHandler):
         try:
             ret = utils.get_coverage_pos(dataset, datatype, item, ds_version)
         except ValueError:
-            logging.error('GetCoveragePos: unable to parse region ({})'.format(region))
+            logging.error('GetCoveragePos: unable to parse region ({})'.format(item))
             self.send_error(status_code=400, reason='Unable to parse region')
             return
 
@@ -139,7 +141,15 @@ class GetGene(handlers.UnsafeHandler):
         ret = {'gene':{'gene_id': gene_id}}
 
         # Gene
-        gene = lookups.get_gene(dataset, gene_id, ds_version)
+        try:
+            gene = lookups.get_gene(dataset, gene_id, ds_version)
+        except error.NotFoundError as err:
+            self.send_error(status_code=404, reason=str(err))
+            return
+        except (error.ParsingError, error.MalformedRequest) as err:
+            self.send_error(status_code=400, reason=str(err))
+            return
+
         if not gene:
             self.send_error(status_code=404, reason='Gene not found')
             return
@@ -181,9 +191,9 @@ class GetRegion(handlers.UnsafeHandler):
 
         try:
             chrom, start, stop = utils.parse_region(region)
-        except ValueError:
-            logging.error('GetRegion: unable to parse region ({})'.format(region))
-            self.send_error(status_code=400, reason='Unable to parse region')
+        except error.ParsingError as err:
+            self.send_error(status_code=400, reason=str(err))
+            logging.warning('GetRegion: unable to parse region ({})'.format(region))
             return
 
         ret = {'region':{'chrom': chrom,
@@ -193,7 +203,7 @@ class GetRegion(handlers.UnsafeHandler):
               }
 
         if utils.is_region_too_large(start, stop):
-            self.send_error(status_code=400, reason="The region is too large")
+            self.send_error(status_code=400, reason='Region too large')
             return
 
         genes_in_region = lookups.get_genes_in_region(dataset, chrom, start, stop, ds_version)
@@ -229,10 +239,12 @@ class GetTranscript(handlers.UnsafeHandler):
               }
 
         # Add transcript information
-        transcript = lookups.get_transcript(dataset, transcript_id, ds_version)
-        if not transcript:
-            self.send_error(status_code=404, reason='Transcript not found')
+        try: 
+            transcript = lookups.get_transcript(dataset, transcript_id, ds_version)
+        except error.NotFoundError as err:
+            self.send_error(status_code=404, reason=str(err))
             return
+        
         ret['transcript']['id'] = transcript['transcript_id']
         ret['transcript']['number_of_CDS'] = len([t for t in transcript['exons'] if t['feature_type'] == 'CDS'])
 
@@ -270,18 +282,21 @@ class GetVariant(handlers.UnsafeHandler):
         ret = {'variant':{}}
         # Variant
         v = variant.split('-')
+        if len(v) != 4:
+            logging.error('GetVariant: unable to parse variant ({})'.format(variant))
+            self.send_error(status_code=400, reason=f'Unable to parse variant {variant}')
         try:
             v[1] = int(v[1])
         except ValueError:
-            logging.error('GetVariant: unable to parse variant ({})'.format(variant))
-            self.send_error(status_code=400, reason="Unable to parse variant")
+            logging.error('GetVariant: position not an integer ({})'.format(variant))
+            self.send_error(status_code=400, reason=f'Position is not an integer in variant {variant}')
             return
         orig_variant = variant
-        variant = lookups.get_variant(dataset, v[1], v[0], v[2], v[3], ds_version)
-
-        if not variant:
+        try:
+            variant = lookups.get_variant(dataset, v[1], v[0], v[2], v[3], ds_version)
+        except error.NotFoundError as err:
             logging.error('Variant not found ({})'.format(orig_variant))
-            self.send_error(status_code=404, reason='Variant not found')
+            self.send_error(status_code=404, reason=str(err))
             return
 
         # Just get the information we need
@@ -379,12 +394,13 @@ class GetVariants(handlers.UnsafeHandler):
             item (str): item to query
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
-        ret = utils.get_variant_list(dataset, datatype, item, ds_version)
-        if not ret:
-            self.send_error(status_code=500, reason='Unable to retrieve variants')
+        try:
+            ret = utils.get_variant_list(dataset, datatype, item, ds_version)
+        except error.NotFoundError as err:
+            self.send_error(status_code=404, reason=str(err))
             return
-        if 'region_too_large' in ret:
-            self.send_error(status_code=400, reason="The region is too large")
+        except (error.ParsingError, error.MalformedRequest) as err:
+            self.send_error(status_code=400, reason=str(err))
             return
 
         # inconvenient way of doing humpBack-conversion
