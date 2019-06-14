@@ -1,4 +1,5 @@
 """Lookup functions for the variant browser."""
+
 import logging
 import re
 
@@ -119,8 +120,13 @@ def get_awesomebar_result(dataset:str, query:str, ds_version:str=None):
         target_type = 'region'
         if match.group(2) == ":":
             target = target.replace(":","-")
+
         if match.group(5) and set(match.group(4)).issubset(set("ACGT")):
             target_type = 'variant'
+            try:
+                get_raw_variant(dataset, match.group(3), match.group(1), match.group(4), match.group(5), ds_version)
+            except error.NotFoundError as err:
+                target_type = 'not_found'
 
         return target_type, target
 
