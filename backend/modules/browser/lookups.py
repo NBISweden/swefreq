@@ -41,6 +41,7 @@ def get_awesomebar_result(dataset:str, query:str, ds_version:str=None):
     Parse the search input.
 
     Datatype is one of:
+
     * `gene`
     * `transcript`
     * `variant`
@@ -48,11 +49,13 @@ def get_awesomebar_result(dataset:str, query:str, ds_version:str=None):
     * `region`
 
     Identifier is one of:
+
     * ensembl ID for gene
     * variant ID string for variant (eg. 1-1000-A-T)
     * region ID string for region (eg. 1-1000-2000)
 
     Follow these steps:
+
     * if query is an ensembl ID, return it
     * if a gene symbol, return that gene's ensembl ID
     * if an RSID, return that variant's string
