@@ -335,7 +335,6 @@ class GetVariant(handlers.UnsafeHandler):
                       'canonical':    annotation['CANONICAL'],
                       'modification': annotation['HGVSp'].split(":")[1] if ':' in annotation['HGVSp'] else None}]
 
-
         # Dataset frequencies.
         # This is reported per variable in the database data, with dataset
         # information inside the variables, so here we reorder to make the
@@ -347,9 +346,11 @@ class GetVariant(handlers.UnsafeHandler):
         dsvs = [dsv for dsv in dsvs if dsv.reference_set == curr_dsv.reference_set]
         dsv_groups = [(curr_dsv, variant)]
         for dsv in dsvs:
-            hit = lookups.get_variant(dsv.dataset.short_name, v[1], v[0], v[2], v[3], dsv.version)
-            if hit:
-                dsv_groups.append((dsv, hit))
+            try:
+                hit = lookups.get_variant(dsv.dataset.short_name, v[1], v[0], v[2], v[3], dsv.version)
+            except error.NotFoundError:
+                continue
+            dsv_groups.append((dsv, hit))
 
         frequencies = {'headers':[['Dataset','pop'],
                                ['Allele Count','acs'],
