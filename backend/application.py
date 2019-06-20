@@ -521,7 +521,7 @@ class DatasetUsersPending(handlers.AdminHandler):
                    ))
         query = peewee.prefetch(users, access)
 
-        self.finish({'data': _build_json_response(query, lambda u: u.access_pending_prefetch)})
+        self.finish({'data': _build_json_response(query, lambda u: u.access_pending)})
 
 
 class DatasetUsersCurrent(handlers.AdminHandler):
@@ -536,7 +536,7 @@ class DatasetUsersCurrent(handlers.AdminHandler):
                    ))
         query = peewee.prefetch(users, access)
         self.finish({'data': _build_json_response(
-            query, lambda u: u.access_current_prefetch)})
+            query, lambda u: u.access_current)})
 
 
 class UserDatasetAccess(handlers.SafeHandler):
