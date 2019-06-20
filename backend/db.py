@@ -587,7 +587,7 @@ def get_dataset_version(dataset:str, version:str=None):
 def build_dict_from_row(row):
     d = {}
 
-    for field, value in row.__dict__['_data'].items():
+    for field, value in row.__dict__['__data__'].items():
         if field == "id":
             continue
         d[field] = value
