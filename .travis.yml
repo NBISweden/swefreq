@@ -1,6 +1,10 @@
 language: python
-python:
-    - "3.6"
+matrix:
+    include:
+        - python: 3.6
+          dist: bionic
+        - python: 3.7
+          dist: bionic
 services:
     - docker
 before_install:
