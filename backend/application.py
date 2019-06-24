@@ -63,12 +63,14 @@ class GetSchema(handlers.UnsafeHandler):
     def get(self):
         dataset = None
         version = None
+        beacon = None
         try:
             url = self.get_argument('url')
             match = re.match(".*/dataset/([^/]+)(/version/([^/]+))?", url)
             if match:
                 dataset = match.group(1)
                 version = match.group(3)
+            beacon = re.match(".*/dataset/.*/beacon", url)
         except tornado.web.MissingArgumentError:
             pass
 
@@ -125,6 +127,21 @@ class GetSchema(handlers.UnsafeHandler):
                 logging.error("Dataset version does not exist: {}".format(e))
             except db.DatasetVersionCurrent.DoesNotExist as e:
                 logging.error("Dataset does not exist: {}".format(e))
+
+        if beacon:
+            base = {"@context": "http://schema.org",
+                    "@id": "https://swefreq.nbis.se/api/beacon-elixir/",  # or maybe "se.nbis.swefreq" as in the beacon api?
+                    "@type": "Beacon",
+                    "dataset": [dataset_schema],
+                    "dct:conformsTo": "https://bioschemas.org/specifications/drafts/Beacon/",
+                    "name": "Swefreq Beacon",
+                    "provider": base["provider"],
+                    "supportedRefs": ["GRCh37"],
+                    "description": "Beacon API Web Server based on the GA4GH Beacon API",
+                    "version": "1.1.0",  # beacon api version
+                    "aggregator": False,
+                    "url": "https://swefreq.nbis.se/api/beacon-elixir/"
+                   }
 
         self.finish(base)
 
