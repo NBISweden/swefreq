@@ -2,6 +2,9 @@
 Tests for utils.py
 """
 
+import pytest
+
+from .. import error
 from .. import lookups
 from .. import utils
 
@@ -52,7 +55,7 @@ def test_add_consequence_to_variant():
     assert variant['major_consequence'] == ''
 
     # bad variant
-    variant = lookups.get_variant('SweGen', 38481311, '444', 'C', 'T')
+    variant = {}
     utils.add_consequence_to_variant(variant)
     assert not variant
 
@@ -74,18 +77,22 @@ def test_get_coverage():
     assert len(res['coverage']) == 144
     res = utils.get_coverage('SweGen', 'region', '22-46615715-46615880')
     assert len(res['coverage']) == 17
-    res = utils.get_coverage('SweGen', 'region', '22:46615715-46615880')
-    assert not res['coverage']
-    res = utils.get_coverage('SweGen', 'region', '22-46615715asd-46615880')
-    assert not res['coverage']
-    assert res['bad_region']
     res = utils.get_coverage('SweGen', 'transcript', 'ENST00000438441')
     assert len(res['coverage']) == 144
 
-    assert not utils.get_coverage('BAD_SET', 'transcript', 'ENST00000438441')['coverage']
+    # bad regions
+    with pytest.raises(error.ParsingError):
+        res = utils.get_coverage('SweGen', 'region', '22-46615715asd-46615880')
+    # is seen as 22:46615715-46615880-46615880
+    with pytest.raises(error.NotFoundError):
+        utils.get_coverage('SweGen', 'region', '22:46615715-46615880')
 
-    res = utils.get_coverage('SweGen', 'region', '22-1-1000000')
-    assert res['region_too_large']
+    # no coverage found
+    with pytest.raises(error.NotFoundError):
+        utils.get_coverage('BAD_SET', 'transcript', 'ENST00000438441')['coverage']
+
+    with pytest.raises(error.MalformedRequest):
+        res = utils.get_coverage('SweGen', 'region', '22-1-1000000')
 
 
 def test_get_coverage_pos():
@@ -105,9 +112,20 @@ def test_get_coverage_pos():
     assert res['start'] == 16364817
     assert res['stop'] == 16366254
 
-    res = utils.get_coverage_pos('BAD_SET', 'transcript', 'ENST00000438441')
-    for value in res.values():
-        assert not value
+    # bad requests
+    with pytest.raises(error.NotFoundError):
+        utils.get_coverage_pos('BAD_SET', 'transcript', 'ENST00000438441')
+    with pytest.raises(error.NotFoundError):
+        utils.get_coverage_pos('SweGen', 'transcript', 'ENST1234321')
+    with pytest.raises(error.NotFoundError):
+        utils.get_coverage_pos('SweGen', 'gene', 'ENSG1234321')
+    with pytest.raises(error.ParsingError):
+        utils.get_coverage_pos('BAD_SET', 'region', '1:1:1:1')
+
+    # too large request
+    with pytest.raises(error.MalformedRequest):
+        utils.get_coverage_pos('SweGen', 'region', '1-1-10000000')
+
 
 
 def test_data_structures():
@@ -191,13 +209,23 @@ def test_get_variant_list():
     assert len(res['variants']) == 13
     res = utils.get_variant_list('SweGen', 'transcript', 'ENST00000438441')
     assert len(res['variants']) == 178
-    res = utils.get_variant_list('SweGen', 'transcript', 'ENSTWEIRD')
-    assert not res
-    res = utils.get_variant_list('SweGen', 'region', '22-1-1000000')
-    assert res['region_too_large']
-
     res = utils.get_variant_list('SweGen', 'region', '22-16272587')
     assert len(res['variants']) == 4
+
+
+    # bad requests
+    with pytest.raises(error.NotFoundError):
+        utils.get_variant_list('SweGen', 'transcript', 'ENSTWEIRD')
+    with pytest.raises(error.NotFoundError):
+        utils.get_variant_list('Bad_dataset', 'transcript', 'ENSTWEIRD')
+    with pytest.raises(error.NotFoundError):
+        utils.get_variant_list('SweGen', 'gene', 'ENSG1234321')
+    with pytest.raises(error.ParsingError):
+        utils.get_variant_list('SweGen', 'region', '1-1-1-1-1')
+
+    # too large region
+    with pytest.raises(error.MalformedRequest):
+        utils.get_variant_list('SweGen', 'region', '22-1-1000000')
 
 
 def test_order_vep_by_csq():
@@ -222,6 +250,24 @@ def test_parse_dataset():
     assert utils.parse_dataset('SweGen') == ('SweGen', None)
     assert utils.parse_dataset('SweGen', '180101') == ('SweGen', '180101')
     assert utils.parse_dataset('hg19:SweGen:180101') == ('SweGen', '180101')
+
+
+def test_parse_region():
+    assert utils.parse_region('1-2-3') == ('1', 2, 3)
+    assert utils.parse_region('X-15-30') == ('X', 15, 30)
+    assert utils.parse_region('1-2') == ('1', 2, 2)
+
+    # bad regions
+    with pytest.raises(error.ParsingError):
+        print(utils.parse_region('1:2:2'))
+    with pytest.raises(error.ParsingError):
+        utils.parse_region('1-2-2-2')
+    with pytest.raises(error.ParsingError):
+        utils.parse_region('asdfgh')
+    with pytest.raises(error.ParsingError):
+        utils.parse_region('X-15-z')
+    with pytest.raises(error.ParsingError):
+        utils.parse_region('X-y-15')
 
 
 def test_remove_extraneous_vep_annotations():
