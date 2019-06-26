@@ -19,16 +19,11 @@ define("develop", default=False, help="Run in develop environment", type=bool)
 tornado_settings = {"debug": False,
             "cookie_secret": swefreq_settings.cookie_secret,
             "login_url": "/login",
-            "google_oauth": {
-                "key": swefreq_settings.google_key,
-                "secret": swefreq_settings.google_secret
-            },
             "elixir_oauth": {
                 "id": swefreq_settings.elixir["id"],
                 "secret": swefreq_settings.elixir["secret"],
                 "redirect_uri": swefreq_settings.elixir["redirectUri"],
             },
-            "redirect_uri": swefreq_settings.redirect_uri,
             "xsrf_cookies": True,
             "template_path": "templates/",
         }
@@ -49,10 +44,7 @@ class Application(tornado.web.Application):
             (r"/logout",                                                              auth.ElixirLogoutHandler),
             (r"/elixir/login",                                                        auth.ElixirLoginHandler),
             (r"/elixir/logout",                                                       auth.ElixirLogoutHandler),
-            (r"/google/login",                                                        auth.GoogleLoginHandler),
-            (r"/google/logout",                                                       auth.GoogleLogoutHandler),
             ## API Methods
-            (r"/api/users/elixir_transfer",                                           auth.UpdateUserHandler),
             (r"/api/countries",                                                       application.CountryList),
             (r"/api/users/me",                                                        application.GetUser),
             (r"/api/users/datasets",                                                  application.UserDatasetAccess),
@@ -92,9 +84,6 @@ class Application(tornado.web.Application):
         if settings.get('develop', False):
             self.declared_handlers.insert(-1, ("/developer/login", auth.DeveloperLoginHandler))
             self.declared_handlers.insert(-1, ("/developer/quit",  application.QuitHandler))
-
-        # google oauth key
-        self.oauth_key = tornado_settings["google_oauth"]["key"]
 
         # Setup the Tornado Application
         tornado.web.Application.__init__(self, self.declared_handlers, **settings)

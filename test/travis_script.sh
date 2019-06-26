@@ -1,10 +1,13 @@
 #!/bin/sh -ex
 
+DBNAME=swefreq
+
 ## SETUP SETTINGS
 cp settings_sample.json settings.json
+
 sed -i.tmp 's/"postgresHost" : "postgres host"/"postgresHost" : "127.0.0.1"/' settings.json
 sed -i.tmp 's/"postgresPort" : 5432/"postgresPort" : 5433/' settings.json
-sed -i.tmp 's/"postgresName" : "swefreq"/"postgresName" : ""/' settings.json
+sed -i.tmp "s/\"postgresName\" : \"swefreq\"/\"postgresName\" : \"$DBNAME\"/" settings.json
 
 echo 'SETTINGS'
 cat settings.json
@@ -15,20 +18,20 @@ echo '>>> Test 1. The SQL Patch'
 LATEST_RELEASE=$(git tag | grep '^v' | sort -V | tail -n 1)
 git show "$LATEST_RELEASE:sql/*_schema.sql" > master-schema.sql
 
-psql -U postgres -h 127.0.0.1 -p 5433 -f master-schema.sql
-psql -U postgres -h 127.0.0.1 -p 5433 -f sql/patch-master-db.sql
+psql -U postgres -h 127.0.0.1 -p 5433 -f master-schema.sql "$DBNAME"
+psql -U postgres -h 127.0.0.1 -p 5433 -f sql/patch-master-db.sql "$DBNAME"
 
 # Empty the database
-psql -U postgres -h 127.0.0.1 -p 5433 <<__END__
+psql -U postgres -h 127.0.0.1 -p 5433 "$DBNAME" <<__END__
 DROP SCHEMA data;
 DROP SCHEMA users;
 __END__
 
 echo '>>> Test 2. Load the swefreq schema'
-psql -U postgres -h 127.0.0.1 -p 5433 -f sql/data_schema.sql
-psql -U postgres -h 127.0.0.1 -p 5433 -f sql/user_schema.sql
-psql -U postgres -h 127.0.0.1 -p 5433 -f test/data/load_dummy_data.sql
-psql -U postgres -h 127.0.0.1 -p 5433 -f test/data/browser_test_data.sql
+psql -U postgres -h 127.0.0.1 -p 5433 -f sql/data_schema.sql "$DBNAME"
+psql -U postgres -h 127.0.0.1 -p 5433 -f sql/user_schema.sql "$DBNAME"
+psql -U postgres -h 127.0.0.1 -p 5433 -f test/data/load_dummy_data.sql "$DBNAME"
+psql -U postgres -h 127.0.0.1 -p 5433 -f test/data/browser_test_data.sql "$DBNAME"
 
 echo '>>> Test 3. Check that the backend starts'
 

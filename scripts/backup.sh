@@ -14,7 +14,7 @@ data_home="/data/SweFreq"
 
 userdb_base="$data_home/userdb-backup"
 userdb_dir="$userdb_base/$( date '+%Y-%m' )"
-userdb_file="$userdb_dir/tornado-userdb.$( date '+%Y%m%d-%H%M%S' ).dump"
+userdb_file="$userdb_dir/users.$( date '+%Y%m%d-%H%M%S' ).dump"
 
 release_backups="$data_home/data-backup/release"
 container_dir="ubuntu@swefreq-proxy:/opt/release"
@@ -30,11 +30,9 @@ fi
 trap 'rm -f "$tmpbackup" "$tmpbackup.gz"' EXIT
 tmpbackup="$( mktemp -p "$userdb_base" )"
 
-# Dump database, and remove the "Dump completed" comment at the end to
-# be able to compare with previous dump.
-lxc exec swefreq-web -- \
-mysqldump --complete-insert --user=swefreq --host=swefreq-db swefreq |
-sed '/^-- Dump completed on/d' >"$tmpbackup"
+# Dump database (only the "users" schema).
+lxc exec swefreq-db -- \
+pg_dump --host=localhost --user=swefreq --schema=users --no-password swefreq >"$tmpbackup"
 
 gzip --best "$tmpbackup"
 

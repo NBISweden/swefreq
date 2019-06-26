@@ -39,21 +39,21 @@ INSERT INTO data.dataset_files(id, dataset_version, basename, uri, file_size)
 
 INSERT INTO users.users(id, username, email, affiliation, country, identity, identity_type) VALUES
     (1000100, 'Not req yet',          'email0',  'i',         '', 'email0',  'elixir'),
-    (1000101, 'Requested access',     'email1',  'w1',        '', 'email1',  'google'),
+    (1000101, 'Requested access',     'email1',  'w1',        '', 'email1',  'elixir'),
     (1000102, 'Approved access',      'email2',  'c1',        '', 'email2',  'elixir'),
-    (1000103, 'Denied access',        'email3',  'i',         '', 'email3',  'google'),
+    (1000103, 'Denied access',        'email3',  'i',         '', 'email3',  'elixir'),
     (1000104, 'Approved then denied', 'email4',  'i',         '', 'email4',  'elixir'),
-    (1000105, 'R->A->D->R',           'email5',  'w1',        '', 'email5',  'google'),
+    (1000105, 'R->A->D->R',           'email5',  'w1',        '', 'email5',  'elixir'),
     (1000106, 'R->A->D->R->A',        'email6',  'c1',        '', 'email6',  'elixir'),
-    (1000107, 'R->A->D->R->D',        'email7',  'i',         '', 'email7',  'google'),
+    (1000107, 'R->A->D->R->D',        'email7',  'i',         '', 'email7',  'elixir'),
     (1000108, 'Combo1 w1 w2',         'email8',  'w1 w2',     '', 'email8',  'elixir'),
-    (1000109, 'Combo2 w1 c2',         'email9',  'w1 c2',     '', 'email9',  'google'),
+    (1000109, 'Combo2 w1 c2',         'email9',  'w1 c2',     '', 'email9',  'elixir'),
     (1000110, 'Combo3 c1 w2',         'email10', 'c1 w2',     '', 'email10', 'elixir'),
-    (1000111, 'Combo4 c1 c2',         'email11', 'c1 c2',     '', 'email11', 'google'),
+    (1000111, 'Combo4 c1 c2',         'email11', 'c1 c2',     '', 'email11', 'elixir'),
     (1000112, 'Combo5 c1 i2',         'email12', 'c1 i2',     '', 'email12', 'elixir'),
-    (1000113, 'Admin1',               'admin1',  'Rootspace', '', 'admin1',  'google'),
+    (1000113, 'Admin1',               'admin1',  'Rootspace', '', 'admin1',  'elixir'),
     (1000114, 'Admin2',               'admin2',  'Rootspace', '', 'admin2',  'elixir'),
-    (1000115, 'Admin12',              'admin12', 'Rootspace', '', 'admin12', 'google');
+    (1000115, 'Admin12',              'admin12', 'Rootspace', '', 'admin12', 'elixir');
 
 INSERT INTO users.dataset_access(user_id, dataset) VALUES
     (1000100, 1000001), (1000101, 1000001), (1000102, 1000001), (1000103, 1000001), (1000104, 1000001), (1000105, 1000001),

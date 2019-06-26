@@ -1,7 +1,6 @@
 """
 Test the browser handlers
 """
-
 import requests
 import json
 
@@ -63,7 +62,7 @@ def test_get_coverage():
     assert response.status_code == 400
     data_item = '1-1-5'
     response = requests.get('{}/api/dataset/{}/browser/coverage/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
-    assert response.status_code == 200
+    assert response.status_code == 404
 
 
 def test_get_coverage_pos():
@@ -244,9 +243,15 @@ def test_search():
     assert data['type'] == 'dbsnp'
     assert data['value'] == 142856307
 
-    query = '21-9411281-T-C'
+    query = '22-1234321-A-T'
+    response = requests.get('{}/api/dataset/{}/browser/search/{}'.format(BASE_URL, dataset, query))
+    data = json.loads(response.text)
+    assert data['type'] == 'not_found'
+    assert data['value'] == '22-1234321-A-T'
+
+    query = '21-29461622-G-A'
     version = '20161223'
     response = requests.get('{}/api/dataset/{}/version/{}/browser/search/{}'.format(BASE_URL, dataset, version, query))
     data = json.loads(response.text)
     assert data['type'] == 'variant'
-    assert data['value'] == '21-9411281-T-C'
+    assert data['value'] == '21-29461622-G-A'

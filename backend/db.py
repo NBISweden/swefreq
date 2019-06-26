@@ -61,10 +61,10 @@ class ReferenceSet(BaseModel):
     shared between reference sets, so it uses a foreign key instead.
     """
     class Meta:
-        db_table = 'reference_sets'
+        table_name = 'reference_sets'
         schema = 'data'
 
-    name = CharField(db_column="reference_name", null=True)
+    name = CharField(column_name="reference_name", null=True)
     ensembl_version = CharField()
     gencode_version = CharField()
     dbnsfp_version = CharField()
@@ -73,52 +73,52 @@ class ReferenceSet(BaseModel):
 
 class Gene(BaseModel):
     class Meta:
-        db_table = 'genes'
+        table_name = 'genes'
         schema = 'data'
 
-    reference_set = ForeignKeyField(ReferenceSet, db_column="reference_set", related_name="genes")
+    reference_set = ForeignKeyField(ReferenceSet, column_name="reference_set", backref="genes")
     gene_id = CharField(unique=True, max_length=15)
-    name = CharField(db_column="gene_name", null=True)
+    name = CharField(column_name="gene_name", null=True)
     full_name = CharField(null=True)
     canonical_transcript = CharField(null=True, max_length=15)
     chrom = CharField(max_length=10)
-    start = IntegerField(db_column="start_pos")
-    stop = IntegerField(db_column="end_pos")
+    start = IntegerField(column_name="start_pos")
+    stop = IntegerField(column_name="end_pos")
     strand = EnumField(choices=['+','-'])
 
 class GeneOtherNames(BaseModel):
     class Meta:
-        db_table = 'gene_other_names'
+        table_name = 'gene_other_names'
         schema = 'data'
 
-    gene = ForeignKeyField(Gene, db_column="gene", related_name="other_names")
+    gene = ForeignKeyField(Gene, column_name="gene", backref="other_names")
     name = CharField(null=True)
 
 class Transcript(BaseModel):
     class Meta:
-        db_table = 'transcripts'
+        table_name = 'transcripts'
         schema = 'data'
 
     transcript_id = CharField(max_length=15)
-    gene = ForeignKeyField(Gene, db_column="gene", related_name="transcripts")
+    gene = ForeignKeyField(Gene, column_name="gene", backref="transcripts")
     mim_gene_accession = IntegerField()
     mim_annotation = CharField()
     chrom = CharField(max_length=10)
-    start = IntegerField(db_column="start_pos")
-    stop = IntegerField(db_column="stop_pos")
+    start = IntegerField(column_name="start_pos")
+    stop = IntegerField(column_name="stop_pos")
     strand = EnumField(choices = ['+', '-'])
 
 
 class Feature(BaseModel):
     class Meta:
-        db_table = 'features'
+        table_name = 'features'
         schema = 'data'
 
-    gene = ForeignKeyField(Gene, db_column="gene", related_name='exons')
-    transcript = ForeignKeyField(Transcript, db_column="transcript", related_name='transcripts')
+    gene = ForeignKeyField(Gene, column_name="gene", backref='exons')
+    transcript = ForeignKeyField(Transcript, column_name="transcript", backref='transcripts')
     chrom = CharField(max_length=10)
-    start = IntegerField(db_column="start_pos")
-    stop = IntegerField(db_column="stop_pos")
+    start = IntegerField(column_name="start_pos")
+    stop = IntegerField(column_name="stop_pos")
     strand = EnumField(choices = ['+', '-'])
     feature_type = CharField()
 
@@ -131,10 +131,10 @@ class Collection(BaseModel):
     A collection is a source of data which can be sampled into a SampleSet.
     """
     class Meta:
-        db_table = 'collections'
+        table_name = 'collections'
         schema = 'data'
 
-    name       = CharField(db_column="study_name", null = True)
+    name       = CharField(column_name="study_name", null = True)
     ethnicity  = CharField(null = True)
 
 
@@ -144,7 +144,7 @@ class Study(BaseModel):
     one or more datasets.
     """
     class Meta:
-        db_table = 'studies'
+        table_name = 'studies'
         schema = 'data'
 
     pi_name          = CharField()
@@ -152,7 +152,7 @@ class Study(BaseModel):
     contact_name     = CharField()
     contact_email    = CharField()
     title            = CharField()
-    description      = TextField(db_column="study_description", null=True)
+    description      = TextField(column_name="study_description", null=True)
     publication_date = DateTimeField()
     ref_doi          = CharField(null=True)
 
@@ -164,15 +164,15 @@ class Dataset(BaseModel):
     Most studies only have a single dataset, but multiple are allowed.
     """
     class Meta:
-        db_table = 'datasets'
+        table_name = 'datasets'
         schema = 'data'
 
-    study              = ForeignKeyField(Study, db_column="study", related_name='datasets')
+    study              = ForeignKeyField(Study, column_name="study", backref='datasets')
     short_name         = CharField()
     full_name          = CharField()
     browser_uri        = CharField(null=True)
     beacon_uri         = CharField(null=True)
-    description        = TextField(db_column="beacon_description", null=True)
+    description        = TextField(column_name="beacon_description", null=True)
     avg_seq_depth      = FloatField(null=True)
     seq_type           = CharField(null=True)
     seq_tech           = CharField(null=True)
@@ -189,24 +189,24 @@ class Dataset(BaseModel):
 
 class SampleSet(BaseModel):
     class Meta:
-        db_table = 'sample_sets'
+        table_name = 'sample_sets'
         schema = 'data'
 
-    dataset     = ForeignKeyField(Dataset, db_column="dataset", related_name='sample_sets')
-    collection  = ForeignKeyField(Collection, db_column="collection", related_name='sample_sets')
+    dataset     = ForeignKeyField(Dataset, column_name="dataset", backref='sample_sets')
+    collection  = ForeignKeyField(Collection, column_name="collection", backref='sample_sets')
     sample_size = IntegerField()
     phenotype   = CharField(null=True)
 
 
 class DatasetVersion(BaseModel):
     class Meta:
-        db_table = 'dataset_versions'
+        table_name = 'dataset_versions'
         schema = 'data'
 
-    dataset           = ForeignKeyField(Dataset, db_column="dataset", related_name='versions')
-    reference_set     = ForeignKeyField(ReferenceSet, db_column="reference_set", related_name='dataset_versions')
-    version           = CharField(db_column="dataset_version")
-    description       = TextField(db_column="dataset_description")
+    dataset           = ForeignKeyField(Dataset, column_name="dataset", backref='versions')
+    reference_set     = ForeignKeyField(ReferenceSet, column_name="reference_set", backref='dataset_versions')
+    version           = CharField(column_name="dataset_version")
+    description       = TextField(column_name="dataset_description")
     terms             = TextField()
     available_from    = DateTimeField()
     ref_doi           = CharField(null=True)
@@ -221,23 +221,23 @@ class DatasetVersion(BaseModel):
 
 class DatasetFile(BaseModel):
     class Meta:
-        db_table = 'dataset_files'
+        table_name = 'dataset_files'
         schema = 'data'
 
-    dataset_version = ForeignKeyField(DatasetVersion, db_column="dataset_version", related_name='files')
-    name            = CharField(db_column="basename")
+    dataset_version = ForeignKeyField(DatasetVersion, column_name="dataset_version", backref='files')
+    name            = CharField(column_name="basename")
     uri             = CharField()
     file_size       = IntegerField()
 
 
 class DatasetLogo(BaseModel):
     class Meta:
-        db_table = 'dataset_logos'
+        table_name = 'dataset_logos'
         schema = 'data'
 
-    dataset      = ForeignKeyField(Dataset, db_column="dataset", related_name='logo')
+    dataset      = ForeignKeyField(Dataset, column_name="dataset", backref='logo')
     mimetype     = CharField()
-    data         = BlobField(db_column="bytes")
+    data         = BlobField(column_name="bytes")
 
 
 ###
@@ -246,10 +246,10 @@ class DatasetLogo(BaseModel):
 
 class Variant(BaseModel):
     class Meta:
-        db_table = "variants"
+        table_name = "variants"
         schema = 'data'
 
-    dataset_version = ForeignKeyField(DatasetVersion, db_column="dataset_version", related_name="variants")
+    dataset_version = ForeignKeyField(DatasetVersion, column_name="dataset_version", backref="variants")
     rsid = IntegerField()
     chrom = CharField(max_length=10)
     pos = IntegerField()
@@ -267,22 +267,42 @@ class Variant(BaseModel):
     vep_annotations = BinaryJSONField()
 
 
-class VariantGenes(BaseModel):
+class VariantMate(BaseModel):
     class Meta:
-        db_table = 'variant_genes'
+        table_name = "mate"
         schema = 'data'
 
-    variant = ForeignKeyField(Variant, db_column="variant", related_name="genes")
-    gene = ForeignKeyField(Gene, db_column="gene", related_name="variants")
+    dataset_version = ForeignKeyField(DatasetVersion, column_name="dataset_version", backref="mate")
+    chrom = CharField(max_length=10)
+    pos = IntegerField()
+    ref = CharField()
+    alt = CharField()
+    chrom_id = CharField()
+    mate_chrom = CharField()
+    mate_start = IntegerField()
+    mate_id = CharField()
+    allele_freq = FloatField()
+    variant_id = CharField()
+    allele_count = IntegerField()
+    allele_num = IntegerField()
+
+
+class VariantGenes(BaseModel):
+    class Meta:
+        table_name = 'variant_genes'
+        schema = 'data'
+
+    variant = ForeignKeyField(Variant, column_name="variant", backref="genes")
+    gene = ForeignKeyField(Gene, column_name="gene", backref="variants")
 
 
 class VariantTranscripts(BaseModel):
     class Meta:
-        db_table = 'variant_transcripts'
+        table_name = 'variant_transcripts'
         schema = 'data'
 
-    variant = ForeignKeyField(Variant, db_column="variant", related_name="transcripts")
-    transcript = ForeignKeyField(Transcript, db_column="transcript", related_name="variants")
+    variant = ForeignKeyField(Variant, column_name="variant", backref="transcripts")
+    transcript = ForeignKeyField(Transcript, column_name="transcript", backref="variants")
 
 
 class Coverage(BaseModel):
@@ -297,10 +317,10 @@ class Coverage(BaseModel):
         coverage of at least 20 in this position.
     """
     class Meta:
-        db_table = "coverage"
+        table_name = "coverage"
         schema = 'data'
 
-    dataset_version = ForeignKeyField(DatasetVersion, db_column="dataset_version")
+    dataset_version = ForeignKeyField(DatasetVersion, column_name="dataset_version")
     chrom = CharField(max_length=10)
     pos = IntegerField()
     mean = FloatField()
@@ -310,10 +330,10 @@ class Coverage(BaseModel):
 
 class Metrics(BaseModel):
     class Meta:
-        db_table = "metrics"
+        table_name = "metrics"
         schema = 'data'
 
-    dataset_version = ForeignKeyField(DatasetVersion, db_column="dataset_version")
+    dataset_version = ForeignKeyField(DatasetVersion, column_name="dataset_version")
     metric = CharField()
     mids = ArrayField(IntegerField)
     hist = ArrayField(IntegerField)
@@ -321,13 +341,13 @@ class Metrics(BaseModel):
 
 class User(BaseModel):
     class Meta:
-        db_table = "users"
+        table_name = "users"
         schema = 'users'
 
-    name          = CharField(db_column="username", null=True)
+    name          = CharField(column_name="username", null=True)
     email         = CharField(unique=True)
     identity      = CharField(unique=True)
-    identity_type = EnumField(null=False, choices=['google', 'elixir'])
+    identity_type = EnumField(null=False, choices=['google', 'elixir'], default='elixir')
     affiliation   = CharField(null=True)
     country       = CharField(null=True)
 
@@ -372,10 +392,10 @@ class User(BaseModel):
 
 class SFTPUser(BaseModel):
     class Meta:
-        db_table = "sftp_users"
+        table_name = "sftp_users"
         schema = 'users'
 
-    user          = ForeignKeyField(User, related_name='sftp_user')
+    user          = ForeignKeyField(User, backref='sftp_user')
     user_uid      = IntegerField(unique=True)
     user_name     = CharField(null=False)
     password_hash = CharField(null=False)
@@ -384,60 +404,60 @@ class SFTPUser(BaseModel):
 
 class UserAccessLog(BaseModel):
     class Meta:
-        db_table = "user_access_log"
+        table_name = "user_access_log"
         schema = 'users'
 
-    user            = ForeignKeyField(User, related_name='access_logs')
-    dataset         = ForeignKeyField(Dataset, db_column='dataset', related_name='access_logs')
+    user            = ForeignKeyField(User, backref='access_logs')
+    dataset         = ForeignKeyField(Dataset, column_name='dataset', backref='access_logs')
     action          = EnumField(null=True, choices=['access_granted','access_revoked','access_requested','private_link'])
     ts              = DateTimeField()
 
 
 class UserConsentLog(BaseModel):
     class Meta:
-        db_table = "user_consent_log"
+        table_name = "user_consent_log"
         schema = 'users'
 
-    user             = ForeignKeyField(User, related_name='consent_logs')
-    dataset_version  = ForeignKeyField(DatasetVersion, db_column='dataset_version', related_name='consent_logs')
+    user             = ForeignKeyField(User, backref='consent_logs')
+    dataset_version  = ForeignKeyField(DatasetVersion, column_name='dataset_version', backref='consent_logs')
     ts               = DateTimeField()
 
 
 class UserDownloadLog(BaseModel):
     class Meta:
-        db_table = "user_download_log"
+        table_name = "user_download_log"
         schema = 'users'
 
-    user              = ForeignKeyField(User, related_name='download_logs')
-    dataset_file      = ForeignKeyField(DatasetFile, db_column='dataset_file', related_name='download_logs')
+    user              = ForeignKeyField(User, backref='download_logs')
+    dataset_file      = ForeignKeyField(DatasetFile, column_name='dataset_file', backref='download_logs')
     ts                = DateTimeField()
 
 
 class DatasetAccess(BaseModel):
     class Meta:
-        db_table = "dataset_access"
+        table_name = "dataset_access"
         schema = 'users'
 
-    dataset          = ForeignKeyField(Dataset, db_column='dataset', related_name='access')
-    user             = ForeignKeyField(User, related_name='dataset_access')
+    dataset          = ForeignKeyField(Dataset, column_name='dataset', backref='access')
+    user             = ForeignKeyField(User, backref='dataset_access')
     wants_newsletter = BooleanField(null=True)
     is_admin         = BooleanField(null=True)
 
 
 class Linkhash(BaseModel):
     class Meta:
-        db_table = "linkhash"
+        table_name = "linkhash"
         schema = 'users'
 
-    dataset_version = ForeignKeyField(DatasetVersion, db_column='dataset_version', related_name='link_hashes')
-    user            = ForeignKeyField(User, related_name='link_hashes')
+    dataset_version = ForeignKeyField(DatasetVersion, column_name='dataset_version', backref='link_hashes')
+    user            = ForeignKeyField(User, backref='link_hashes')
     hash            = CharField()
     expires_on      = DateTimeField()
 
 
 class BeaconCounts(BaseModel):
     class Meta:
-        db_table = "beacon_dataset_counts_table"
+        table_name = "beacon_dataset_counts_table"
         schema = 'beacon'
 
     datasetid    = CharField(primary_key=True)
@@ -451,31 +471,31 @@ class BeaconCounts(BaseModel):
 
 class DatasetVersionCurrent(DatasetVersion):
     class Meta:
-        db_table = 'dataset_version_current'
+        table_name = 'dataset_version_current'
         schema = 'data'
 
-    dataset           = ForeignKeyField(Dataset, db_column="dataset", related_name='current_version')
-    reference_set     = ForeignKeyField(ReferenceSet, db_column="reference_set", related_name='current_version')
+    dataset           = ForeignKeyField(Dataset, column_name="dataset", backref='current_version')
+    reference_set     = ForeignKeyField(ReferenceSet, column_name="reference_set", backref='current_version')
 
 
 class DatasetAccessCurrent(DatasetAccess):
     class Meta:
-        db_table = 'dataset_access_current'
+        table_name = 'dataset_access_current'
         schema = 'users'
 
-    dataset          = ForeignKeyField(Dataset, db_column='dataset', related_name='access_current')
-    user             = ForeignKeyField(User, related_name='access_current')
+    dataset          = ForeignKeyField(Dataset, column_name='dataset', backref='access_current')
+    user             = ForeignKeyField(User, backref='access_current')
     has_access       = IntegerField()
     access_requested = DateTimeField()
 
 
 class DatasetAccessPending(DatasetAccess):
     class Meta:
-        db_table = 'dataset_access_pending'
+        table_name = 'dataset_access_pending'
         schema = 'users'
 
-    dataset          = ForeignKeyField(Dataset, db_column='dataset', related_name='access_pending')
-    user             = ForeignKeyField(User, related_name='access_pending')
+    dataset          = ForeignKeyField(Dataset, column_name='dataset', backref='access_pending')
+    user             = ForeignKeyField(User, backref='access_pending')
     has_access       = IntegerField()
     access_requested = DateTimeField()
 
@@ -567,7 +587,7 @@ def get_dataset_version(dataset:str, version:str=None):
 def build_dict_from_row(row):
     d = {}
 
-    for field, value in row.__dict__['_data'].items():
+    for field, value in row.__dict__['__data__'].items():
         if field == "id":
             continue
         d[field] = value

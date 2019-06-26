@@ -87,10 +87,12 @@ class DataImporter():
         filename = self._download(base_url, version)
         return self._open(filename)
 
-    def _open(self, filename):
+    def _open(self, filename, binary=True):
+        mode = 'rb' if binary else 'rt'
+        encoding = None if binary else 'utf8'
         try:
             logging.debug("Opening file {}".format(filename))
-            return gzip.open(filename, 'rb') if filename.endswith(".gz") else open(filename)
+            return gzip.open(filename, mode, encoding=encoding) if filename.endswith(".gz") else open(filename)
         except IOError as error:
             logging.error("IOERROR: {}".format(error))
 

@@ -2,6 +2,7 @@
 
 import logging
 
+from . import error
 from . import lookups
 
 # for coverage
@@ -176,12 +177,10 @@ def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
                 ret['coverage'] = lookups.get_coverage_for_transcript(dataset, transcript['chrom'], start, stop, ds_version)
 
     elif datatype == 'region':
-        try:
-            chrom, start, stop = parse_region(item)
-        except ValueError:
-            return {'coverage': [], 'bad_region':True}
+        chrom, start, stop = parse_region(item)
+            
         if is_region_too_large(start, stop):
-            return {'coverage': [], 'region_too_large': True}
+            raise error.MalformedRequest('Region too large')
         ret['coverage'] = lookups.get_coverage_for_bases(dataset, chrom, start, stop, ds_version)
 
     elif datatype == 'transcript':
@@ -211,15 +210,15 @@ def get_coverage_pos(dataset:str, datatype:str, item:str, ds_version:str=None):
 
     if datatype == 'region':
         chrom, start, stop = parse_region(item)
+        if is_region_too_large(start, stop):
+            raise error.MalformedRequest('Region too large')
         ret['start'] = start
         ret['stop'] = stop
         ret['chrom'] = chrom
     else:
         if datatype == 'gene':
             gene = lookups.get_gene(dataset, item)
-            if gene:
-                transcript = lookups.get_transcript(dataset, gene['canonical_transcript'], ds_version)
-            else: transcript = None
+            transcript = lookups.get_transcript(dataset, gene['canonical_transcript'], ds_version)
         elif datatype == 'transcript':
             transcript = lookups.get_transcript(dataset, item, ds_version)
         if transcript:
@@ -343,15 +342,10 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
         variants = lookups.get_variants_in_gene(dataset, item, ds_version)
 
     elif datatype == 'region':
-        try:
-            chrom, start, stop = parse_region(item)
-            start = int(start)
-            stop = int(stop)
-        except ValueError:
-            return None
+        chrom, start, stop = parse_region(item)
 
         if is_region_too_large(start, stop):
-            return {'variants': [], 'headers': [], 'region_too_large': True}
+            raise error.MalformedRequest('Region too large')
         variants = lookups.get_variants_in_region(dataset, chrom, start, stop, ds_version)
 
     elif datatype == 'transcript':
@@ -453,7 +447,7 @@ def parse_region(region:str):
     Parse a region with either one or two positions
 
     Args:
-        region (str): region, e.g. `3:1000000` or `3:100100`
+        region (str): region, e.g. `3-100-200` or `3-100`
 
     Returns:
         tuple: (chrom, start, pos)
@@ -465,11 +459,14 @@ def parse_region(region:str):
     elif len(parts) == 3:
         chrom, start, stop = parts
     else:
-        raise ValueError
+        raise error.ParsingError(f'Unable to parse region {region}.')
 
-    start = int(start)
-    stop = int(stop)
-
+    try:
+        start = int(start)
+        stop = int(stop)
+    except ValueError:
+        raise error.ParsingError(f'Unable to parse region {region} (positions not integers).')
+    
     return chrom, start, stop
 
 
