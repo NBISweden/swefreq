@@ -157,12 +157,12 @@ def get_coverage_for_bases(dataset:str, chrom:str, start_pos:int, end_pos:int=No
 
     if end_pos is None:
         end_pos = start_pos
-    coverage = (db.Coverage.select()
-                .where((db.Coverage.pos >= start_pos) &
-                       (db.Coverage.pos <= end_pos) &
-                       (db.Coverage.chrom == chrom) &
-                       (db.Coverage.dataset_version == dataset_version.id))
-                .dicts())
+    coverage = [row for row in (db.Coverage.select()
+                                .where((db.Coverage.pos >= start_pos) &
+                                       (db.Coverage.pos <= end_pos) &
+                                       (db.Coverage.chrom == chrom) &
+                                       (db.Coverage.dataset_version == dataset_version.id))
+                                .dicts())]
     if not coverage:
         raise error.NotFoundError('No coverage found for the region')
     return coverage
