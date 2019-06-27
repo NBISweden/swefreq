@@ -3,6 +3,7 @@
 DBNAME=swefreq
 
 ## SETUP SETTINGS
+echo '>>> Preparing for testing: Fix settings.json file'
 cp settings_sample.json settings.json
 
 sed -i.tmp 's/"postgresHost" : "postgres host"/"postgresHost" : "127.0.0.1"/' settings.json
@@ -13,7 +14,8 @@ echo 'SETTINGS'
 cat settings.json
 echo '/SETTINGS'
 
-echo '>>> Test 1. The SQL Patch'
+
+echo '>>> Test 1: The SQL Patch'
 
 LATEST_RELEASE=$(git tag | grep '^v' | sort -V | tail -n 1)
 git show "$LATEST_RELEASE:sql/*_schema.sql" > master-schema.sql
@@ -27,17 +29,20 @@ DROP SCHEMA data;
 DROP SCHEMA users;
 __END__
 
-echo '>>> Test 2. Load the swefreq schema'
+
+echo '>>> Test 2: Load the swefreq schema'
 psql -U postgres -h 127.0.0.1 -p 5433 -f sql/data_schema.sql "$DBNAME"
 psql -U postgres -h 127.0.0.1 -p 5433 -f sql/user_schema.sql "$DBNAME"
 psql -U postgres -h 127.0.0.1 -p 5433 -f test/data/load_dummy_data.sql "$DBNAME"
 psql -U postgres -h 127.0.0.1 -p 5433 -f test/data/browser_test_data.sql "$DBNAME"
 
-echo '>>> Test 3. Check that the backend starts'
+
+echo '>>> Test 3: Check that the backend starts'
 
 (cd backend && ../test/01_daemon_starts.sh)
 
-echo '>>> Test 4. the backend API'
+
+echo '>>> Test 4: The backend'
 COVERAGE_FILE=.coverage_server coverage run backend/route.py --port=4000 --develop 1>http_log.txt 2>&1 &
 BACKEND_PID=$!
 
@@ -59,10 +64,14 @@ exit_handler () {
 
 trap exit_handler EXIT
 
+
+echo '>>> Test 4A: The backend API'
 RETURN_VALUE=0
 python backend/test.py -v
 RETURN_VALUE=$((RETURN_VALUE + $?))
 
+
+echo '>>> Test 4B: The browser backend'
 # test browser
 COVERAGE_FILE=.coverage_pytest PYTHONPATH=$PYTHONPATH:backend/ py.test backend/ --cov=backend/
 RETURN_VALUE=$((RETURN_VALUE + $?))
@@ -70,6 +79,27 @@ RETURN_VALUE=$((RETURN_VALUE + $?))
 # Quit the app
 curl localhost:4000/developer/quit
 sleep 2 # Lets wait a little bit so the server has stopped
+
+
+echo '>>> Prepare for test 5: Reset the database'
+psql -U postgres -h 127.0.0.1 -p 5433 "$DBNAME" <<__END__
+DROP SCHEMA data;
+DROP SCHEMA users;
+__END__
+
+psql -U postgres -h 127.0.0.1 -p 5433 -f sql/data_schema.sql "$DBNAME"
+psql -U postgres -h 127.0.0.1 -p 5433 -f sql/user_schema.sql "$DBNAME"
+
+
+echo '>>> Test 5. Importing data'
+# read reference data
+# insert sql data with studies etc
+# read vcf files
+# make pg_dump
+# compare to reference
+
+
+echo '>>> Finalising: Combine coverage'
 
 coverage combine .coverage_pytest .coverage_server
 
