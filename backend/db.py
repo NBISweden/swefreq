@@ -269,10 +269,10 @@ class Variant(BaseModel):
 
 class VariantMate(BaseModel):
     class Meta:
-        table_name = "mate"
+        table_name = "mates"
         schema = 'data'
 
-    dataset_version = ForeignKeyField(DatasetVersion, column_name="dataset_version", backref="mate")
+    dataset_version = ForeignKeyField(DatasetVersion, column_name="dataset_version", backref="mates")
     chrom = CharField(max_length=10)
     pos = IntegerField()
     ref = CharField()

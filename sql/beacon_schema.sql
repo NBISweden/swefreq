@@ -103,7 +103,7 @@ CREATE OR REPLACE VIEW beacon.beacon_mate_table AS
            dm.allele_freq as frequency,
            dm.mate_start - 1 as "end",
            'BND' as variantType
-     FROM data.mate AS dm
+     FROM data.mates AS dm
       JOIN beacon.available_datasets as av
         ON dm.dataset_version = av.id
       JOIN data.datasets as d
