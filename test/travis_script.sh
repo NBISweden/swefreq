@@ -151,11 +151,8 @@ cat ref.psql
 
 # compare dump to reference
 diff sdump.psql ref.psql
-DIFFRES=$?
-if [ $DIFFRES -ne 0 ]; then
-    echo "Database not identical to reference"
-    RETURN_VALUE=$((RETURN_VALUE + $DIFFRES))
-fi
+
+RETURN_VALUE=$((RETURN_VALUE + $?))
 
 echo '>>> Finalising: Combine coverage'
 
