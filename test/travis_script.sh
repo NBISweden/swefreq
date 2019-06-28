@@ -25,14 +25,15 @@ psql -U postgres -h 127.0.0.1 -p 5433 -f sql/patch-master-db.sql "$DBNAME"
 
 # Empty the database
 psql -U postgres -h 127.0.0.1 -p 5433 "$DBNAME" <<__END__
-DROP SCHEMA data;
-DROP SCHEMA users;
+DROP SCHEMA data CASCADE;
+DROP SCHEMA users CASCADE;
 __END__
 
 
 echo '>>> Test 2: Load the swefreq schema'
 psql -U postgres -h 127.0.0.1 -p 5433 -f sql/data_schema.sql "$DBNAME"
 psql -U postgres -h 127.0.0.1 -p 5433 -f sql/user_schema.sql "$DBNAME"
+psql -U postgres -h 127.0.0.1 -p 5433 -f sql/beacon_schema.sql "$DBNAME"
 psql -U postgres -h 127.0.0.1 -p 5433 -f test/data/load_dummy_data.sql "$DBNAME"
 psql -U postgres -h 127.0.0.1 -p 5433 -f test/data/browser_test_data.sql "$DBNAME"
 
@@ -81,27 +82,84 @@ curl localhost:4000/developer/quit
 sleep 2 # Lets wait a little bit so the server has stopped
 
 
-echo '>>> Prepare for test 5: Reset the database'
+echo '>>> Prepare for test 5'
 psql -U postgres -h 127.0.0.1 -p 5433 "$DBNAME" <<__END__
-DROP SCHEMA data;
-DROP SCHEMA users;
+DROP SCHEMA data CASCADE;
+DROP SCHEMA users CASCADE;
 __END__
 
 psql -U postgres -h 127.0.0.1 -p 5433 -f sql/data_schema.sql "$DBNAME"
 psql -U postgres -h 127.0.0.1 -p 5433 -f sql/user_schema.sql "$DBNAME"
 
+BASE=scripts/importer
+ln -s tests/data "$BASE/downloaded_files"
+gzip -c "$BASE/downloaded_files/dbNSFP_gene.txt" > "$BASE/downloaded_files/dbNSFP2.9_gene.gz"
+gzip -c "$BASE/downloaded_files/gencode.gtf" > "$BASE/downloaded_files/gencode.v19.annotation.gtf.gz"
+gzip "$BASE/tests/data/dataset1_1.vcf"
+gzip "$BASE/tests/data/dataset1_1_coverage.txt"
+gzip "$BASE/tests/data/dataset1_2.vcf"
+gzip "$BASE/tests/data/dataset1_2_coverage.txt"
+gzip "$BASE/tests/data/dataset2_1.vcf"
 
 echo '>>> Test 5. Importing data'
-# read reference data
-# insert sql data with studies etc
-# read vcf files
-# make pg_dump
-# compare to reference
 
+sed -i -e 's/\"\$SCRIPT_DIR\/importer/COVERAGE_FILE=.coverage_import_1 coverage run \"\$SCRIPT_DIR\/importer/g' scripts/manage.sh
+# read reference data
+scripts/manage.sh import --add_reference\
+                  --gencode_version 19\
+                  --ensembl_version homo_sapiens_core_75_37\
+		  --assembly_id GRCh37p13\
+                  --dbnsfp_version 2.9.3\
+                  --ref_name GRCh37p13
+
+# read dataset names, versions etc
+psql -U postgres -h 127.0.0.1 -p 5433 -f "$BASE/tests/data/base_info.sql" "$DBNAME"
+
+
+# read variant data
+sed -i -e 's/import_1/import_2/' scripts/manage.sh
+scripts/manage.sh import --add_raw_data \
+                   --dataset  "Dataset 1"\
+                   --version "Version 1"\
+                   --variant_file "$BASE/tests/data/dataset1_1.vcf.gz"\
+		   --coverage_file "$BASE/tests/data/dataset1_1_coverage.txt.gz"
+
+sed -i -e 's/import_2/import_3/' scripts/manage.sh
+scripts/manage.sh import --add_raw_data \
+                   --dataset  "Dataset 1"\
+                   --version "Version 2"\
+                   --variant_file "$BASE/tests/data/dataset1_2.vcf.gz"\
+		   --coverage_file "$BASE/tests/data/dataset1_2_coverage.txt.gz"
+
+sed -i -e 's/import_3/import_4/' scripts/manage.sh
+scripts/manage.sh import --add_raw_data \
+                   --dataset  "Dataset 2"\
+                   --version "Version 1"\
+                   --variant_file "$BASE/tests/data/dataset2_1.vcf.gz"\
+		   --beacon-only
+
+# make pg_dump
+pg_dump -U postgres -h 127.0.0.1 -p 5433 "$DBNAME" -f dbdump.psql --data-only
+sed -i -e '/^--/d;/^$/d' dbdump.psql
+grep -v -P "^SE[TL]" dbdump.psql | sort > sdump.psql
+sort "$BASE/tests/data/reference.psql" > ref.psql
+cat dbdump.psql
+
+cat sdump.psql
+
+cat ref.psql
+
+# compare dump to reference
+diff sdump.psql ref.psql
+DIFFRES=$?
+if [ $DIFFRES -ne 0 ]; then
+    echo "Database not identical to reference"
+    RETURN_VALUE=$((RETURN_VALUE + $DIFFRES))
+fi
 
 echo '>>> Finalising: Combine coverage'
 
-coverage combine .coverage_pytest .coverage_server
+coverage combine .coverage_pytest .coverage_server .coverage_import1 .coverage_import2 .coverage_import3 .coverage_import4
 
 if [ -f .coverage ]; then
     coveralls
