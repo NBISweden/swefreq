@@ -1,14 +1,5 @@
 ## Current api-version
-1.0.1
-
-## TODOs for nex api-version
-
-- next version: [1.1.0](https://github.com/ga4gh-beacon/specification/blob/develop/beacon.yaml)
-- [handover](https://github.com/ga4gh-beacon/specification/pull/230) ([implementation started](https://github.com/NBISweden/beacon-python/tree/feature/add_handover), [see issue](https://github.com/CSCfi/beacon-python/issues/38))
-- mateNames for fusions (https://github.com/ga4gh-beacon/specification/pull/256)
-- `info` is an object instead of array
-- diff: https://github.com/ga4gh-beacon/specification/compare/develop
-
+1.1.0
 
 ## Handover
 
@@ -20,12 +11,7 @@ Current handovers:
    - to the region https://swefreq.nbis.se/dataset/SweGen/browser/region/22-46615715-46615880
    - to the browser https://swefreq.nbis.se/dataset/SweGen/browser
    
-- Questions:
-  - other handovers?
-  - can we use the datasetid directly in the link? eg https://swefreq.nbis.se/dataset/GRCh37:SweGen:20180409 ?
-  - more helpful messages when variant is not found https://swefreq.nbis.se/dataset/SweGen/browser/variant/22-46615880-T-G
-  
-  
+
 ## Variant types
 
 - Supported and existing in our current Beacon: `INS, DEL, SNP`
