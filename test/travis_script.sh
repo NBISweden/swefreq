@@ -162,4 +162,19 @@ if [ -f .coverage ]; then
     coverage report
 fi
 
+echo '>>> Test 6. Reading manta file'
+
+
+./scripts/manage.sh import --add_raw_data \
+                   --dataset "Dataset 1" \
+                   --version "Version 1" \
+                   --add_mates \
+                   --assembly_id "GRCh37p13" \
+                   --add_reversed_mates \
+                   --variant_file "$BASE/tests/data/manta.vcf"
+
+psql -U postgres -h localhost -p 5435 postgres -c "select chrom_id, pos, ref, alt, chrom, mate_chrom, mate_start, mate_id, allele_freq, variant_id, allele_count, allele_num from data.mates ;" > mates_res.txt
+diff mates_res.txt "$BASE/tests/data/mates_reference.txt"
+RETURN_VALUE=$((RETURN_VALUE + $?))
+
 exit "$RETURN_VALUE"
