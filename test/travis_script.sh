@@ -122,6 +122,7 @@ scripts/manage.sh import --add_raw_data \
                    --dataset  "Dataset 1"\
                    --version "Version 1"\
                    --variant_file "$BASE/tests/data/dataset1_1.vcf.gz"\
+                   --count_calls \
 		   --coverage_file "$BASE/tests/data/dataset1_1_coverage.txt.gz"
 
 sed -i -e 's/import_2/import_3/' scripts/manage.sh
@@ -135,6 +136,7 @@ sed -i -e 's/import_3/import_4/' scripts/manage.sh
 scripts/manage.sh import --add_raw_data \
                    --dataset  "Dataset 2"\
                    --version "Version 1"\
+                   --count_calls \
                    --variant_file "$BASE/tests/data/dataset2_1.vcf.gz"\
 		   --beacon-only
 
