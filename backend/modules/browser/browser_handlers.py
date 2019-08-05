@@ -241,12 +241,12 @@ class GetTranscript(handlers.UnsafeHandler):
               }
 
         # Add transcript information
-        try: 
+        try:
             transcript = lookups.get_transcript(dataset, transcript_id, ds_version)
         except error.NotFoundError as err:
             self.send_error(status_code=404, reason=str(err))
             return
-        
+
         ret['transcript']['id'] = transcript['transcript_id']
         ret['transcript']['number_of_CDS'] = len([t for t in transcript['exons'] if t['feature_type'] == 'CDS'])
 
