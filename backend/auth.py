@@ -55,10 +55,15 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
             user_token = await self.get_user_token(self.get_argument('code'))
             user       = await self.get_user(user_token["access_token"])
 
-            self.set_secure_cookie('access_token', user_token["access_token"])
-            self.set_secure_cookie('user', user["name"])
-            self.set_secure_cookie('email', user["email"])
-            self.set_secure_cookie('identity', user["sub"])
+            try:
+                self.set_secure_cookie('access_token', user_token["access_token"])
+                self.set_secure_cookie('user', user["name"])
+                self.set_secure_cookie('email', user["email"])
+                self.set_secure_cookie('identity', user["sub"])
+            except KeyError as err:
+                logging.error(f'ElixirLoginHandler: data missing ({err}); user: {user}, user_token: {user_token}')
+                self.redirect("/error")
+                return
 
             redirect = self.get_secure_cookie("login_redirect")
             self.clear_cookie("login_redirect")
