@@ -464,8 +464,8 @@ def parse_region(region:str):
     try:
         start = int(start)
         stop = int(stop)
-    except ValueError:
-        raise error.ParsingError(f'Unable to parse region {region} (positions not integers).')
+    except ValueError as err:
+        raise error.ParsingError(f'Unable to parse region {region} (positions not integers).') from err
     
     return chrom, start, stop
 
