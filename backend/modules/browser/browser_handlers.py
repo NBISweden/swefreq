@@ -115,9 +115,11 @@ class GetCoveragePos(handlers.UnsafeHandler):
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         try:
             ret = utils.get_coverage_pos(dataset, datatype, item, ds_version)
-        except ValueError:
-            logging.error('GetCoveragePos: unable to parse region ({})'.format(item))
-            self.send_error(status_code=400, reason='Unable to parse region')
+        except error.NotFoundError as err:
+            self.send_error(status_code=404, reason=str(err))
+            return
+        except (error.ParsingError, error.MalformedRequest) as err:
+            self.send_error(status_code=400, reason=str(err))
             return
 
         self.finish(ret)
@@ -239,12 +241,12 @@ class GetTranscript(handlers.UnsafeHandler):
               }
 
         # Add transcript information
-        try: 
+        try:
             transcript = lookups.get_transcript(dataset, transcript_id, ds_version)
         except error.NotFoundError as err:
             self.send_error(status_code=404, reason=str(err))
             return
-        
+
         ret['transcript']['id'] = transcript['transcript_id']
         ret['transcript']['number_of_CDS'] = len([t for t in transcript['exons'] if t['feature_type'] == 'CDS'])
 
