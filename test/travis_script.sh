@@ -139,17 +139,12 @@ scripts/manage.sh import --add_raw_data \
 		   --beacon-only
 
 # make pg_dump
+# compare file to reference; must remove comments, empty rows and id column
 pg_dump -U postgres -h 127.0.0.1 -p 5433 "$DBNAME" -f dbdump.psql --data-only
 sed -i -r -e '/^--/d;/^$/d;s/[0-9]+[^I]//' dbdump.psql
 grep -v -P "^SE[TL]" dbdump.psql | sort > sdump.psql
 sed -i -r -e 's/[0-9]+[^I]//' "$BASE/tests/data/reference.psql"
 sort "$BASE/tests/data/reference.psql" > ref.psql
-
-cat dbdump.psql
-
-cat sdump.psql
-
-cat ref.psql
 
 # compare dump to reference
 diff sdump.psql ref.psql
@@ -158,7 +153,7 @@ RETURN_VALUE=$((RETURN_VALUE + $?))
 
 echo '>>> Finalising: Combine coverage'
 
-coverage combine .coverage_pytest .coverage_server .coverage_import1 .coverage_import2 .coverage_import3 .coverage_import4
+coverage combine .coverage_pytest .coverage_server .coverage_import_1 .coverage_import_2 .coverage_import_3 .coverage_import_4
 
 if [ -f .coverage ]; then
     coveralls
