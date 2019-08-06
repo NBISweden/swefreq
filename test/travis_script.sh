@@ -110,6 +110,7 @@ scripts/manage.sh import --add_reference\
                   --ensembl_version homo_sapiens_core_75_37\
 		  --assembly_id GRCh37p13\
                   --dbnsfp_version 2.9.3\
+		  --batch_size 2\
                   --ref_name GRCh37p13
 
 # read dataset names, versions etc
