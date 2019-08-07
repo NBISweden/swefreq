@@ -546,14 +546,11 @@ class DatasetUsersCurrent(handlers.AdminHandler):
         dataset, _ = utils.parse_dataset(dataset)
         dataset = db.get_dataset(dataset)
         users = db.User.select()
-        access = (db.DatasetAccessCurrent
-                   .select()
-                   .where(
-                       db.DatasetAccessCurrent.dataset == dataset,
-                   ))
+        access = (db.DatasetAccessCurrent.select()
+                  .where(db.DatasetAccessCurrent.dataset == dataset))
         query = peewee.prefetch(users, access)
-        self.finish({'data': _build_json_response(
-            query, lambda u: u.access_current)})
+        self.finish({'data': sorted(_build_json_response(
+            query, lambda u: u.access_current),key=lambda u: u['applyDate'])})
 
 
 class UserDatasetAccess(handlers.SafeHandler):
