@@ -2,8 +2,7 @@
 
 import logging
 import settings
-from peewee import (BigIntegerField,
-                    BlobField,
+from peewee import (BlobField,
                     BooleanField,
                     CharField,
                     DateTimeField,
@@ -12,9 +11,6 @@ from peewee import (BigIntegerField,
                     FloatField,
                     ForeignKeyField,
                     Model,
-                    PostgresqlDatabase,
-                    PrimaryKeyField,
-                    SQL,
                     TextField,
                     fn,
                 )
@@ -375,7 +371,7 @@ class User(BaseModel):
             return False
         if dsv.file_access in ('REGISTERED', 'PUBLIC'):
             return True
-        elif dsv.file_access == 'PRIVATE':
+        if dsv.file_access == 'PRIVATE':
             return False
 
         return (DatasetAccessCurrent.select()
@@ -505,7 +501,7 @@ class DatasetAccessPending(DatasetAccess):
 
 def get_next_free_uid():
     """
-    Get the next free uid >= 10000 and > than the current uids 
+    Get the next free uid >= 10000 and > than the current uids
     from the sftp_user table in the db.
 
     Returns:
@@ -568,9 +564,9 @@ def get_dataset_version(dataset:str, version:str=None):
                                .where(DatasetVersion.version == version,
                                       Dataset.short_name == dataset)).get()
         except DatasetVersion.DoesNotExist:
-            logging.error("get_dataset_version({}, {}): ".format(dataset, version) +
+            logging.error(f"get_dataset_version({dataset}, {version}): " +
                           "cannot retrieve dataset version")
-            return
+            return None
     else:
         try:
             dataset_version = (DatasetVersionCurrent
@@ -578,9 +574,9 @@ def get_dataset_version(dataset:str, version:str=None):
                                .join(Dataset)
                                .where(Dataset.short_name == dataset)).get()
         except DatasetVersionCurrent.DoesNotExist:
-            logging.error("get_dataset_version({}, version=None): ".format(dataset) +
+            logging.error(f"get_dataset_version({dataset}, version=None): " +
                           "cannot retrieve dataset version")
-            return
+            return None
     return dataset_version
 
 
