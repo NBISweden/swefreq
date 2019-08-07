@@ -175,7 +175,7 @@ def test_get_gene_by_dbid():
     assert not result
 
 
-def test_get_gene_by_name(caplog):
+def test_get_gene_by_name():
     """
     Test get_gene_by_name()
     """
