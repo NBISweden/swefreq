@@ -95,7 +95,7 @@ def get_awesomebar_result(dataset:str, query:str, ds_version:str=None):
     except error.NotFoundError:
         pass
     else:
-        return 'gene', gene['gene_id']    
+        return 'gene', gene['gene_id']
 
     # Ensembl formatted queries
     if query.startswith('ENS'):
@@ -128,7 +128,7 @@ def get_awesomebar_result(dataset:str, query:str, ds_version:str=None):
             target_type = 'variant'
             try:
                 get_raw_variant(dataset, match.group(3), match.group(1), match.group(4), match.group(5), ds_version)
-            except error.NotFoundError as err:
+            except error.NotFoundError:
                 target_type = 'not_found'
 
         return target_type, target

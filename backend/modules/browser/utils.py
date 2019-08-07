@@ -178,7 +178,7 @@ def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
 
     elif datatype == 'region':
         chrom, start, stop = parse_region(item)
-            
+
         if is_region_too_large(start, stop):
             raise error.MalformedRequest('Region too large')
         ret['coverage'] = lookups.get_coverage_for_bases(dataset, chrom, start, stop, ds_version)
@@ -466,7 +466,7 @@ def parse_region(region:str):
         stop = int(stop)
     except ValueError as err:
         raise error.ParsingError(f'Unable to parse region {region} (positions not integers).') from err
-    
+
     return chrom, start, stop
 
 
