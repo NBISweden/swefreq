@@ -509,14 +509,14 @@ def get_variants_by_rsid(dataset: str, rsid: str, ds_version: str=None) -> list:
         raise error.ParsingError('rsid not starting with rs')
 
     try:
-        rsid = int(rsid.lstrip('rs'))
+        int_rsid = int(rsid.lstrip('rs'))
     except ValueError as err:
         logging.error('get_variants_by_rsid({}, {}): not an integer after rs'.format(dataset, rsid))
         raise error.ParsingError('Not an integer after rs') from err
 
     variants = (db.Variant
                 .select()
-                .where((db.Variant.rsid == rsid) &
+                .where((db.Variant.rsid == int_rsid) &
                        (db.Variant.dataset_version == dataset_version))
                 .dicts())
 
@@ -603,7 +603,7 @@ def get_variants_in_region(dataset: str, chrom: str, start_pos: int, end_pos: in
     return variants
 
 
-def get_variants_in_transcript(dataset: str, transcript_id: str, ds_version: str=None) -> dict:
+def get_variants_in_transcript(dataset: str, transcript_id: str, ds_version: str=None) -> list:
     """
     Retrieve variants inside a transcript.
 
@@ -613,7 +613,7 @@ def get_variants_in_transcript(dataset: str, transcript_id: str, ds_version: str
         ds_version (str): version of the dataset
 
     Returns:
-        dict: values for the variant; None if not found
+        list: values for the variant; None if not found
 
     """
     dataset_version = db.get_dataset_version(dataset, ds_version)
