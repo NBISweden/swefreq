@@ -110,7 +110,7 @@ def add_consequence_to_variant(variant: dict):
     variant['category'] = ''
     variant['flags'] = ''
 
-    if worst_csq is None:
+    if not worst_csq:
         return
 
     variant['major_consequence'] = worst_csq['major_consequence']
@@ -455,7 +455,7 @@ def parse_region(region: str) -> tuple:
         tuple: (chrom, start, pos)
     """
     parts = region.split('-')
-    
+
     if len(parts) == 2:
         chrom, str_start = parts
         str_stop = str_start
