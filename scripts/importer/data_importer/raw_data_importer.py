@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read data from a vcf file and add the variants to a database"""
+"""Read data from a vcf file and add the variants to a database."""
 
 import re
 import sys
@@ -24,8 +24,10 @@ METRICS = [
 
 
 class RawDataImporter(DataImporter):
-    """Read data from a vcf file and add the variants to a database"""
+    """Read data from a vcf file and add the variants to a database."""
+
     def __init__(self, settings):
+        """Set the provided settings and prepare the main variables."""
         super().__init__(settings)
         self.dataset_version = None
         self.dataset = None
@@ -39,7 +41,7 @@ class RawDataImporter(DataImporter):
         self.chrom = None
 
     def _set_dataset_info(self):
-        """Save dataset information given as parameters"""
+        """Save dataset information given as parameters."""
         if self.settings.beacon_description:
             self.dataset.description = self.settings.beacon_description
             self.dataset.save()
@@ -54,7 +56,7 @@ class RawDataImporter(DataImporter):
             self.dataset.save()
 
     def _select_dataset_version(self):
-        """Select the dataset version to use"""
+        """Select the dataset version to use."""
         # Make sure that the dataset exists
         try:
             chosen_ds = db.Dataset.get(short_name=self.settings.dataset)
@@ -96,6 +98,8 @@ class RawDataImporter(DataImporter):
 
     def _create_beacon_counts(self):
         """
+        Prepare counts for the beacon.
+
         Add the number of unique references at each position (callcount),
         the number of unique ref-alt pairs at each position (variantount)
         and the datasetid (eg GRCh37:swegen:2019-01-01)
@@ -119,6 +123,8 @@ class RawDataImporter(DataImporter):
 
     def _insert_coverage(self):
         """
+        Import coverage.
+
         Header columns are chromosome, position, mean coverage, median coverage,
         and then coverage under 1, 5 10, 15, 20, 25, 30, 50, 100.
         """
@@ -181,7 +187,7 @@ class RawDataImporter(DataImporter):
         self.log_insertion(counter, "coverage", start)
 
     def _parse_manta(self):
-        """Parse a manta file"""
+        """Parse a manta file."""
         header = [("chrom", str), ("pos", int), ("chrom_id", str), ("ref", str), ("alt", str)]
 
         batch = []
@@ -286,7 +292,7 @@ class RawDataImporter(DataImporter):
         self.log_insertion(counter, "breakend", start)
 
     def _insert_variants(self):
-        """Insert variants from a VCF file"""
+        """Import variants from a VCF file."""
         logging.info("Inserting variants%s", " (dry run)" if self.settings.dry_run else "")
         header = [("chrom", str), ("pos", int), ("rsid", str), ("ref", str),
                   ("alt", str), ("site_quality", float), ("filter_string", str)]
@@ -531,7 +537,7 @@ class RawDataImporter(DataImporter):
         self.counter['tmp_calls'].add(data['ref'])
 
     def count_entries(self):
-        """Count the number of entries"""
+        """Count the number of entries."""
         start = time.time()
         if self.settings.coverage_file:
             self.counter['coverage'] = 0
@@ -558,11 +564,11 @@ class RawDataImporter(DataImporter):
         logging.info("Counted input data lines in {} ".format(self._time_since(start)))
 
     def prepare_data(self):
-        """Prepare for inserting data into db"""
+        """Prepare for inserting data into db."""
         self._select_dataset_version()
 
     def start_import(self):
-        """Start importing data"""
+        """Start importing data."""
         self._set_dataset_info()
         if self.settings.add_mates:
             self._parse_manta()
@@ -576,6 +582,7 @@ class RawDataImporter(DataImporter):
             self._insert_coverage()
 
     def add_variant_genes(self, variant_indexes: list, genes_to_add: list, ref_genes: dict):
+        """Add genes associated with the provided variants."""
         batch = []
         for i in range(len(variant_indexes)):
             connected_genes = [{'variant':variant_indexes[i], 'gene':ref_genes[gene]}
@@ -587,6 +594,7 @@ class RawDataImporter(DataImporter):
 
     def add_variant_transcripts(self, variant_indexes: list,
                                 transcripts_to_add: list, ref_transcripts: dict):
+        """Add genes associated with the provided variants."""
         batch = []
         for i in range(len(variant_indexes)):
             connected_transcripts = [{'variant':variant_indexes[i],
@@ -597,6 +605,7 @@ class RawDataImporter(DataImporter):
             db.VariantTranscripts.insert_many(batch).execute()
 
     def log_insertion(self, counter, insertion_type, start):
+        """Log the progress of the import."""
         action = "Inserted" if not self.settings.dry_run else "Dry-ran insertion of"
         logging.info("{} {} {} records in {}".format(action,
                                                      counter,
