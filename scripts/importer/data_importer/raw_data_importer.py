@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Read data from a vcf file and add the variants to a database"""
+
 import re
 import sys
 import time
@@ -22,6 +24,7 @@ METRICS = [
 
 
 class RawDataImporter(DataImporter):
+    """Read data from a vcf file and add the variants to a database"""
     def __init__(self, settings):
         super().__init__(settings)
         self.dataset_version = None
@@ -51,21 +54,19 @@ class RawDataImporter(DataImporter):
             self.dataset.save()
 
     def _select_dataset_version(self):
-        datasets = []
-
         # Make sure that the dataset exists
         try:
-            ds = db.Dataset.get(short_name=self.settings.dataset)
+            chosen_ds = db.Dataset.get(short_name=self.settings.dataset)
         except db.Dataset.DoesNotExist:
             logging.error("Unknown dataset '%s'", self.settings.dataset)
             logging.info("Available datasets are:")
             for dataset in db.Dataset.select():
                 logging.info(" * %s", dataset.short_name)
             sys.exit(1)
-        logging.info("Using dataset {}".format(ds.short_name))
-        self.dataset = ds
+        logging.info("Using dataset {}".format(chosen_ds.short_name))
+        self.dataset = chosen_ds
 
-        versions = [v for v in db.DatasetVersion.select().where(db.DatasetVersion.dataset == ds)]
+        versions = [v for v in db.DatasetVersion.select().where(db.DatasetVersion.dataset == chosen_ds)]
 
         # Make sure that the dataset version exists
         if not versions:
@@ -171,6 +172,7 @@ class RawDataImporter(DataImporter):
         self.log_insertion(counter, "coverage", start)
 
     def _parse_manta(self):
+        """Parse a manta file"""
         header = [("chrom", str), ("pos", int), ("chrom_id", str), ("ref", str), ("alt", str)]
 
         batch = []
@@ -193,7 +195,7 @@ class RawDataImporter(DataImporter):
                         base[header[i][0]] = header[i][1](item)
                     elif i == 7:
                         # only parse column 7 (maybe also for non-beacon-import?)
-                        info = dict([(x.split('=', 1)) if '=' in x else (x, x) for x in re.split(';(?=\w)', item)])
+                        info = dict([(x.split('=', 1)) if '=' in x else (x, x) for x in re.split(r';(?=\w)', item)])
 
                 if info.get('SVTYPE') != 'BND':
                     continue
@@ -210,7 +212,7 @@ class RawDataImporter(DataImporter):
                 for i, alt in enumerate(alt_alleles):
                     data = dict(base)
                     data['allele_freq'] = float(info.get('FRQ'))
-                    data['alt'], data['mate_chrom'], data['mate_start'] = re.search('(.+)[[\]](.*?):(\d+)[[\]]', alt).groups()
+                    data['alt'], data['mate_chrom'], data['mate_start'] = re.search(r'(.+)[[\]](.*?):(\d+)[[\]]', alt).groups()
                     if data['mate_chrom'].startswith('GL') or data['mate_chrom'].startswith('MT'):
                         # A BND from a chromosome to GL or MT.
                         # TODO ask a bioinformatician if these cases should be included or not
@@ -222,15 +224,15 @@ class RawDataImporter(DataImporter):
                     batch += [data]
                     if self.settings.add_reversed_mates:
                         # If the vcf only contains one line per breakend, add the reversed version to the database here.
-                        reversed = dict(data)
+                        reversed_mates = dict(data)
                         # Note: in general, ref and alt cannot be assumed to be the same in the reversed direction,
                         # but our data (so far) only contains N, so we just keep them as is for now.
-                        reversed.update({'mate_chrom': data['chrom'], 'chrom': data['mate_chrom'],
+                        reversed_mates.update({'mate_chrom': data['chrom'], 'chrom': data['mate_chrom'],
                                          'mate_start': data['pos'], 'pos': data['mate_start'],
                                          'chrom_id': data['mate_id'], 'mate_id': data['chrom_id']})
-                        reversed['variant_id'] = '{}-{}-{}-{}'.format(reversed['chrom'], reversed['pos'], reversed['ref'], alt)
+                        reversed_mates['variant_id'] = '{}-{}-{}-{}'.format(reversed_mates['chrom'], reversed_mates['pos'], reversed_mates['ref'], alt)
                         counter += 1  # increase the counter; reversed BNDs are usually kept at their own vcf row
-                        batch += [reversed]
+                        batch += [reversed_mates]
 
                 counter += 1  # count variants (one per vcf row)
 
@@ -257,9 +259,7 @@ class RawDataImporter(DataImporter):
         self.log_insertion(counter, "breakend", start)
 
     def _insert_variants(self):
-        """
-        Insert variants from a VCF file
-        """
+        """Insert variants from a VCF file"""
         logging.info("Inserting variants%s", " (dry run)" if self.settings.dry_run else "")
         header = [("chrom", str), ("pos", int), ("rsid", str), ("ref", str),
                   ("alt", str), ("site_quality", float), ("filter_string", str)]
@@ -315,7 +315,7 @@ class RawDataImporter(DataImporter):
                             base[header[i][0]] = header[i][1](item)
                         elif i == 7 or not self.settings.beacon_only:
                             # only parse column 7 (maybe also for non-beacon-import?)
-                            info = dict([(x.split('=', 1)) if '=' in x else (x, x) for x in re.split(';(?=\w)', item)])
+                            info = dict([(x.split('=', 1)) if '=' in x else (x, x) for x in re.split(r';(?=\w)', item)])
 
                     if base["chrom"].startswith('GL') or base["chrom"].startswith('MT'):
                         continue
@@ -465,6 +465,7 @@ class RawDataImporter(DataImporter):
         self.counter['tmp_calls'].add(data['ref'])
 
     def count_entries(self):
+        """Count the number of entries"""
         start = time.time()
         if self.settings.coverage_file:
             self.counter['coverage'] = 0
@@ -491,6 +492,7 @@ class RawDataImporter(DataImporter):
         logging.info("Counted input data lines in {} ".format(self._time_since(start)))
 
     def prepare_data(self):
+        """Prepare for inserting data into db"""
         self._select_dataset_version()
 
     def start_import(self):
@@ -506,7 +508,7 @@ class RawDataImporter(DataImporter):
         if not self.settings.beacon_only and self.settings.coverage_file:
             self._insert_coverage()
 
-    def add_variant_genes(self, variant_indexes:list, genes_to_add:list, ref_genes:dict):
+    def add_variant_genes(self, variant_indexes: list, genes_to_add: list, ref_genes: dict):
         batch = []
         for i in range(len(variant_indexes)):
             connected_genes = [{'variant':variant_indexes[i], 'gene':ref_genes[gene]} for gene in genes_to_add[i] if gene]
@@ -514,7 +516,7 @@ class RawDataImporter(DataImporter):
         if not self.settings.dry_run:
             db.VariantGenes.insert_many(batch).execute()
 
-    def add_variant_transcripts(self, variant_indexes:list, transcripts_to_add:list, ref_transcripts:dict):
+    def add_variant_transcripts(self, variant_indexes: list, transcripts_to_add: list, ref_transcripts: dict):
         batch = []
         for i in range(len(variant_indexes)):
             connected_transcripts = [{'variant':variant_indexes[i], 'transcript':ref_transcripts[transcript]}
