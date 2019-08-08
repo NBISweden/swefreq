@@ -228,8 +228,8 @@ class RawDataImporter(DataImporter):
                         # Note: in general, ref and alt cannot be assumed to be the same in the reversed direction,
                         # but our data (so far) only contains N, so we just keep them as is for now.
                         reversed_mates.update({'mate_chrom': data['chrom'], 'chrom': data['mate_chrom'],
-                                         'mate_start': data['pos'], 'pos': data['mate_start'],
-                                         'chrom_id': data['mate_id'], 'mate_id': data['chrom_id']})
+                                               'mate_start': data['pos'], 'pos': data['mate_start'],
+                                               'chrom_id': data['mate_id'], 'mate_id': data['chrom_id']})
                         reversed_mates['variant_id'] = '{}-{}-{}-{}'.format(reversed_mates['chrom'], reversed_mates['pos'], reversed_mates['ref'], alt)
                         counter += 1  # increase the counter; reversed BNDs are usually kept at their own vcf row
                         batch += [reversed_mates]
