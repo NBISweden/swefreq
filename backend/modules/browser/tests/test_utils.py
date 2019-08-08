@@ -89,7 +89,7 @@ def test_get_coverage():
 
     # no coverage found
     with pytest.raises(error.NotFoundError):
-        utils.get_coverage('BAD_SET', 'transcript', 'ENST00000438441')['coverage']
+        res = utils.get_coverage('BAD_SET', 'transcript', 'ENST00000438441')['coverage']
 
     with pytest.raises(error.MalformedRequest):
         res = utils.get_coverage('SweGen', 'region', '22-1-1000000')

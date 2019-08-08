@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Import a reference set into db."""
 
 import os
 import re
@@ -7,16 +8,20 @@ import time
 import shutil
 import logging
 import zipfile
-from peewee import IntegrityError, fn
+from peewee import fn
 import db
 from .data_importer import DataImporter
 
 class ReferenceSetImporter(DataImporter):
-    GENCODE = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_{a.gencode_version}/gencode.v{a.gencode_version}.annotation.gtf.gz"
+    """Import a reference set into db."""
+
+    GENCODE = ("ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/" +
+               "release_{a.gencode_version}/gencode.v{a.gencode_version}.annotation.gtf.gz")
     DBNSFP = "ftp://dbnsfp:dbnsfp@dbnsfp.softgenetics.com/dbNSFPv{a.dbnsfp_version}.zip"
     ENSEMBL = ("ensembldb.ensembl.org", "anonymous", "")
 
     def __init__(self, settings):
+        """Set the provided settings and prepare variables."""
         super().__init__(settings)
 
         # counters for statistics and progress
@@ -27,7 +32,7 @@ class ReferenceSetImporter(DataImporter):
                          'transcripts': 0,
                          'features': 0}
 
-        # dictionaries to hold data while processing
+        # lists to hold data while processing
         self.genes = []
         self.transcripts = []
         self.features = []
@@ -37,7 +42,18 @@ class ReferenceSetImporter(DataImporter):
         self.dbnsfp = None
         self.ensembl = None
 
+        # database ids for genes, transcripts
+        self.gene_db_ids = {}
+        self.transcript_db_ids = {}
+
+        self.db_reference = db.ReferenceSet(name=self.settings.ref_name,
+                                            reference_build=self.settings.assembly_id,
+                                            ensembl_version=self.settings.ensembl_version,
+                                            gencode_version=self.settings.gencode_version,
+                                            dbnsfp_version=self.settings.dbnsfp_version)
+
     def _insert_features(self):
+        """Insert gene features (e.g. intron) into db."""
         logging.info("Inserting features into database")
         start = time.time()
         last_progress = -1
@@ -61,14 +77,15 @@ class ReferenceSetImporter(DataImporter):
             if batch:
                 if not self.settings.dry_run:
                     db.Feature.insert_many(batch).execute()
-        last_progress = self._update_progress_bar(i, len(self.features), last_progress, finished=True)
+        last_progress = self._update_progress_bar(i, len(self.features),
+                                                  last_progress, finished=True)
 
         logging.info("Features inserted in {}".format(self._time_since(start)))
 
     def _insert_genes(self):
+        """Insert gene intformation into db."""
         logging.info("Inserting genes into database")
         start = time.time()
-        self.gene_db_ids = {}
         last_progress = -1
         for i, gene in enumerate(self.genes):
             # As far as I know I can't batch insert these and still get the id's back
@@ -98,15 +115,11 @@ class ReferenceSetImporter(DataImporter):
             last_progress = self._update_progress_bar(i, len(self.genes), last_progress)
         last_progress = self._update_progress_bar(i, len(self.genes), last_progress, finished=True)
 
-        logging.info("Genes inserted in {}".format(self._time_since(start)))
+        logging.info(f"Genes inserted in {self._time_since(start)}")
 
     def _insert_reference(self):
+        """Insert information (header) about the references into db."""
         logging.info("inserting reference header")
-        self.db_reference = db.ReferenceSet(name=self.settings.ref_name,
-                                            reference_build=self.settings.assembly_id,
-                                            ensembl_version=self.settings.ensembl_version,
-                                            gencode_version=self.settings.gencode_version,
-                                            dbnsfp_version=self.settings.dbnsfp_version)
 
         if self.settings.dry_run:
             max_id = db.ReferenceSet.select(fn.Max(db.ReferenceSet.id)).get()
@@ -119,10 +132,10 @@ class ReferenceSetImporter(DataImporter):
         logging.info("Reference %s created", self.db_reference.id)
 
     def _insert_transcripts(self):
+        """Insert trabscripts into db."""
         logging.info("Inserting transcripts into database")
         start = time.time()
 
-        self.transcript_db_ids = {}
         last_progress = -1
         for i, transcript in enumerate(self.transcripts):
             db_transcript = db.Transcript(transcript_id=transcript['transcript_id'],
@@ -141,13 +154,14 @@ class ReferenceSetImporter(DataImporter):
                 self.transcript_db_ids[transcript['transcript_id']] = db_transcript.id
 
             last_progress = self._update_progress_bar(i, len(self.transcripts), last_progress)
-        last_progress = self._update_progress_bar(i, len(self.transcripts), last_progress, finished=True)
+        last_progress = self._update_progress_bar(i, len(self.transcripts),
+                                                  last_progress, finished=True)
 
         logging.info("Transcripts inserted in {}".format(self._time_since(start)))
 
     def _open_dbnsfp(self):
         """
-        Downloads (if needed) and opens the given dbNSFP file.
+        Download (if needed) and open the given dbNSFP file.
 
         Only a small part, 'dbNSFP2.9_gene' of the ~13Gb file is needed, but in
         order to get it we have to download the entire file, extract the part
@@ -156,7 +170,7 @@ class ReferenceSetImporter(DataImporter):
         logging.info("----- Opening dbNSFP file -----")
         url = ReferenceSetImporter.DBNSFP.format(a=self.settings)
         filename = url.split("/")[-1]
-        match = re.match("^\d+.\d+", self.settings.dbnsfp_version)
+        match = re.match(r"^\d+.\d+", self.settings.dbnsfp_version)
         if match:
             dbnsfp_gene_version = match.group(0)
         else:
@@ -186,16 +200,12 @@ class ReferenceSetImporter(DataImporter):
         self.dbnsfp = self._open(dbnsfp_gzip)
 
     def _open_ensembl(self):
-        """
-        Connects to the given ensembl database.
-        """
+        """Connect to the given ensembl database."""
         logging.info("----- Opening ensembl database connection -----")
         self.ensembl = self._connect(*(ReferenceSetImporter.ENSEMBL + (self.settings.ensembl_version,)))
 
     def _open_gencode(self):
-        """
-        Downloads (if needed) and opens the given gencode file
-        """
+        """Download (if needed) and opens the given gencode file."""
         logging.info("----- Opening gencode file -----")
         url = ReferenceSetImporter.GENCODE.format(a=self.settings)
         filename = url.split("/")[-1]
@@ -206,6 +216,7 @@ class ReferenceSetImporter(DataImporter):
             self.gencode = self._download_and_open(url)
 
     def _read_dbnsfp(self):
+        """Read dbNSFP data."""
         start = time.time()
         header = None
         logging.info("Adding dbNSFP annotation")
@@ -237,9 +248,7 @@ class ReferenceSetImporter(DataImporter):
         logging.info("dbNSFP information added in {}.".format(self._time_since(start)))
 
     def _read_ensembl(self):
-        """
-        Reads the ensembl information into the gene dictionary
-        """
+        """Read the ensembl information into the gene dictionary."""
         query = """SELECT g.stable_id,
                           t.stable_id
                      FROM gene g
@@ -260,13 +269,16 @@ class ReferenceSetImporter(DataImporter):
                 self.genes[i]['canonical_transcript'] = canonical_dict[gene['gene_id']]
 
             self.counters['genes'] += 1
-            if self.numbers['genes'] != None:
+            if self.numbers['genes'] is not None:
                 last_progress = self._update_progress_bar(i, self.numbers['genes'], last_progress)
-        if self.numbers['genes'] != None:
-            last_progress = self._update_progress_bar(i, self.numbers['genes'], last_progress, finished=True)
-        logging.info("Canonical transcript information from ensembl added in {}.".format(self._time_since(start)))
+        if self.numbers['genes'] is not None:
+            last_progress = self._update_progress_bar(i, self.numbers['genes'],
+                                                      last_progress, finished=True)
+        logging.info("Canonical transcript information from ensembl " +
+                     f"added in {self._time_since(start)}.")
 
     def count_entries(self):
+        """Count the number of entries."""
         logging.info("Counting features in gencode file (for progress bar)")
         start = time.time()
         self.numbers['genes'] = 0
@@ -292,18 +304,21 @@ class ReferenceSetImporter(DataImporter):
 
         self.gencode.rewind()
 
-        pad = max([len("{:,}".format(self.numbers[t])) for t in ["genes", "transcripts", "features"]])
+        pad = max([len("{:,}".format(self.numbers[t]))
+                   for t in ["genes", "transcripts", "features"]])
         logging.info("Parsed file in {:3.1f}s".format(time.time()-start))
         logging.info("Genes      : {0:>{pad},}".format(self.numbers['genes'], pad=pad))
         logging.info("Transcripts: {0:>{pad},}".format(self.numbers['transcripts'], pad=pad))
         logging.info("Features   : {0:>{pad},}".format(self.numbers['features'], pad=pad))
 
     def prepare_data(self):
+        """Prepare for import of data."""
         self._open_gencode()
         self._open_dbnsfp()
         self._open_ensembl()
 
     def start_import(self):
+        """Start the data import."""
         start = time.time()
         logging.info("Reading gencode data into buffers.")
         last_progress = -1.0
@@ -328,7 +343,9 @@ class ReferenceSetImporter(DataImporter):
 
                 # only progress for genes to keep it simple
                 if self.numbers['genes'] is not None:
-                    last_progress = self._update_progress_bar(self.counters['genes'], self.numbers['genes'], last_progress)
+                    last_progress = self._update_progress_bar(self.counters['genes'],
+                                                              self.numbers['genes'],
+                                                              last_progress)
                 if values[2] == 'gene':
                     data['name'] = info['gene_name']
                     self.genes += [data]
@@ -351,7 +368,10 @@ class ReferenceSetImporter(DataImporter):
                 logging.error("{}".format(error))
                 break
         if self.numbers['genes'] is not None:
-            last_progress = self._update_progress_bar(self.counters['genes'], self.numbers['genes'], last_progress, finished=True)
+            last_progress = self._update_progress_bar(self.counters['genes'],
+                                                      self.numbers['genes'],
+                                                      last_progress,
+                                                      finished=True)
         logging.info("Gencode data read into buffers in {}.".format(self._time_since(start)))
         self._read_ensembl()
         self._read_dbnsfp()
@@ -360,9 +380,12 @@ class ReferenceSetImporter(DataImporter):
         self._insert_transcripts()
         self._insert_features()
 
-    def add_other_names(self, gene_dbid:int, other_names:list):
+    def add_other_names(self, gene_dbid: int, other_names: list):
+        """Add alternative names for the gene."""
         if not gene_dbid or not other_names:
             return
-        batch = [{'gene':gene_dbid, 'name':other_name} for other_name in other_names if other_name != '.' and other_name]
+        batch = [{'gene':gene_dbid, 'name':other_name}
+                 for other_name in other_names
+                 if other_name != '.' and other_name]
         if not self.settings.dry_run and batch:
             db.GeneOtherNames.insert_many(batch).execute()

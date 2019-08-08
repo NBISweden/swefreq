@@ -81,9 +81,10 @@ PROTEIN_LETTERS_1TO3 = {
 }
 
 
-def add_consequence_to_variants(variant_list:list):
+def add_consequence_to_variants(variant_list: list):
     """
     Add information about variant consequence to multiple variants.
+    Changes are performed in-place.
 
     Args:
         variant_list (list): list of variants
@@ -94,9 +95,10 @@ def add_consequence_to_variants(variant_list:list):
         add_consequence_to_variant(variant)
 
 
-def add_consequence_to_variant(variant:dict):
+def add_consequence_to_variant(variant: dict):
     """
     Add information about variant consequence to a variant.
+    Changes are performed in-place.
 
     Args:
         variant (dict): variant information
@@ -108,7 +110,7 @@ def add_consequence_to_variant(variant:dict):
     variant['category'] = ''
     variant['flags'] = ''
 
-    if worst_csq is None:
+    if not worst_csq:
         return
 
     variant['major_consequence'] = worst_csq['major_consequence']
@@ -134,7 +136,7 @@ def add_consequence_to_variant(variant:dict):
     return
 
 
-def annotation_severity(annotation:dict):
+def annotation_severity(annotation: dict) -> float:
     """
     Evaluate severity of the consequences; "bigger is more important".
 
@@ -145,13 +147,13 @@ def annotation_severity(annotation:dict):
         float: severity score
 
     """
-    rv = -CSQ_ORDER_DICT[worst_csq_from_csq(annotation['Consequence'])]
+    rv = float(-CSQ_ORDER_DICT[worst_csq_from_csq(annotation['Consequence'])])
     if annotation['CANONICAL'] == 'YES':
         rv += 0.1
     return rv
 
 
-def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
+def get_coverage(dataset: str, datatype: str, item: str, ds_version: str=None) -> dict:
     """
     Retrieve coverage for a gene/region/transcript.
 
@@ -165,7 +167,7 @@ def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
         dict: start, stop, coverage list
 
     """
-    ret = {'coverage':[]}
+    ret: dict = {'coverage':[]}
 
     if datatype == 'gene':
         gene = lookups.get_gene(dataset, item)
@@ -178,7 +180,7 @@ def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
 
     elif datatype == 'region':
         chrom, start, stop = parse_region(item)
-            
+
         if is_region_too_large(start, stop):
             raise error.MalformedRequest('Region too large')
         ret['coverage'] = lookups.get_coverage_for_bases(dataset, chrom, start, stop, ds_version)
@@ -193,7 +195,7 @@ def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
     return ret
 
 
-def get_coverage_pos(dataset:str, datatype:str, item:str, ds_version:str=None):
+def get_coverage_pos(dataset: str, datatype: str, item: str, ds_version: str=None) -> dict:
     """
     Retrieve coverage range.
 
@@ -229,7 +231,7 @@ def get_coverage_pos(dataset:str, datatype:str, item:str, ds_version:str=None):
     return ret
 
 
-def get_flags_from_variant(variant:dict):
+def get_flags_from_variant(variant: dict) -> list:
     """
     Get flags from variant.
 
@@ -259,7 +261,7 @@ def get_flags_from_variant(variant:dict):
     return flags
 
 
-def get_proper_hgvs(annotation:dict):
+def get_proper_hgvs(annotation: dict) -> str:
     """
     Get HGVS for change, either at transcript or protein level.
 
@@ -278,10 +280,10 @@ def get_proper_hgvs(annotation:dict):
             return get_transcript_hgvs(annotation)
         return get_protein_hgvs(annotation)
     except KeyError:
-        return None
+        return ''
 
 
-def get_protein_hgvs(annotation):
+def get_protein_hgvs(annotation: dict) -> str:
     """
     Aa changes in HGVS format.
 
@@ -299,10 +301,10 @@ def get_protein_hgvs(annotation):
         return annotation['HGVSp'].split(':')[-1]
     except KeyError:
         logging.error("Could not fetch protein hgvs")
-        return None
+        return ''
 
 
-def get_transcript_hgvs(annotation:dict):
+def get_transcript_hgvs(annotation: dict) -> str:
     """
     Nucleotide change in HGVS format.
 
@@ -316,10 +318,10 @@ def get_transcript_hgvs(annotation:dict):
     try:
         return annotation['HGVSc'].split(':')[-1]
     except KeyError:
-        return None
+        return ''
 
 
-def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
+def get_variant_list(dataset: str, datatype: str, item: str, ds_version: str=None) -> dict:
     """
     Retrieve variants for a datatype.
 
@@ -354,7 +356,7 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
     if datatype == 'transcript':
         transcript = lookups.get_transcript(dataset, item, ds_version)
         if not transcript:
-            return None
+            return {}
         refgene = transcript['gene_id']
 
     if variants:
@@ -389,7 +391,7 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
     return {'variants': variants, 'headers': headers}
 
 
-def order_vep_by_csq(annotation_list:list):
+def order_vep_by_csq(annotation_list: list) -> list:
     """
     Will add "major_consequence" to each annotation and order by severity.
 
@@ -408,7 +410,7 @@ def order_vep_by_csq(annotation_list:list):
     return sorted(annotation_list, key=(lambda ann:CSQ_ORDER_DICT[ann['major_consequence']]))
 
 
-def is_region_too_large(start:int, stop:int):
+def is_region_too_large(start: int, stop: int) -> bool:
     """
     Evaluate whether the size of a region is larger than maximum query.
 
@@ -424,7 +426,7 @@ def is_region_too_large(start:int, stop:int):
     return int(stop)-int(start) > region_limit
 
 
-def parse_dataset(dataset:str, ds_version:str=None):
+def parse_dataset(dataset: str, ds_version: str=None) -> tuple:
     """
     Check/parse if the dataset name is in the beacon form (``reference:dataset:version``).
 
@@ -442,7 +444,7 @@ def parse_dataset(dataset:str, ds_version:str=None):
     return (dataset, ds_version)
 
 
-def parse_region(region:str):
+def parse_region(region: str) -> tuple:
     """
     Parse a region with either one or two positions
 
@@ -453,26 +455,28 @@ def parse_region(region:str):
         tuple: (chrom, start, pos)
     """
     parts = region.split('-')
+
     if len(parts) == 2:
-        chrom, start = parts
-        stop = start
+        chrom, str_start = parts
+        str_stop = str_start
     elif len(parts) == 3:
-        chrom, start, stop = parts
+        chrom, str_start, str_stop = parts
     else:
         raise error.ParsingError(f'Unable to parse region {region}.')
 
     try:
-        start = int(start)
-        stop = int(stop)
+        start = int(str_start)
+        stop = int(str_stop)
     except ValueError as err:
         raise error.ParsingError(f'Unable to parse region {region} (positions not integers).') from err
-    
+
     return chrom, start, stop
 
 
-def remove_extraneous_information(variant:dict):
+def remove_extraneous_information(variant: dict):
     """
     Remove information that is not used in the frontend from a variant.
+    Changes are performed in-place.
 
     Args:
         variant (dict): variant data from database
@@ -485,7 +489,7 @@ def remove_extraneous_information(variant:dict):
     del variant['vep_annotations']
 
 
-def remove_extraneous_vep_annotations(annotation_list:list):
+def remove_extraneous_vep_annotations(annotation_list: list) -> list:
     """
     Remove annotations with low-impact consequences (less than intron variant).
 
@@ -500,7 +504,7 @@ def remove_extraneous_vep_annotations(annotation_list:list):
             if worst_csq_index(ann['Consequence'].split('&')) <= CSQ_ORDER_DICT['intron_variant']]
 
 
-def worst_csq_from_list(csq_list:list):
+def worst_csq_from_list(csq_list: list) -> str:
     """
     Choose the worst consequence.
 
@@ -514,7 +518,7 @@ def worst_csq_from_list(csq_list:list):
     return REV_CSQ_ORDER_DICT[worst_csq_index(csq_list)]
 
 
-def worst_csq_from_csq(csq:str):
+def worst_csq_from_csq(csq: str) -> str:
     """
     Find worst consequence in a possibly &-filled consequence string.
 
@@ -528,7 +532,7 @@ def worst_csq_from_csq(csq:str):
     return REV_CSQ_ORDER_DICT[worst_csq_index(csq.split('&'))]
 
 
-def worst_csq_index(csq_list:list):
+def worst_csq_index(csq_list: list) -> int:
     """
     Find the index of the worst consequence.
 
@@ -544,7 +548,7 @@ def worst_csq_index(csq_list:list):
     return min([CSQ_ORDER_DICT[csq] for csq in csq_list])
 
 
-def worst_csq_with_vep(annotation_list:list):
+def worst_csq_with_vep(annotation_list: list) -> dict:
     """
     Choose the vep annotation with the most severe consequence.
 
@@ -558,7 +562,7 @@ def worst_csq_with_vep(annotation_list:list):
 
     """
     if not annotation_list:
-        return None
+        return {}
     worst = max(annotation_list, key=annotation_severity)
     worst['major_consequence'] = worst_csq_from_csq(worst['Consequence'])
     return worst

@@ -1,12 +1,9 @@
 import logging
-import handlers
 from handlers import BaseHandler
 import tornado.auth
 import urllib.parse
 import base64
 import uuid
-import db
-import peewee
 
 class DeveloperLoginHandler(BaseHandler):
     def get(self):
@@ -147,5 +144,3 @@ class ElixirLogoutHandler(BaseHandler):
 
         redirect = self.get_argument("next", '/')
         self.redirect(redirect)
-
-
