@@ -153,18 +153,9 @@ diff sdump.psql ref.psql
 
 RETURN_VALUE=$((RETURN_VALUE + $?))
 
-echo '>>> Finalising: Combine coverage'
-
-coverage combine .coverage_pytest .coverage_server .coverage_import_1 .coverage_import_2 .coverage_import_3 .coverage_import_4
-
-if [ -f .coverage ]; then
-    coveralls
-    coverage report
-fi
-
 echo '>>> Test 6. Reading manta file'
 
-
+sed -i -e 's/import_4/mate_1/' scripts/manage.sh
 ./scripts/manage.sh import --add_raw_data \
                    --dataset "Dataset 1" \
                    --version "Version 1" \
@@ -176,5 +167,15 @@ echo '>>> Test 6. Reading manta file'
 psql -U postgres -h localhost -p 5435 postgres -c "select chrom_id, pos, ref, alt, chrom, mate_chrom, mate_start, mate_id, allele_freq, variant_id, allele_count, allele_num from data.mates ;" > mates_res.txt
 diff mates_res.txt "$BASE/tests/data/mates_reference.txt"
 RETURN_VALUE=$((RETURN_VALUE + $?))
+
+
+echo '>>> Finalising: Combine coverage'
+
+coverage combine .coverage_pytest .coverage_server .coverage_import_1 .coverage_import_2 .coverage_import_3 .coverage_import_4 .coverage_mate_1
+
+if [ -f .coverage ]; then
+    coveralls
+    coverage report
+fi
 
 exit "$RETURN_VALUE"
