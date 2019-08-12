@@ -163,7 +163,7 @@ sed -i -e 's/import_4/mate_1/' scripts/manage.sh
                    --add_reversed_mates \
                    --variant_file "$BASE/tests/data/manta.vcf"
 
-psql -U postgres -h localhost -p 5435 postgres -c "select chrom_id, pos, ref, alt, chrom, mate_chrom, mate_start, mate_id, allele_freq, variant_id, allele_count, allele_num from data.mates ;" > mates_res.txt
+psql -U postgres -h 127.0.0.1 -p 5433 "$DBNAME" -c "select chrom_id, pos, ref, alt, chrom, mate_chrom, mate_start, mate_id, allele_freq, variant_id, allele_count, allele_num from data.mates ;" > mates_res.txt
 diff mates_res.txt "$BASE/tests/data/mates_reference.txt"
 RETURN_VALUE=$((RETURN_VALUE + $?))
 
