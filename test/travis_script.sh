@@ -123,6 +123,7 @@ scripts/manage.sh import --add_raw_data \
                    --dataset  "Dataset 1"\
                    --version "Version 1"\
                    --variant_file "$BASE/tests/data/dataset1_1.vcf.gz"\
+                   --count_calls \
 		   --coverage_file "$BASE/tests/data/dataset1_1_coverage.txt.gz"
 
 sed -i -e 's/import_2/import_3/' scripts/manage.sh
@@ -137,15 +138,16 @@ sed -i -e 's/import_3/import_4/' scripts/manage.sh
 scripts/manage.sh import --add_raw_data \
                    --dataset  "Dataset 2"\
                    --version "Version 1"\
+                   --count_calls \
                    --variant_file "$BASE/tests/data/dataset2_1.vcf.gz"\
 		   --beacon-only
 
 # make pg_dump
 # compare file to reference; must remove comments, empty rows and id column
 pg_dump -U postgres -h 127.0.0.1 -p 5433 "$DBNAME" -f dbdump.psql --data-only
-sed -i -r -e '/^--/d;/^$/d;s/[0-9]+[^I]//' dbdump.psql
+sed -i -r -e '/^--/d;/^$/d;s/^[0-9]+[^I]//' dbdump.psql
 grep -v -P "^SE[TL]" dbdump.psql | sort > sdump.psql
-sed -i -r -e 's/[0-9]+[^I]//' "$BASE/tests/data/reference.psql"
+sed -i -r -e 's/^[0-9]+[^I]//' "$BASE/tests/data/reference.psql"
 sort "$BASE/tests/data/reference.psql" > ref.psql
 
 # compare dump to reference
@@ -153,9 +155,24 @@ diff sdump.psql ref.psql
 
 RETURN_VALUE=$((RETURN_VALUE + $?))
 
+echo '>>> Test 6. Reading manta file'
+
+sed -i -e 's/import_4/mate_1/' scripts/manage.sh
+./scripts/manage.sh import --add_raw_data \
+                   --dataset "Dataset 1" \
+                   --version "Version 1" \
+                   --add_mates \
+                   --add_reversed_mates \
+                   --variant_file "$BASE/tests/data/manta.vcf"
+
+psql -U postgres -h 127.0.0.1 -p 5433 "$DBNAME" -c "select chrom_id, pos, ref, alt, chrom, mate_chrom, mate_start, mate_id, allele_freq, variant_id, allele_count, allele_num from data.mates ;" > mates_res.txt
+diff mates_res.txt "$BASE/tests/data/mates_reference.txt"
+RETURN_VALUE=$((RETURN_VALUE + $?))
+
+
 echo '>>> Finalising: Combine coverage'
 
-coverage combine .coverage_pytest .coverage_server .coverage_import_1 .coverage_import_2 .coverage_import_3 .coverage_import_4
+coverage combine .coverage_pytest .coverage_server .coverage_import_1 .coverage_import_2 .coverage_import_3 .coverage_import_4 .coverage_mate_1
 
 if [ -f .coverage ]; then
     coveralls

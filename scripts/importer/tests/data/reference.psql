@@ -1,4 +1,6 @@
 COPY beacon.beacon_dataset_counts_table (datasetid, dataset, callcount, variantcount) FROM stdin;
+GRCh37p13:Dataset 1:Version 1	\N	18	18
+GRCh37p13:Dataset 2:Version 1	\N	12	17
 \.
 COPY data.collections (id, study_name, ethnicity) FROM stdin;
 1	reg	undefined
