@@ -160,7 +160,6 @@ sed -i -e 's/import_4/mate_1/' scripts/manage.sh
                    --dataset "Dataset 1" \
                    --version "Version 1" \
                    --add_mates \
-                   --assembly_id "GRCh37p13" \
                    --add_reversed_mates \
                    --variant_file "$BASE/tests/data/manta.vcf"
 
