@@ -143,9 +143,9 @@ scripts/manage.sh import --add_raw_data \
 # make pg_dump
 # compare file to reference; must remove comments, empty rows and id column
 pg_dump -U postgres -h 127.0.0.1 -p 5433 "$DBNAME" -f dbdump.psql --data-only
-sed -i -r -e '/^--/d;/^$/d;s/[0-9]+[^I]//' dbdump.psql
+sed -i -r -e '/^--/d;/^$/d;s/^[0-9]+[^I]//' dbdump.psql
 grep -v -P "^SE[TL]" dbdump.psql | sort > sdump.psql
-sed -i -r -e 's/[0-9]+[^I]//' "$BASE/tests/data/reference.psql"
+sed -i -r -e 's/^[0-9]+[^I]//' "$BASE/tests/data/reference.psql"
 sort "$BASE/tests/data/reference.psql" > ref.psql
 
 # compare dump to reference
