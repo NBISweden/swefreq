@@ -54,3 +54,10 @@ Current handovers:
         "alternateBases": "N",
         "variantType": "DEL"
      ```
+     
+## Structvar data (mates)
+
+Imported from the file `SweGen_MANTA.sort.vcf`.
+
+- Reversed mates not in database. Import?
+- Empty values: `callcount` & `mateid` (because no values given in input data). Now: `null`. Will be set to `0` and `""`. Better? (When reversed mates are imported, `chromid` – aka `referenceid` – will also often be empty)
