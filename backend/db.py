@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
-import settings
+
 from peewee import (BlobField,
                     BooleanField,
                     CharField,
@@ -14,6 +14,8 @@ from peewee import (BlobField,
                     TextField,
                     fn)
 from playhouse.postgres_ext import ArrayField, BinaryJSONField, PostgresqlExtDatabase
+
+import settings
 
 database = PostgresqlExtDatabase(settings.psql_name,
                                  user=settings.psql_user,
@@ -609,10 +611,10 @@ def get_dataset_version(dataset: str, version: str = None):
 
 def build_dict_from_row(row) -> dict:
     """Build a dictionary from a row object"""
-    d = {}
+    outdict = {}
 
     for field, value in row.__dict__['__data__'].items():
         if field == "id":
             continue
-        d[field] = value
-    return d
+        outdict[field] = value
+    return outdict
