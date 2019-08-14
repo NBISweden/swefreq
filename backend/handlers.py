@@ -1,13 +1,14 @@
 import logging
-import peewee
-import tornado.auth
-import tornado.web
-import tornado.escape
-import tornado.httpclient
 import os.path
 import datetime
 import urllib.parse
+
+import peewee
+import tornado.auth
+import tornado.escape
 from tornado.escape import json_encode
+import tornado.httpclient
+import tornado.web
 
 import db
 
@@ -19,13 +20,13 @@ class BaseHandler(tornado.web.RequestHandler):
     to make security status explicit.
     """
     def prepare(self):
-        ## Make sure we have the xsrf_token, this will generate the xsrf cookie if it isn't set
-        self.xsrf_token #pylint: disable=pointless-statement
+        # Make sure we have the xsrf_token, this will generate the xsrf cookie if it isn't set
+        self.xsrf_token
         if db.database.is_closed():
             try:
                 db.database.connect()
-            except peewee.DatabaseError as e:
-                logging.error("Failed to connect to database: {}".format(e))
+            except peewee.DatabaseError as err:
+                logging.error(f"Failed to connect to database: {err}")
 
     def on_finish(self):
         if not db.database.is_closed():
@@ -33,7 +34,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
     def get_current_user(self):
         email = self.get_secure_cookie('email')
-        name  = self.get_secure_cookie('user')
+        name = self.get_secure_cookie('user')
         identity = self.get_secure_cookie('identity')
 
         # Fix ridiculous bug with quotation marks showing on the web
@@ -42,15 +43,15 @@ class BaseHandler(tornado.web.RequestHandler):
 
         if identity:
             try:
-                return db.User.select().where( db.User.identity == identity ).get()
+                return db.User.select().where(db.User.identity == identity).get()
             except db.User.DoesNotExist:
-                ## Not saved in the database yet
+                # Not saved in the database yet
                 try:
-                    return db.User(email = email.decode('utf-8'),
-                                   name  = name.decode('utf-8'),
-                                   identity = identity.decode('utf-8'))
-                except peewee.OperationalError as e:
-                    logging.error("Can't create new user: {}".format(e))
+                    return db.User(email=email.decode('utf-8'),
+                                   name=name.decode('utf-8'),
+                                   identity=identity.decode('utf-8'))
+                except peewee.OperationalError as err:
+                    logging.error(f"Can't create new user: {err}")
         else:
             return None
 
@@ -62,7 +63,7 @@ class BaseHandler(tornado.web.RequestHandler):
         """
         if level not in ["success", "info", "warning", "error"]:
             level = "info"
-        self.set_cookie("msg", urllib.parse.quote( json_encode({"msg":msg, "level":level}) ) )
+        self.set_cookie("msg", urllib.parse.quote(json_encode({"msg": msg, "level": level})))
 
     def write_error(self, status_code, **kwargs):
         """
@@ -77,6 +78,7 @@ class BaseHandler(tornado.web.RequestHandler):
             return
         new_chunk = _convert_keys_to_hump_back(chunk)
         super().write(new_chunk)
+
 
 def _convert_keys_to_hump_back(chunk):
     """
@@ -128,7 +130,7 @@ class AuthorizedHandler(SafeHandler):
             return
 
         kwargs = self.path_kwargs
-        if not 'dataset' in kwargs:
+        if 'dataset' not in kwargs:
             logging.debug("No dataset: Send error 403")
             self.send_error(status_code=403)
             return
@@ -152,7 +154,7 @@ class AdminHandler(SafeHandler):
             logging.debug("No dataset: Send error 403")
             self.send_error(status_code=403)
             return
-        if not self.current_user.is_admin( db.get_dataset(kwargs['dataset']) ):
+        if not self.current_user.is_admin(db.get_dataset(kwargs['dataset'])):
             logging.debug("No user admin: Send error 403")
             self.send_error(status_code=403)
             return
@@ -198,7 +200,7 @@ class BaseStaticNginxFileHandler(UnsafeHandler):
             self.send_error(status_code=403)
             return
 
-        db.UserDownloadLog.create(user = user, dataset_file = dbfile)
+        db.UserDownloadLog.create(user=user, dataset_file=dbfile)
 
         abspath = os.path.abspath(os.path.join(self.root, file))
         self.set_header("X-Accel-Redirect", abspath)
@@ -226,21 +228,19 @@ class AuthorizedStaticNginxFileHandler(AuthorizedHandler, BaseStaticNginxFileHan
 class TemporaryStaticNginxFileHandler(BaseStaticNginxFileHandler):
     def get(self, dataset, ds_version, hash_value, file):
         logging.debug("Want to download hash {} ({})".format(hash_value, file))
-        linkhash = (db.Linkhash
-                        .select()
-                        .join(db.DatasetVersion)
-                        .join(db.DatasetFile)
-                        .where(db.Linkhash.hash == hash_value,
-                               db.Linkhash.expires_on > datetime.datetime.now(),
-                               db.DatasetFile.name == file))
+        linkhash = (db.Linkhash.select()
+                    .join(db.DatasetVersion)
+                    .join(db.DatasetFile)
+                    .where(db.Linkhash.hash == hash_value,
+                           db.Linkhash.expires_on > datetime.datetime.now(),
+                           db.DatasetFile.name == file))
         if linkhash.count() > 0:
             logging.debug("Linkhash valid")
             # Get temporary user from hash_value
-            user = (db.User
-                       .select(db.User)
-                       .join(db.Linkhash)
-                       .where(db.Linkhash.hash == hash_value)
-                   ).get()
+            user = (db.User.select(db.User)
+                    .join(db.Linkhash)
+                    .where(db.Linkhash.hash == hash_value)
+                    .get())
             super().get(dataset, file, ds_version, user)
         else:
             logging.debug("Linkhash invalid")
