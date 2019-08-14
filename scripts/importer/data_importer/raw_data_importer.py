@@ -193,6 +193,7 @@ class RawDataImporter(DataImporter):
         batch = []
         samples = 0
         counter = 0
+        last_progress = 0
         start = time.time()
         for filename in self.settings.variant_file:
             for line in self._open(filename):
@@ -225,6 +226,7 @@ class RawDataImporter(DataImporter):
                     samples = int(info['NSAMPLES'])
 
                 alt_alleles = base['alt'].split(",")
+
                 for i, alt in enumerate(alt_alleles):
                     data = dict(base)
                     data['allele_freq'] = float(info.get('FRQ'))
@@ -305,8 +307,6 @@ class RawDataImporter(DataImporter):
         counter = 0
         samples = 0
         vep_field_names = None
-        dp_mids = None
-        gq_mids = None
         with db.database.atomic():
             for filename in self.settings.variant_file:
                 # Get reference set for the variant
@@ -328,10 +328,6 @@ class RawDataImporter(DataImporter):
                         # Check for some information that we need
                         if line.startswith('##INFO=<ID=CSQ'):
                             vep_field_names = line.split('Format: ')[-1].strip('">').split('|')
-                        if line.startswith('##INFO=<ID=DP_HIST'):
-                            dp_mids = map(float, line.split('Mids: ')[-1].strip('">').split('|'))
-                        if line.startswith('##INFO=<ID=GQ_HIST'):
-                            gq_mids = map(float, line.split('Mids: ')[-1].strip('">').split('|'))
                         if line.startswith('#CHROM'):
                             samples = len(line.split('\t')[9:])
                         continue
@@ -371,7 +367,7 @@ class RawDataImporter(DataImporter):
                     try:
                         hom_counts = [int(info['AC_Hom'])]
                     except KeyError:
-                        hom_counts = None # null is better than 0, as 0 has a meaning
+                        hom_counts = None  # null is better than 0, as 0 has a meaning
                     except ValueError:
                         hom_counts = [int(count) for count in info['AC_Hom'].split(',')]
 
@@ -450,7 +446,7 @@ class RawDataImporter(DataImporter):
                                            .order_by(db.Variant.id.desc())
                                            .limit(1)
                                            .get().id)
-                                if  last_id-curr_id == len(batch):
+                                if last_id-curr_id == len(batch):
                                     indexes = list(range(curr_id+1, last_id+1))
                                 else:
                                     indexes = []
@@ -490,7 +486,7 @@ class RawDataImporter(DataImporter):
                                .order_by(db.Variant.id.desc())
                                .limit(1)
                                .get().id)
-                    if  last_id-curr_id == len(batch):
+                    if last_id-curr_id == len(batch):
                         indexes = list(range(curr_id+1, last_id+1))
                     else:
                         indexes = []
@@ -585,7 +581,7 @@ class RawDataImporter(DataImporter):
         """Add genes associated with the provided variants."""
         batch = []
         for i in range(len(variant_indexes)):
-            connected_genes = [{'variant':variant_indexes[i], 'gene':ref_genes[gene]}
+            connected_genes = [{'variant': variant_indexes[i], 'gene': ref_genes[gene]}
                                for gene in genes_to_add[i]
                                if gene]
             batch += connected_genes
@@ -597,8 +593,8 @@ class RawDataImporter(DataImporter):
         """Add genes associated with the provided variants."""
         batch = []
         for i in range(len(variant_indexes)):
-            connected_transcripts = [{'variant':variant_indexes[i],
-                                      'transcript':ref_transcripts[transcript]}
+            connected_transcripts = [{'variant': variant_indexes[i],
+                                      'transcript': ref_transcripts[transcript]}
                                      for transcript in transcripts_to_add[i]]
             batch += connected_transcripts
         if not self.settings.dry_run:

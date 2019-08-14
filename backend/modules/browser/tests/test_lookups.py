@@ -14,7 +14,7 @@ def test_autocomplete():
     """
     res = lookups.autocomplete('SweGen', 'PA')
     expected = set(["PABPC1P9", "PACSIN2", "PANX2", "PARP4P3",
-                "PARVB", "PARVG", "PATZ1", "PAXBP1", "PAXBP1-AS1"])
+                    "PARVB", "PARVG", "PATZ1", "PAXBP1", "PAXBP1-AS1"])
     assert set(res) == expected
     with pytest.raises(error.NotFoundError):
         res = lookups.autocomplete('Bad_dataset', 'PA')
@@ -54,7 +54,7 @@ def test_get_coverage_for_bases():
     coverage = lookups.get_coverage_for_bases('SweGen', '22', 46546423, 46549652)
     assert len(coverage) == 323
     expected = {'chrom': '22', 'coverage': [1.0, 1.0, 0.993, 0.91, 0.697, 0.426, 0.2, 0.009, 0.0],
-                           'dataset_version': 4, 'mean': 24.94, 'median': 24.0, 'pos': 46546430}
+                'dataset_version': 4, 'mean': 24.94, 'median': 24.0, 'pos': 46546430}
     for val in expected:
         assert coverage[0][val] == expected[val]
 
