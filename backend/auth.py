@@ -5,6 +5,7 @@ import urllib.parse
 import base64
 import uuid
 
+
 class DeveloperLoginHandler(BaseHandler):
     def get(self):
         if not self.get_argument("user", False):
@@ -58,7 +59,8 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
                 self.set_secure_cookie('email', user["email"])
                 self.set_secure_cookie('identity', user["sub"])
             except KeyError as err:
-                logging.error(f'ElixirLoginHandler: data missing ({err}); user: {user}, user_token: {user_token}')
+                logging.error(f'ElixirLoginHandler: data missing ({err}); user: {user}' +
+                              f', user_token: {user_token}')
                 self.redirect("/error")
                 return
 
