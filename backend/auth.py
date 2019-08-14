@@ -27,10 +27,10 @@ class DeveloperLogoutHandler(BaseHandler):
 
 
 class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
-    _OAUTH_AUTHORIZE_URL     = "https://login.elixir-czech.org/oidc/authorize"
-    _OAUTH_ACCESS_TOKEN_URL  = "https://login.elixir-czech.org/oidc/token"
+    _OAUTH_AUTHORIZE_URL = "https://login.elixir-czech.org/oidc/authorize"
+    _OAUTH_ACCESS_TOKEN_URL = "https://login.elixir-czech.org/oidc/token"
     _OAUTH_USERINFO_ENDPOINT = "https://login.elixir-czech.org/oidc/userinfo"
-    _OAUTH_SETTINGS_KEY      = 'elixir_oauth'
+    _OAUTH_SETTINGS_KEY = 'elixir_oauth'
 
     def _generate_state(self):
         state = uuid.uuid4().hex
@@ -50,7 +50,7 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
                 return
 
             user_token = await self.get_user_token(self.get_argument('code'))
-            user       = await self.get_user(user_token["access_token"])
+            user = await self.get_user(user_token["access_token"])
 
             try:
                 self.set_secure_cookie('access_token', user_token["access_token"])
@@ -69,40 +69,34 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
             self.redirect(redirect)
 
         elif self.get_argument("error", False):
-            logging.error("Elixir error: {}".format( self.get_argument("error") ))
-            logging.error(" Description: {}".format( self.get_argument("error_description") ))
+            logging.error("Elixir error: {}".format(self.get_argument("error")))
+            logging.error(" Description: {}".format(self.get_argument("error_description")))
 
-            self.set_user_msg("Elixir Error: %s, %s" % (self.get_argument("error"),
-                                                        self.get_argument("error_description")))
+            self.set_user_msg(f"Elixir Error: ,{self.get_argument('error')} " +
+                              f"{self.get_argument('error_description')}")
             self.redirect("/error")
 
         else:
             self.set_secure_cookie('login_redirect', self.get_argument("next", '/'), 1)
             state = self._generate_state()
-            self.authorize_redirect(
-                    redirect_uri  = self.settings['elixir_oauth']['redirect_uri'],
-                    client_id     = self.settings['elixir_oauth']['id'],
-                    scope         = ['openid', 'profile', 'email', 'bona_fide_status'],
-                    response_type = 'code',
-                    extra_params  = {'state': state}
-                )
+            self.authorize_redirect(redirect_uri=self.settings['elixir_oauth']['redirect_uri'],
+                                    client_id=self.settings['elixir_oauth']['id'],
+                                    scope=['openid', 'profile', 'email', 'bona_fide_status'],
+                                    response_type='code',
+                                    extra_params={'state': state})
 
     async def get_user(self, access_token):
         http = self.get_auth_http_client()
 
-        response = await http.fetch(
-                self._OAUTH_USERINFO_ENDPOINT,
-                headers = {
-                    'Content-Type':  'application/x-www-form-urlencoded',
-                    'Authorization': "Bearer {}".format(access_token),
-                }
-            )
+        response = await http.fetch(self._OAUTH_USERINFO_ENDPOINT,
+                                    headers={'Content-Type':  'application/x-www-form-urlencoded',
+                                             'Authorization': "Bearer {}".format(access_token)})
 
         if response.error:
-            logging.error("get_user error: {}".format(response))
+            logging.error(f"get_user error: {response}")
             return
 
-        return tornado.escape.json_decode( response.body )
+        return tornado.escape.json_decode(response.body)
 
     async def get_user_token(self, code):
         redirect_uri = self.settings['elixir_oauth']['redirect_uri']
@@ -114,28 +108,22 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
             })
 
         client_id = self.settings['elixir_oauth']['id']
-        secret    = self.settings['elixir_oauth']['secret']
+        secret = self.settings['elixir_oauth']['secret']
 
-        authorization = base64.b64encode(
-                bytes("{}:{}".format(client_id, secret),
-                      'ascii' )
-            ).decode('ascii')
+        authorization = base64.b64encode(bytes(f"{client_id}:{secret}",
+                                               'ascii')).decode('ascii')
 
-        response = await http.fetch(
-                self._OAUTH_ACCESS_TOKEN_URL,
-                method  = "POST",
-                body    = body,
-                headers = {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Authorization': "Basic {}".format(authorization),
-                },
-            )
+        response = await http.fetch(self._OAUTH_ACCESS_TOKEN_URL,
+                                    method="POST",
+                                    body=body,
+                                    headers={'Content-Type': 'application/x-www-form-urlencoded',
+                                             'Authorization': "Basic {}".format(authorization)})
 
         if response.error:
-            logging.error("get_user_token error: {}".format(response))
+            logging.error(f"get_user_token error: {response}")
             return
 
-        return tornado.escape.json_decode( response.body )
+        return tornado.escape.json_decode(response.body)
 
 
 class ElixirLogoutHandler(BaseHandler):
