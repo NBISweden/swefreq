@@ -1,9 +1,14 @@
-import logging
-from handlers import BaseHandler
-import tornado.auth
-import urllib.parse
+"""Authentication handlers."""
+
 import base64
+import logging
 import uuid
+import urllib.parse
+
+import tornado.auth
+
+from handlers import BaseHandler
+
 
 
 class DeveloperLoginHandler(BaseHandler):
@@ -103,11 +108,9 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
     async def get_user_token(self, code):
         redirect_uri = self.settings['elixir_oauth']['redirect_uri']
         http = self.get_auth_http_client()
-        body = urllib.parse.urlencode({
-                "redirect_uri": redirect_uri,
-                "code": code,
-                "grant_type": "authorization_code",
-            })
+        body = urllib.parse.urlencode({"redirect_uri": redirect_uri,
+                                       "code": code,
+                                       "grant_type": "authorization_code"})
 
         client_id = self.settings['elixir_oauth']['id']
         secret = self.settings['elixir_oauth']['secret']
