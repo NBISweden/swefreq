@@ -1,19 +1,20 @@
+from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from os import path
 import logging
-from datetime import datetime, timedelta
-from peewee import fn
-import peewee
+import math
+from os import path
+import re
+import random
 import smtplib
 import socket
-import tornado.web
-import tornado
-import random
 import string
 import uuid
-import math
-import re
+
+from peewee import fn
+import peewee
+import tornado.web
+import tornado
 
 import db
 import handlers
@@ -24,23 +25,23 @@ from modules.browser import utils
 def build_dataset_structure(dataset_version, user=None, dataset=None):
     if dataset is None:
         dataset = dataset_version.dataset
-    r = db.build_dict_from_row(dataset)
+    row = db.build_dict_from_row(dataset)
 
-    r['version'] = db.build_dict_from_row(dataset_version)
-    r['version']['available_from'] = r['version']['available_from'].strftime('%Y-%m-%d')
+    row['version'] = db.build_dict_from_row(dataset_version)
+    row['version']['available_from'] = row['version']['available_from'].strftime('%Y-%m-%d')
 
-    r['has_image'] = dataset.has_image()
+    row['has_image'] = dataset.has_image()
 
     if user:
-        r['is_admin'] = user.is_admin(dataset)
+        row['is_admin'] = user.is_admin(dataset)
         if user.has_access(dataset, dataset_version.version):
-            r['authorization_level'] = 'has_access'
+            row['authorization_level'] = 'has_access'
         elif user.has_requested_access(dataset):
-            r['authorization_level'] = 'has_requested_access'
+            row['authorization_level'] = 'has_requested_access'
         else:
-            r['authorization_level'] = 'no_access'
+            row['authorization_level'] = 'no_access'
 
-    return r
+    return row
 
 
 class QuitHandler(handlers.UnsafeHandler):
@@ -87,7 +88,7 @@ class GetSchema(handlers.UnsafeHandler):
                     "@type": "Organization",
                     "name": "National Bioinformatics Infrastructure Sweden",
                     "alternateName": ["NBIS",
-                                       "ELIXIR Sweden"],
+                                      "ELIXIR Sweden"],
                     "logo": "http://nbis.se/assets/img/logos/nbislogo-green.svg",
                     "url": "https://nbis.se/"
                 },
@@ -97,11 +98,10 @@ class GetSchema(handlers.UnsafeHandler):
                     "@type": "CreativeWork",
                     "name": "GNU General Public License v3.0",
                     "url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
-                }
-            }
+                }}
 
         if dataset:
-            dataset_schema = {'@type':"Dataset"}
+            dataset_schema = {'@type': "Dataset"}
 
             try:
                 dataset_version = db.get_dataset_version(dataset, version)
@@ -109,10 +109,10 @@ class GetSchema(handlers.UnsafeHandler):
                     self.send_error(status_code=404)
                     return
 
-
                 if dataset_version.available_from > datetime.now():
                     # If it's not available yet, only return if user is admin.
-                    if not (self.current_user and self.current_user.is_admin(dataset_version.dataset)):
+                    if not (self.current_user and
+                            self.current_user.is_admin(dataset_version.dataset)):
                         self.send_error(status_code=403)
                         return
 
@@ -126,14 +126,15 @@ class GetSchema(handlers.UnsafeHandler):
 
                 base["dataset"] = dataset_schema
 
-            except db.DatasetVersion.DoesNotExist as e:
-                logging.error("Dataset version does not exist: {}".format(e))
-            except db.DatasetVersionCurrent.DoesNotExist as e:
-                logging.error("Dataset does not exist: {}".format(e))
+            except db.DatasetVersion.DoesNotExist as err:
+                logging.error(f"Dataset version does not exist: {err}")
+            except db.DatasetVersionCurrent.DoesNotExist as err:
+                logging.error(f"Dataset does not exist: {err}")
 
         if beacon:
             base = {"@context": "http://schema.org",
-                    "@id": "https://swefreq.nbis.se/api/beacon-elixir/",  # or maybe "se.nbis.swefreq" as in the beacon api?
+                    # or maybe "se.nbis.swefreq" as in the beacon api?
+                    "@id": "https://swefreq.nbis.se/api/beacon-elixir/",
                     "@type": "Beacon",
                     "dataset": [dataset_schema],
                     "dct:conformsTo": "https://bioschemas.org/specifications/drafts/Beacon/",
@@ -143,8 +144,7 @@ class GetSchema(handlers.UnsafeHandler):
                     "description": "Beacon API Web Server based on the GA4GH Beacon API",
                     "version": "1.1.0",  # beacon api version
                     "aggregator": False,
-                    "url": "https://swefreq.nbis.se/api/beacon-elixir/"
-                   }
+                    "url": "https://swefreq.nbis.se/api/beacon-elixir/"}
 
         self.finish(base)
 
@@ -163,8 +163,8 @@ class ListDatasets(handlers.UnsafeHandler):
                        .where(db.DatasetVersion.available_from > datetime.now(),
                               db.DatasetAccess.user == user,
                               db.DatasetAccess.is_admin))
-            for f in futures:
-                dataset = build_dataset_structure(f, user)
+            for fut in futures:
+                dataset = build_dataset_structure(fut, user)
                 dataset['future'] = True
                 ret.append(dataset)
 
@@ -173,7 +173,7 @@ class ListDatasets(handlers.UnsafeHandler):
             dataset['current'] = True
             ret.append(dataset)
 
-        self.finish({'data':ret})
+        self.finish({'data': ret})
 
 
 class GetDataset(handlers.UnsafeHandler):
@@ -211,23 +211,23 @@ class ListDatasetVersions(handlers.UnsafeHandler):
         data = []
         found_current = False
         versions = sorted(versions, key=lambda version: version.version)
-        for v in reversed(versions):
+        for ver in reversed(versions):
             current = False
             future = False
 
             # Skip future versions unless admin
-            if v.available_from > datetime.now():
+            if ver.available_from > datetime.now():
                 if not (user and user.is_admin(dataset)):
                     continue
                 future = True
 
             # Figure out if this is the current version
-            if not found_current and v.available_from < datetime.now():
+            if not found_current and ver.available_from < datetime.now():
                 found_current = True
                 current = True
 
-            data.insert(0, {'name': v.version,
-                            'available_from': v.available_from.strftime('%Y-%m-%d'),
+            data.insert(0, {'name': ver.version,
+                            'available_from': ver.available_from.strftime('%Y-%m-%d'),
                             'current': current,
                             'future': future})
 
@@ -243,20 +243,20 @@ class GenerateTemporaryLink(handlers.AuthorizedHandler):
             self.send_error(status_code=404)
             return
 
-        lh = db.Linkhash.create(user=user,
-                                dataset_version=dataset_version,
-                                hash=uuid.uuid4().hex,
-                                expires_on=datetime.now() + timedelta(hours=3))
+        link_hash = db.Linkhash.create(user=user,
+                                       dataset_version=dataset_version,
+                                       hash=uuid.uuid4().hex,
+                                       expires_on=datetime.now() + timedelta(hours=3))
 
         try:
             (db.Linkhash.delete()
-            .where(db.Linkhash.expires_on < datetime.now())
-            .execute())
-        except peewee.OperationalError as e:
-            logging.error("Could not clean old linkhashes: {}".format(e))
+             .where(db.Linkhash.expires_on < datetime.now())
+             .execute())
+        except peewee.OperationalError as err:
+            logging.error(f"Could not clean old linkhashes: {err}")
 
-        self.finish({'hash': lh.hash,
-                     'expires_on': lh.expires_on.strftime("%Y-%m-%d %H:%M")}) #pylint: no-member
+        self.finish({'hash': link_hash.hash,
+                     'expires_on': link_hash.expires_on.strftime("%Y-%m-%d %H:%M")})
 
 
 class DatasetFiles(handlers.AuthorizedHandler):
@@ -268,11 +268,11 @@ class DatasetFiles(handlers.AuthorizedHandler):
             return
 
         ret = []
-        for f in dataset_version.files:
-            d = db.build_dict_from_row(f)
-            d['dirname'] = path.dirname(d['uri'])
-            d['human_size'] = format_bytes(d['file_size'])
-            ret.append(d)
+        for dv_file in dataset_version.files:
+            file_dict = db.build_dict_from_row(dv_file)
+            file_dict['dirname'] = path.dirname(file_dict['uri'])
+            file_dict['human_size'] = format_bytes(file_dict['file_size'])
+            ret.append(file_dict)
 
         self.finish({'files': ret})
 
@@ -293,13 +293,10 @@ class Collection(handlers.UnsafeHandler):
 
         for sample_set in dataset.sample_sets:
             collection = sample_set.collection
-            if not collection.name in collections:
-                collections[collection.name] = {
-                        'sample_sets': [],
-                        'ethnicity': collection.ethnicity,
-                    }
+            if collection.name not in collections:
+                collections[collection.name] = {'sample_sets': [],
+                                                'ethnicity': collection.ethnicity}
             collections[collection.name]['sample_sets'].append(db.build_dict_from_row(sample_set))
-
 
         ret = {
             'collections': collections,
@@ -399,20 +396,20 @@ class RequestAccess(handlers.SafeHandler):
         user.affiliation = affiliation
         user.country = country
 
-        logging.info("Inserting into database: {}, {}".format(user.name, user.email))
+        logging.info(f"Inserting into database: {user.name}, {user.email}")
 
         try:
             with db.database.atomic():
-                user.save() # Save to database
-                (da, _) = db.DatasetAccess.get_or_create(user=user,
-                                                         dataset=dataset)
-                da.wants_newsletter = newsletter
-                da.save()
+                user.save()  # Save to database
+                ds_access, _ = db.DatasetAccess.get_or_create(user=user,
+                                                              dataset=dataset)
+                ds_access.wants_newsletter = newsletter
+                ds_access.save()
                 db.UserAccessLog.create(user=user,
                                         dataset=dataset,
                                         action='access_requested')
-        except peewee.OperationalError as e:
-            logging.error(f"Database Error: {e}")
+        except peewee.OperationalError as err:
+            logging.error(f"Database Error: {err}")
 
 
 class LogEvent(handlers.SafeHandler):
@@ -422,14 +419,14 @@ class LogEvent(handlers.SafeHandler):
 
         if event == 'consent':
             user.save()
-            dv = (db.DatasetVersion
-                  .select()
-                  .join(db.Dataset)
-                  .where(db.DatasetVersion.version == target,
-                         db.Dataset.short_name == dataset)
-                  .get())
+            ds_version = (db.DatasetVersion
+                          .select()
+                          .join(db.Dataset)
+                          .where(db.DatasetVersion.version == target,
+                                 db.Dataset.short_name == dataset)
+                          .get())
             db.UserConsentLog.create(user=user,
-                                     dataset_version=dv)
+                                     dataset_version=ds_version)
         else:
             raise tornado.web.HTTPError(400, reason="Can't log that")
 
@@ -442,12 +439,12 @@ class ApproveUser(handlers.AdminHandler):
 
             user = db.User.select().where(db.User.email == email).get()
 
-            da = db.DatasetAccess.select().where(
-                        db.DatasetAccess.user == user,
-                        db.DatasetAccess.dataset == dataset
-                ).get()
-            da.has_access = True
-            da.save()
+            ds_access = (db.DatasetAccess.select()
+                         .where(db.DatasetAccess.user == user,
+                                db.DatasetAccess.dataset == dataset)
+                         .get())
+            ds_access.has_access = True
+            ds_access.save()
 
             db.UserAccessLog.create(user=user,
                                     dataset=dataset,
@@ -467,10 +464,10 @@ class ApproveUser(handlers.AdminHandler):
 
             server = smtplib.SMTP(settings.mail_server)
             server.sendmail(msg['from'], [msg['to']], msg.as_string())
-        except smtplib.SMTPException as e:
-            logging.error("Email error: {}".format(e))
-        except socket.gaierror as e:
-            logging.error("Email error: {}".format(e))
+        except smtplib.SMTPException as err:
+            logging.error(f"Email error: {err}")
+        except socket.gaierror as err:
+            logging.error(f"Email error: {err}")
 
         self.finish()
 
@@ -486,26 +483,25 @@ class RevokeUser(handlers.AdminHandler):
                                     dataset=dataset,
                                     action='access_revoked')
 
+
 def _build_json_response(query, access_for):
     json_response = []
     for user in query:
-        applyDate = '-'
+        apply_date = '-'
         access = access_for(user)
         if not access:
             continue
         access = access[0]
         if access.access_requested:
-            applyDate = access.access_requested.strftime('%Y-%m-%d')
+            apply_date = access.access_requested.strftime('%Y-%m-%d')
 
-        data = {
-                'user':        user.name,
-                'email':       user.email,
+        data = {'user': user.name,
+                'email': user.email,
                 'affiliation': user.affiliation,
-                'country':     user.country,
-                'newsletter':  access.wants_newsletter,
-                'has_access':  access.has_access,
-                'applyDate':   applyDate
-            }
+                'country': user.country,
+                'newsletter': access.wants_newsletter,
+                'has_access': access.has_access,
+                'applyDate': apply_date}
         json_response.append(data)
     return json_response
 
@@ -516,8 +512,8 @@ class DatasetUsersPending(handlers.AdminHandler):
         dataset = db.get_dataset(dataset)
         users = db.User.select()
         access = (db.DatasetAccessPending
-                   .select()
-                   .where(db.DatasetAccessPending.dataset == dataset))
+                  .select()
+                  .where(db.DatasetAccessPending.dataset == dataset))
         query = peewee.prefetch(users, access)
 
         self.finish({'data': _build_json_response(query, lambda u: u.access_pending)})
@@ -542,22 +538,22 @@ class UserDatasetAccess(handlers.SafeHandler):
         ret = {"data": []}
 
         for access in user.access_pending:
-            d = {}
-            d['short_name'] = access.dataset.short_name
-            d['wants_newsletter'] = access.wants_newsletter
-            d['is_admin'] = False
-            d['access'] = False
+            accessp_dict = {}
+            accessp_dict['short_name'] = access.dataset.short_name
+            accessp_dict['wants_newsletter'] = access.wants_newsletter
+            accessp_dict['is_admin'] = False
+            accessp_dict['access'] = False
 
-            ret['data'].append(d)
+            ret['data'].append(accessp_dict)
 
         for access in user.access_current:
-            d = {}
-            d['short_name'] = access.dataset.short_name
-            d['wants_newsletter'] = access.wants_newsletter
-            d['is_admin'] = access.is_admin
-            d['access'] = True
+            accessc_dict = {}
+            accessc_dict['short_name'] = access.dataset.short_name
+            accessc_dict['wants_newsletter'] = access.wants_newsletter
+            accessc_dict['is_admin'] = access.is_admin
+            accessc_dict['access'] = True
 
-            ret['data'].append(d)
+            ret['data'].append(accessc_dict)
 
         self.finish(ret)
 
@@ -566,13 +562,10 @@ class ServeLogo(handlers.UnsafeHandler):
     def get(self, dataset):
         dataset, _ = utils.parse_dataset(dataset)
         try:
-            logo_entry = db.DatasetLogo.select(
-                    db.DatasetLogo
-                ).join(
-                    db.Dataset
-                ).where(
-                    db.Dataset.short_name == dataset
-                ).get()
+            logo_entry = (db.DatasetLogo.select(db.DatasetLogo)
+                          .join(db.Dataset)
+                          .where(db.Dataset.short_name == dataset)
+                          .get())
         except db.DatasetLogo.DoesNotExist:
             self.send_error(status_code=404)
             return
@@ -587,7 +580,7 @@ class SFTPAccess(handlers.SafeHandler):
     def get(self):
         """Returns sFTP credentials for the current user."""
         if db.get_admin_datasets(self.current_user).count() <= 0:
-            self.finish({'user':None, 'expires':None, 'password':None})
+            self.finish({'user': None, 'expires': None, 'password': None})
             return
 
         password = None
@@ -602,9 +595,9 @@ class SFTPAccess(handlers.SafeHandler):
             # Otherwise return empty values
             pass
 
-        self.finish({'user':username,
-                     'expires':expires,
-                     'password':password})
+        self.finish({'user': username,
+                     'expires': expires,
+                     'password': password})
 
     def post(self):
         """
@@ -613,7 +606,7 @@ class SFTPAccess(handlers.SafeHandler):
         new password and expiry date.
         """
         if db.get_admin_datasets(self.current_user).count() <= 0:
-            self.finish({'user':None, 'expires':None, 'password':None})
+            self.finish({'user': None, 'expires': None, 'password': None})
             return
 
         # Create a new password
@@ -639,9 +632,9 @@ class SFTPAccess(handlers.SafeHandler):
                                 password_hash=passwd_hash,
                                 account_expires=expires).execute())
 
-        self.finish({'user':username,
-                     'expires':expires.strftime("%Y-%m-%d %H:%M"),
-                     'password':password})
+        self.finish({'user': username,
+                     'expires': expires.strftime("%Y-%m-%d %H:%M"),
+                     'password': password})
 
     def generate_password(self, size: int = 12) -> str:
         """
