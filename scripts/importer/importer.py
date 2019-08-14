@@ -12,7 +12,6 @@ as well as pip3 packages:
 """
 
 from data_importer.reference_set_importer import ReferenceSetImporter
-from data_importer.old_db_importer import OldDbImporter
 from data_importer.raw_data_importer import RawDataImporter
 
 if __name__ == '__main__':
@@ -77,9 +76,6 @@ if __name__ == '__main__':
                         help="Insert new reference set.")
     PARSER.add_argument("--add_raw_data", action="store_true",
                         help="Adds a Coverage and Variants to the database.")
-    PARSER.add_argument("--move_studies", action="store_true",
-                        help=("Moves studies and datasets from an old database "
-                              "to a new one."))
     PARSER.add_argument("--dry_run", action="store_true",
                         help="Do not insert anything into the database")
 
@@ -119,11 +115,6 @@ if __name__ == '__main__':
         IMPORTER.prepare_data()
         if not ARGS.disable_progress:
             IMPORTER.count_entries()
-        IMPORTER.start_import()
-
-    if ARGS.move_studies:
-        IMPORTER = OldDbImporter(ARGS)
-        IMPORTER.prepare_data()
         IMPORTER.start_import()
 
     if ARGS.add_raw_data:
