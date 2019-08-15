@@ -26,7 +26,7 @@ class DataImporter():
         self.progress_bar = not settings.disable_progress
         self.in_file = None
 
-    def _connect(self, host, user, passwd, database):
+    def _connect(self, host, user, passwd, database):  # pylint: disable=no-self-use
         try:
             logging.info("Connecting to database {}".format(database))
             database = MySQLdb.connect(host=host,
@@ -34,7 +34,7 @@ class DataImporter():
                                        passwd=passwd,
                                        db=database)
             return database.cursor()
-        except MySQLdb.Error as error:
+        except MySQLdb.Error as error:  # pylint: disable=no-member
             logging.error("Error connecting: {}".format(error))
 
     def _download(self, base_url, version=None):
@@ -87,16 +87,18 @@ class DataImporter():
         filename = self._download(base_url, version)
         return self._open(filename)
 
-    def _open(self, filename, binary=True):
+    def _open(self, filename, binary=True):  # pylint: disable=no-self-use
         mode = 'rb' if binary else 'rt'
         encoding = None if binary else 'utf8'
         try:
             logging.debug("Opening file {}".format(filename))
-            return gzip.open(filename, mode, encoding=encoding) if filename.endswith(".gz") else open(filename)
+            return gzip.open(filename, mode, encoding=encoding) \
+                if filename.endswith(".gz") \
+                   else open(filename)
         except IOError as error:
             logging.error("IOERROR: {}".format(error))
 
-    def _time_format(self, seconds):
+    def _time_format(self, seconds):  # pylint: disable=no-self-use
         hour, rem = divmod(seconds, 3600)
         mins, secs = divmod(rem, 60)
         retval = ""
@@ -113,7 +115,7 @@ class DataImporter():
     def _time_to(self, start, progress=0.01):
         return self._time_format((time.time() - start)/progress)
 
-    def _update_progress_bar(self, current_count, total, last_progress, finished=False):
+    def _update_progress_bar(self, current_count, total, last_progress, finished=False):  # pylint: disable=no-self-use
         if not finished:
             progress = current_count/total
         else:
