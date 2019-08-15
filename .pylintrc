@@ -72,7 +72,8 @@ disable=too-few-public-methods,
         too-few-public-methods,
         keyword-arg-before-vararg,
         arguments-differ,
-        attribute-defined-outside-init
+        attribute-defined-outside-init,
+	relative-beyond-top-level
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
