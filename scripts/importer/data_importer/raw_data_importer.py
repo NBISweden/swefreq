@@ -240,8 +240,12 @@ class RawDataImporter(DataImporter):
                                                               data['pos'],
                                                               data['ref'],
                                                               alt)
-                    data['allele_count'] = data.get('allele_count', 0)
-                    data['allele_num'] = data.get('allele_num', 0)
+                    # Note: these two fields are not present in our data, will always default to 0.
+                    # Set to 0 rather than None, as the type should be int (according to the Beacon
+                    # API specificition).
+                    data['allele_count'] = info.get('AC', 0)
+                    data['allele_num'] = info.get('AN',0)
+
                     batch += [data]
                     if self.settings.add_reversed_mates:
                         # If the vcf only contains one line per breakend,
