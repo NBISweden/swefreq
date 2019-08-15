@@ -234,7 +234,7 @@ class RawDataImporter(DataImporter):
                         re.search(r'(.+)[[\]](.*?):(\d+)[[\]]', alt).groups()
                     if data['mate_chrom'].startswith('GL') or data['mate_chrom'].startswith('MT'):
                         # A BND from a chromosome to GL or MT.
-                        # TODO ask a bioinformatician if these cases should be included or not
+                        # TODO ask a bioinformatician if these cases should be included or not # pylint: disable=fixme
                         continue
                     data['mate_id'] = info.get('MATEID', '')
                     data['variant_id'] = '{}-{}-{}-{}'.format(data['chrom'],
