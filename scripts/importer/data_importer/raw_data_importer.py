@@ -257,16 +257,14 @@ class RawDataImporter(DataImporter):
                                                                             reversed_mates['pos'],
                                                                             reversed_mates['ref'],
                                                                             alt)
-                        # increase the counter; reversed BNDs are usually kept at their own vcf row
-                        counter += 1
                         batch += [reversed_mates]
 
-                counter += 1  # count variants (one per vcf row)
+                # count variants (one per vcf row)
+                counter += 1
 
                 if len(batch) >= self.settings.batch_size:
                     if not self.settings.dry_run:
                         db.VariantMate.insert_many(batch).execute()
-
                     batch = []
 
                     # Update progress
