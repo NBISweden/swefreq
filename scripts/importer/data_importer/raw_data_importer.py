@@ -270,7 +270,7 @@ class RawDataImporter(DataImporter):
 
                     batch = []
                     # Update progress
-                    if not self.counter['variants']:
+                    if self.counter['variants']:
                         last_progress = self._update_progress_bar(counter,
                                                                   self.counter['variants'],
                                                                   last_progress)
@@ -278,7 +278,7 @@ class RawDataImporter(DataImporter):
         if batch and not self.settings.dry_run:
             db.VariantMate.insert_many(batch).execute()
 
-        if not self.counter['variants']:
+        if self.counter['variants']:
             last_progress = self._update_progress_bar(counter,
                                                       self.counter['variants'],
                                                       last_progress,
