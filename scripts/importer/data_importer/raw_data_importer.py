@@ -77,7 +77,7 @@ class RawDataImporter(DataImporter):
             raise db.DatasetVersion.DoesNotExist("No versions exist for this dataset")
 
         if self.settings.version not in [v.version for v in versions]:
-            logging.error("Unknown version '{self.settings.version}' " +
+            logging.error(f"Unknown version '{self.settings.version}' " +
                           f"for dataset '{self.dataset.short_name}'.")
             logging.info("Available versions are:")
             for version in versions:
