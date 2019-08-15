@@ -191,7 +191,6 @@ class RawDataImporter(DataImporter):
         header = [("chrom", str), ("pos", int), ("chrom_id", str), ("ref", str), ("alt", str)]
 
         batch = []
-        samples = 0
         counter = 0
         last_progress = 0
         start = time.time()
@@ -199,8 +198,6 @@ class RawDataImporter(DataImporter):
             for line in self._open(filename):
                 line = line.strip()
                 if line.startswith("#"):
-                    if line.startswith('#CHROM'):
-                        samples = len(line.split('\t')[9:])
                     continue
 
                 base = {}
@@ -220,10 +217,6 @@ class RawDataImporter(DataImporter):
                 if base["chrom"].startswith('GL') or base["chrom"].startswith('MT'):
                     # A BND from GL or MT. GL is an unplaced scaffold, MT is mitochondria.
                     continue
-
-                if 'NSAMPLES' in info:
-                    # save this unless we already know the sample size
-                    samples = int(info['NSAMPLES'])
 
                 alt_alleles = base['alt'].split(",")
 
@@ -285,12 +278,6 @@ class RawDataImporter(DataImporter):
         if batch and not self.settings.dry_run:
             db.VariantMate.insert_many(batch).execute()
 
-        if self.settings.set_vcf_sampleset_size and samples:
-            self.sampleset.sample_size = samples
-            self.sampleset.save()
-
-        self.dataset_version.num_variants = counter
-        self.dataset_version.save()
         if not self.counter['variants']:
             last_progress = self._update_progress_bar(counter,
                                                       self.counter['variants'],
