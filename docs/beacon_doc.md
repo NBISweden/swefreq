@@ -59,5 +59,5 @@ Current handovers:
 
 Imported from the file `SweGen_MANTA.sort.vcf`.
 
-- Reversed mates not in database. Import?
-- Empty values: `callcount` & `mateid` (because no values given in input data). Now: `null`. Will be set to `0` and `""`. Better? (When reversed mates are imported, `chromid` – aka `referenceid` – will also often be empty)
+- Reversed mates not in database. Imported to `dev-swefreq-db-psql5` (15/8).
+- Empty values: `callcount` & `mateid` (because no values given in input data). Now: `null`. In `dev-swefreq-db-psql5`, they are set to `0` and `""`. Better? (When reversed mates are imported, `chromid` – aka `referenceid` – will also often be empty).
