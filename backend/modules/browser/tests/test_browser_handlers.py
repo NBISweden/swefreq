@@ -1,8 +1,9 @@
 """
 Test the browser handlers
 """
-import requests
 import json
+
+import requests
 
 BASE_URL = "http://localhost:4000"
 
