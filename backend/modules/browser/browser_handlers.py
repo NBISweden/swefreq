@@ -34,7 +34,7 @@ class Autocomplete(handlers.UnsafeHandler):
 class Download(handlers.UnsafeHandler):
     """Download variants in CSV format."""
 
-    def get(self, dataset: str, datatype: str, item: str,
+    def get(self, dataset: str, datatype: str, item: str,  # pylint: disable=too-many-arguments
             ds_version: str = None, filter_type: str = None):
         """
         Download variants in CSV format.
@@ -283,6 +283,7 @@ class GetVariant(handlers.UnsafeHandler):
             dataset (str): short name of the dataset
             variant (str): variant in the format chrom-pos-ref-alt
         """
+        # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
 
         ret = {'variant': {}}
