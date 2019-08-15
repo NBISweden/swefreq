@@ -6,6 +6,7 @@ import json
 
 BASE_URL = "http://localhost:4000"
 
+# pylint: disable=line-too-long
 
 def test_get_autocomplete():
     """

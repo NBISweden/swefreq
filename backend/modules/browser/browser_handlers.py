@@ -343,7 +343,7 @@ class GetVariant(handlers.UnsafeHandler):
                       'sift': annotation['SIFT'].rstrip("()0123456789"),
                       'polyphen': annotation['PolyPhen'].rstrip("()0123456789"),
                       'canonical': annotation['CANONICAL'],
-                      'modification': annotation['HGVSp'].split(":")[1] if ':' in annotation['HGVSp'] else None}]
+                      'modification': annotation['HGVSp'].split(":")[1] if ':' in annotation['HGVSp'] else None}]  # pylint: disable=line-too-long
 
         # Dataset frequencies.
         # This is reported per variable in the database data, with dataset

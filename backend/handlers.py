@@ -21,7 +21,7 @@ class BaseHandler(tornado.web.RequestHandler):
     """
     def prepare(self):
         # Make sure we have the xsrf_token, this will generate the xsrf cookie if it isn't set
-        self.xsrf_token
+        self.xsrf_token  # pylint: disable=pointless-statement
         if db.database.is_closed():
             try:
                 db.database.connect()

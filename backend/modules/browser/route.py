@@ -1,5 +1,7 @@
 from . import browser_handlers as handlers
 
+# pylint: disable=line-too-long
+
 # Browser links
 routes = [(r"/api/dataset/(?P<dataset>[^/]+)/(?:version/(?P<ds_version>[^/]+)/)?browser/gene/(?P<gene>[^/]+)" ,                              handlers.GetGene),
           (r"/api/dataset/(?P<dataset>[^/]+)/(?:version/(?P<ds_version>[^/]+)/)?browser/region/(?P<region>[^\/]+)",                          handlers.GetRegion),

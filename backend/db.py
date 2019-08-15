@@ -17,13 +17,14 @@ from playhouse.postgres_ext import ArrayField, BinaryJSONField, PostgresqlExtDat
 
 import settings
 
+# pylint: disable=no-member
 database = PostgresqlExtDatabase(settings.psql_name,
                                  user=settings.psql_user,
                                  password=settings.psql_pass,
                                  host=settings.psql_host,
                                  port=settings.psql_port,
                                  register_hstore=False)
-
+# pylint: enable=no-member
 
 class BaseModel(Model):
     class Meta:

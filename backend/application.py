@@ -44,7 +44,7 @@ def build_dataset_structure(dataset_version, user=None, dataset=None):
 
 
 class QuitHandler(handlers.UnsafeHandler):
-    def get(self):
+    def get(self):  # pylint: disable=no-self-use
         ioloop = tornado.ioloop.IOLoop.instance()
         ioloop.stop()
 
@@ -65,7 +65,7 @@ class GetSchema(handlers.UnsafeHandler):
         version = None
         beacon = None
         try:
-            url = self.get_argument('url')
+            url = self.get_argument('url')  # pylint: disable=no-value-for-parameter
             match = re.match(".*/dataset/([^/]+)(/version/([^/]+))?", url)
             if match:
                 dataset = match.group(1)
@@ -255,7 +255,7 @@ class GenerateTemporaryLink(handlers.AuthorizedHandler):
             logging.error(f"Could not clean old linkhashes: {err}")
 
         self.finish({'hash': link_hash.hash,
-                     'expires_on': link_hash.expires_on.strftime("%Y-%m-%d %H:%M")})
+                     'expires_on': link_hash.expires_on.strftime("%Y-%m-%d %H:%M")})  # pylint: disable=no-member
 
 
 class DatasetFiles(handlers.AuthorizedHandler):
@@ -299,7 +299,7 @@ class Collection(handlers.UnsafeHandler):
 
         ret = {
             'collections': collections,
-            'study':       db.build_dict_from_row(dataset.study)
+            'study': db.build_dict_from_row(dataset.study)
         }
         ret['study']['publication_date'] = ret['study']['publication_date'].strftime('%Y-%m-%d')
 
@@ -388,9 +388,9 @@ class RequestAccess(handlers.SafeHandler):
         user = self.current_user
         dataset = db.get_dataset(dataset)
 
-        affiliation = self.get_argument("affiliation", strip=False)
-        country = self.get_argument("country", strip=False)
-        newsletter = self.get_argument("newsletter", strip=False)
+        affiliation = self.get_argument("affiliation", strip=False)  # pylint: disable=no-value-for-parameter
+        country = self.get_argument("country", strip=False)  # pylint: disable=no-value-for-parameter
+        newsletter = self.get_argument("newsletter", strip=False)  # pylint: disable=no-value-for-parameter
 
         user.affiliation = affiliation
         user.country = country
@@ -452,16 +452,16 @@ class ApproveUser(handlers.AdminHandler):
         try:
             msg = MIMEMultipart()
             msg['to'] = email
-            msg['from'] = settings.from_address
+            msg['from'] = settings.from_address  # pylint: disable=no-member
             msg['subject'] = 'Swefreq access granted to {}'.format(dataset.short_name)
-            msg.add_header('reply-to', settings.reply_to_address)
+            msg.add_header('reply-to', settings.reply_to_address)  # pylint: disable=no-member
             body = """You now have access to the {} dataset
 
     Please visit https://swefreq.nbis.se/dataset/{}/download to download files.
             """.format(dataset.full_name, dataset.short_name)
             msg.attach(MIMEText(body, 'plain'))
 
-            server = smtplib.SMTP(settings.mail_server)
+            server = smtplib.SMTP(settings.mail_server)  # pylint: disable=no-member
             server.sendmail(msg['from'], [msg['to']], msg.as_string())
         except smtplib.SMTPException as err:
             logging.error(f"Email error: {err}")
@@ -472,7 +472,7 @@ class ApproveUser(handlers.AdminHandler):
 
 
 class RevokeUser(handlers.AdminHandler):
-    def post(self, dataset, email):
+    def post(self, dataset, email):  # pylint: disable=no-self-use
         dataset, _ = utils.parse_dataset(dataset)
         with db.database.atomic():
             dataset = db.get_dataset(dataset)
@@ -625,7 +625,7 @@ class SFTPAccess(handlers.SafeHandler):
              .execute())
         except db.SFTPUser.DoesNotExist:
             # if there is no user, insert the user in the database
-            (db.SFTPUser.insert(user=self.current_user,
+            (db.SFTPUser.insert(user=self.current_user,    # pylint: disable=no-value-for-parameter
                                 user_uid=db.get_next_free_uid(),
                                 user_name=username,
                                 password_hash=passwd_hash,
@@ -635,7 +635,7 @@ class SFTPAccess(handlers.SafeHandler):
                      'expires': expires.strftime("%Y-%m-%d %H:%M"),
                      'password': password})
 
-    def generate_password(self, size: int = 12) -> str:
+    def generate_password(self, size: int = 12) -> str:  # pylint: disable=no-self-use
         """
         Generates a password of length 'size', comprised of random lowercase and
         uppercase letters, and numbers.
