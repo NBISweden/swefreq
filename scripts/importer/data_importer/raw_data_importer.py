@@ -186,7 +186,7 @@ class RawDataImporter(DataImporter):
                                                       finished=True)
         self.log_insertion(counter, "coverage", start)
 
-    def _parse_manta(self):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+    def _parse_manta(self):  # pylint: disable=too-many-branches
         """Parse a manta file."""
         header = [("chrom", str), ("pos", int), ("chrom_id", str), ("ref", str), ("alt", str)]
 
@@ -218,46 +218,7 @@ class RawDataImporter(DataImporter):
                     # A BND from GL or MT. GL is an unplaced scaffold, MT is mitochondria.
                     continue
 
-                alt_alleles = base['alt'].split(",")
-                for alt in alt_alleles:
-                    data = dict(base)
-                    data['allele_freq'] = float(info.get('FRQ'))
-                    data['alt'], data['mate_chrom'], data['mate_start'] = \
-                        re.search(r'(.+)[[\]](.*?):(\d+)[[\]]', alt).groups()
-                    if data['mate_chrom'].startswith('GL') or data['mate_chrom'].startswith('MT'):
-                        # A BND from a chromosome to GL (unplaced scaffold) or MT (mitochondria).
-                        # TODO ask a bioinformatician if these cases should be included or not # pylint: disable=fixme
-                        continue
-                    data['mate_id'] = info.get('MATEID', '')
-                    data['variant_id'] = '{}-{}-{}-{}'.format(data['chrom'],
-                                                              data['pos'],
-                                                              data['ref'],
-                                                              alt)
-                    # Note: these two fields are not present in our data, will always default to 0.
-                    # Set to 0 rather than None, as the type should be int (according to the Beacon
-                    # API specificition).
-                    data['allele_count'] = info.get('AC', 0)
-                    data['allele_num'] = info.get('AN', 0)
-
-                    batch += [data]
-                    if self.settings.add_reversed_mates:
-                        # If the vcf only contains one line per breakend,
-                        # add the reversed version to the database here.
-                        reversed_mates = dict(data)
-                        # Note: in general, ref and alt cannot be assumed to be the same in the
-                        # reversed direction, but our data (so far) only contains N, so we just
-                        # keep them as is for now.
-                        reversed_mates.update({'mate_chrom': data['chrom'],
-                                               'chrom': data['mate_chrom'],
-                                               'mate_start': data['pos'],
-                                               'pos': data['mate_start'],
-                                               'chrom_id': data['mate_id'],
-                                               'mate_id': data['chrom_id']})
-                        reversed_mates['variant_id'] = '{}-{}-{}-{}'.format(reversed_mates['chrom'],
-                                                                            reversed_mates['pos'],
-                                                                            reversed_mates['ref'],
-                                                                            alt)
-                        batch += [reversed_mates]
+                batch += self.parse_bnd_alleles(base, info)
 
                 # count variants (one per vcf row)
                 counter += 1
@@ -623,3 +584,48 @@ class RawDataImporter(DataImporter):
                                                      counter,
                                                      insertion_type,
                                                      self._time_since(start)))
+
+    def parse_bnd_alleles(self, base, info):
+        """Parse alleles of a structural variant (BND) in a manta file."""
+        batch = []
+        for alt in base['alt'].split(","):
+            data = dict(base)
+            data['allele_freq'] = float(info.get('FRQ'))
+            data['alt'], data['mate_chrom'], data['mate_start'] = \
+                    re.search(r'(.+)[[\]](.*?):(\d+)[[\]]', alt).groups()
+            if data['mate_chrom'].startswith('GL') or data['mate_chrom'].startswith('MT'):
+                # A BND from a chromosome to GL (unplaced scaffold) or MT (mitochondria).
+                # TODO ask a bioinformatician if these cases should be included or not   # pylint: disable=fixme
+                continue
+            data['mate_id'] = info.get('MATEID', '')
+            data['variant_id'] = '{}-{}-{}-{}'.format(data['chrom'],
+                                                      data['pos'],
+                                                      data['ref'],
+                                                      alt)
+            # Note: these two fields are not present in our data, will always default to 0.
+            # Set to 0 rather than None, as the type should be int (according to the Beacon
+            # API specificition).
+            data['allele_count'] = info.get('AC', 0)
+            data['allele_num'] = info.get('AN', 0)
+
+            batch += [data]
+            if self.settings.add_reversed_mates:
+                # If the vcf only contains one line per breakend,
+                # add the reversed version to the database here.
+                reversed_mates = dict(data)
+                # Note: in general, ref and alt cannot be assumed to be the same in the
+                # reversed direction, but our data (so far) only contains N, so we just
+                # keep them as is for now.
+                reversed_mates.update({'mate_chrom': data['chrom'],
+                                       'chrom': data['mate_chrom'],
+                                       'mate_start': data['pos'],
+                                       'pos': data['mate_start'],
+                                       'chrom_id': data['mate_id'],
+                                       'mate_id': data['chrom_id']})
+                reversed_mates['variant_id'] = '{}-{}-{}-{}'.format(reversed_mates['chrom'],
+                                                                    reversed_mates['pos'],
+                                                                    reversed_mates['ref'],
+                                                                    alt)
+                batch += [reversed_mates]
+
+        return batch
