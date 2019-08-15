@@ -10,7 +10,6 @@ import tornado.auth
 from handlers import BaseHandler
 
 
-
 class DeveloperLoginHandler(BaseHandler):
     def get(self):
         if not self.get_argument("user", False):

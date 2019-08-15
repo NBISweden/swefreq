@@ -21,7 +21,6 @@ import handlers
 import settings
 from modules.browser import utils
 
-
 def build_dataset_structure(dataset_version, user=None, dataset=None):
     if dataset is None:
         dataset = dataset_version.dataset
