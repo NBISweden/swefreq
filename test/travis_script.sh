@@ -171,6 +171,8 @@ RETURN_VALUE=$((RETURN_VALUE + $?))
 echo '>>> Code evaluation'
 pylint backend
 RETURN_VALUE=$((RETURN_VALUE + $?))
+pylint scripts
+RETURN_VALUE=$((RETURN_VALUE + $?))
 
 echo '>>> Finalising: Combine coverage'
 
