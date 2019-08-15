@@ -12,7 +12,7 @@ from peewee import fn
 import db
 from .data_importer import DataImporter
 
-class ReferenceSetImporter(DataImporter):
+class ReferenceSetImporter(DataImporter):  # pylint: disable=too-many-instance-attributes
     """Import a reference set into db."""
 
     GENCODE = ("ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/" +
@@ -58,8 +58,10 @@ class ReferenceSetImporter(DataImporter):
         start = time.time()
         last_progress = -1
         batch = []
+        i = 0
         with db.database.atomic():
-            for i, feature in enumerate(self.features):
+            i = 0
+            for feature in self.features:
                 batch += [{'gene':self.gene_db_ids[feature['gene_id']],
                            'transcript':self.transcript_db_ids[feature['transcript_id']],
                            'chrom':feature['chrom'],
@@ -74,9 +76,12 @@ class ReferenceSetImporter(DataImporter):
                     batch = []
 
                 last_progress = self._update_progress_bar(i, len(self.features), last_progress)
+                i += 1
+
             if batch:
                 if not self.settings.dry_run:
                     db.Feature.insert_many(batch).execute()
+
         last_progress = self._update_progress_bar(i, len(self.features),
                                                   last_progress, finished=True)
 
@@ -87,7 +92,8 @@ class ReferenceSetImporter(DataImporter):
         logging.info("Inserting genes into database")
         start = time.time()
         last_progress = -1
-        for i, gene in enumerate(self.genes):
+        i = 0
+        for gene in self.genes:
             # As far as I know I can't batch insert these and still get the id's back
             db_gene = db.Gene(reference_set=self.db_reference,
                               gene_id=gene['gene_id'],
@@ -113,6 +119,8 @@ class ReferenceSetImporter(DataImporter):
                 pass
 
             last_progress = self._update_progress_bar(i, len(self.genes), last_progress)
+            i += 1
+
         last_progress = self._update_progress_bar(i, len(self.genes), last_progress, finished=True)
 
         logging.info(f"Genes inserted in {self._time_since(start)}")
@@ -129,7 +137,7 @@ class ReferenceSetImporter(DataImporter):
                 self.db_reference.id = max_id.id + 1
         else:
             self.db_reference.save()
-        logging.info("Reference %s created", self.db_reference.id)
+        logging.info(f"Reference {self.db_reference.id} created")
 
     def _insert_transcripts(self):
         """Insert trabscripts into db."""
@@ -137,23 +145,26 @@ class ReferenceSetImporter(DataImporter):
         start = time.time()
 
         last_progress = -1
-        for i, transcript in enumerate(self.transcripts):
-            db_transcript = db.Transcript(transcript_id=transcript['transcript_id'],
-                                          gene=self.gene_db_ids[transcript['gene_id']],
-                                          mim_annotation=transcript.get('mim_annotation', None),
-                                          mim_gene_accession=transcript.get('mim_gene_accession', None),
-                                          chrom=transcript['chrom'],
-                                          start=transcript['start'],
-                                          stop=transcript['stop'],
-                                          strand=transcript['strand'])
+        i = 0
+        for transcript in self.transcripts:
+            db_trans = db.Transcript(transcript_id=transcript['transcript_id'],
+                                     gene=self.gene_db_ids[transcript['gene_id']],
+                                     mim_annotation=transcript.get('mim_annotation', None),
+                                     mim_gene_accession=transcript.get('mim_gene_accession', None),
+                                     chrom=transcript['chrom'],
+                                     start=transcript['start'],
+                                     stop=transcript['stop'],
+                                     strand=transcript['strand'])
 
             if self.settings.dry_run:
                 self.transcript_db_ids[transcript['transcript_id']] = 0
             else:
-                db_transcript.save()
-                self.transcript_db_ids[transcript['transcript_id']] = db_transcript.id
+                db_trans.save()
+                self.transcript_db_ids[transcript['transcript_id']] = db_trans.id
 
             last_progress = self._update_progress_bar(i, len(self.transcripts), last_progress)
+            i += 1
+
         last_progress = self._update_progress_bar(i, len(self.transcripts),
                                                   last_progress, finished=True)
 
@@ -202,7 +213,8 @@ class ReferenceSetImporter(DataImporter):
     def _open_ensembl(self):
         """Connect to the given ensembl database."""
         logging.info("----- Opening ensembl database connection -----")
-        self.ensembl = self._connect(*(ReferenceSetImporter.ENSEMBL + (self.settings.ensembl_version,)))
+        self.ensembl = self._connect(*(ReferenceSetImporter.ENSEMBL +
+                                       (self.settings.ensembl_version,)))
 
     def _open_gencode(self):
         """Download (if needed) and opens the given gencode file."""
@@ -264,13 +276,16 @@ class ReferenceSetImporter(DataImporter):
             canonical_dict[transcript[0]] = transcript[1]
 
         last_progress = -1.0
-        for i, gene in enumerate(self.genes):
+        i = 0
+        for gene in self.genes:
             if gene['gene_id'] in canonical_dict:
                 self.genes[i]['canonical_transcript'] = canonical_dict[gene['gene_id']]
 
             self.counters['genes'] += 1
             if self.numbers['genes'] is not None:
                 last_progress = self._update_progress_bar(i, self.numbers['genes'], last_progress)
+            i += 1
+
         if self.numbers['genes'] is not None:
             last_progress = self._update_progress_bar(i, self.numbers['genes'],
                                                       last_progress, finished=True)
@@ -364,7 +379,7 @@ class ReferenceSetImporter(DataImporter):
                     self.counters['features'] += 1
                     continue
 
-            except Exception as error:
+            except Exception as error:  # pylint: disable=broad-except
                 logging.error("{}".format(error))
                 break
         if self.numbers['genes'] is not None:
