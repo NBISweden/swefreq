@@ -203,11 +203,11 @@ class RawDataImporter(DataImporter):
                 base = {}
                 for i, item in enumerate(line.split("\t")):
                     if i == 0:
-                        base['dataset_version'] = self.dataset_version
+                        base = {'dataset_version': self.dataset_version}
                     if i < 5:
                         base[header[i][0]] = header[i][1](item)
                     elif i == 7:
-                        # only parse column 7 (maybe also for non-beacon-import?)
+                        # Skip column 5 and 6 (QUAL and FILTER), will not be used
                         info = dict([(x.split('=', 1)) if '=' in x else (x, x)  # pylint: disable=consider-using-dict-comprehension
                                      for x in re.split(r';(?=\w)', item)])
 
@@ -219,14 +219,13 @@ class RawDataImporter(DataImporter):
                     continue
 
                 alt_alleles = base['alt'].split(",")
-
-                for i, alt in enumerate(alt_alleles):
+                for alt in alt_alleles:
                     data = dict(base)
                     data['allele_freq'] = float(info.get('FRQ'))
                     data['alt'], data['mate_chrom'], data['mate_start'] = \
                         re.search(r'(.+)[[\]](.*?):(\d+)[[\]]', alt).groups()
                     if data['mate_chrom'].startswith('GL') or data['mate_chrom'].startswith('MT'):
-                        # A BND from a chromosome to GL or MT.
+                        # A BND from a chromosome to GL (unplaced scaffold) or MT (mitochondria).
                         # TODO ask a bioinformatician if these cases should be included or not # pylint: disable=fixme
                         continue
                     data['mate_id'] = info.get('MATEID', '')
@@ -269,12 +268,14 @@ class RawDataImporter(DataImporter):
                         db.VariantMate.insert_many(batch).execute()
 
                     batch = []
+
                     # Update progress
                     if self.counter['variants']:
                         last_progress = self._update_progress_bar(counter,
                                                                   self.counter['variants'],
                                                                   last_progress)
 
+        # Store all variants and counter values
         if batch and not self.settings.dry_run:
             db.VariantMate.insert_many(batch).execute()
 
