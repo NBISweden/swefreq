@@ -152,7 +152,6 @@ sort "$BASE/tests/data/reference.psql" > ref.psql
 
 # compare dump to reference
 diff sdump.psql ref.psql
-
 RETURN_VALUE=$((RETURN_VALUE + $?))
 
 echo '>>> Test 6. Reading manta file'
@@ -169,6 +168,9 @@ psql -U postgres -h 127.0.0.1 -p 5433 "$DBNAME" -c "select chrom_id, pos, ref, a
 diff mates_res.txt "$BASE/tests/data/mates_reference.txt"
 RETURN_VALUE=$((RETURN_VALUE + $?))
 
+echo '>>> Code evaluation'
+pylint backend
+RETURN_VALUE=$((RETURN_VALUE + $?))
 
 echo '>>> Finalising: Combine coverage'
 
