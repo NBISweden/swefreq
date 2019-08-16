@@ -359,11 +359,7 @@ def get_variant_list(dataset: str, datatype: str, item: str, ds_version: str = N
 
     elif datatype == 'transcript':
         variants = lookups.get_variants_in_transcript(dataset, item, ds_version)
-
-    if datatype == 'transcript':
         transcript = lookups.get_transcript(dataset, item, ds_version)
-        if not transcript:
-            return {}
         refgene = transcript['gene_id']
 
     if variants:

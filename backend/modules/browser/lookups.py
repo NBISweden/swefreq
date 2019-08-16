@@ -69,6 +69,7 @@ def get_awesomebar_result(dataset: str, query: str, ds_version: str = None) -> t
         tuple: (datatype, identifier)
 
     """
+    # pylint: disable=too-many-return-statements,too-many-branches
     query = query.strip()
 
     # Parse Variant types
@@ -84,35 +85,32 @@ def get_awesomebar_result(dataset: str, query: str, ds_version: str = None) -> t
     # Gene
     try:
         gene = get_gene_by_name(dataset, query)
+        return 'gene', gene['gene_id']
     except error.NotFoundError:
         pass
-    else:
-        return 'gene', gene['gene_id']
+
     # Capital letters for all other queries
     query = query.upper()
     try:
         gene = get_gene_by_name(dataset, query)
+        return 'gene', gene['gene_id']
     except error.NotFoundError:
         pass
-    else:
-        return 'gene', gene['gene_id']
 
     # Ensembl formatted queries
     if query.startswith('ENS'):
         # Gene
         try:
             gene = get_gene(dataset, query)
+            return 'gene', gene['gene_id']
         except error.NotFoundError:
             pass
-        else:
-            return 'gene', gene['gene_id']
         # Transcript
         try:
             transcript = get_transcript(dataset, query)
+            return 'transcript', transcript['transcript_id']
         except error.NotFoundError:
             pass
-        else:
-            return 'transcript', transcript['transcript_id']
 
     # Region and variant queries
     query = query[3:] if query.startswith('CHR') else query
@@ -348,7 +346,7 @@ def get_genes_in_region(dataset: str, chrom: str, start_pos: int,
     return genes
 
 
-def get_raw_variant(dataset: str, pos: int, chrom: str, ref: str,
+def get_raw_variant(dataset: str, pos: int, chrom: str, ref: str,  # pylint: disable=too-many-arguments
                     alt: str, ds_version: str = None) -> dict:
     """
     Retrieve variant by position and change.
@@ -480,7 +478,7 @@ def get_transcripts_in_gene_by_dbid(gene_dbid: int) -> list:
                                           .dicts())]
 
 
-def get_variant(dataset: str, pos: int, chrom: str, ref: str,
+def get_variant(dataset: str, pos: int, chrom: str, ref: str,  # pylint: disable=too-many-arguments
                 alt: str, ds_version: str = None) -> dict:
     """
     Retrieve variant by position and change.

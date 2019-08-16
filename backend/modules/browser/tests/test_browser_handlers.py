@@ -1,10 +1,13 @@
 """
 Test the browser handlers
 """
-import requests
 import json
 
-BASE_URL="http://localhost:4000"
+import requests
+
+BASE_URL = "http://localhost:4000"
+
+# pylint: disable=line-too-long
 
 def test_get_autocomplete():
     """
@@ -28,7 +31,7 @@ def test_download():
     data_type = 'transcript'
     data_item = 'ENST00000438441'
     response = requests.get('{}/api/dataset/{}/browser/download/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
-    assert len(response.text.split('\n')) == 180 # header + 178 + \n
+    assert len(response.text.split('\n')) == 180  # header + 178 + \n
     response = requests.get('{}/api/dataset/{}/browser/download/{}/{}/filter/all~false'.format(BASE_URL, dataset, data_type, data_item))
     import logging
     logging.error(response.text.split('\n'))

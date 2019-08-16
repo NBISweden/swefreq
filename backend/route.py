@@ -17,6 +17,7 @@ define("port", default=4000, help="run on the given port", type=int)
 define("develop", default=False, help="Run in develop environment", type=bool)
 
 # Setup the Tornado Application
+# pylint: disable=no-member
 tornado_settings = {"debug": False,
                     "cookie_secret": swefreq_settings.cookie_secret,
                     "login_url": "/login",
@@ -27,7 +28,9 @@ tornado_settings = {"debug": False,
                     },
                     "xsrf_cookies": True,
                     "template_path": "templates/"}
+# pylint: enable=no-member
 
+# pylint: disable=line-too-long
 
 class Application(tornado.web.Application):
     def __init__(self, settings):

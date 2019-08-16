@@ -10,7 +10,6 @@ import tornado.auth
 from handlers import BaseHandler
 
 
-
 class DeveloperLoginHandler(BaseHandler):
     def get(self):
         if not self.get_argument("user", False):
@@ -18,9 +17,9 @@ class DeveloperLoginHandler(BaseHandler):
         elif not self.get_argument("email", False):
             self.send_error(status_code=403)
 
-        self.set_secure_cookie('user', self.get_argument("user"))
-        self.set_secure_cookie('email', self.get_argument("email"))
-        self.set_secure_cookie('identity', self.get_argument("email"))
+        self.set_secure_cookie('user', self.get_argument("user"))  # pylint: disable=no-value-for-parameter
+        self.set_secure_cookie('email', self.get_argument("email"))  # pylint: disable=no-value-for-parameter
+        self.set_secure_cookie('identity', self.get_argument("email"))  # pylint: disable=no-value-for-parameter
         self.finish()
 
 
@@ -55,7 +54,7 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
                 self.redirect("/security_warning")
                 return
 
-            user_token = await self.get_user_token(self.get_argument('code'))
+            user_token = await self.get_user_token(self.get_argument('code'))  # pylint: disable=no-value-for-parameter
             user = await self.get_user(user_token["access_token"])
 
             try:
@@ -76,11 +75,11 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
             self.redirect(redirect)
 
         elif self.get_argument("error", False):
-            logging.error("Elixir error: {}".format(self.get_argument("error")))
-            logging.error(" Description: {}".format(self.get_argument("error_description")))
+            logging.error("Elixir error: {}".format(self.get_argument("error")))  # pylint: disable=no-value-for-parameter
+            logging.error(" Description: {}".format(self.get_argument("error_description")))  # pylint: disable=no-value-for-parameter
 
-            self.set_user_msg(f"Elixir Error: ,{self.get_argument('error')} " +
-                              f"{self.get_argument('error_description')}")
+            self.set_user_msg(f"Elixir Error: ,{self.get_argument('error')} " +   # pylint: disable=no-value-for-parameter
+                              f"{self.get_argument('error_description')}")  # pylint: disable=no-value-for-parameter
             self.redirect("/error")
 
         else:
@@ -115,8 +114,7 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
         client_id = self.settings['elixir_oauth']['id']
         secret = self.settings['elixir_oauth']['secret']
 
-        authorization = base64.b64encode(bytes(f"{client_id}:{secret}",
-                                               'ascii')).decode('ascii')
+        authorization = base64.b64encode(bytes(f"{client_id}: {secret}", 'ascii')).decode('ascii')
 
         response = await http.fetch(self._OAUTH_ACCESS_TOKEN_URL,
                                     method="POST",

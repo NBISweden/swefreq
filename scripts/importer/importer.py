@@ -97,7 +97,8 @@ if __name__ == '__main__':
     PARSER.add_argument("--add_mates", action="store_true",
                         help=("Parse MANTA file and add the breakends to the db"))
     PARSER.add_argument("--add_reversed_mates", action="store_true",
-                        help=("Assume input data only contain one line per BND, covering both directions"))
+                        help=("Assume input data only contain one line per BND, " +
+                              "covering both directions"))
 
     ARGS = PARSER.parse_args()
 
@@ -107,9 +108,9 @@ if __name__ == '__main__':
 
     if ARGS.add_reference:
         logging.info("Adding a new reference set using these sources:")
-        logging.info("  - Gencode: %s", ARGS.gencode_version)
-        logging.info("  - Ensembl: %s", ARGS.ensembl_version)
-        logging.info("  - dbNSFP:  %s", ARGS.dbnsfp_version)
+        logging.info(f"  - Gencode: {ARGS.gencode_version}")
+        logging.info(f"  - Ensembl: {ARGS.ensembl_version}")
+        logging.info(f"  - dbNSFP:  {ARGS.dbnsfp_version}")
 
         IMPORTER = ReferenceSetImporter(ARGS)
         IMPORTER.prepare_data()
@@ -118,7 +119,7 @@ if __name__ == '__main__':
         IMPORTER.start_import()
 
     if ARGS.add_raw_data:
-        logging.info("Adding raw data %s", "(dry run)" if ARGS.dry_run else '')
+        logging.info(f"Adding raw data {'(dry run)' if ARGS.dry_run else ''}")
         IMPORTER = RawDataImporter(ARGS)
         IMPORTER.prepare_data()
         if not ARGS.disable_progress:

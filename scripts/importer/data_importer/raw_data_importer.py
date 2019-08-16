@@ -61,12 +61,12 @@ class RawDataImporter(DataImporter):
         try:
             chosen_ds = db.Dataset.get(short_name=self.settings.dataset)
         except db.Dataset.DoesNotExist:
-            logging.error("Unknown dataset '%s'", self.settings.dataset)
+            logging.error(f"Unknown dataset {self.settings.dataset}")
             logging.info("Available datasets are:")
             for dataset in db.Dataset.select():
-                logging.info(" * %s", dataset.short_name)
+                logging.info(f" * {dataset.short_name}")
             sys.exit(1)
-        logging.info("Using dataset {}".format(chosen_ds.short_name))
+        logging.info(f"Using dataset {chosen_ds.short_name}")
         self.dataset = chosen_ds
 
         versions = [v for v in (db.DatasetVersion.select().
@@ -77,11 +77,11 @@ class RawDataImporter(DataImporter):
             raise db.DatasetVersion.DoesNotExist("No versions exist for this dataset")
 
         if self.settings.version not in [v.version for v in versions]:
-            logging.error("Unknown version '%s' for dataset '%s'.",
-                          self.settings.version, self.dataset.short_name)
+            logging.error(f"Unknown version '{self.settings.version}' " +
+                          f"for dataset '{self.dataset.short_name}'.")
             logging.info("Available versions are:")
             for version in versions:
-                logging.info(" * %s", version.version)
+                logging.info(f" * {version.version}")
             sys.exit(1)
         self.dataset_version = [v for v in versions if v.version == self.settings.version][0]
 
@@ -116,8 +116,8 @@ class RawDataImporter(DataImporter):
         datarow = {'datasetid': datasetid,
                    'callcount': self.counter['calls'],
                    'variantcount': self.counter['beaconvariants']}
-        logging.info('Dataset counts: callcount: %s, variantcount: %s',
-                     datarow['callcount'], datarow['variantcount'])
+        logging.info(f"Dataset counts: callcount: {datarow['callcount']}, " +
+                     f"variantcount: {datarow['variantcount']}")
         if not self.settings.dry_run:
             db.BeaconCounts.insert(datarow).execute()
 
@@ -186,7 +186,7 @@ class RawDataImporter(DataImporter):
                                                       finished=True)
         self.log_insertion(counter, "coverage", start)
 
-    def _parse_manta(self):
+    def _parse_manta(self):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         """Parse a manta file."""
         header = [("chrom", str), ("pos", int), ("chrom_id", str), ("ref", str), ("alt", str)]
 
@@ -211,7 +211,7 @@ class RawDataImporter(DataImporter):
                         base[header[i][0]] = header[i][1](item)
                     elif i == 7:
                         # only parse column 7 (maybe also for non-beacon-import?)
-                        info = dict([(x.split('=', 1)) if '=' in x else (x, x)
+                        info = dict([(x.split('=', 1)) if '=' in x else (x, x)  # pylint: disable=consider-using-dict-comprehension
                                      for x in re.split(r';(?=\w)', item)])
 
                 if info.get('SVTYPE') != 'BND':
@@ -230,10 +230,11 @@ class RawDataImporter(DataImporter):
                 for i, alt in enumerate(alt_alleles):
                     data = dict(base)
                     data['allele_freq'] = float(info.get('FRQ'))
-                    data['alt'], data['mate_chrom'], data['mate_start'] = re.search(r'(.+)[[\]](.*?):(\d+)[[\]]', alt).groups()
+                    data['alt'], data['mate_chrom'], data['mate_start'] = \
+                        re.search(r'(.+)[[\]](.*?):(\d+)[[\]]', alt).groups()
                     if data['mate_chrom'].startswith('GL') or data['mate_chrom'].startswith('MT'):
                         # A BND from a chromosome to GL or MT.
-                        # TODO ask a bioinformatician if these cases should be included or not
+                        # TODO ask a bioinformatician if these cases should be included or not # pylint: disable=fixme
                         continue
                     data['mate_id'] = info.get('MATEID', '')
                     data['variant_id'] = '{}-{}-{}-{}'.format(data['chrom'],
@@ -244,7 +245,7 @@ class RawDataImporter(DataImporter):
                     # Set to 0 rather than None, as the type should be int (according to the Beacon
                     # API specificition).
                     data['allele_count'] = info.get('AC', 0)
-                    data['allele_num'] = info.get('AN',0)
+                    data['allele_num'] = info.get('AN', 0)
 
                     batch += [data]
                     if self.settings.add_reversed_mates:
@@ -297,9 +298,9 @@ class RawDataImporter(DataImporter):
                                                       finished=True)
         self.log_insertion(counter, "breakend", start)
 
-    def _insert_variants(self):
+    def _insert_variants(self):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         """Import variants from a VCF file."""
-        logging.info("Inserting variants%s", " (dry run)" if self.settings.dry_run else "")
+        logging.info(f"Inserting variants{' (dry run)' if self.settings.dry_run else ''}")
         header = [("chrom", str), ("pos", int), ("rsid", str), ("ref", str),
                   ("alt", str), ("site_quality", float), ("filter_string", str)]
         start = time.time()
@@ -312,7 +313,7 @@ class RawDataImporter(DataImporter):
         samples = 0
         vep_field_names = None
         with db.database.atomic():
-            for filename in self.settings.variant_file:
+            for filename in self.settings.variant_file:  # pylint: disable=too-many-nested-blocks
                 # Get reference set for the variant
                 ref_set = self.dataset_version.reference_set
 
@@ -338,7 +339,8 @@ class RawDataImporter(DataImporter):
 
                     if not self.settings.beacon_only:
                         if vep_field_names is None:
-                            logging.error("VEP_field_names is empty. Make sure VCF header is present.")
+                            logging.error("VEP_field_names is empty. " +
+                                          "Make sure VCF header is present.")
                             sys.exit(1)
 
                     base = {}
@@ -349,7 +351,7 @@ class RawDataImporter(DataImporter):
                             base[header[i][0]] = header[i][1](item)
                         elif i == 7 or not self.settings.beacon_only:
                             # only parse column 7 (maybe also for non-beacon-import?)
-                            info = dict([(x.split('=', 1)) if '=' in x else (x, x)
+                            info = dict([(x.split('=', 1)) if '=' in x else (x, x)  # pylint: disable=consider-using-dict-comprehension
                                          for x in re.split(r';(?=\w)', item)])
 
                     if base["chrom"].startswith('GL') or base["chrom"].startswith('MT'):
@@ -424,7 +426,7 @@ class RawDataImporter(DataImporter):
                                                                   data['pos'],
                                                                   data['ref'],
                                                                   data['alt'])
-                        data['quality_metrics'] = dict([(x, info[x]) for x in METRICS if x in info])
+                        data['quality_metrics'] = {x: info[x] for x in METRICS if x in info}
                         batch += [data]
                         if self.settings.count_calls:
                             self.get_callcount(data)  # count calls (one per reference)
@@ -456,7 +458,8 @@ class RawDataImporter(DataImporter):
                                     indexes = []
                                     for entry in batch:
                                         indexes.append(db.Variant.select(db.Variant.id)
-                                                       .where(db.Variant.variant_id == entry['variant_id'])
+                                                       .where(db.Variant.variant_id == \
+                                                              entry['variant_id'])
                                                        .get().id)
                                 self.add_variant_genes(indexes, genes, ref_genes)
                                 self.add_variant_transcripts(indexes,
