@@ -60,7 +60,6 @@ class ReferenceSetImporter(DataImporter):  # pylint: disable=too-many-instance-a
         batch = []
         i = 0
         with db.database.atomic():
-            i = 0
             for feature in self.features:
                 batch += [{'gene':self.gene_db_ids[feature['gene_id']],
                            'transcript':self.transcript_db_ids[feature['transcript_id']],
