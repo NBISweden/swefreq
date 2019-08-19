@@ -343,13 +343,13 @@ class RawDataImporter(DataImporter):
         """
         ref_set = self.dataset_version.reference_set
         genes = {gene.gene_id: gene.id
-                     for gene in (db.Gene.select(db.Gene.id, db.Gene.gene_id)
-                                  .where(db.Gene.reference_set == ref_set))}
+                 for gene in (db.Gene.select(db.Gene.id, db.Gene.gene_id)
+                              .where(db.Gene.reference_set == ref_set))}
         transcripts = {tran.transcript_id: tran.id
-                           for tran in (db.Transcript.select(db.Transcript.id,
-                                                             db.Transcript.transcript_id)
-                                        .join(db.Gene)
-                                        .where(db.Gene.reference_set == ref_set))}
+                       for tran in (db.Transcript.select(db.Transcript.id,
+                                                         db.Transcript.transcript_id)
+                                    .join(db.Gene)
+                                    .where(db.Gene.reference_set == ref_set))}
         return genes, transcripts
 
     def _insert_variants(self):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
