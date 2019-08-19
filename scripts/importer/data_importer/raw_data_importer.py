@@ -144,11 +144,7 @@ class RawDataImporter(DataImporter):
                     if line.startswith("#"):
                         continue
 
-                    data = {}
-                    for i, item in enumerate(line.strip().split("\t")):
-                        if i == 0:
-                            data['dataset_version'] = self.dataset_version
-                        data[header[i][0]] = header[i][1](item)
+                    data = self.parse_baseinfo(header, line)
 
                     # re-format coverage for batch
                     data['coverage'] = [data['cov1'], data['cov5'], data['cov10'],
@@ -186,8 +182,9 @@ class RawDataImporter(DataImporter):
                                                       finished=True)
         self.log_insertion(counter, "coverage", start)
 
-    def _parse_manta(self):  # pylint: disable=too-many-branches
+    def _parse_manta(self):
         """Parse a manta file."""
+        # Skip column 5 and 6 (QUAL and FILTER), will not be used
         header = [("chrom", str), ("pos", int), ("chrom_id", str), ("ref", str), ("alt", str)]
 
         batch = []
@@ -200,16 +197,8 @@ class RawDataImporter(DataImporter):
                 if line.startswith("#"):
                     continue
 
-                base = {}
-                for i, item in enumerate(line.split("\t")):
-                    if i == 0:
-                        base = {'dataset_version': self.dataset_version}
-                    if i < 5:
-                        base[header[i][0]] = header[i][1](item)
-                    elif i == 7:
-                        # Skip column 5 and 6 (QUAL and FILTER), will not be used
-                        info = dict([(x.split('=', 1)) if '=' in x else (x, x)  # pylint: disable=consider-using-dict-comprehension
-                                     for x in re.split(r';(?=\w)', item)])
+                base = self.parse_baseinfo(header, line)
+                info = parse_info(line)
 
                 if info.get('SVTYPE') != 'BND':
                     continue
@@ -347,14 +336,8 @@ class RawDataImporter(DataImporter):
                                           "Make sure VCF header is present.")
                             sys.exit(1)
 
-                    base = {'dataset_version': self.dataset_version}
-                    for i, item in enumerate(line.strip().split("\t")):
-                        if i < 7:
-                            base[header[i][0]] = header[i][1](item)
-                        elif i == 7 or not self.settings.beacon_only:
-                            # only parse column 7 (maybe also for non-beacon-import?)
-                            info = dict([(x.split('=', 1)) if '=' in x else (x, x)  # pylint: disable=consider-using-dict-comprehension
-                                         for x in re.split(r';(?=\w)', item)])
+                    base = self.parse_baseinfo(header, line)
+                    info = parse_info(line)
 
                     if base["chrom"].startswith('GL') or base["chrom"].startswith('MT'):
                         continue
@@ -629,3 +612,26 @@ class RawDataImporter(DataImporter):
                 batch += [reversed_mates]
 
         return batch
+
+    def parse_baseinfo(self, header, line):
+        """
+        Parse the fixed columns of a vcf data line.
+
+        Args:
+              header (list): tuples of titles and converter functions for the colums of interest.
+                  Ex ["chrom", str), ("pos", int)].
+              line (str): a vcf line
+
+        Returns a dictionary giving all info specified by the header, plus the dataset_version.
+        """
+        base = {'dataset_version': self.dataset_version}
+        line_info = line.split("\t")
+        for i, (title, conv) in enumerate(header):
+            base[title] = conv(line_info[i])
+        return base
+
+
+def parse_info(line):
+    """Parse the INFO field of a vcf line."""
+    parts = re.split(r';(?=\w)', line.split('\t')[7])
+    return {x[0]: x[1] for x in map(lambda s: s.split('=', 1) if '=' in s else (s, s), parts)}
