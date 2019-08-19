@@ -203,8 +203,8 @@ class RawDataImporter(DataImporter):
                 if info.get('SVTYPE') != 'BND':
                     continue
 
-                if base["chrom"].startswith('GL') or base["chrom"].startswith('MT'):
-                    # A BND from GL or MT. GL is an unplaced scaffold, MT is mitochondria.
+                if is_non_chromosome(base["chrom"]):
+                    # A BND *from* a non-chromosome.
                     continue
 
                 batch += self.parse_bnd_alleles(base, info)
@@ -339,7 +339,7 @@ class RawDataImporter(DataImporter):
                     base = self.parse_baseinfo(header, line)
                     info = parse_info(line)
 
-                    if base["chrom"].startswith('GL') or base["chrom"].startswith('MT'):
+                    if is_non_chromosome(base["chrom"]):
                         continue
 
                     consequence_array = info['CSQ'].split(',') if 'CSQ' in info else []
@@ -576,8 +576,8 @@ class RawDataImporter(DataImporter):
             data['allele_freq'] = float(info.get('FRQ'))
             data['alt'], data['mate_chrom'], data['mate_start'] = \
                     re.search(r'(.+)[[\]](.*?):(\d+)[[\]]', alt).groups()
-            if data['mate_chrom'].startswith('GL') or data['mate_chrom'].startswith('MT'):
-                # A BND from a chromosome to GL (unplaced scaffold) or MT (mitochondria).
+            if is_non_chromosome(data['mate_chrom']):
+                # A BND from a chromosome to a non-chromosome.
                 # TODO ask a bioinformatician if these cases should be included or not   # pylint: disable=fixme
                 continue
             data['mate_id'] = info.get('MATEID', '')
@@ -635,3 +635,11 @@ def parse_info(line):
     """Parse the INFO field of a vcf line."""
     parts = re.split(r';(?=\w)', line.split('\t')[7])
     return {x[0]: x[1] for x in map(lambda s: s.split('=', 1) if '=' in s else (s, s), parts)}
+
+
+def is_non_chromosome(chrom):
+    """
+    Checks if this is a GL or MT.
+    GL is an unplaced scaffold, MT is mitochondria.
+    """
+    return chrom.startswith('GL') or chrom.startswith('MT')
