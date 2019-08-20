@@ -144,11 +144,7 @@ class RawDataImporter(DataImporter):
                     if line.startswith("#"):
                         continue
 
-                    data = {}
-                    for i, item in enumerate(line.strip().split("\t")):
-                        if i == 0:
-                            data['dataset_version'] = self.dataset_version
-                        data[header[i][0]] = header[i][1](item)
+                    data = self.parse_baseinfo(header, line)
 
                     # re-format coverage for batch
                     data['coverage'] = [data['cov1'], data['cov5'], data['cov10'],
@@ -186,12 +182,12 @@ class RawDataImporter(DataImporter):
                                                       finished=True)
         self.log_insertion(counter, "coverage", start)
 
-    def _parse_manta(self):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+    def _parse_manta(self):
         """Parse a manta file."""
+        # Skip column 5 and 6 (QUAL and FILTER), will not be used
         header = [("chrom", str), ("pos", int), ("chrom_id", str), ("ref", str), ("alt", str)]
 
         batch = []
-        samples = 0
         counter = 0
         last_progress = 0
         start = time.time()
@@ -199,99 +195,39 @@ class RawDataImporter(DataImporter):
             for line in self._open(filename):
                 line = line.strip()
                 if line.startswith("#"):
-                    if line.startswith('#CHROM'):
-                        samples = len(line.split('\t')[9:])
                     continue
 
-                base = {}
-                for i, item in enumerate(line.split("\t")):
-                    if i == 0:
-                        base['dataset_version'] = self.dataset_version
-                    if i < 5:
-                        base[header[i][0]] = header[i][1](item)
-                    elif i == 7:
-                        # only parse column 7 (maybe also for non-beacon-import?)
-                        info = dict([(x.split('=', 1)) if '=' in x else (x, x)  # pylint: disable=consider-using-dict-comprehension
-                                     for x in re.split(r';(?=\w)', item)])
+                base = self.parse_baseinfo(header, line)
+                info = parse_info(line)
 
                 if info.get('SVTYPE') != 'BND':
                     continue
 
-                if base["chrom"].startswith('GL') or base["chrom"].startswith('MT'):
-                    # A BND from GL or MT. GL is an unplaced scaffold, MT is mitochondria.
+                if is_non_chromosome(base["chrom"]):
+                    # A BND *from* a non-chromosome.
                     continue
 
-                if 'NSAMPLES' in info:
-                    # save this unless we already know the sample size
-                    samples = int(info['NSAMPLES'])
+                batch += self.parse_bnd_alleles(base, info)
 
-                alt_alleles = base['alt'].split(",")
-
-                for i, alt in enumerate(alt_alleles):
-                    data = dict(base)
-                    data['allele_freq'] = float(info.get('FRQ'))
-                    data['alt'], data['mate_chrom'], data['mate_start'] = \
-                        re.search(r'(.+)[[\]](.*?):(\d+)[[\]]', alt).groups()
-                    if data['mate_chrom'].startswith('GL') or data['mate_chrom'].startswith('MT'):
-                        # A BND from a chromosome to GL or MT.
-                        # TODO ask a bioinformatician if these cases should be included or not # pylint: disable=fixme
-                        continue
-                    data['mate_id'] = info.get('MATEID', '')
-                    data['variant_id'] = '{}-{}-{}-{}'.format(data['chrom'],
-                                                              data['pos'],
-                                                              data['ref'],
-                                                              alt)
-                    # Note: these two fields are not present in our data, will always default to 0.
-                    # Set to 0 rather than None, as the type should be int (according to the Beacon
-                    # API specificition).
-                    data['allele_count'] = info.get('AC', 0)
-                    data['allele_num'] = info.get('AN', 0)
-
-                    batch += [data]
-                    if self.settings.add_reversed_mates:
-                        # If the vcf only contains one line per breakend,
-                        # add the reversed version to the database here.
-                        reversed_mates = dict(data)
-                        # Note: in general, ref and alt cannot be assumed to be the same in the
-                        # reversed direction, but our data (so far) only contains N, so we just
-                        # keep them as is for now.
-                        reversed_mates.update({'mate_chrom': data['chrom'],
-                                               'chrom': data['mate_chrom'],
-                                               'mate_start': data['pos'],
-                                               'pos': data['mate_start'],
-                                               'chrom_id': data['mate_id'],
-                                               'mate_id': data['chrom_id']})
-                        reversed_mates['variant_id'] = '{}-{}-{}-{}'.format(reversed_mates['chrom'],
-                                                                            reversed_mates['pos'],
-                                                                            reversed_mates['ref'],
-                                                                            alt)
-                        # increase the counter; reversed BNDs are usually kept at their own vcf row
-                        counter += 1
-                        batch += [reversed_mates]
-
-                counter += 1  # count variants (one per vcf row)
+                # count variants (one per vcf row)
+                counter += 1
 
                 if len(batch) >= self.settings.batch_size:
                     if not self.settings.dry_run:
                         db.VariantMate.insert_many(batch).execute()
-
                     batch = []
+
                     # Update progress
-                    if not self.counter['variants']:
+                    if self.counter['variants']:
                         last_progress = self._update_progress_bar(counter,
                                                                   self.counter['variants'],
                                                                   last_progress)
 
+        # Store all variants and counter values
         if batch and not self.settings.dry_run:
             db.VariantMate.insert_many(batch).execute()
 
-        if self.settings.set_vcf_sampleset_size and samples:
-            self.sampleset.sample_size = samples
-            self.sampleset.save()
-
-        self.dataset_version.num_variants = counter
-        self.dataset_version.save()
-        if not self.counter['variants']:
+        if self.counter['variants']:
             last_progress = self._update_progress_bar(counter,
                                                       self.counter['variants'],
                                                       last_progress,
@@ -400,16 +336,10 @@ class RawDataImporter(DataImporter):
                                           "Make sure VCF header is present.")
                             sys.exit(1)
 
-                    base = {'dataset_version': self.dataset_version}
-                    for i, item in enumerate(line.strip().split("\t")):
-                        if i < 7:
-                            base[header[i][0]] = header[i][1](item)
-                        elif i == 7 or not self.settings.beacon_only:
-                            # only parse column 7 (maybe also for non-beacon-import?)
-                            info = dict([(x.split('=', 1)) if '=' in x else (x, x)  # pylint: disable=consider-using-dict-comprehension
-                                         for x in re.split(r';(?=\w)', item)])
+                    base = self.parse_baseinfo(header, line)
+                    info = parse_info(line)
 
-                    if base["chrom"].startswith('GL') or base["chrom"].startswith('MT'):
+                    if is_non_chromosome(base["chrom"]):
                         continue
 
                     consequence_array = info['CSQ'].split(',') if 'CSQ' in info else []
@@ -637,3 +567,79 @@ class RawDataImporter(DataImporter):
                                                      counter,
                                                      insertion_type,
                                                      self._time_since(start)))
+
+    def parse_bnd_alleles(self, base, info):
+        """Parse alleles of a structural variant (BND) in a manta file."""
+        batch = []
+        for alt in base['alt'].split(","):
+            data = dict(base)
+            data['allele_freq'] = float(info.get('FRQ'))
+            data['alt'], data['mate_chrom'], data['mate_start'] = \
+                    re.search(r'(.+)[[\]](.*?):(\d+)[[\]]', alt).groups()
+            if is_non_chromosome(data['mate_chrom']):
+                # A BND from a chromosome to a non-chromosome.
+                # TODO ask a bioinformatician if these cases should be included or not   # pylint: disable=fixme
+                continue
+            data['mate_id'] = info.get('MATEID', '')
+            data['variant_id'] = '{}-{}-{}-{}'.format(data['chrom'],
+                                                      data['pos'],
+                                                      data['ref'],
+                                                      alt)
+            # Note: these two fields are not present in our data, will always default to 0.
+            # Set to 0 rather than None, as the type should be int (according to the Beacon
+            # API specificition).
+            data['allele_count'] = info.get('AC', 0)
+            data['allele_num'] = info.get('AN', 0)
+
+            batch += [data]
+            if self.settings.add_reversed_mates:
+                # If the vcf only contains one line per breakend,
+                # add the reversed version to the database here.
+                reversed_mates = dict(data)
+                # Note: in general, ref and alt cannot be assumed to be the same in the
+                # reversed direction, but our data (so far) only contains N, so we just
+                # keep them as is for now.
+                reversed_mates.update({'mate_chrom': data['chrom'],
+                                       'chrom': data['mate_chrom'],
+                                       'mate_start': data['pos'],
+                                       'pos': data['mate_start'],
+                                       'chrom_id': data['mate_id'],
+                                       'mate_id': data['chrom_id']})
+                reversed_mates['variant_id'] = '{}-{}-{}-{}'.format(reversed_mates['chrom'],
+                                                                    reversed_mates['pos'],
+                                                                    reversed_mates['ref'],
+                                                                    alt)
+                batch += [reversed_mates]
+
+        return batch
+
+    def parse_baseinfo(self, header, line):
+        """
+        Parse the fixed columns of a vcf data line.
+
+        Args:
+              header (list): tuples of titles and converter functions for the colums of interest.
+                  Ex ["chrom", str), ("pos", int)].
+              line (str): a vcf line
+
+        Returns a dictionary giving all info specified by the header, plus the dataset_version.
+        """
+        base = {'dataset_version': self.dataset_version}
+        line_info = line.split("\t")
+        for i, (title, conv) in enumerate(header):
+            base[title] = conv(line_info[i])
+        return base
+
+
+def parse_info(line):
+    """Parse the INFO field of a vcf line."""
+    parts = re.split(r';(?=\w)', line.split('\t')[7])
+    return {x[0]: x[1] for x in map(lambda s: s.split('=', 1) if '=' in s else (s, s), parts)}
+
+
+def is_non_chromosome(chrom):
+    """
+    Checks if this is a GL or MT.
+    GL is an unplaced scaffold, MT is mitochondria.
+    """
+    return chrom.startswith('GL') or chrom.startswith('MT')
