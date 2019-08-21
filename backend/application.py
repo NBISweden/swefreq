@@ -102,33 +102,27 @@ class GetSchema(handlers.UnsafeHandler):
         if dataset:
             dataset_schema = {'@type': "Dataset"}
 
-            try:
-                dataset_version = db.get_dataset_version(dataset, version)
-                if dataset_version is None:
-                    self.send_error(status_code=404)
+            dataset_version = db.get_dataset_version(dataset, version)
+            if dataset_version is None:
+                self.send_error(status_code=404)
+                return
+
+            if dataset_version.available_from > datetime.now():
+                # If it's not available yet, only return if user is admin.
+                if not (self.current_user and
+                        self.current_user.is_admin(dataset_version.dataset)):
+                    self.send_error(status_code=403)
                     return
 
-                if dataset_version.available_from > datetime.now():
-                    # If it's not available yet, only return if user is admin.
-                    if not (self.current_user and
-                            self.current_user.is_admin(dataset_version.dataset)):
-                        self.send_error(status_code=403)
-                        return
+            base_url = "%s://%s" % (self.request.protocol, self.request.host)
+            dataset_schema['url'] = base_url + "/dataset/" + dataset_version.dataset.short_name
+            dataset_schema['@id'] = dataset_schema['url']
+            dataset_schema['name'] = dataset_version.dataset.short_name
+            dataset_schema['description'] = dataset_version.description
+            dataset_schema['identifier'] = dataset_schema['name']
+            dataset_schema['citation'] = dataset_version.ref_doi
 
-                base_url = "%s://%s" % (self.request.protocol, self.request.host)
-                dataset_schema['url'] = base_url + "/dataset/" + dataset_version.dataset.short_name
-                dataset_schema['@id'] = dataset_schema['url']
-                dataset_schema['name'] = dataset_version.dataset.short_name
-                dataset_schema['description'] = dataset_version.description
-                dataset_schema['identifier'] = dataset_schema['name']
-                dataset_schema['citation'] = dataset_version.ref_doi
-
-                base["dataset"] = dataset_schema
-
-            except db.DatasetVersion.DoesNotExist as err:
-                logging.error(f"Dataset version does not exist: {err}")
-            except db.DatasetVersionCurrent.DoesNotExist as err:
-                logging.error(f"Dataset does not exist: {err}")
+            base["dataset"] = dataset_schema
 
         if beacon:
             base = {"@context": "http://schema.org",
