@@ -587,7 +587,7 @@ class RawDataImporter(DataImporter):
               line (str): a vcf line
 
         Returns:
-            dict: the parsed info specified as by the header, plus the dataset_version.
+            dict: the parsed info as specified by the header, plus the dataset_version.
         """
         base = {'dataset_version': self.dataset_version}
         line_info = line.split("\t")
