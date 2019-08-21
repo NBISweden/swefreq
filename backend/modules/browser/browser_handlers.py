@@ -355,6 +355,9 @@ class GetVariant(handlers.UnsafeHandler):
         curr_dsv = db.get_dataset_version(dataset, ds_version)
         dsvs = [db.get_dataset_version(dset.short_name) for dset in db.Dataset.select()
                 if dset.short_name != dataset]
+        # if the only available version is not released yet
+        dsvs = [dsv for dsv in dsvs if dsv]
+        logging.error(dsvs)
         dsvs = [dsv for dsv in dsvs if dsv.reference_set == curr_dsv.reference_set]
         dsv_groups = [(curr_dsv, variant)]
         for dsv in dsvs:
