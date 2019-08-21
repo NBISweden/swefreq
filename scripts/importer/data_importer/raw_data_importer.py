@@ -561,6 +561,14 @@ class RawDataImporter(DataImporter):
         if not self.settings.dry_run:
             db.VariantTranscripts.insert_many(batch).execute()
 
+    @staticmethod
+    def _is_non_chromosome(chrom):
+        """
+        Checks if this is a GL or MT.
+        GL is an unplaced scaffold, MT is mitochondria.
+        """
+        return chrom.startswith('GL') or chrom.startswith('MT')
+
     def _log_insertion(self, counter, insertion_type, start):
         """Log the progress of the import."""
         action = "Inserted" if not self.settings.dry_run else "Dry-ran insertion of"
@@ -568,6 +576,23 @@ class RawDataImporter(DataImporter):
                                                      counter,
                                                      insertion_type,
                                                      self._time_since(start)))
+
+    def _parse_baseinfo(self, header, line):
+        """
+        Parse the fixed columns of a vcf data line.
+
+        Args:
+              header (list): tuples of titles and converter functions for the colums of interest.
+                  Ex ["chrom", str), ("pos", int)].
+              line (str): a vcf line
+
+        Returns a dictionary giving all info specified by the header, plus the dataset_version.
+        """
+        base = {'dataset_version': self.dataset_version}
+        line_info = line.split("\t")
+        for i, (title, conv) in enumerate(header):
+            base[title] = conv(line_info[i])
+        return base
 
     def _parse_bnd_alleles(self, base, info):
         """Parse alleles of a structural variant (BND) in a manta file."""
@@ -614,24 +639,6 @@ class RawDataImporter(DataImporter):
 
         return batch
 
-    def _parse_baseinfo(self, header, line):
-        """
-        Parse the fixed columns of a vcf data line.
-
-        Args:
-              header (list): tuples of titles and converter functions for the colums of interest.
-                  Ex ["chrom", str), ("pos", int)].
-              line (str): a vcf line
-
-        Returns a dictionary giving all info specified by the header, plus the dataset_version.
-        """
-        base = {'dataset_version': self.dataset_version}
-        line_info = line.split("\t")
-        for i, (title, conv) in enumerate(header):
-            base[title] = conv(line_info[i])
-        return base
-
-
     @staticmethod
     def _parse_info(line):
         """Parse the INFO field of a vcf line."""
@@ -639,10 +646,3 @@ class RawDataImporter(DataImporter):
         return {x[0]: x[1] for x in map(lambda s: s.split('=', 1) if '=' in s else (s, s), parts)}
 
 
-    @staticmethod
-    def _is_non_chromosome(chrom):
-        """
-        Checks if this is a GL or MT.
-        GL is an unplaced scaffold, MT is mitochondria.
-        """
-        return chrom.startswith('GL') or chrom.startswith('MT')
