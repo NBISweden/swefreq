@@ -302,7 +302,7 @@ class RawDataImporter(DataImporter):
                                     .where(db.Gene.reference_set == ref_set))}
         return genes, transcripts
 
-    def _parse_variant_row(self, line: str, batch_cont: dict, headers: list, vep_field_names: list):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+    def _parse_variant_row(self, line: str, batch_cont: dict, headers: list, vep_field_names: list):  # pylint: disable=too-many-locals
         """
         Parse a VCF row for a position (potentially multiple variants).
 
@@ -311,18 +311,14 @@ class RawDataImporter(DataImporter):
         Args:
             line (str): the raw text row
             batch_cont (dict): should contain batch, genes, transcripts
+            headers (list): (header, type)
+            vep_field_names (list): VEP field names
 
         """
-        base = {'dataset_version': self.dataset_version}
-        for i, item in enumerate(line.strip().split("\t")):
-            if i < 7:
-                base[headers[i][0]] = headers[i][1](item)
-            elif i == 7 or not self.settings.beacon_only:
-                # only parse column 7 (maybe also for non-beacon-import?)
-                info = {a[0]:a[1] for a in map(lambda x: x.split('=', 1) if '=' in x
-                                               else (x, x), re.split(r';(?=\w)', item))}
+        base = self.parse_baseinfo(headers, line)
+        info = parse_info(line)
 
-        if base["chrom"].startswith('GL') or base["chrom"].startswith('MT'):
+        if is_non_chromosome(base["chrom"]):
             return
 
         consequence_array = info['CSQ'].split(',') if 'CSQ' in info else []
@@ -337,23 +333,19 @@ class RawDataImporter(DataImporter):
         try:
             hom_counts = [int(info['AC_Hom'])]
         except KeyError:
-            hom_counts = None  # null is better than 0, as 0 has a meaning
+            hom_counts = []  # null is better than 0, as 0 has a meaning
         except ValueError:
             # multiple variants on same row
             hom_counts = [int(count) for count in info['AC_Hom'].split(',')]
 
-        fmt_alleles = [f'{base["chrom"]}-{base["pos"]}-{base["ref"]}-{x}'
-                       for x in alt_alleles]
+        base['orig_alt_alleles'] = [f'{base["chrom"]}-{base["pos"]}-{base["ref"]}-{x}'
+                                    for x in alt_alleles]
 
         for i, alt in enumerate(alt_alleles):
             data = dict(base)
             data['alt'] = alt
-            data['orig_alt_alleles'] = fmt_alleles
 
-            if len(rsids) <= i:
-                data['rsid'] = rsids[-1]  # same id as the last alternate
-            else:
-                data['rsid'] = rsids[i]
+            data['rsid'] = rsids[i] if i < len(rsids) else rsids[-1]
 
             data['allele_num'] = int((info['AN_Adj'] if 'AN_Adj' in info else info['AN']))
             data['allele_freq'] = None
@@ -388,7 +380,7 @@ class RawDataImporter(DataImporter):
                 self.get_callcount(data)  # count calls (one per reference)
                 self.counter['beaconvariants'] += 1  # count variants (one/alternate)
 
-    def _insert_variants(self):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+    def _insert_variants(self):
         """Import variants from a VCF file."""
         logging.info(f"Inserting variants{' (dry run)' if self.settings.dry_run else ''}")
         start = time.time()
@@ -414,16 +406,15 @@ class RawDataImporter(DataImporter):
                     if line.startswith("#"):
                         # Check for some information that we need
                         if line.startswith('##INFO=<ID=CSQ'):
-                            vep_field_names = (line.split('Format: ')[-1].strip('">').split('|'))
+                            vep_field_names = line.split('Format: ')[-1].strip('">').split('|')
                         if line.startswith('#CHROM'):
                             samples = len(line.split('\t')[9:])
                         continue
 
-                    if not self.settings.beacon_only:
-                        if vep_field_names is None:
-                            logging.error("VEP_field_names is empty. " +
-                                          "Make sure VCF header is present.")
-                            sys.exit(1)
+                    if not self.settings.beacon_only and not vep_field_names:
+                        logging.error("VEP_field_names is empty. " +
+                                      "Make sure VCF header is present.")
+                        sys.exit(1)
 
                     self._parse_variant_row(line, batch_container, headers, vep_field_names)
                     counter += 1  # count variants (one per vcf row)
