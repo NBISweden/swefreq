@@ -644,5 +644,3 @@ class RawDataImporter(DataImporter):
         """Parse the INFO field of a vcf line."""
         parts = re.split(r';(?=\w)', line.split('\t')[7])
         return {x[0]: x[1] for x in map(lambda s: s.split('=', 1) if '=' in s else (s, s), parts)}
-
-
