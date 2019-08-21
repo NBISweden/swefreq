@@ -20,6 +20,7 @@ COPY data.studies (id, pi_name, pi_email, contact_name, contact_email, title, st
 COPY data.datasets (id, study, short_name, full_name, browser_uri, beacon_uri, beacon_description, avg_seq_depth, seq_type, seq_tech, seq_center, dataset_size) FROM stdin;
 1	1	SweGen	SweGen	url	\N	\N	0	type	method	place	0
 2	1	SweGen2	SweGen2	url	\N	\N	0	type	method	place	0
+3	1	Unrel	Unreleased dataset	url	\N	\N	0	type	method	place	0
 \.
 
 COPY data.reference_sets (id, reference_build, reference_name, ensembl_version, gencode_version, dbnsfp_version) FROM stdin;
@@ -32,6 +33,8 @@ COPY data.dataset_versions (id, dataset, reference_set, dataset_version, dataset
 3	1	1	20171025	desc	terms	2001-01-03 00:00:00	doi	place	email	\N	{1,5,10,15,20,25,30,50,100}	TRUE	REGISTERED	PUBLIC
 4	1	1	20180409	desc	terms	2001-01-04 00:00:00	doi	place	email	\N	{1,5,10,15,20,25,30,50,100}	TRUE	REGISTERED	PUBLIC
 5	2	1	20190409	desc	terms	2001-01-05 00:00:00	doi	place	email	\N	{1,5,10,15,20,25,30,50,100}	TRUE	REGISTERED	PUBLIC
+6	2	1	UNRELEASED	desc	terms	9999-12-31 00:00:00	doi	place	email	\N	{1,5,10,15,20,25,30,50,100}	TRUE	REGISTERED	PUBLIC
+7	3	1	UNRELEASED	desc	terms	9999-12-31 00:00:00	doi	place	email	\N	{1,5,10,15,20,25,30,50,100}	TRUE	REGISTERED	PUBLIC
 \.
 
 COPY data.coverage (id, dataset_version, chrom, pos, mean, median, coverage) FROM stdin;
