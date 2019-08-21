@@ -586,7 +586,8 @@ class RawDataImporter(DataImporter):
                   Ex ["chrom", str), ("pos", int)].
               line (str): a vcf line
 
-        Returns a dictionary giving all info specified by the header, plus the dataset_version.
+        Returns:
+            dict: the parsed info specified as by the header, plus the dataset_version.
         """
         base = {'dataset_version': self.dataset_version}
         line_info = line.split("\t")
