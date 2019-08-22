@@ -160,9 +160,6 @@ class GetGene(handlers.UnsafeHandler):
             self.send_error(status_code=400, reason=str(err))
             return
 
-        if not gene:
-            self.send_error(status_code=404, reason='Gene not found')
-            return
         ret['gene'] = gene
 
         # Add exons from transcript
