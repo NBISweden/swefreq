@@ -81,6 +81,16 @@ def test_get_coverage_pos():
     assert cov_pos['stop'] == 100101
     assert cov_pos['chrom'] == '22'
 
+    data_type = 'region'
+    data_item = '22-100001-200101'
+    response = requests.get('{}/api/dataset/{}/browser/coverage_pos/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
+    assert response.status_code == 400
+
+    data_type = 'region'
+    data_item = '22-1-11-101'
+    response = requests.get('{}/api/dataset/{}/browser/coverage_pos/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
+    assert response.status_code == 400
+
     dataset = 'SweGen'
     data_type = 'transcript'
     data_item = 'BAD_TRANSCRIPT'
