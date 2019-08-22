@@ -21,6 +21,7 @@ class Autocomplete(handlers.UnsafeHandler):
             dataset (str): dataset short name
             query (str): query
             ds_version (str): dataset version
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         ret = {}
@@ -47,6 +48,7 @@ class Download(handlers.UnsafeHandler):
             item (str): query item
             ds_version (str): dataset version
             filter_type (str): type of filter to apply
+
         """
         # ctrl.filterVariantsBy~ctrl.filterIncludeNonPass
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
@@ -89,6 +91,7 @@ class GetCoverage(handlers.UnsafeHandler):
             datatype (str): type of data
             item (str): query item
             ds_version (str): dataset version
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         try:
@@ -114,6 +117,7 @@ class GetCoveragePos(handlers.UnsafeHandler):
             datatype (str): type of data
             item (str): query item
             ds_version (str): dataset version
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         try:
@@ -139,6 +143,7 @@ class GetGene(handlers.UnsafeHandler):
             dataset (str): short name of the dataset
             gene (str): the gene id
             ds_version (str): dataset version
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         gene_id = gene
@@ -193,6 +198,7 @@ class GetRegion(handlers.UnsafeHandler):
             dataset (str): short name of the dataset
             region (str): the region in the format chr-startpos-endpos
             ds_version (str): dataset version
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
 
@@ -231,9 +237,6 @@ class GetTranscript(handlers.UnsafeHandler):
         Args:
             dataset (str): short name of the dataset
             transcript (str): the transcript id
-
-        Returns:
-            dict: transcript (transcript and exons), gene (gene information)
 
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
@@ -282,6 +285,7 @@ class GetVariant(handlers.UnsafeHandler):
         Args:
             dataset (str): short name of the dataset
             variant (str): variant in the format chrom-pos-ref-alt
+
         """
         # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
@@ -413,6 +417,7 @@ class GetVariants(handlers.UnsafeHandler):
             dataset (str): short name of the dataset
             datatype (str): gene, region, or transcript
             item (str): item to query
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         try:
@@ -443,6 +448,7 @@ class Search(handlers.UnsafeHandler):
         Args:
             dataset (str): short name of the dataset
             query (str): search query
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         ret = {"dataset": dataset, "value": None, "type": None}
