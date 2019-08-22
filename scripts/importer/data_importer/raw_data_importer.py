@@ -144,7 +144,7 @@ class RawDataImporter(DataImporter):
                     if line.startswith("#"):
                         continue
 
-                    data = self.parse_baseinfo(header, line)
+                    data = self._parse_baseinfo(header, line)
 
                     # re-format coverage for batch
                     data['coverage'] = [data['cov1'], data['cov5'], data['cov10'],
@@ -180,7 +180,7 @@ class RawDataImporter(DataImporter):
                                                       self.counter['coverage'],
                                                       last_progress,
                                                       finished=True)
-        self.log_insertion(counter, "coverage", start)
+        self._log_insertion(counter, "coverage", start)
 
     def _parse_manta(self):
         """Parse a manta file."""
@@ -197,17 +197,17 @@ class RawDataImporter(DataImporter):
                 if line.startswith("#"):
                     continue
 
-                base = self.parse_baseinfo(header, line)
-                info = parse_info(line)
+                base = self._parse_baseinfo(header, line)
+                info = self._parse_info(line)
 
                 if info.get('SVTYPE') != 'BND':
                     continue
 
-                if is_non_chromosome(base["chrom"]):
+                if self._is_non_chromosome(base["chrom"]):
                     # A BND *from* a non-chromosome.
                     continue
 
-                batch += self.parse_bnd_alleles(base, info)
+                batch += self._parse_bnd_alleles(base, info)
 
                 # count variants (one per vcf row)
                 counter += 1
@@ -232,7 +232,7 @@ class RawDataImporter(DataImporter):
                                                       self.counter['variants'],
                                                       last_progress,
                                                       finished=True)
-        self.log_insertion(counter, "breakend", start)
+        self._log_insertion(counter, "breakend", start)
 
     def _estimate_variant_lastid(self):  # pylint: disable=no-self-use
         """
@@ -315,10 +315,10 @@ class RawDataImporter(DataImporter):
             vep_field_names (list): VEP field names
 
         """
-        base = self.parse_baseinfo(headers, line)
-        info = parse_info(line)
+        base = self._parse_baseinfo(headers, line)
+        info = self._parse_info(line)
 
-        if is_non_chromosome(base["chrom"]):
+        if self._is_non_chromosome(base["chrom"]):
             return
 
         consequence_array = info['CSQ'].split(',') if 'CSQ' in info else []
@@ -377,7 +377,7 @@ class RawDataImporter(DataImporter):
             data['quality_metrics'] = {x: info[x] for x in METRICS if x in info}
             batch_cont['batch'] += [data]
             if self.settings.count_calls:
-                self.get_callcount(data)  # count calls (one per reference)
+                self._get_callcount(data)  # count calls (one per reference)
                 self.counter['beaconvariants'] += 1  # count variants (one/alternate)
 
     def _insert_variants(self):
@@ -453,9 +453,9 @@ class RawDataImporter(DataImporter):
                                                       last_progress,
                                                       finished=True)
 
-        self.log_insertion(counter, "variant", start)
+        self._log_insertion(counter, "variant", start)
 
-    def get_callcount(self, data):
+    def _get_callcount(self, data):
         """Increment the call count by the calls found at this position."""
         if data['chrom'] == self.chrom and data['pos'] < self.lastpos:
             # If this position is smaller than the last, the file order might be invalid.
@@ -561,7 +561,15 @@ class RawDataImporter(DataImporter):
         if not self.settings.dry_run:
             db.VariantTranscripts.insert_many(batch).execute()
 
-    def log_insertion(self, counter, insertion_type, start):
+    @staticmethod
+    def _is_non_chromosome(chrom):
+        """
+        Checks if this is a GL or MT.
+        GL is an unplaced scaffold, MT is mitochondria.
+        """
+        return chrom.startswith('GL') or chrom.startswith('MT')
+
+    def _log_insertion(self, counter, insertion_type, start):
         """Log the progress of the import."""
         action = "Inserted" if not self.settings.dry_run else "Dry-ran insertion of"
         logging.info("{} {} {} records in {}".format(action,
@@ -569,7 +577,25 @@ class RawDataImporter(DataImporter):
                                                      insertion_type,
                                                      self._time_since(start)))
 
-    def parse_bnd_alleles(self, base, info):
+    def _parse_baseinfo(self, header, line):
+        """
+        Parse the fixed columns of a vcf data line.
+
+        Args:
+              header (list): tuples of titles and converter functions for the colums of interest.
+                  Ex ["chrom", str), ("pos", int)].
+              line (str): a vcf line
+
+        Returns:
+            dict: the parsed info as specified by the header, plus the dataset_version.
+        """
+        base = {'dataset_version': self.dataset_version}
+        line_info = line.split("\t")
+        for i, (title, conv) in enumerate(header):
+            base[title] = conv(line_info[i])
+        return base
+
+    def _parse_bnd_alleles(self, base, info):
         """Parse alleles of a structural variant (BND) in a manta file."""
         batch = []
         for alt in base['alt'].split(","):
@@ -577,7 +603,7 @@ class RawDataImporter(DataImporter):
             data['allele_freq'] = float(info.get('FRQ'))
             data['alt'], data['mate_chrom'], data['mate_start'] = \
                     re.search(r'(.+)[[\]](.*?):(\d+)[[\]]', alt).groups()
-            if is_non_chromosome(data['mate_chrom']):
+            if self._is_non_chromosome(data['mate_chrom']):
                 # A BND from a chromosome to a non-chromosome.
                 # TODO ask a bioinformatician if these cases should be included or not   # pylint: disable=fixme
                 continue
@@ -614,33 +640,8 @@ class RawDataImporter(DataImporter):
 
         return batch
 
-    def parse_baseinfo(self, header, line):
-        """
-        Parse the fixed columns of a vcf data line.
-
-        Args:
-              header (list): tuples of titles and converter functions for the colums of interest.
-                  Ex ["chrom", str), ("pos", int)].
-              line (str): a vcf line
-
-        Returns a dictionary giving all info specified by the header, plus the dataset_version.
-        """
-        base = {'dataset_version': self.dataset_version}
-        line_info = line.split("\t")
-        for i, (title, conv) in enumerate(header):
-            base[title] = conv(line_info[i])
-        return base
-
-
-def parse_info(line):
-    """Parse the INFO field of a vcf line."""
-    parts = re.split(r';(?=\w)', line.split('\t')[7])
-    return {x[0]: x[1] for x in map(lambda s: s.split('=', 1) if '=' in s else (s, s), parts)}
-
-
-def is_non_chromosome(chrom):
-    """
-    Checks if this is a GL or MT.
-    GL is an unplaced scaffold, MT is mitochondria.
-    """
-    return chrom.startswith('GL') or chrom.startswith('MT')
+    @staticmethod
+    def _parse_info(line):
+        """Parse the INFO field of a vcf line."""
+        parts = re.split(r';(?=\w)', line.split('\t')[7])
+        return {x[0]: x[1] for x in map(lambda s: s.split('=', 1) if '=' in s else (s, s), parts)}
