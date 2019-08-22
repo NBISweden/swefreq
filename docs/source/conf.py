@@ -16,6 +16,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../../'))
 sys.path.insert(0, os.path.abspath('../../backend/'))
+sys.path.insert(0, os.path.abspath('../../scripts/importer'))
 
 
 # -- Project information -----------------------------------------------------
@@ -168,7 +169,7 @@ texinfo_documents = [
 # -- Options for Epub output -------------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = project
+epub_title = 'SweFreq'
 
 # The unique identifier of the text. This can be a ISBN number
 # or the project homepage.
