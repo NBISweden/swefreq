@@ -156,9 +156,6 @@ class GetGene(handlers.UnsafeHandler):
         except error.NotFoundError as err:
             self.send_error(status_code=404, reason=str(err))
             return
-        except (error.ParsingError, error.MalformedRequest) as err:
-            self.send_error(status_code=400, reason=str(err))
-            return
 
         ret['gene'] = gene
 
