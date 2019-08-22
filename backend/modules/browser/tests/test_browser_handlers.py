@@ -81,6 +81,22 @@ def test_get_coverage_pos():
     assert cov_pos['stop'] == 100101
     assert cov_pos['chrom'] == '22'
 
+    data_type = 'region'
+    data_item = '22-100001-200101'
+    response = requests.get('{}/api/dataset/{}/browser/coverage_pos/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
+    assert response.status_code == 400
+
+    data_type = 'region'
+    data_item = '22-1-11-101'
+    response = requests.get('{}/api/dataset/{}/browser/coverage_pos/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
+    assert response.status_code == 400
+
+    dataset = 'SweGen'
+    data_type = 'transcript'
+    data_item = 'BAD_TRANSCRIPT'
+    response = requests.get('{}/api/dataset/{}/browser/coverage_pos/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
+    assert response.status_code == 404
+
 
 def test_get_gene():
     """
@@ -194,6 +210,10 @@ def test_get_variant():
     assert variant['variant']['variantId'] == '21-9411609-G-T'
 
     variant_id = '22-94358sfsdfsdf52-T-C'
+    response = requests.get('{}/api/dataset/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
+    assert response.status_code == 400
+
+    variant_id = '1-2-3-4-5-6'
     response = requests.get('{}/api/dataset/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
     assert response.status_code == 400
 

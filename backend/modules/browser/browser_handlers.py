@@ -21,6 +21,7 @@ class Autocomplete(handlers.UnsafeHandler):
             dataset (str): dataset short name
             query (str): query
             ds_version (str): dataset version
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         ret = {}
@@ -47,6 +48,7 @@ class Download(handlers.UnsafeHandler):
             item (str): query item
             ds_version (str): dataset version
             filter_type (str): type of filter to apply
+
         """
         # ctrl.filterVariantsBy~ctrl.filterIncludeNonPass
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
@@ -89,6 +91,7 @@ class GetCoverage(handlers.UnsafeHandler):
             datatype (str): type of data
             item (str): query item
             ds_version (str): dataset version
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         try:
@@ -114,6 +117,7 @@ class GetCoveragePos(handlers.UnsafeHandler):
             datatype (str): type of data
             item (str): query item
             ds_version (str): dataset version
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         try:
@@ -139,6 +143,7 @@ class GetGene(handlers.UnsafeHandler):
             dataset (str): short name of the dataset
             gene (str): the gene id
             ds_version (str): dataset version
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         gene_id = gene
@@ -151,13 +156,7 @@ class GetGene(handlers.UnsafeHandler):
         except error.NotFoundError as err:
             self.send_error(status_code=404, reason=str(err))
             return
-        except (error.ParsingError, error.MalformedRequest) as err:
-            self.send_error(status_code=400, reason=str(err))
-            return
 
-        if not gene:
-            self.send_error(status_code=404, reason='Gene not found')
-            return
         ret['gene'] = gene
 
         # Add exons from transcript
@@ -193,6 +192,7 @@ class GetRegion(handlers.UnsafeHandler):
             dataset (str): short name of the dataset
             region (str): the region in the format chr-startpos-endpos
             ds_version (str): dataset version
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
 
@@ -231,9 +231,6 @@ class GetTranscript(handlers.UnsafeHandler):
         Args:
             dataset (str): short name of the dataset
             transcript (str): the transcript id
-
-        Returns:
-            dict: transcript (transcript and exons), gene (gene information)
 
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
@@ -282,6 +279,7 @@ class GetVariant(handlers.UnsafeHandler):
         Args:
             dataset (str): short name of the dataset
             variant (str): variant in the format chrom-pos-ref-alt
+
         """
         # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
@@ -355,6 +353,9 @@ class GetVariant(handlers.UnsafeHandler):
         curr_dsv = db.get_dataset_version(dataset, ds_version)
         dsvs = [db.get_dataset_version(dset.short_name) for dset in db.Dataset.select()
                 if dset.short_name != dataset]
+        # if the only available version is not released yet
+        dsvs = list(filter(lambda dsv: dsv, dsvs))
+        logging.error(dsvs)
         dsvs = [dsv for dsv in dsvs if dsv.reference_set == curr_dsv.reference_set]
         dsv_groups = [(curr_dsv, variant)]
         for dsv in dsvs:
@@ -410,6 +411,7 @@ class GetVariants(handlers.UnsafeHandler):
             dataset (str): short name of the dataset
             datatype (str): gene, region, or transcript
             item (str): item to query
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         try:
@@ -440,6 +442,7 @@ class Search(handlers.UnsafeHandler):
         Args:
             dataset (str): short name of the dataset
             query (str): search query
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         ret = {"dataset": dataset, "value": None, "type": None}
