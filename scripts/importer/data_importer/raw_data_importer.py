@@ -564,7 +564,8 @@ class RawDataImporter(DataImporter):
     @staticmethod
     def _is_non_chromosome(chrom):
         """
-        Checks if this is a GL or MT.
+        Check if this is a GL or MT.
+
         GL is an unplaced scaffold, MT is mitochondria.
         """
         return chrom.startswith('GL') or chrom.startswith('MT')
@@ -588,6 +589,7 @@ class RawDataImporter(DataImporter):
 
         Returns:
             dict: the parsed info as specified by the header, plus the dataset_version.
+
         """
         base = {'dataset_version': self.dataset_version}
         line_info = line.split("\t")
