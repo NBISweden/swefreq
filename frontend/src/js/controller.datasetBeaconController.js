@@ -12,9 +12,9 @@
         function activate() {
             Beacon.getBeaconReferences($routeParams.dataset, $routeParams.version)
 		.then(function(data) {
-		    if (data) {
+                    if (data) {
 			localThis.beaconInfo = data;
-		    }
+                    }
                 });
 
             User.getUser().then(function(data) {
@@ -34,7 +34,7 @@
         function search() {
             Beacon.queryBeacon(localThis)
                 .then(function(response) {
-		    if (response.data.exists===false) { // value may be null -> error
+                    if (response.data.exists===false) { // value may be null -> error
 			localThis.queryResponses.push({
                             "response": { "state": "Absent" },
                             "query": {
@@ -44,19 +44,19 @@
 				"referenceAllele": localThis.referenceAllele,
                             }
 			});
-		    }
-		    else if (response.data.exists===true) {
+                    }
+                    else if (response.data.exists===true) {
 			localThis.queryResponses.push({
-			    "response": { "state": "Present" },
-			    "query": {
+                            "response": { "state": "Present" },
+                            "query": {
 				"chromosome":      localThis.chromosome,
 				"position":        localThis.position,
 				"allele":          localThis.allele,
 				"referenceAllele": localThis.referenceAllele,
                             }
 			});
-		    }
-		    else {
+                    }
+                    else {
 			localThis.queryResponses.push({
                             "response": { "state": "Error" },
                             "query": {
@@ -82,10 +82,10 @@
             );
         }
 	function fillExample() {
-	    localThis.chromosome = "22";
-	    localThis.position = 46615880;
-	    localThis.referenceAllele = "T";
-	    localThis.allele = "C";
+            localThis.chromosome = "22";
+            localThis.position = 46615880;
+            localThis.referenceAllele = "T";
+            localThis.allele = "C";
 	}
     }]);
 })();

@@ -11,65 +11,63 @@ EXON_PADDING = 50
 
 CHROMOSOMES = ['chr%s' % x for x in range(1, 23)]
 CHROMOSOMES.extend(['chrX', 'chrY', 'chrM'])
-CHROMOSOME_TO_CODE = { item: i+1 for i, item in enumerate(CHROMOSOMES) }
+CHROMOSOME_TO_CODE = {item: i+1 for i, item in enumerate(CHROMOSOMES)}
 
 # Note that this is the current as of v81 with some included for backwards compatibility (VEP <= 75)
 
 CSQ_ORDER = ["transcript_ablation",
-"splice_acceptor_variant",
-"splice_donor_variant",
-"stop_gained",
-"frameshift_variant",
-"stop_lost",
-"start_lost",  # new in v81
-"initiator_codon_variant",  # deprecated
-"transcript_amplification",
-"inframe_insertion",
-"inframe_deletion",
-"missense_variant",
-"protein_altering_variant",  # new in v79
-"splice_region_variant",
-"incomplete_terminal_codon_variant",
-"stop_retained_variant",
-"synonymous_variant",
-"coding_sequence_variant",
-"mature_miRNA_variant",
-"5_prime_UTR_variant",
-"3_prime_UTR_variant",
-"non_coding_transcript_exon_variant",
-"non_coding_exon_variant",  # deprecated
-"intron_variant",
-"NMD_transcript_variant",
-"non_coding_transcript_variant",
-"nc_transcript_variant",  # deprecated
-"upstream_gene_variant",
-"downstream_gene_variant",
-"TFBS_ablation",
-"TFBS_amplification",
-"TF_binding_site_variant",
-"regulatory_region_ablation",
-"regulatory_region_amplification",
-"feature_elongation",
-"regulatory_region_variant",
-"feature_truncation",
-"intergenic_variant",
-""]
+             "splice_acceptor_variant",
+             "splice_donor_variant",
+             "stop_gained",
+             "frameshift_variant",
+             "stop_lost",
+             "start_lost",  # new in v81
+             "initiator_codon_variant",  # deprecated
+             "transcript_amplification",
+             "inframe_insertion",
+             "inframe_deletion",
+             "missense_variant",
+             "protein_altering_variant",  # new in v79
+             "splice_region_variant",
+             "incomplete_terminal_codon_variant",
+             "stop_retained_variant",
+             "synonymous_variant",
+             "coding_sequence_variant",
+             "mature_miRNA_variant",
+             "5_prime_UTR_variant",
+             "3_prime_UTR_variant",
+             "non_coding_transcript_exon_variant",
+             "non_coding_exon_variant",  # deprecated
+             "intron_variant",
+             "NMD_transcript_variant",
+             "non_coding_transcript_variant",
+             "nc_transcript_variant",  # deprecated
+             "upstream_gene_variant",
+             "downstream_gene_variant",
+             "TFBS_ablation",
+             "TFBS_amplification",
+             "TF_binding_site_variant",
+             "regulatory_region_ablation",
+             "regulatory_region_amplification",
+             "feature_elongation",
+             "regulatory_region_variant",
+             "feature_truncation",
+             "intergenic_variant",
+             ""]
 
-CSQ_ORDER_DICT = {csq:i for i,csq in enumerate(CSQ_ORDER)}
+CSQ_ORDER_DICT = {csq: i for i, csq in enumerate(CSQ_ORDER)}
 REV_CSQ_ORDER_DICT = dict(enumerate(CSQ_ORDER))
 
-METRICS = [
-    'BaseQRankSum',
-    'ClippingRankSum',
-    'DP',
-    'FS',
-    'InbreedingCoeff',
-    'MQ',
-    'MQRankSum',
-    'QD',
-    'ReadPosRankSum',
-    'VQSLOD'
-]
+METRICS = ['BaseQRankSum',
+           'ClippingRankSum',
+           'DP',
+           'FS',
+           'InbreedingCoeff',
+           'MQ',
+           'MQRankSum',
+           'QD',
+           'ReadPosRankSum',
+           'VQSLOD']
 
 PROTEIN_LETTERS_1TO3 = {
     'A': 'Ala', 'C': 'Cys', 'D': 'Asp', 'E': 'Glu',
@@ -81,9 +79,10 @@ PROTEIN_LETTERS_1TO3 = {
 }
 
 
-def add_consequence_to_variants(variant_list:list):
+def add_consequence_to_variants(variant_list: list):
     """
     Add information about variant consequence to multiple variants.
+    Changes are performed in-place.
 
     Args:
         variant_list (list): list of variants
@@ -94,9 +93,10 @@ def add_consequence_to_variants(variant_list:list):
         add_consequence_to_variant(variant)
 
 
-def add_consequence_to_variant(variant:dict):
+def add_consequence_to_variant(variant: dict):
     """
     Add information about variant consequence to a variant.
+    Changes are performed in-place.
 
     Args:
         variant (dict): variant information
@@ -108,7 +108,7 @@ def add_consequence_to_variant(variant:dict):
     variant['category'] = ''
     variant['flags'] = ''
 
-    if worst_csq is None:
+    if not worst_csq:
         return
 
     variant['major_consequence'] = worst_csq['major_consequence']
@@ -134,7 +134,7 @@ def add_consequence_to_variant(variant:dict):
     return
 
 
-def annotation_severity(annotation:dict):
+def annotation_severity(annotation: dict) -> float:
     """
     Evaluate severity of the consequences; "bigger is more important".
 
@@ -145,13 +145,13 @@ def annotation_severity(annotation:dict):
         float: severity score
 
     """
-    rv = -CSQ_ORDER_DICT[worst_csq_from_csq(annotation['Consequence'])]
+    score = float(-CSQ_ORDER_DICT[worst_csq_from_csq(annotation['Consequence'])])
     if annotation['CANONICAL'] == 'YES':
-        rv += 0.1
-    return rv
+        score += 0.1
+    return score
 
 
-def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
+def get_coverage(dataset: str, datatype: str, item: str, ds_version: str = None) -> dict:
     """
     Retrieve coverage for a gene/region/transcript.
 
@@ -165,7 +165,7 @@ def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
         dict: start, stop, coverage list
 
     """
-    ret = {'coverage':[]}
+    ret: dict = {'coverage': []}
 
     if datatype == 'gene':
         gene = lookups.get_gene(dataset, item)
@@ -173,12 +173,13 @@ def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
             transcript = lookups.get_transcript(dataset, gene['canonical_transcript'])
             if transcript:
                 start = transcript['start'] - EXON_PADDING
-                stop  = transcript['stop'] + EXON_PADDING
-                ret['coverage'] = lookups.get_coverage_for_transcript(dataset, transcript['chrom'], start, stop, ds_version)
+                stop = transcript['stop'] + EXON_PADDING
+                ret['coverage'] = lookups.get_coverage_for_transcript(dataset, transcript['chrom'],
+                                                                      start, stop, ds_version)
 
     elif datatype == 'region':
         chrom, start, stop = parse_region(item)
-            
+
         if is_region_too_large(start, stop):
             raise error.MalformedRequest('Region too large')
         ret['coverage'] = lookups.get_coverage_for_bases(dataset, chrom, start, stop, ds_version)
@@ -187,13 +188,14 @@ def get_coverage(dataset:str, datatype:str, item:str, ds_version:str=None):
         transcript = lookups.get_transcript(dataset, item)
         if transcript:
             start = transcript['start'] - EXON_PADDING
-            stop  = transcript['stop'] + EXON_PADDING
-            ret['coverage'] = lookups.get_coverage_for_transcript(dataset, transcript['chrom'], start, stop, ds_version)
+            stop = transcript['stop'] + EXON_PADDING
+            ret['coverage'] = lookups.get_coverage_for_transcript(dataset, transcript['chrom'],
+                                                                  start, stop, ds_version)
 
     return ret
 
 
-def get_coverage_pos(dataset:str, datatype:str, item:str, ds_version:str=None):
+def get_coverage_pos(dataset: str, datatype: str, item: str, ds_version: str = None) -> dict:
     """
     Retrieve coverage range.
 
@@ -206,7 +208,7 @@ def get_coverage_pos(dataset:str, datatype:str, item:str, ds_version:str=None):
         dict: start, stop, chrom
 
     """
-    ret = {'start':None, 'stop':None, 'chrom':None}
+    ret = {'start': None, 'stop': None, 'chrom': None}
 
     if datatype == 'region':
         chrom, start, stop = parse_region(item)
@@ -223,13 +225,13 @@ def get_coverage_pos(dataset:str, datatype:str, item:str, ds_version:str=None):
             transcript = lookups.get_transcript(dataset, item, ds_version)
         if transcript:
             ret['start'] = transcript['start'] - EXON_PADDING
-            ret['stop']  = transcript['stop'] + EXON_PADDING
+            ret['stop'] = transcript['stop'] + EXON_PADDING
             ret['chrom'] = transcript['chrom']
 
     return ret
 
 
-def get_flags_from_variant(variant:dict):
+def get_flags_from_variant(variant: dict) -> list:
     """
     Get flags from variant.
 
@@ -259,7 +261,7 @@ def get_flags_from_variant(variant:dict):
     return flags
 
 
-def get_proper_hgvs(annotation:dict):
+def get_proper_hgvs(annotation: dict) -> str:
     """
     Get HGVS for change, either at transcript or protein level.
 
@@ -278,10 +280,10 @@ def get_proper_hgvs(annotation:dict):
             return get_transcript_hgvs(annotation)
         return get_protein_hgvs(annotation)
     except KeyError:
-        return None
+        return ''
 
 
-def get_protein_hgvs(annotation):
+def get_protein_hgvs(annotation: dict) -> str:
     """
     Aa changes in HGVS format.
 
@@ -293,16 +295,16 @@ def get_protein_hgvs(annotation):
 
     """
     try:
-        if '%3D' in annotation['HGVSp']: # "%3D" is "="
+        if '%3D' in annotation['HGVSp']:  # "%3D" is "="
             amino_acids = ''.join([PROTEIN_LETTERS_1TO3[aa] for aa in annotation['Amino_acids']])
             return "p." + amino_acids + annotation['Protein_position'] + amino_acids
         return annotation['HGVSp'].split(':')[-1]
     except KeyError:
         logging.error("Could not fetch protein hgvs")
-        return None
+        return ''
 
 
-def get_transcript_hgvs(annotation:dict):
+def get_transcript_hgvs(annotation: dict) -> str:
     """
     Nucleotide change in HGVS format.
 
@@ -316,10 +318,10 @@ def get_transcript_hgvs(annotation:dict):
     try:
         return annotation['HGVSc'].split(':')[-1]
     except KeyError:
-        return None
+        return ''
 
 
-def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
+def get_variant_list(dataset: str, datatype: str, item: str, ds_version: str = None) -> dict:
     """
     Retrieve variants for a datatype.
 
@@ -333,10 +335,17 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
         dict: {variants:list, headers:list}
 
     """
-    headers = [['variant_id','Variant'], ['chrom','Chrom'], ['pos','Position'],
-               ['HGVS','Consequence'], ['filter','Filter'], ['major_consequence','Annotation'],
-               ['flags','Flags'], ['allele_count','Allele Count'], ['allele_num','Allele Number'],
-               ['hom_count','Number of Homozygous Alleles'], ['allele_freq','Allele Frequency']]
+    headers = [['variant_id', 'Variant'],
+               ['chrom', 'Chrom'],
+               ['pos', 'Position'],
+               ['HGVS', 'Consequence'],
+               ['filter', 'Filter'],
+               ['major_consequence', 'Annotation'],
+               ['flags', 'Flags'],
+               ['allele_count', 'Allele Count'],
+               ['allele_num', 'Allele Number'],
+               ['hom_count', 'Number of Homozygous Alleles'],
+               ['allele_freq', 'Allele Frequency']]
 
     if datatype == 'gene':
         variants = lookups.get_variants_in_gene(dataset, item, ds_version)
@@ -350,11 +359,7 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
 
     elif datatype == 'transcript':
         variants = lookups.get_variants_in_transcript(dataset, item, ds_version)
-
-    if datatype == 'transcript':
         transcript = lookups.get_transcript(dataset, item, ds_version)
-        if not transcript:
-            return None
         refgene = transcript['gene_id']
 
     if variants:
@@ -377,19 +382,19 @@ def get_variant_list(dataset:str, datatype:str, item:str, ds_version:str=None):
 
         # Format output
         def format_variant(variant):
-            variant['major_consequence'] = (variant['major_consequence'].replace('_variant','')
+            variant['major_consequence'] = (variant['major_consequence'].replace('_variant', '')
                                             .replace('_prime_', '\'')
                                             .replace('_', ' '))
 
             # This is so an array values turns into a comma separated string instead
-            return {k: ", ".join(v) if isinstance(v,list) else v for k, v in variant.items()}
+            return {k: ", ".join(v) if isinstance(v, list) else v for k, v in variant.items()}
 
         variants = list(map(format_variant, variants))
 
     return {'variants': variants, 'headers': headers}
 
 
-def order_vep_by_csq(annotation_list:list):
+def order_vep_by_csq(annotation_list: list) -> list:
     """
     Will add "major_consequence" to each annotation and order by severity.
 
@@ -405,10 +410,10 @@ def order_vep_by_csq(annotation_list:list):
             ann['major_consequence'] = worst_csq_from_csq(ann['Consequence'])
         except KeyError:
             ann['major_consequence'] = ''
-    return sorted(annotation_list, key=(lambda ann:CSQ_ORDER_DICT[ann['major_consequence']]))
+    return sorted(annotation_list, key=(lambda ann: CSQ_ORDER_DICT[ann['major_consequence']]))
 
 
-def is_region_too_large(start:int, stop:int):
+def is_region_too_large(start: int, stop: int) -> bool:
     """
     Evaluate whether the size of a region is larger than maximum query.
 
@@ -424,7 +429,7 @@ def is_region_too_large(start:int, stop:int):
     return int(stop)-int(start) > region_limit
 
 
-def parse_dataset(dataset:str, ds_version:str=None):
+def parse_dataset(dataset: str, ds_version: str = None) -> tuple:
     """
     Check/parse if the dataset name is in the beacon form (``reference:dataset:version``).
 
@@ -442,7 +447,7 @@ def parse_dataset(dataset:str, ds_version:str=None):
     return (dataset, ds_version)
 
 
-def parse_region(region:str):
+def parse_region(region: str) -> tuple:
     """
     Parse a region with either one or two positions
 
@@ -453,26 +458,28 @@ def parse_region(region:str):
         tuple: (chrom, start, pos)
     """
     parts = region.split('-')
+
     if len(parts) == 2:
-        chrom, start = parts
-        stop = start
+        chrom, str_start = parts
+        str_stop = str_start
     elif len(parts) == 3:
-        chrom, start, stop = parts
+        chrom, str_start, str_stop = parts
     else:
         raise error.ParsingError(f'Unable to parse region {region}.')
 
     try:
-        start = int(start)
-        stop = int(stop)
-    except ValueError:
-        raise error.ParsingError(f'Unable to parse region {region} (positions not integers).')
-    
+        start = int(str_start)
+        stop = int(str_stop)
+    except ValueError as err:
+        raise error.ParsingError(f'Unable to parse region {region} (pos not integers).') from err
+
     return chrom, start, stop
 
 
-def remove_extraneous_information(variant:dict):
+def remove_extraneous_information(variant: dict):
     """
     Remove information that is not used in the frontend from a variant.
+    Changes are performed in-place.
 
     Args:
         variant (dict): variant data from database
@@ -485,7 +492,7 @@ def remove_extraneous_information(variant:dict):
     del variant['vep_annotations']
 
 
-def remove_extraneous_vep_annotations(annotation_list:list):
+def remove_extraneous_vep_annotations(annotation_list: list) -> list:
     """
     Remove annotations with low-impact consequences (less than intron variant).
 
@@ -500,7 +507,7 @@ def remove_extraneous_vep_annotations(annotation_list:list):
             if worst_csq_index(ann['Consequence'].split('&')) <= CSQ_ORDER_DICT['intron_variant']]
 
 
-def worst_csq_from_list(csq_list:list):
+def worst_csq_from_list(csq_list: list) -> str:
     """
     Choose the worst consequence.
 
@@ -514,7 +521,7 @@ def worst_csq_from_list(csq_list:list):
     return REV_CSQ_ORDER_DICT[worst_csq_index(csq_list)]
 
 
-def worst_csq_from_csq(csq:str):
+def worst_csq_from_csq(csq: str) -> str:
     """
     Find worst consequence in a possibly &-filled consequence string.
 
@@ -528,7 +535,7 @@ def worst_csq_from_csq(csq:str):
     return REV_CSQ_ORDER_DICT[worst_csq_index(csq.split('&'))]
 
 
-def worst_csq_index(csq_list:list):
+def worst_csq_index(csq_list: list) -> int:
     """
     Find the index of the worst consequence.
 
@@ -544,7 +551,7 @@ def worst_csq_index(csq_list:list):
     return min([CSQ_ORDER_DICT[csq] for csq in csq_list])
 
 
-def worst_csq_with_vep(annotation_list:list):
+def worst_csq_with_vep(annotation_list: list) -> dict:
     """
     Choose the vep annotation with the most severe consequence.
 
@@ -558,7 +565,7 @@ def worst_csq_with_vep(annotation_list:list):
 
     """
     if not annotation_list:
-        return None
+        return {}
     worst = max(annotation_list, key=annotation_severity)
     worst['major_consequence'] = worst_csq_from_csq(worst['Consequence'])
     return worst

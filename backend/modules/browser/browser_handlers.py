@@ -13,7 +13,7 @@ from . import utils
 class Autocomplete(handlers.UnsafeHandler):
     """Provide autocompletion for protein names based on current query."""
 
-    def get(self, dataset:str, query:str, ds_version:str=None):
+    def get(self, dataset: str, query: str, ds_version: str = None):
         """
         Provide autocompletion for protein names based on current query.
 
@@ -21,6 +21,7 @@ class Autocomplete(handlers.UnsafeHandler):
             dataset (str): dataset short name
             query (str): query
             ds_version (str): dataset version
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         ret = {}
@@ -34,7 +35,8 @@ class Autocomplete(handlers.UnsafeHandler):
 class Download(handlers.UnsafeHandler):
     """Download variants in CSV format."""
 
-    def get(self, dataset:str, datatype:str, item:str, ds_version:str=None, filter_type:str=None):
+    def get(self, dataset: str, datatype: str, item: str,  # pylint: disable=too-many-arguments
+            ds_version: str = None, filter_type: str = None):
         """
         Download variants in CSV format.
 
@@ -46,25 +48,29 @@ class Download(handlers.UnsafeHandler):
             item (str): query item
             ds_version (str): dataset version
             filter_type (str): type of filter to apply
+
         """
         # ctrl.filterVariantsBy~ctrl.filterIncludeNonPass
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
-        filename = "{}_{}_{}.csv".format(dataset, datatype, item)
-        self.set_header('Content-Type','text/csv')
-        self.set_header('content-Disposition','attachement; filename={}'.format(filename))
+        filename = f'{dataset}_{datatype}_{item}.csv'
+        self.set_header('Content-Type', 'text/csv')
+        self.set_header(f'content-Disposition',
+                        f'attachment; filename={filename}')
 
         data = utils.get_variant_list(dataset, datatype, item, ds_version)
         # filter variants based on what is shown
         if filter_type:
             filters = filter_type.split('~')
             if filters[1] == 'false':
-                data['variants'] = [variant for variant in data['variants'] if variant['filter_string'] == 'PASS']
+                data['variants'] = [variant for variant in data['variants']
+                                    if variant['filter_string'] == 'PASS']
             if filters[0] == 'mislof':
                 data['variants'] = [variant for variant in data['variants']
                                     if variant['major_consequence'] == 'missense'
                                     or 'LoF' in variant['flags']]
             elif 'lof' in filters[0]:
-                data['variants'] = [variant for variant in data['variants'] if 'LoF' in variant['flags']]
+                data['variants'] = [variant for variant in data['variants']
+                                    if 'LoF' in variant['flags']]
 
         # Write header
         self.write(','.join([h[1] for h in data['headers']]) + '\n')
@@ -77,7 +83,7 @@ class Download(handlers.UnsafeHandler):
 class GetCoverage(handlers.UnsafeHandler):
     """Retrieve coverage."""
 
-    def get(self, dataset:str, datatype:str, item:str, ds_version:str=None):
+    def get(self, dataset: str, datatype: str, item: str, ds_version: str = None):
         """
         Retrieve coverage.
 
@@ -86,6 +92,7 @@ class GetCoverage(handlers.UnsafeHandler):
             datatype (str): type of data
             item (str): query item
             ds_version (str): dataset version
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         try:
@@ -102,7 +109,7 @@ class GetCoverage(handlers.UnsafeHandler):
 class GetCoveragePos(handlers.UnsafeHandler):
     """Retrieve coverage range."""
 
-    def get(self, dataset:str, datatype:str, item:str, ds_version:str=None):
+    def get(self, dataset: str, datatype: str, item: str, ds_version: str = None):
         """
         Retrieve coverage range.
 
@@ -111,13 +118,16 @@ class GetCoveragePos(handlers.UnsafeHandler):
             datatype (str): type of data
             item (str): query item
             ds_version (str): dataset version
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         try:
             ret = utils.get_coverage_pos(dataset, datatype, item, ds_version)
-        except ValueError:
-            logging.error('GetCoveragePos: unable to parse region ({})'.format(item))
-            self.send_error(status_code=400, reason='Unable to parse region')
+        except error.NotFoundError as err:
+            self.send_error(status_code=404, reason=str(err))
+            return
+        except (error.ParsingError, error.MalformedRequest) as err:
+            self.send_error(status_code=400, reason=str(err))
             return
 
         self.finish(ret)
@@ -126,7 +136,7 @@ class GetCoveragePos(handlers.UnsafeHandler):
 class GetGene(handlers.UnsafeHandler):
     """Request information about a gene."""
 
-    def get(self, dataset:str, gene:str, ds_version:str=None):
+    def get(self, dataset: str, gene: str, ds_version: str = None):
         """
         Request information about a gene.
 
@@ -134,11 +144,12 @@ class GetGene(handlers.UnsafeHandler):
             dataset (str): short name of the dataset
             gene (str): the gene id
             ds_version (str): dataset version
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         gene_id = gene
 
-        ret = {'gene':{'gene_id': gene_id}}
+        ret = {'gene': {'gene_id': gene_id}}
 
         # Gene
         try:
@@ -146,27 +157,23 @@ class GetGene(handlers.UnsafeHandler):
         except error.NotFoundError as err:
             self.send_error(status_code=404, reason=str(err))
             return
-        except (error.ParsingError, error.MalformedRequest) as err:
-            self.send_error(status_code=400, reason=str(err))
-            return
 
-        if not gene:
-            self.send_error(status_code=404, reason='Gene not found')
-            return
         ret['gene'] = gene
 
         # Add exons from transcript
         transcript = lookups.get_transcript(dataset, gene['canonical_transcript'], ds_version)
         ret['exons'] = []
         for exon in sorted(transcript['exons'], key=lambda k: k['start']):
-            ret['exons'] += [{'start':exon['start'], 'stop':exon['stop'], 'type':exon['feature_type']}]
+            ret['exons'] += [{'start': exon['start'],
+                              'stop': exon['stop'],
+                              'type': exon['feature_type']}]
 
         # Transcripts
         transcripts_in_gene = lookups.get_transcripts_in_gene(dataset, gene_id, ds_version)
         if transcripts_in_gene:
             ret['transcripts'] = []
             for transcript in transcripts_in_gene:
-                ret['transcripts'] += [{'transcript_id':transcript['transcript_id']}]
+                ret['transcripts'] += [{'transcript_id': transcript['transcript_id']}]
 
         # temporary fix for names
         gene['gene_name'] = gene['name']
@@ -178,7 +185,7 @@ class GetGene(handlers.UnsafeHandler):
 class GetRegion(handlers.UnsafeHandler):
     """Request information about genes in a region."""
 
-    def get(self, dataset:str, region:str, ds_version:str=None):
+    def get(self, dataset: str, region: str, ds_version: str = None):
         """
         Request information about genes in a region.
 
@@ -186,6 +193,7 @@ class GetRegion(handlers.UnsafeHandler):
             dataset (str): short name of the dataset
             region (str): the region in the format chr-startpos-endpos
             ds_version (str): dataset version
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
 
@@ -196,11 +204,9 @@ class GetRegion(handlers.UnsafeHandler):
             logging.warning('GetRegion: unable to parse region ({})'.format(region))
             return
 
-        ret = {'region':{'chrom': chrom,
-                         'start': start,
-                         'stop':  stop,
-                        },
-              }
+        ret = {'region': {'chrom': chrom,
+                          'start': start,
+                          'stop':  stop}}
 
         if utils.is_region_too_large(start, stop):
             self.send_error(status_code=400, reason='Region too large')
@@ -210,17 +216,16 @@ class GetRegion(handlers.UnsafeHandler):
         if genes_in_region:
             ret['region']['genes'] = []
             for gene in genes_in_region:
-                ret['region']['genes'] += [{'gene_id':gene['gene_id'],
-                                            'gene_name':gene['name'],
-                                            'full_gene_name':gene['full_name'],
-                                           }]
+                ret['region']['genes'] += [{'gene_id': gene['gene_id'],
+                                            'gene_name': gene['name'],
+                                            'full_gene_name': gene['full_name']}]
         self.finish(ret)
 
 
 class GetTranscript(handlers.UnsafeHandler):
     """Request information about a transcript."""
 
-    def get(self, dataset:str, transcript:str, ds_version:str=None):
+    def get(self, dataset: str, transcript: str, ds_version: str = None):
         """
         Request information about a transcript.
 
@@ -228,40 +233,39 @@ class GetTranscript(handlers.UnsafeHandler):
             dataset (str): short name of the dataset
             transcript (str): the transcript id
 
-        Returns:
-            dict: transcript (transcript and exons), gene (gene information)
-
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         transcript_id = transcript
-        ret = {'transcript':{},
-               'gene':{},
-              }
+        ret = {'transcript': {},
+               'gene': {}}
 
         # Add transcript information
-        try: 
+        try:
             transcript = lookups.get_transcript(dataset, transcript_id, ds_version)
         except error.NotFoundError as err:
             self.send_error(status_code=404, reason=str(err))
             return
-        
+
         ret['transcript']['id'] = transcript['transcript_id']
-        ret['transcript']['number_of_CDS'] = len([t for t in transcript['exons'] if t['feature_type'] == 'CDS'])
+        ret['transcript']['number_of_CDS'] = len([t for t in transcript['exons']
+                                                  if t['feature_type'] == 'CDS'])
 
         # Add exon information
         ret['exons'] = []
         for exon in sorted(transcript['exons'], key=lambda k: k['start']):
-            ret['exons'] += [{'start':exon['start'], 'stop':exon['stop'], 'type':exon['feature_type']}]
+            ret['exons'] += [{'start': exon['start'],
+                              'stop': exon['stop'],
+                              'type': exon['feature_type']}]
 
         # Add gene information
-        gene                                = lookups.get_gene_by_dbid(transcript['gene'])
-        ret['gene']['id']                   = gene['gene_id']
-        ret['gene']['name']                 = gene['name']
-        ret['gene']['full_name']            = gene['full_name']
+        gene = lookups.get_gene_by_dbid(transcript['gene'])
+        ret['gene']['id'] = gene['gene_id']
+        ret['gene']['name'] = gene['name']
+        ret['gene']['full_name'] = gene['full_name']
         ret['gene']['canonical_transcript'] = gene['canonical_transcript']
 
-        gene_transcripts            = lookups.get_transcripts_in_gene_by_dbid(transcript['gene'])
-        ret['gene']['transcripts']  = [g['transcript_id'] for g in gene_transcripts]
+        gene_transcripts = lookups.get_transcripts_in_gene_by_dbid(transcript['gene'])
+        ret['gene']['transcripts'] = [g['transcript_id'] for g in gene_transcripts]
 
         self.finish(ret)
 
@@ -269,31 +273,35 @@ class GetTranscript(handlers.UnsafeHandler):
 class GetVariant(handlers.UnsafeHandler):
     """Request information about a gene."""
 
-    def get(self, dataset:str, variant:str, ds_version:str=None):
+    def get(self, dataset: str, variant: str, ds_version: str = None):
         """
         Request information about a gene.
 
         Args:
             dataset (str): short name of the dataset
             variant (str): variant in the format chrom-pos-ref-alt
+
         """
+        # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
 
-        ret = {'variant':{}}
+        ret = {'variant': {}}
         # Variant
-        v = variant.split('-')
-        if len(v) != 4:
+        split_var = variant.split('-')
+        if len(split_var) != 4:
             logging.error('GetVariant: unable to parse variant ({})'.format(variant))
             self.send_error(status_code=400, reason=f'Unable to parse variant {variant}')
         try:
-            v[1] = int(v[1])
+            split_var[1] = int(split_var[1])
         except ValueError:
             logging.error('GetVariant: position not an integer ({})'.format(variant))
-            self.send_error(status_code=400, reason=f'Position is not an integer in variant {variant}')
+            self.send_error(status_code=400,
+                            reason=f'Position is not an integer in variant {variant}')
             return
         orig_variant = variant
         try:
-            variant = lookups.get_variant(dataset, v[1], v[0], v[2], v[3], ds_version)
+            variant = lookups.get_variant(dataset, split_var[1], split_var[0],
+                                          split_var[2], split_var[3], ds_version)
         except error.NotFoundError as err:
             logging.error('Variant not found ({})'.format(orig_variant))
             self.send_error(status_code=404, reason=str(err))
@@ -301,8 +309,8 @@ class GetVariant(handlers.UnsafeHandler):
 
         # Just get the information we need
         for item in ["variant_id", "chrom", "pos", "ref", "alt", "rsid", "allele_num",
-                     "allele_freq", "allele_count", "orig_alt_alleles", "site_quality", "quality_metrics",
-                     "transcripts", "genes"]:
+                     "allele_freq", "allele_count", "orig_alt_alleles", "site_quality",
+                     "quality_metrics", "transcripts", "genes"]:
             ret['variant'][item] = variant[item]
         ret['variant']['filter'] = variant['filter_string']
 
@@ -311,7 +319,8 @@ class GetVariant(handlers.UnsafeHandler):
         ret['variant']['consequences'] = []
         if 'vep_annotations' in variant:
             utils.add_consequence_to_variant(variant)
-            variant['vep_annotations'] = utils.remove_extraneous_vep_annotations(variant['vep_annotations'])
+            variant['vep_annotations'] = \
+                utils.remove_extraneous_vep_annotations(variant['vep_annotations'])
             # Adds major_consequence
             variant['vep_annotations'] = utils.order_vep_by_csq(variant['vep_annotations'])
             ret['variant']['annotations'] = {}
@@ -319,21 +328,22 @@ class GetVariant(handlers.UnsafeHandler):
                 annotation['HGVS'] = utils.get_proper_hgvs(annotation)
 
                 # Add consequence type to the annotations if it doesn't exist
-                consequence_type = annotation['Consequence'].split('&')[0]  \
-                                   .replace("_variant", "")                 \
-                                   .replace('_prime_', '\'')                \
-                                   .replace('_', ' ')
+                consequence_type = (annotation['Consequence'].split('&')[0]
+                                    .replace("_variant", "")
+                                    .replace('_prime_', '\'')
+                                    .replace('_', ' '))
                 if consequence_type not in ret['variant']['annotations']:
-                    ret['variant']['annotations'][consequence_type] = {'gene': {'name':annotation['SYMBOL'],
-                                                                                'id':annotation['Gene']},
-                                                                       'transcripts':[]}
+                    ret['variant']['annotations'][consequence_type] = \
+                        {'gene': {'name': annotation['SYMBOL'],
+                                  'id': annotation['Gene']},
+                         'transcripts': []}
 
                 ret['variant']['annotations'][consequence_type]['transcripts'] += \
-                    [{'id':           annotation['Feature'],
-                      'sift':         annotation['SIFT'].rstrip("()0123456789"),
-                      'polyphen':     annotation['PolyPhen'].rstrip("()0123456789"),
-                      'canonical':    annotation['CANONICAL'],
-                      'modification': annotation['HGVSp'].split(":")[1] if ':' in annotation['HGVSp'] else None}]
+                    [{'id': annotation['Feature'],
+                      'sift': annotation['SIFT'].rstrip("()0123456789"),
+                      'polyphen': annotation['PolyPhen'].rstrip("()0123456789"),
+                      'canonical': annotation['CANONICAL'],
+                      'modification': annotation['HGVSp'].split(":")[1] if ':' in annotation['HGVSp'] else None}]  # pylint: disable=line-too-long
 
         # Dataset frequencies.
         # This is reported per variable in the database data, with dataset
@@ -342,24 +352,32 @@ class GetVariant(handlers.UnsafeHandler):
 
         # get the variant for other datasets with the same reference_set
         curr_dsv = db.get_dataset_version(dataset, ds_version)
-        dsvs = [db.get_dataset_version(dset.short_name) for dset in db.Dataset.select() if dset.short_name != dataset]
+        dsvs = [db.get_dataset_version(dset.short_name) for dset in db.Dataset.select()
+                if dset.short_name != dataset]
+        # if the only available version is not released yet
+        dsvs = list(filter(lambda dsv: dsv, dsvs))
+        logging.error(dsvs)
         dsvs = [dsv for dsv in dsvs if dsv.reference_set == curr_dsv.reference_set]
         dsv_groups = [(curr_dsv, variant)]
         for dsv in dsvs:
             try:
-                hit = lookups.get_variant(dsv.dataset.short_name, v[1], v[0], v[2], v[3], dsv.version)
+                hit = lookups.get_variant(dsv.dataset.short_name, split_var[1], split_var[0],
+                                          split_var[2], split_var[3], dsv.version)
             except error.NotFoundError:
                 continue
             dsv_groups.append((dsv, hit))
 
-        frequencies = {'headers':[['Dataset','pop'],
-                               ['Allele Count','acs'],
-                               ['Allele Number', 'ans'],
-                               ['Number of Homozygotes', 'homs'],
-                               ['Allele Frequency', 'freq']],
-                    'datasets':{},
-                    'total':{}}
-        term_map = {'allele_num':'ans', 'allele_count':'acs', 'allele_freq':'freq', 'hom_count':'homs'}
+        frequencies = {'headers': [['Dataset', 'pop'],
+                                   ['Allele Count', 'acs'],
+                                   ['Allele Number', 'ans'],
+                                   ['Number of Homozygotes', 'homs'],
+                                   ['Allele Frequency', 'freq']],
+                       'datasets': {},
+                       'total': {}}
+        term_map = {'allele_num': 'ans',
+                    'allele_count': 'acs',
+                    'allele_freq': 'freq',
+                    'hom_count': 'homs'}
 
         for dsv_group in dsv_groups:
             ds_name = dsv_group[0].dataset.short_name
@@ -376,7 +394,8 @@ class GetVariant(handlers.UnsafeHandler):
                     frequencies['total'][term_map[item]] += dsv_group[1][item]
 
             if 'freq' in frequencies['total']:
-                frequencies['total']['freq'] = frequencies['total']['acs']/frequencies['total']['ans']
+                frequencies['total']['freq'] = \
+                    frequencies['total']['acs']/frequencies['total']['ans']
         ret['variant']['pop_freq'] = frequencies
 
         self.finish(ret)
@@ -385,7 +404,7 @@ class GetVariant(handlers.UnsafeHandler):
 class GetVariants(handlers.UnsafeHandler):
     """Retrieve variants."""
 
-    def get(self, dataset:str, datatype:str, item:str, ds_version:str=None):
+    def get(self, dataset: str, datatype: str, item: str, ds_version: str = None):
         """
         Retrieve variants.
 
@@ -393,6 +412,7 @@ class GetVariants(handlers.UnsafeHandler):
             dataset (str): short name of the dataset
             datatype (str): gene, region, or transcript
             item (str): item to query
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         try:
@@ -416,13 +436,14 @@ class GetVariants(handlers.UnsafeHandler):
 class Search(handlers.UnsafeHandler):
     """Perform a search for the wanted object."""
 
-    def get(self, dataset:str, query:str, ds_version:str=None):
+    def get(self, dataset: str, query: str, ds_version: str = None):
         """
         Perform a search for the wanted object.
 
         Args:
             dataset (str): short name of the dataset
             query (str): search query
+
         """
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         ret = {"dataset": dataset, "value": None, "type": None}

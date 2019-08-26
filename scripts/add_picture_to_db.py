@@ -30,18 +30,16 @@ def add_image(dataset_pk, image):
         data = f.read()
 
     try:
-        mimetype = infer_mimetype( image )
+        mimetype = infer_mimetype(image)
     except NoMimetypeException:
         print("Can't find mime type for <{}>".format(image))
         sys.exit(2)
 
     print(len(data))
     with db.database.atomic():
-        db.DatasetLogo.create(
-            dataset  = dataset,
-            mimetype = mimetype,
-            data     = data
-        )
+        db.DatasetLogo.create(dataset=dataset,
+                              mimetype=mimetype,
+                              data=data)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Insert a picture into the database')

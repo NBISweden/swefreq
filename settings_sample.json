@@ -1,12 +1,6 @@
 {
     "cookieSecret" : "Something random for tornado to sign cookies with",
 
-    "mysqlHost" : "127.0.0.1",
-    "mysqlPasswd" : "password",
-    "mysqlSchema" : "swefreq",
-    "mysqlUser" : "swefreq",
-    "mysqlPort" : 3306,
-
     "postgresHost" : "postgres host",
     "postgresPort" : 5432,
     "postgresUser" : "postgres",

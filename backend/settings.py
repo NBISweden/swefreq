@@ -24,7 +24,7 @@ json_settings_fh.close()
 
 elixir = json_settings["elixir"]
 
-## Generated with base64.b64encode(uuid.uuid4().bytes + uuid.uuid4().bytes)
+# Generated with base64.b64encode(uuid.uuid4().bytes + uuid.uuid4().bytes)
 cookie_secret = json_settings["cookieSecret"]
 
 # PostgreSQL settings
@@ -33,13 +33,6 @@ psql_port = json_settings["postgresPort"]
 psql_name = json_settings["postgresName"]
 psql_user = json_settings["postgresUser"]
 psql_pass = json_settings["postgresPass"]
-
-# MySql settings
-mysql_host = json_settings["mysqlHost"]
-mysql_schema = json_settings["mysqlSchema"]
-mysql_user = json_settings["mysqlUser"]
-mysql_passwd = json_settings["mysqlPasswd"]
-mysql_port = json_settings["mysqlPort"]
 
 # e-mail config
 mail_server = json_settings["mailServer"]

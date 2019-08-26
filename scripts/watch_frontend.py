@@ -1,9 +1,8 @@
-import inotify.adapters
 import re
 import subprocess
 import os
 import logging
-
+import inotify.adapters
 
 def files_to_watch():
     r = re.compile("^/code/frontend/(templates|src)")
@@ -18,7 +17,7 @@ def comb(*args):
 
 def install_node_deps():
     os.chdir('frontend')
-    subprocess.call(['npm','install'])
+    subprocess.call(['npm', 'install'])
     os.chdir('..')
 
 def main():
@@ -31,12 +30,12 @@ def main():
     grepper = comb(files_to_watch(), events_to_watch())
 
     while True:
-        changes = list( filter(grepper, i.event_gen(timeout_s=0.5, yield_nones=False)) )
+        changes = list(filter(grepper, i.event_gen(timeout_s=0.5, yield_nones=False)))
         if changes:
             logging.info("Files updated rerunning")
             for c in changes:
                 (_, type_names, path, filename) = c
-                logging.info("    PATH=[{}] FILENAME=[{}] EVENT_TYPES={}".format(path, filename, type_names))
+                logging.info(f"    PATH=[{path}] FILENAME=[{filename}] EVENT_TYPES={type_names}")
             subprocess.call(['make'])
 
 

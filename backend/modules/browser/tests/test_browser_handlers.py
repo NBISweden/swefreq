@@ -1,10 +1,13 @@
 """
 Test the browser handlers
 """
-import requests
 import json
 
-BASE_URL="http://localhost:4000"
+import requests
+
+BASE_URL = "http://localhost:4000"
+
+# pylint: disable=line-too-long
 
 def test_get_autocomplete():
     """
@@ -28,21 +31,24 @@ def test_download():
     data_type = 'transcript'
     data_item = 'ENST00000438441'
     response = requests.get('{}/api/dataset/{}/browser/download/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
-    assert len(response.text.split('\n')) == 180 # header + 178 + \n
+    assert len(response.text.split('\n')) == 180  # header + 178 + \n
     response = requests.get('{}/api/dataset/{}/browser/download/{}/{}/filter/all~false'.format(BASE_URL, dataset, data_type, data_item))
-    import logging
-    logging.error(response.text.split('\n'))
     assert len(response.text.split('\n')) == 8
     response = requests.get('{}/api/dataset/{}/browser/download/{}/{}/filter/all~true'.format(BASE_URL, dataset, data_type, data_item))
     assert len(response.text.split('\n')) == 180
     response = requests.get('{}/api/dataset/{}/browser/download/{}/{}/filter/mislof~true'.format(BASE_URL, dataset, data_type, data_item))
     assert len(response.text.split('\n')) == 2
+    filename = f'{dataset}_{data_type}_{data_item}.csv'
+    assert response.headers['content-disposition'] == f'attachment; filename={filename}'
+
     data_type = 'region'
     data_item = '22-29450622-29465622'
     response = requests.get('{}/api/dataset/{}/browser/download/{}/{}/filter/mislof~false'.format(BASE_URL, dataset, data_type, data_item))
     assert len(response.text.split('\n')) == 3
     response = requests.get('{}/api/dataset/{}/browser/download/{}/{}/filter/lof~false'.format(BASE_URL, dataset, data_type, data_item))
     assert len(response.text.split('\n')) == 3
+    filename = f'{dataset}_{data_type}_{data_item}.csv'
+    assert response.headers['content-disposition'] == f'attachment; filename={filename}'
 
 
 def test_get_coverage():
@@ -77,6 +83,22 @@ def test_get_coverage_pos():
     assert cov_pos['start'] == 100001
     assert cov_pos['stop'] == 100101
     assert cov_pos['chrom'] == '22'
+
+    data_type = 'region'
+    data_item = '22-100001-200101'
+    response = requests.get('{}/api/dataset/{}/browser/coverage_pos/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
+    assert response.status_code == 400
+
+    data_type = 'region'
+    data_item = '22-1-11-101'
+    response = requests.get('{}/api/dataset/{}/browser/coverage_pos/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
+    assert response.status_code == 400
+
+    dataset = 'SweGen'
+    data_type = 'transcript'
+    data_item = 'BAD_TRANSCRIPT'
+    response = requests.get('{}/api/dataset/{}/browser/coverage_pos/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
+    assert response.status_code == 404
 
 
 def test_get_gene():
@@ -191,6 +213,10 @@ def test_get_variant():
     assert variant['variant']['variantId'] == '21-9411609-G-T'
 
     variant_id = '22-94358sfsdfsdf52-T-C'
+    response = requests.get('{}/api/dataset/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
+    assert response.status_code == 400
+
+    variant_id = '1-2-3-4-5-6'
     response = requests.get('{}/api/dataset/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
     assert response.status_code == 400
 

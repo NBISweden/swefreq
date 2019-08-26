@@ -89,7 +89,7 @@ def test_get_coverage():
 
     # no coverage found
     with pytest.raises(error.NotFoundError):
-        utils.get_coverage('BAD_SET', 'transcript', 'ENST00000438441')['coverage']
+        res = utils.get_coverage('BAD_SET', 'transcript', 'ENST00000438441')['coverage']
 
     with pytest.raises(error.MalformedRequest):
         res = utils.get_coverage('SweGen', 'region', '22-1-1000000')
@@ -127,31 +127,31 @@ def test_get_coverage_pos():
         utils.get_coverage_pos('SweGen', 'region', '1-1-10000000')
 
 
-
 def test_data_structures():
     """
     Test the constants
     """
-    assert len(utils.CSQ_ORDER) == len(set(utils.CSQ_ORDER)) # No duplicates
-    assert all(csq == utils.REV_CSQ_ORDER_DICT[utils.CSQ_ORDER_DICT[csq]] for csq in utils.CSQ_ORDER)
+    assert len(utils.CSQ_ORDER) == len(set(utils.CSQ_ORDER))  # No duplicates
+    assert all(csq == utils.REV_CSQ_ORDER_DICT[utils.CSQ_ORDER_DICT[csq]]
+               for csq in utils.CSQ_ORDER)
 
 
 def test_get_flags_from_variant():
     """
     Test get_flags_from_variant()
     """
-    fake_variant = {'vep_annotations':[{'LoF': 'LC', 'LoF_flags': 'something'},
-                                       {'LoF': '', 'LoF_flags': ''},
-                                       {'LoF': 'LC', 'LoF_flags': 'something'}]}
+    fake_variant = {'vep_annotations': [{'LoF': 'LC', 'LoF_flags': 'something'},
+                                        {'LoF': '', 'LoF_flags': ''},
+                                        {'LoF': 'LC', 'LoF_flags': 'something'}]}
     flags = utils.get_flags_from_variant(fake_variant)
     assert flags == ['LC LoF', 'LoF flag']
 
-    fake_variant = {'vep_annotations':[{'LoF': 'LC', 'LoF_flags': 'something'},
-                                       {'LoF': 'HC', 'LoF_flags': 'something'}]}
+    fake_variant = {'vep_annotations': [{'LoF': 'LC', 'LoF_flags': 'something'},
+                                        {'LoF': 'HC', 'LoF_flags': 'something'}]}
     flags = utils.get_flags_from_variant(fake_variant)
     assert flags == ['LoF', 'LoF flag']
 
-    fake_variant = {'mnps': 'no idea', 'vep_annotations':[]}
+    fake_variant = {'mnps': 'no idea', 'vep_annotations': []}
     flags = utils.get_flags_from_variant(fake_variant)
     assert flags == ['MNP']
 
@@ -211,7 +211,6 @@ def test_get_variant_list():
     assert len(res['variants']) == 178
     res = utils.get_variant_list('SweGen', 'region', '22-16272587')
     assert len(res['variants']) == 4
-
 
     # bad requests
     with pytest.raises(error.NotFoundError):
@@ -276,7 +275,8 @@ def test_remove_extraneous_vep_annotations():
     """
     annotation = [{'Consequence': 'frameshift_variant'},
                   {'Consequence': 'feature_elongation&TF_binding_site_variant'}]
-    assert utils.remove_extraneous_vep_annotations(annotation) == [{'Consequence': 'frameshift_variant'}]
+    assert utils.remove_extraneous_vep_annotations(annotation) == \
+        [{'Consequence': 'frameshift_variant'}]
 
 
 def test_worst_csq_from_csq():

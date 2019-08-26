@@ -1,0 +1,19 @@
+##fileformat=VCFv4.1
+##source=SVDB
+##ALT=<ID=DEL,Description="Deletion">
+##ALT=<ID=DUP,Description="Duplication">
+##ALT=<ID=INV,Description="Inversion">
+##ALT=<ID=BND,Description="Break end">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##INFO=<ID=END,Number=1,Type=String,Description="End of an intra-chromosomal variant">
+##INFO=<ID=OCC,Number=1,Type=Integer,Description="The number of occurences of the event in the database">
+##INFO=<ID=NSAMPLES,Number=1,Type=Integer,Description="the number of samples within the database">
+##INFO=<ID=VARIANTS,Number=1,Type=Integer,Description="a| separated list of the positions of the clustered variants">
+##INFO=<ID=FRQ,Number=1,Type=Float,Description="the frequency of the variant">
+##INFO=<ID=SVLEN,Number=1,Type=Integer,Description="Difference in length between REF and ALT alleles">
+##INFO=<ID=CIPOS,Number=2,Type=Integer,Description="Confidence interval around POS">
+##INFO=<ID=CIEND,Number=2,Type=Integer,Description="Confidence interval around END">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+1	10546	cluster_14774	N	N[7:159128729[	.	PASS	SVTYPE=BND;NSAMPLES=997;OCC=1;FRQ=0.00101300902708
+1	10549	cluster_15023	N	N[18:10613[	.	PASS	SVTYPE=BND;NSAMPLES=997;OCC=1;FRQ=0.00101300902708

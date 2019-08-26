@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
 import logging
-import settings
-from peewee import (BigIntegerField,
-                    BlobField,
+
+from peewee import (BlobField,
                     BooleanField,
                     CharField,
                     DateTimeField,
@@ -12,20 +11,20 @@ from peewee import (BigIntegerField,
                     FloatField,
                     ForeignKeyField,
                     Model,
-                    PostgresqlDatabase,
-                    PrimaryKeyField,
-                    SQL,
                     TextField,
-                    fn,
-                )
+                    fn)
 from playhouse.postgres_ext import ArrayField, BinaryJSONField, PostgresqlExtDatabase
 
+import settings
+
+# pylint: disable=no-member
 database = PostgresqlExtDatabase(settings.psql_name,
-                                 user            = settings.psql_user,
-                                 password        = settings.psql_pass,
-                                 host            = settings.psql_host,
-                                 port            = settings.psql_port,
-                                 register_hstore = False)
+                                 user=settings.psql_user,
+                                 password=settings.psql_pass,
+                                 host=settings.psql_host,
+                                 port=settings.psql_port,
+                                 register_hstore=False)
+# pylint: enable=no-member
 
 class BaseModel(Model):
     class Meta:
@@ -33,7 +32,7 @@ class BaseModel(Model):
 
 
 class EnumField(Field):
-    db_field = 'string' # The same as for CharField
+    db_field = 'string'  # The same as for CharField
 
     def __init__(self, choices=None, *args, **kwargs):
         self.values = choices or []
@@ -41,12 +40,12 @@ class EnumField(Field):
 
     def db_value(self, value):
         if value not in self.values:
-            raise ValueError("Illegal value for '{}'".format(self.db_column))
+            raise ValueError("Illegal value for '{}'".format(self.column_name))
         return value
 
     def python_value(self, value):
         if value not in self.values:
-            raise ValueError("Illegal value for '{}'".format(self.db_column))
+            raise ValueError("Illegal value for '{}'".format(self.column_name))
         return value
 
 ###
@@ -84,7 +83,8 @@ class Gene(BaseModel):
     chrom = CharField(max_length=10)
     start = IntegerField(column_name="start_pos")
     stop = IntegerField(column_name="end_pos")
-    strand = EnumField(choices=['+','-'])
+    strand = EnumField(choices=['+', '-'])
+
 
 class GeneOtherNames(BaseModel):
     class Meta:
@@ -93,6 +93,7 @@ class GeneOtherNames(BaseModel):
 
     gene = ForeignKeyField(Gene, column_name="gene", backref="other_names")
     name = CharField(null=True)
+
 
 class Transcript(BaseModel):
     class Meta:
@@ -106,7 +107,7 @@ class Transcript(BaseModel):
     chrom = CharField(max_length=10)
     start = IntegerField(column_name="start_pos")
     stop = IntegerField(column_name="stop_pos")
-    strand = EnumField(choices = ['+', '-'])
+    strand = EnumField(choices=['+', '-'])
 
 
 class Feature(BaseModel):
@@ -119,8 +120,9 @@ class Feature(BaseModel):
     chrom = CharField(max_length=10)
     start = IntegerField(column_name="start_pos")
     stop = IntegerField(column_name="stop_pos")
-    strand = EnumField(choices = ['+', '-'])
+    strand = EnumField(choices=['+', '-'])
     feature_type = CharField()
+
 
 ###
 # Study and Dataset fields
@@ -134,8 +136,8 @@ class Collection(BaseModel):
         table_name = 'collections'
         schema = 'data'
 
-    name       = CharField(column_name="study_name", null = True)
-    ethnicity  = CharField(null = True)
+    name = CharField(column_name="study_name", null=True)
+    ethnicity = CharField(null=True)
 
 
 class Study(BaseModel):
@@ -147,14 +149,14 @@ class Study(BaseModel):
         table_name = 'studies'
         schema = 'data'
 
-    pi_name          = CharField()
-    pi_email         = CharField()
-    contact_name     = CharField()
-    contact_email    = CharField()
-    title            = CharField()
-    description      = TextField(column_name="study_description", null=True)
+    pi_name = CharField()
+    pi_email = CharField()
+    contact_name = CharField()
+    contact_email = CharField()
+    title = CharField()
+    description = TextField(column_name="study_description", null=True)
     publication_date = DateTimeField()
-    ref_doi          = CharField(null=True)
+    ref_doi = CharField(null=True)
 
 
 class Dataset(BaseModel):
@@ -167,17 +169,17 @@ class Dataset(BaseModel):
         table_name = 'datasets'
         schema = 'data'
 
-    study              = ForeignKeyField(Study, column_name="study", backref='datasets')
-    short_name         = CharField()
-    full_name          = CharField()
-    browser_uri        = CharField(null=True)
-    beacon_uri         = CharField(null=True)
-    description        = TextField(column_name="beacon_description", null=True)
-    avg_seq_depth      = FloatField(null=True)
-    seq_type           = CharField(null=True)
-    seq_tech           = CharField(null=True)
-    seq_center         = CharField(null=True)
-    dataset_size       = IntegerField()
+    study = ForeignKeyField(Study, column_name="study", backref='datasets')
+    short_name = CharField()
+    full_name = CharField()
+    browser_uri = CharField(null=True)
+    beacon_uri = CharField(null=True)
+    description = TextField(column_name="beacon_description", null=True)
+    avg_seq_depth = FloatField(null=True)
+    seq_type = CharField(null=True)
+    seq_tech = CharField(null=True)
+    seq_center = CharField(null=True)
+    dataset_size = IntegerField()
 
     def has_image(self):
         try:
@@ -192,10 +194,10 @@ class SampleSet(BaseModel):
         table_name = 'sample_sets'
         schema = 'data'
 
-    dataset     = ForeignKeyField(Dataset, column_name="dataset", backref='sample_sets')
-    collection  = ForeignKeyField(Collection, column_name="collection", backref='sample_sets')
+    dataset = ForeignKeyField(Dataset, column_name="dataset", backref='sample_sets')
+    collection = ForeignKeyField(Collection, column_name="collection", backref='sample_sets')
     sample_size = IntegerField()
-    phenotype   = CharField(null=True)
+    phenotype = CharField(null=True)
 
 
 class DatasetVersion(BaseModel):
@@ -203,20 +205,24 @@ class DatasetVersion(BaseModel):
         table_name = 'dataset_versions'
         schema = 'data'
 
-    dataset           = ForeignKeyField(Dataset, column_name="dataset", backref='versions')
-    reference_set     = ForeignKeyField(ReferenceSet, column_name="reference_set", backref='dataset_versions')
-    version           = CharField(column_name="dataset_version")
-    description       = TextField(column_name="dataset_description")
-    terms             = TextField()
-    available_from    = DateTimeField()
-    ref_doi           = CharField(null=True)
+    dataset = ForeignKeyField(Dataset, column_name="dataset", backref='versions')
+    reference_set = ForeignKeyField(ReferenceSet,
+                                    column_name="reference_set",
+                                    backref='dataset_versions')
+    version = CharField(column_name="dataset_version")
+    description = TextField(column_name="dataset_description")
+    terms = TextField()
+    available_from = DateTimeField()
+    ref_doi = CharField(null=True)
     data_contact_name = CharField(null=True)
     data_contact_link = CharField(null=True)
-    num_variants      = IntegerField(null=True)
-    coverage_levels   = ArrayField(IntegerField, null=True)
+    num_variants = IntegerField(null=True)
+    coverage_levels = ArrayField(IntegerField, null=True)
     portal_avail = BooleanField(null=True)
-    file_access = EnumField(null=False, choices=['PRIVATE', 'CONTROLLED', 'REGISTERED', 'PUBLIC'])
-    beacon_access = EnumField(null=False, choices=['PRIVATE', 'CONTROLLED', 'REGISTERED', 'PUBLIC'])
+    file_access = EnumField(null=False, choices=['PRIVATE', 'CONTROLLED',
+                                                 'REGISTERED', 'PUBLIC'])
+    beacon_access = EnumField(null=False, choices=['PRIVATE', 'CONTROLLED',
+                                                   'REGISTERED', 'PUBLIC'])
 
 
 class DatasetFile(BaseModel):
@@ -224,10 +230,12 @@ class DatasetFile(BaseModel):
         table_name = 'dataset_files'
         schema = 'data'
 
-    dataset_version = ForeignKeyField(DatasetVersion, column_name="dataset_version", backref='files')
-    name            = CharField(column_name="basename")
-    uri             = CharField()
-    file_size       = IntegerField()
+    dataset_version = ForeignKeyField(DatasetVersion,
+                                      column_name="dataset_version",
+                                      backref='files')
+    name = CharField(column_name="basename")
+    uri = CharField()
+    file_size = IntegerField()
 
 
 class DatasetLogo(BaseModel):
@@ -235,9 +243,9 @@ class DatasetLogo(BaseModel):
         table_name = 'dataset_logos'
         schema = 'data'
 
-    dataset      = ForeignKeyField(Dataset, column_name="dataset", backref='logo')
-    mimetype     = CharField()
-    data         = BlobField(column_name="bytes")
+    dataset = ForeignKeyField(Dataset, column_name="dataset", backref='logo')
+    mimetype = CharField()
+    data = BlobField(column_name="bytes")
 
 
 ###
@@ -249,7 +257,9 @@ class Variant(BaseModel):
         table_name = "variants"
         schema = 'data'
 
-    dataset_version = ForeignKeyField(DatasetVersion, column_name="dataset_version", backref="variants")
+    dataset_version = ForeignKeyField(DatasetVersion,
+                                      column_name="dataset_version",
+                                      backref="variants")
     rsid = IntegerField()
     chrom = CharField(max_length=10)
     pos = IntegerField()
@@ -269,10 +279,12 @@ class Variant(BaseModel):
 
 class VariantMate(BaseModel):
     class Meta:
-        table_name = "mate"
+        table_name = "mates"
         schema = 'data'
 
-    dataset_version = ForeignKeyField(DatasetVersion, column_name="dataset_version", backref="mate")
+    dataset_version = ForeignKeyField(DatasetVersion,
+                                      column_name="dataset_version",
+                                      backref="mates")
     chrom = CharField(max_length=10)
     pos = IntegerField()
     ref = CharField()
@@ -344,23 +356,23 @@ class User(BaseModel):
         table_name = "users"
         schema = 'users'
 
-    name          = CharField(column_name="username", null=True)
-    email         = CharField(unique=True)
-    identity      = CharField(unique=True)
+    name = CharField(column_name="username", null=True)
+    email = CharField(unique=True)
+    identity = CharField(unique=True)
     identity_type = EnumField(null=False, choices=['google', 'elixir'], default='elixir')
-    affiliation   = CharField(null=True)
-    country       = CharField(null=True)
+    affiliation = CharField(null=True)
+    country = CharField(null=True)
 
     def is_admin(self, dataset):
-        return DatasetAccess.select().where(
-                DatasetAccess.dataset == dataset,
-                DatasetAccess.user == self,
-                DatasetAccess.is_admin
-            ).count()
+        return (DatasetAccess.select()
+                .where(DatasetAccess.dataset == dataset,
+                       DatasetAccess.user == self,
+                       DatasetAccess.is_admin)
+                .count())
 
     def has_access(self, dataset, ds_version=None):
         """
-        Check whether user has permission to access a dataset
+        Check whether user has permission to access a dataset.
 
         Args:
             dataset (Database): peewee Database object
@@ -375,7 +387,7 @@ class User(BaseModel):
             return False
         if dsv.file_access in ('REGISTERED', 'PUBLIC'):
             return True
-        elif dsv.file_access == 'PRIVATE':
+        if dsv.file_access == 'PRIVATE':
             return False
 
         return (DatasetAccessCurrent.select()
@@ -384,10 +396,10 @@ class User(BaseModel):
                 .count()) > 0
 
     def has_requested_access(self, dataset):
-        return DatasetAccessPending.select().where(
-                DatasetAccessPending.dataset == dataset,
-                DatasetAccessPending.user == self
-            ).count()
+        return (DatasetAccessPending.select()
+                .where(DatasetAccessPending.dataset == dataset,
+                       DatasetAccessPending.user == self)
+                .count())
 
 
 class SFTPUser(BaseModel):
@@ -395,9 +407,9 @@ class SFTPUser(BaseModel):
         table_name = "sftp_users"
         schema = 'users'
 
-    user          = ForeignKeyField(User, backref='sftp_user')
-    user_uid      = IntegerField(unique=True)
-    user_name     = CharField(null=False)
+    user = ForeignKeyField(User, backref='sftp_user')
+    user_uid = IntegerField(unique=True)
+    user_name = CharField(null=False)
     password_hash = CharField(null=False)
     account_expires = DateTimeField(null=False)
 
@@ -407,10 +419,11 @@ class UserAccessLog(BaseModel):
         table_name = "user_access_log"
         schema = 'users'
 
-    user            = ForeignKeyField(User, backref='access_logs')
-    dataset         = ForeignKeyField(Dataset, column_name='dataset', backref='access_logs')
-    action          = EnumField(null=True, choices=['access_granted','access_revoked','access_requested','private_link'])
-    ts              = DateTimeField()
+    user = ForeignKeyField(User, backref='access_logs')
+    dataset = ForeignKeyField(Dataset, column_name='dataset', backref='access_logs')
+    action = EnumField(null=True, choices=['access_granted', 'access_revoked',
+                                           'access_requested', 'private_link'])
+    ts = DateTimeField()
 
 
 class UserConsentLog(BaseModel):
@@ -418,9 +431,11 @@ class UserConsentLog(BaseModel):
         table_name = "user_consent_log"
         schema = 'users'
 
-    user             = ForeignKeyField(User, backref='consent_logs')
-    dataset_version  = ForeignKeyField(DatasetVersion, column_name='dataset_version', backref='consent_logs')
-    ts               = DateTimeField()
+    user = ForeignKeyField(User, backref='consent_logs')
+    dataset_version = ForeignKeyField(DatasetVersion,
+                                      column_name='dataset_version',
+                                      backref='consent_logs')
+    ts = DateTimeField()
 
 
 class UserDownloadLog(BaseModel):
@@ -428,9 +443,11 @@ class UserDownloadLog(BaseModel):
         table_name = "user_download_log"
         schema = 'users'
 
-    user              = ForeignKeyField(User, backref='download_logs')
-    dataset_file      = ForeignKeyField(DatasetFile, column_name='dataset_file', backref='download_logs')
-    ts                = DateTimeField()
+    user = ForeignKeyField(User, backref='download_logs')
+    dataset_file = ForeignKeyField(DatasetFile,
+                                   column_name='dataset_file',
+                                   backref='download_logs')
+    ts = DateTimeField()
 
 
 class DatasetAccess(BaseModel):
@@ -438,10 +455,10 @@ class DatasetAccess(BaseModel):
         table_name = "dataset_access"
         schema = 'users'
 
-    dataset          = ForeignKeyField(Dataset, column_name='dataset', backref='access')
-    user             = ForeignKeyField(User, backref='dataset_access')
+    dataset = ForeignKeyField(Dataset, column_name='dataset', backref='access')
+    user = ForeignKeyField(User, backref='dataset_access')
     wants_newsletter = BooleanField(null=True)
-    is_admin         = BooleanField(null=True)
+    is_admin = BooleanField(null=True)
 
 
 class Linkhash(BaseModel):
@@ -449,10 +466,12 @@ class Linkhash(BaseModel):
         table_name = "linkhash"
         schema = 'users'
 
-    dataset_version = ForeignKeyField(DatasetVersion, column_name='dataset_version', backref='link_hashes')
-    user            = ForeignKeyField(User, backref='link_hashes')
-    hash            = CharField()
-    expires_on      = DateTimeField()
+    dataset_version = ForeignKeyField(DatasetVersion,
+                                      column_name='dataset_version',
+                                      backref='link_hashes')
+    user = ForeignKeyField(User, backref='link_hashes')
+    hash = CharField()
+    expires_on = DateTimeField()
 
 
 class BeaconCounts(BaseModel):
@@ -460,8 +479,8 @@ class BeaconCounts(BaseModel):
         table_name = "beacon_dataset_counts_table"
         schema = 'beacon'
 
-    datasetid    = CharField(primary_key=True)
-    callcount    = IntegerField()
+    datasetid = CharField(primary_key=True)
+    callcount = IntegerField()
     variantcount = IntegerField()
 
 
@@ -474,8 +493,10 @@ class DatasetVersionCurrent(DatasetVersion):
         table_name = 'dataset_version_current'
         schema = 'data'
 
-    dataset           = ForeignKeyField(Dataset, column_name="dataset", backref='current_version')
-    reference_set     = ForeignKeyField(ReferenceSet, column_name="reference_set", backref='current_version')
+    dataset = ForeignKeyField(Dataset, column_name="dataset", backref='current_version')
+    reference_set = ForeignKeyField(ReferenceSet,
+                                    column_name="reference_set",
+                                    backref='current_version')
 
 
 class DatasetAccessCurrent(DatasetAccess):
@@ -483,9 +504,9 @@ class DatasetAccessCurrent(DatasetAccess):
         table_name = 'dataset_access_current'
         schema = 'users'
 
-    dataset          = ForeignKeyField(Dataset, column_name='dataset', backref='access_current')
-    user             = ForeignKeyField(User, backref='access_current')
-    has_access       = IntegerField()
+    dataset = ForeignKeyField(Dataset, column_name='dataset', backref='access_current')
+    user = ForeignKeyField(User, backref='access_current')
+    has_access = IntegerField()
     access_requested = DateTimeField()
 
 
@@ -494,22 +515,24 @@ class DatasetAccessPending(DatasetAccess):
         table_name = 'dataset_access_pending'
         schema = 'users'
 
-    dataset          = ForeignKeyField(Dataset, column_name='dataset', backref='access_pending')
-    user             = ForeignKeyField(User, backref='access_pending')
-    has_access       = IntegerField()
+    dataset = ForeignKeyField(Dataset, column_name='dataset', backref='access_pending')
+    user = ForeignKeyField(User, backref='access_pending')
+    has_access = IntegerField()
     access_requested = DateTimeField()
+
 
 #####
 # Help functions
 ##
 
-def get_next_free_uid():
+def get_next_free_uid() -> int:
     """
-    Get the next free uid >= 10000 and > than the current uids 
+    Get the next free uid >= 10000 and > than the current uids
     from the sftp_user table in the db.
 
     Returns:
         int: the next free uid
+
     """
     default = 10000
     next_uid = default
@@ -532,11 +555,12 @@ def get_admin_datasets(user):
 
     Returns:
         DataSetAccess:
+
     """
-    return DatasetAccess.select().where( DatasetAccess.user == user, DatasetAccess.is_admin)
+    return DatasetAccess.select().where(DatasetAccess.user == user, DatasetAccess.is_admin)
 
 
-def get_dataset(dataset:str):
+def get_dataset(dataset: str):
     """
     Given dataset name get Dataset
 
@@ -545,12 +569,13 @@ def get_dataset(dataset:str):
 
     Returns:
         Dataset: the corresponding DatasetVersion entry
+
     """
-    dataset = Dataset.select().where( Dataset.short_name == dataset).get()
+    dataset = Dataset.select().where(Dataset.short_name == dataset).get()
     return dataset
 
 
-def get_dataset_version(dataset:str, version:str=None):
+def get_dataset_version(dataset: str, version: str = None):
     """
     Given dataset get DatasetVersion
 
@@ -559,6 +584,7 @@ def get_dataset_version(dataset:str, version:str=None):
 
     Returns:
         DatasetVersion: the corresponding DatasetVersion entry
+
     """
     if version:
         try:
@@ -568,9 +594,9 @@ def get_dataset_version(dataset:str, version:str=None):
                                .where(DatasetVersion.version == version,
                                       Dataset.short_name == dataset)).get()
         except DatasetVersion.DoesNotExist:
-            logging.error("get_dataset_version({}, {}): ".format(dataset, version) +
-                          "cannot retrieve dataset version")
-            return
+            logging.error(f"get_dataset_version(%s, %s): " +
+                          "cannot retrieve dataset version", dataset, version)
+            return None
     else:
         try:
             dataset_version = (DatasetVersionCurrent
@@ -578,17 +604,18 @@ def get_dataset_version(dataset:str, version:str=None):
                                .join(Dataset)
                                .where(Dataset.short_name == dataset)).get()
         except DatasetVersionCurrent.DoesNotExist:
-            logging.error("get_dataset_version({}, version=None): ".format(dataset) +
+            logging.error(f"get_dataset_version({dataset}, version=None): " +
                           "cannot retrieve dataset version")
-            return
+            return None
     return dataset_version
 
 
-def build_dict_from_row(row):
-    d = {}
+def build_dict_from_row(row) -> dict:
+    """Build a dictionary from a row object"""
+    outdict = {}
 
     for field, value in row.__dict__['__data__'].items():
         if field == "id":
             continue
-        d[field] = value
-    return d
+        outdict[field] = value
+    return outdict

@@ -43,8 +43,8 @@ class RequestTests(TestCase):
         r = m(path, *args, **kwargs)
         self.assertEqual(r.status_code, code)
 
-    def login_user(self,user):
-        self.assertHTTPCode('/developer/login?user={}&email={}'.format(user,user), 200)
+    def login_user(self, user):
+        self.assertHTTPCode(f'/developer/login?user={user}&email={user}', 200)
 
 
 class TestEndpoints(RequestTests):
@@ -89,7 +89,7 @@ class TestEndpoints(RequestTests):
 
 
 class TestRequestAccess(RequestTests):
-    USER='e1'
+    USER = 'e1'
 
     def setUp(self):
         self.newSession()
@@ -99,7 +99,7 @@ class TestRequestAccess(RequestTests):
     def tearDown(self):
         self.destroySession()
         try:
-            u = db.User.select(db.User).where(db.User.email==self.USER).get()
+            u = db.User.select(db.User).where(db.User.email == self.USER).get()
             try:
                 u.dataset_access.get().delete_instance()
             except peewee.PeeweeException:
@@ -119,11 +119,10 @@ class TestRequestAccess(RequestTests):
         if not db.database.is_closed():
             db.database.close()
 
-
     def test_login(self):
         self.login_user(self.USER)
 
-        count = db.User.select().where(db.User.email==self.USER).count()
+        count = db.User.select().where(db.User.email == self.USER).count()
         self.assertEqual(count, 0)
 
         self.assertIn('email', self.cookies)
@@ -136,12 +135,9 @@ class TestRequestAccess(RequestTests):
     def test_request_access_without_xsrf(self):
         self.login_user(self.USER)
         r = self.post('/api/dataset/Dataset 1/users/{}/request'.format(self.USER),
-                data = {
-                        "affiliation": 'none',
-                        "country": "Sweden",
-                        "newsletter": 0,
-                    }
-                )
+                      data={"affiliation": 'none',
+                            "country": "Sweden",
+                            "newsletter": 0})
         self.assertEqual(r.status_code, 403)
 
     def test_get_xsrf_token(self):
@@ -151,13 +147,10 @@ class TestRequestAccess(RequestTests):
     def test_request_access_with_wrong_xsrf_1(self):
         self.login_user(self.USER)
         r = self.post('/api/dataset/Dataset 1/users/{}/request'.format(self.USER),
-                data = {
-                        "affiliation": 'none',
-                        "country": "Sweden",
-                        "newsletter": 0,
-                        "_xsrf": 'Fnurken',
-                    }
-                )
+                      data={"affiliation": 'none',
+                            "country": "Sweden",
+                            "newsletter": 0,
+                            "_xsrf": 'Fnurken'})
         self.assertEqual(r.status_code, 403)
 
     def test_request_access_with_wrong_xsrf_2(self):
@@ -168,32 +161,26 @@ class TestRequestAccess(RequestTests):
         self.assertIn('email', self.cookies)
 
         r = self.post('/api/dataset/Dataset 1/users/{}/request'.format(self.USER),
-                data = {
-                        "affiliation": 'none',
-                        "country": "Sweden",
-                        "newsletter": 0,
-                        "_xsrf": 'Fnurken',
-                    }
-                )
+                      data={"affiliation": 'none',
+                            "country": "Sweden",
+                            "newsletter": 0,
+                            "_xsrf": 'Fnurken'})
         self.assertEqual(r.status_code, 403)
 
     def test_request_access_correctly(self):
         self.login_user(self.USER)
 
-        count = db.User.select().where(db.User.email==self.USER).count()
+        count = db.User.select().where(db.User.email == self.USER).count()
         self.assertEqual(count, 0)
 
         r = self.post('/api/dataset/Dataset 1/users/{}/request'.format(self.USER),
-                data = {
-                        "affiliation": 'none',
-                        "country": "Sweden",
-                        "newsletter": 0,
-                        "_xsrf": self.cookies['_xsrf'],
-                    }
-                )
+                      data={"affiliation": 'none',
+                            "country": "Sweden",
+                            "newsletter": 0,
+                            "_xsrf": self.cookies['_xsrf']})
         self.assertEqual(r.status_code, 200)
 
-        count = db.User.select().where(db.User.email==self.USER).count()
+        count = db.User.select().where(db.User.email == self.USER).count()
         self.assertEqual(count, 1)
 
         r = self.get('/api/users/datasets')
@@ -289,12 +276,10 @@ class TestUserManagement(RequestTests):
 
         if hasattr(self, '_email'):
             al = (db.UserAccessLog.select()
-                    .join(db.User)
-                    .where(
-                        (   (db.UserAccessLog.action == 'access_granted')
+                  .join(db.User)
+                  .where(((db.UserAccessLog.action == 'access_granted')
                           | (db.UserAccessLog.action == 'access_revoked'))
-                        & (db.User.email == self._email)
-                ))
+                         & (db.User.email == self._email)))
             for a in al:
                 a.delete_instance()
 
@@ -308,16 +293,15 @@ class TestUserManagement(RequestTests):
         self.assertHTTPCode('/api/dataset/Dataset%201/users/{}/approve'.format(email), 405)
         self.assertHTTPCode('/api/dataset/Dataset%201/users/{}/approve'.format(email), 403, 'POST')
         self.assertHTTPCode('/api/dataset/Dataset%201/users/{}/approve'.format(email), 403, 'POST',
-                data = {'_xsrf': "The wrong thing"} )
+                            data={'_xsrf': "The wrong thing"})
 
         self.assertHTTPCode('/api/dataset/Dataset%201/users/{}/approve'.format(email), 200, 'POST',
-                data = {'_xsrf': self.cookies['_xsrf']} )
-
+                            data={'_xsrf': self.cookies['_xsrf']})
 
         r = self.get('/api/dataset/Dataset%201/users_current')
-        l = [u for u in r.json()['data'] if u['email'] == email]
+        data_list = [val for val in r.json()['data'] if val['email'] == email]
 
-        self.assertEqual(len(l), 1)
+        self.assertEqual(len(data_list), 1)
 
     def test_recently_approved_user_can_list_files(self):
         self.login_user('admin1')
@@ -331,8 +315,8 @@ class TestUserManagement(RequestTests):
 
         self.newSession()
         self.login_user('admin1')
-        self.assertHTTPCode('/api/dataset/Dataset%201/users/{}/approve'.format(u['email']), 200, 'POST',
-                data = {'_xsrf': self.cookies['_xsrf']} )
+        self.assertHTTPCode(f'/api/dataset/Dataset%201/users/{u["email"]}/approve', 200, 'POST',
+                            data={'_xsrf': self.cookies['_xsrf']})
 
         self.newSession()
         self.login_user(u['email'])
@@ -361,8 +345,8 @@ class TestUserManagement(RequestTests):
 
         self.newSession()
         self.login_user('admin1')
-        self.assertHTTPCode('/api/dataset/Dataset%201/users/{}/revoke'.format(u['email']), 200, 'POST',
-                data = {'_xsrf': self.cookies['_xsrf']} )
+        self.assertHTTPCode(f'/api/dataset/Dataset%201/users/{u["email"]}/revoke', 200, 'POST',
+                            data={'_xsrf': self.cookies['_xsrf']})
 
         self.newSession()
         self.login_user(u['email'])
@@ -372,35 +356,32 @@ class TestUserManagement(RequestTests):
         email = 'unlisted'
         self._email = email
 
-        ## Request access
+        # Request access
         self.assertHTTPCode('/api/dataset/Dataset%201/files', 403)
         self.login_user(email)
         self.assertHTTPCode('/api/dataset/Dataset%201/files', 403)
-        self.assertHTTPCode('/api/dataset/Dataset 1/users/{}/request'.format(email), 200, 'POST',
-                data = {
-                        "affiliation": 'none',
-                        "country": "Sweden",
-                        "newsletter": 0,
-                        "_xsrf": self.cookies['_xsrf'],
-                    }
-                )
+        self.assertHTTPCode(f'/api/dataset/Dataset 1/users/{email}/request', 200, 'POST',
+                            data={"affiliation": 'none',
+                                  "country": "Sweden",
+                                  "newsletter": 0,
+                                  "_xsrf": self.cookies['_xsrf']})
         self.assertHTTPCode('/api/dataset/Dataset%201/files', 403)
 
-        ## Approve user
+        # Approve user
         self.newSession()
         self.login_user('admin1')
 
         # User is in pending queue
         users = self.get('/api/dataset/Dataset%201/users_pending').json()['data']
-        u = [ x for x in users if x['email'] == email ]
+        u = [x for x in users if x['email'] == email]
         self.assertEqual(len(u), 1)
 
-        self.assertHTTPCode('/api/dataset/Dataset%201/users/{}/approve'.format(email), 200, 'POST',
-                data = {'_xsrf': self.cookies['_xsrf']} )
+        self.assertHTTPCode(f'/api/dataset/Dataset%201/users/{email}/approve', 200, 'POST',
+                            data={'_xsrf': self.cookies['_xsrf']})
 
         # User is in approved queue
         users = self.get('/api/dataset/Dataset%201/users_current').json()['data']
-        u = [ x for x in users if x['email'] == email ]
+        u = [x for x in users if x['email'] == email]
         self.assertEqual(len(u), 1)
 
         # User can log in and do stuff
@@ -412,11 +393,11 @@ class TestUserManagement(RequestTests):
         self.newSession()
         self.login_user('admin1')
         self.assertHTTPCode('/api/dataset/Dataset%201/users/{}/revoke'.format(email), 200, 'POST',
-                data = {'_xsrf': self.cookies['_xsrf']} )
+                            data={'_xsrf': self.cookies['_xsrf']})
 
         # User is not in approved queue
         users = self.get('/api/dataset/Dataset%201/users_current').json()['data']
-        u = [ x for x in users if x['email'] == email ]
+        u = [x for x in users if x['email'] == email]
         self.assertEqual(len(u), 0)
 
         # User can log in but cant do stuff
@@ -450,11 +431,11 @@ class TestLoggedInUser(RequestTests):
 
     def testLoggedInTempLinkPostXSRF1(self):
         self.assertHTTPCode('/api/dataset/Dataset 1/temporary_link', 403, 'POST',
-                data = { '_xsrf': "INCORRECT"})
+                            data={'_xsrf': "INCORRECT"})
 
     def testLoggedInTempLinkPostXSRF2(self):
         self.assertHTTPCode('/api/dataset/Dataset 1/temporary_link', 200, 'POST',
-                data = {'_xsrf': self.cookies['_xsrf']} )
+                            data={'_xsrf': self.cookies['_xsrf']})
 
 
 if __name__ == '__main__':

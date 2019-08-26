@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Read data from a vcf file and add the variants to a database."""
+
 import re
 import sys
 import time
@@ -22,7 +24,10 @@ METRICS = [
 
 
 class RawDataImporter(DataImporter):
+    """Read data from a vcf file and add the variants to a database."""
+
     def __init__(self, settings):
+        """Set the provided settings and prepare the main variables."""
         super().__init__(settings)
         self.dataset_version = None
         self.dataset = None
@@ -36,7 +41,7 @@ class RawDataImporter(DataImporter):
         self.chrom = None
 
     def _set_dataset_info(self):
-        """ Save dataset information given as parameters """
+        """Save dataset information given as parameters."""
         if self.settings.beacon_description:
             self.dataset.description = self.settings.beacon_description
             self.dataset.save()
@@ -51,31 +56,32 @@ class RawDataImporter(DataImporter):
             self.dataset.save()
 
     def _select_dataset_version(self):
-        datasets = []
-
+        """Select the dataset version to use."""
         # Make sure that the dataset exists
         try:
-            ds = db.Dataset.get(short_name=self.settings.dataset)
+            chosen_ds = db.Dataset.get(short_name=self.settings.dataset)
         except db.Dataset.DoesNotExist:
-            logging.error("Unknown dataset '%s'", self.settings.dataset)
+            logging.error(f"Unknown dataset {self.settings.dataset}")
             logging.info("Available datasets are:")
             for dataset in db.Dataset.select():
-                logging.info(" * %s", dataset.short_name)
+                logging.info(f" * {dataset.short_name}")
             sys.exit(1)
-        logging.info("Using dataset {}".format(ds.short_name))
-        self.dataset = ds
+        logging.info(f"Using dataset {chosen_ds.short_name}")
+        self.dataset = chosen_ds
 
-        versions = [v for v in db.DatasetVersion.select().where(db.DatasetVersion.dataset == ds)]
+        versions = [v for v in (db.DatasetVersion.select().
+                                where(db.DatasetVersion.dataset == chosen_ds))]
 
         # Make sure that the dataset version exists
         if not versions:
             raise db.DatasetVersion.DoesNotExist("No versions exist for this dataset")
 
         if self.settings.version not in [v.version for v in versions]:
-            logging.error("Unknown version '%s' for dataset '%s'.", self.settings.version, self.dataset.short_name)
+            logging.error(f"Unknown version '{self.settings.version}' " +
+                          f"for dataset '{self.dataset.short_name}'.")
             logging.info("Available versions are:")
             for version in versions:
-                logging.info(" * %s", version.version)
+                logging.info(f" * {version.version}")
             sys.exit(1)
         self.dataset_version = [v for v in versions if v.version == self.settings.version][0]
 
@@ -92,6 +98,8 @@ class RawDataImporter(DataImporter):
 
     def _create_beacon_counts(self):
         """
+        Prepare counts for the beacon.
+
         Add the number of unique references at each position (callcount),
         the number of unique ref-alt pairs at each position (variantount)
         and the datasetid (eg GRCh37:swegen:2019-01-01)
@@ -108,12 +116,15 @@ class RawDataImporter(DataImporter):
         datarow = {'datasetid': datasetid,
                    'callcount': self.counter['calls'],
                    'variantcount': self.counter['beaconvariants']}
-        logging.info('Dataset counts: callcount: %s, variantcount: %s', datarow['callcount'], datarow['variantcount'])
+        logging.info(f"Dataset counts: callcount: {datarow['callcount']}, " +
+                     f"variantcount: {datarow['variantcount']}")
         if not self.settings.dry_run:
             db.BeaconCounts.insert(datarow).execute()
 
     def _insert_coverage(self):
         """
+        Import coverage.
+
         Header columns are chromosome, position, mean coverage, median coverage,
         and then coverage under 1, 5 10, 15, 20, 25, 30, 50, 100.
         """
@@ -133,11 +144,7 @@ class RawDataImporter(DataImporter):
                     if line.startswith("#"):
                         continue
 
-                    data = {}
-                    for i, item in enumerate(line.strip().split("\t")):
-                        if i == 0:
-                            data['dataset_version'] = self.dataset_version
-                        data[header[i][0]] = header[i][1](item)
+                    data = self._parse_baseinfo(header, line)
 
                     # re-format coverage for batch
                     data['coverage'] = [data['cov1'], data['cov5'], data['cov10'],
@@ -163,130 +170,236 @@ class RawDataImporter(DataImporter):
                         batch = []
                         # Update progress
                         if self.counter['coverage'] is not None:
-                            last_progress = self._update_progress_bar(counter, self.counter['coverage'], last_progress)
+                            last_progress = self._update_progress_bar(counter,
+                                                                      self.counter['coverage'],
+                                                                      last_progress)
             if batch and not self.settings.dry_run:
                 db.Coverage.insert_many(batch).execute()
         if self.counter['coverage'] is not None:
-            last_progress = self._update_progress_bar(counter, self.counter['coverage'], last_progress, finished=True)
-        self.log_insertion(counter, "coverage", start)
+            last_progress = self._update_progress_bar(counter,
+                                                      self.counter['coverage'],
+                                                      last_progress,
+                                                      finished=True)
+        self._log_insertion(counter, "coverage", start)
 
     def _parse_manta(self):
+        """Parse a manta file."""
+        # Skip column 5 and 6 (QUAL and FILTER), will not be used
         header = [("chrom", str), ("pos", int), ("chrom_id", str), ("ref", str), ("alt", str)]
 
         batch = []
-        samples = 0
         counter = 0
+        last_progress = 0
         start = time.time()
         for filename in self.settings.variant_file:
             for line in self._open(filename):
                 line = line.strip()
                 if line.startswith("#"):
-                    if line.startswith('#CHROM'):
-                        samples = len(line.split('\t')[9:])
                     continue
 
-                base = {}
-                for i, item in enumerate(line.split("\t")):
-                    if i == 0:
-                        base['dataset_version'] = self.dataset_version
-                    if i < 5:
-                        base[header[i][0]] = header[i][1](item)
-                    elif i == 7:
-                        # only parse column 7 (maybe also for non-beacon-import?)
-                        info = dict([(x.split('=', 1)) if '=' in x else (x, x) for x in re.split(';(?=\w)', item)])
+                base = self._parse_baseinfo(header, line)
+                info = self._parse_info(line)
 
                 if info.get('SVTYPE') != 'BND':
                     continue
 
-                if base["chrom"].startswith('GL') or base["chrom"].startswith('MT'):
-                    # A BND from GL or MT. GL is an unplaced scaffold, MT is mitochondria.
+                if self._is_non_chromosome(base["chrom"]):
+                    # A BND *from* a non-chromosome.
                     continue
 
-                if 'NSAMPLES' in info:
-                    # save this unless we already know the sample size
-                    samples = int(info['NSAMPLES'])
+                batch += self._parse_bnd_alleles(base, info)
 
-                alt_alleles = base['alt'].split(",")
-                for i, alt in enumerate(alt_alleles):
-                    data = dict(base)
-                    data['allele_freq'] = float(info.get('FRQ'))
-                    data['alt'], data['mate_chrom'], data['mate_start'] = re.search('(.+)[[\]](.*?):(\d+)[[\]]', alt).groups()
-                    if data['mate_chrom'].startswith('GL') or data['mate_chrom'].startswith('MT'):
-                        # A BND from a chromosome to GL or MT.
-                        # TODO ask a bioinformatician if these cases should be included or not
-                        continue
-                    data['mate_id'] = info.get('MATEID', '')
-                    data['variant_id'] = '{}-{}-{}-{}'.format(data['chrom'], data['pos'], data['ref'], alt)
-                    data['allele_count'] = data.get('allele_count', 0)
-                    data['allele_num'] = data.get('allele_num', 0)
-                    batch += [data]
-                    if self.settings.add_reversed_mates:
-                        # If the vcf only contains one line per breakend, add the reversed version to the database here.
-                        reversed = dict(data)
-                        # Note: in general, ref and alt cannot be assumed to be the same in the reversed direction,
-                        # but our data (so far) only contains N, so we just keep them as is for now.
-                        reversed.update({'mate_chrom': data['chrom'], 'chrom': data['mate_chrom'],
-                                         'mate_start': data['pos'], 'pos': data['mate_start'],
-                                         'chrom_id': data['mate_id'], 'mate_id': data['chrom_id']})
-                        reversed['variant_id'] = '{}-{}-{}-{}'.format(reversed['chrom'], reversed['pos'], reversed['ref'], alt)
-                        counter += 1  # increase the counter; reversed BNDs are usually kept at their own vcf row
-                        batch += [reversed]
-
-                counter += 1  # count variants (one per vcf row)
+                # count variants (one per vcf row)
+                counter += 1
 
                 if len(batch) >= self.settings.batch_size:
                     if not self.settings.dry_run:
                         db.VariantMate.insert_many(batch).execute()
-
                     batch = []
-                    # Update progress
-                    if not self.counter['variants']:
-                        last_progress = self._update_progress_bar(counter, self.counter['variants'], last_progress)
 
+                    # Update progress
+                    if self.counter['variants']:
+                        last_progress = self._update_progress_bar(counter,
+                                                                  self.counter['variants'],
+                                                                  last_progress)
+
+        # Store all variants and counter values
         if batch and not self.settings.dry_run:
             db.VariantMate.insert_many(batch).execute()
 
-        if self.settings.set_vcf_sampleset_size and samples:
-            self.sampleset.sample_size = samples
-            self.sampleset.save()
+        if self.counter['variants']:
+            last_progress = self._update_progress_bar(counter,
+                                                      self.counter['variants'],
+                                                      last_progress,
+                                                      finished=True)
+        self._log_insertion(counter, "breakend", start)
 
-        self.dataset_version.num_variants = counter
-        self.dataset_version.save()
-        if not self.counter['variants']:
-            last_progress = self._update_progress_bar(counter, self.counter['variants'], last_progress, finished=True)
-        self.log_insertion(counter, "breakend", start)
+    def _estimate_variant_lastid(self):  # pylint: disable=no-self-use
+        """
+        Return the id of the variant with the highest id.
+
+        Returns 0 if table is empty.
+
+        Returns:
+            int: id of the variant with highest id or 0
+
+        """
+        try:
+            return (db.Variant.select(db.Variant.id)
+                    .order_by(db.Variant.id.desc())
+                    .limit(1)
+                    .get().id)
+        except db.Variant.DoesNotExist:
+            return 0
+
+    def _add_variants_to_db(self, batch: list, genes: list, transcripts: list, references: dict):
+        """
+        Add variants to db.
+
+        Args:
+            batch (list): variant data (dict)
+            genes (list): genes for the variants
+            transcripts(list): transcripts for the variants
+            references (dict): reference genes and transcripts
+        """
+        if not self.settings.beacon_only:
+            curr_id = self._estimate_variant_lastid()
+
+        db.Variant.insert_many(batch).execute()
+
+        # check if the variant dbid estimate is correct, otherwise must check manually
+        if not self.settings.beacon_only:
+            last_id = self._estimate_variant_lastid()
+            if last_id and last_id-curr_id == len(batch):
+                indexes = list(range(curr_id+1, last_id+1))
+            else:
+                logging.warning("Bad match between ids - slow check")
+                indexes = []
+                for entry in batch:
+                    indexes.append(db.Variant.select(db.Variant.id)
+                                   .where(db.Variant.variant_id == entry['variant_id'])
+                                   .get().id)
+            self._add_variant_genes(indexes, genes, references['genes'])
+            self._add_variant_transcripts(indexes, transcripts, references['transcripts'])
+
+    def _get_genes_transcripts(self):
+        """
+        Retrieve the genes and transcripts for the current dataset version in the form
+        `{entity: dbid}`.
+
+        Returns:
+            tuple: (genes, transcripts)
+
+        """
+        ref_set = self.dataset_version.reference_set
+        genes = {gene.gene_id: gene.id
+                 for gene in (db.Gene.select(db.Gene.id, db.Gene.gene_id)
+                              .where(db.Gene.reference_set == ref_set))}
+        transcripts = {tran.transcript_id: tran.id
+                       for tran in (db.Transcript.select(db.Transcript.id,
+                                                         db.Transcript.transcript_id)
+                                    .join(db.Gene)
+                                    .where(db.Gene.reference_set == ref_set))}
+        return genes, transcripts
+
+    def _parse_variant_row(self, line: str, batch_cont: dict, headers: list, vep_field_names: list):  # pylint: disable=too-many-locals
+        """
+        Parse a VCF row for a position (potentially multiple variants).
+
+        Data is added in-place.
+
+        Args:
+            line (str): the raw text row
+            batch_cont (dict): should contain batch, genes, transcripts
+            headers (list): (header, type)
+            vep_field_names (list): VEP field names
+
+        """
+        base = self._parse_baseinfo(headers, line)
+        info = self._parse_info(line)
+
+        if self._is_non_chromosome(base["chrom"]):
+            return
+
+        consequence_array = info['CSQ'].split(',') if 'CSQ' in info else []
+
+        alt_alleles = base['alt'].split(",")
+        rsids = [int(rsid.strip('rs'))
+                 for rsid in base['rsid'].split(';')
+                 if rsid.startswith('rs')]
+        if not rsids:
+            rsids = [None]
+
+        try:
+            hom_counts = [int(info['AC_Hom'])]
+        except KeyError:
+            hom_counts = []  # null is better than 0, as 0 has a meaning
+        except ValueError:
+            # multiple variants on same row
+            hom_counts = [int(count) for count in info['AC_Hom'].split(',')]
+
+        base['orig_alt_alleles'] = [f'{base["chrom"]}-{base["pos"]}-{base["ref"]}-{x}'
+                                    for x in alt_alleles]
+
+        for i, alt in enumerate(alt_alleles):
+            data = dict(base)
+            data['alt'] = alt
+
+            data['rsid'] = rsids[i] if i < len(rsids) else rsids[-1]
+
+            data['allele_num'] = int((info['AN_Adj'] if 'AN_Adj' in info else info['AN']))
+            data['allele_freq'] = None
+
+            data['allele_count'] = int((info['AC_Adj'] if 'AC_Adj' in info
+                                        else info['AC']).split(',')[i])
+            if 'AF' in info and data['allele_num'] > 0:
+                data['allele_freq'] = data['allele_count']/data['allele_num']
+
+            if not self.settings.beacon_only:
+                annotations = [dict(zip(vep_field_names, x.split('|')))
+                               for x in consequence_array
+                               if len(vep_field_names) == len(x.split('|'))]
+                data['vep_annotations'] = [ann for ann in annotations
+                                           if int(ann['ALLELE_NUM']) == i + 1]
+                batch_cont['genes'].append(list({annotation['Gene']
+                                                 for annotation in data['vep_annotations']
+                                                 if annotation['Gene'][:4] == 'ENSG'}))
+                batch_cont['transcripts'].append(list({annotation['Feature']
+                                                       for annotation in data['vep_annotations']
+                                                       if annotation['Feature'][:4] == 'ENST'}))
+
+            data['hom_count'] = hom_counts[i] if hom_counts else None
+
+            data['variant_id'] = '{}-{}-{}-{}'.format(data['chrom'],
+                                                      data['pos'],
+                                                      data['ref'],
+                                                      data['alt'])
+            data['quality_metrics'] = {x: info[x] for x in METRICS if x in info}
+            batch_cont['batch'] += [data]
+            if self.settings.count_calls:
+                self._get_callcount(data)  # count calls (one per reference)
+                self.counter['beaconvariants'] += 1  # count variants (one/alternate)
 
     def _insert_variants(self):
-        """
-        Insert variants from a VCF file
-        """
-        logging.info("Inserting variants%s", " (dry run)" if self.settings.dry_run else "")
-        header = [("chrom", str), ("pos", int), ("rsid", str), ("ref", str),
-                  ("alt", str), ("site_quality", float), ("filter_string", str)]
+        """Import variants from a VCF file."""
+        logging.info(f"Inserting variants{' (dry run)' if self.settings.dry_run else ''}")
         start = time.time()
-        batch = []
-        genes = []
-        transcripts = []
+        headers = [("chrom", str), ("pos", int), ("rsid", str), ("ref", str),
+                   ("alt", str), ("site_quality", float), ("filter_string", str)]
+        batch_container = {'batch': [],
+                           'genes': [],
+                           'transcripts': []}
+
+        vep_field_names = None
 
         last_progress = -1.0
         counter = 0
         samples = 0
-        vep_field_names = None
-        dp_mids = None
-        gq_mids = None
+
+        references = dict(zip(('genes', 'transcripts'), self._get_genes_transcripts()))
+
         with db.database.atomic():
             for filename in self.settings.variant_file:
-                # Get reference set for the variant
-                ref_set = self.dataset_version.reference_set
-
-                # Get all genes and transcripts for foreign keys
-                ref_genes = {gene.gene_id: gene.id for gene in (db.Gene.select(db.Gene.id, db.Gene.gene_id)
-                                                                .where(db.Gene.reference_set == ref_set))}
-                ref_transcripts = {tran.transcript_id: tran.id for tran in (db.Transcript
-                                                                            .select(db.Transcript.id,
-                                                                                    db.Transcript.transcript_id)
-                                                                            .join(db.Gene)
-                                                                            .where(db.Gene.reference_set == ref_set))}
                 for line in self._open(filename, binary=False):
                     line = line.strip()
 
@@ -294,144 +407,39 @@ class RawDataImporter(DataImporter):
                         # Check for some information that we need
                         if line.startswith('##INFO=<ID=CSQ'):
                             vep_field_names = line.split('Format: ')[-1].strip('">').split('|')
-                        if line.startswith('##INFO=<ID=DP_HIST'):
-                            dp_mids = map(float, line.split('Mids: ')[-1].strip('">').split('|'))
-                        if line.startswith('##INFO=<ID=GQ_HIST'):
-                            gq_mids = map(float, line.split('Mids: ')[-1].strip('">').split('|'))
                         if line.startswith('#CHROM'):
                             samples = len(line.split('\t')[9:])
                         continue
 
-                    if not self.settings.beacon_only:
-                        if vep_field_names is None:
-                            logging.error("VEP_field_names is empty. Make sure VCF header is present.")
-                            sys.exit(1)
+                    if not self.settings.beacon_only and not vep_field_names:
+                        logging.error("VEP_field_names is empty. " +
+                                      "Make sure VCF header is present.")
+                        sys.exit(1)
 
-                    base = {}
-                    for i, item in enumerate(line.strip().split("\t")):
-                        if i == 0:
-                            base['dataset_version'] = self.dataset_version
-                        if i < 7:
-                            base[header[i][0]] = header[i][1](item)
-                        elif i == 7 or not self.settings.beacon_only:
-                            # only parse column 7 (maybe also for non-beacon-import?)
-                            info = dict([(x.split('=', 1)) if '=' in x else (x, x) for x in re.split(';(?=\w)', item)])
-
-                    if base["chrom"].startswith('GL') or base["chrom"].startswith('MT'):
-                        continue
-
-                    consequence_array = info['CSQ'].split(',') if 'CSQ' in info else []
-                    if not self.settings.beacon_only:
-                        annotations = [dict(zip(vep_field_names, x.split('|'))) for x in consequence_array if len(vep_field_names) == len(x.split('|'))]
-
-                    alt_alleles = base['alt'].split(",")
-                    rsids = [int(rsid.strip('rs')) for rsid in base['rsid'].split(';') if rsid.startswith('rs')]
-                    if not rsids:
-                        rsids = [None]
-
-                    try:
-                        hom_counts = [int(info['AC_Hom'])]
-                    except KeyError:
-                        hom_counts = None # null is better than 0, as 0 has a meaning
-                    except ValueError:
-                        hom_counts = [int(count) for count in info['AC_Hom'].split(',')]
-
-                    fmt_alleles = [f'{base["chrom"]}-{base["pos"]}-{base["ref"]}-{x}' for x in alt_alleles]
-
-                    for i, alt in enumerate(alt_alleles):
-                        if not self.settings.beacon_only:
-                            vep_annotations = [ann for ann in annotations if int(ann['ALLELE_NUM']) == i + 1]
-
-                        data = dict(base)
-                        data['pos'], data['ref'], data['alt'] = base['pos'], base['ref'], alt
-                        data['orig_alt_alleles'] = fmt_alleles
-
-                        if len(rsids) <= i:
-                            data['rsid'] = rsids[-1]  # same id as the last alternate
-                        else:
-                            data['rsid'] = rsids[i]
-
-                        an, ac = 'AN_Adj', 'AC_Adj'
-                        if 'AN_Adj' not in info:
-                            an = 'AN'
-                        if 'AC_Adj' not in info:
-                            ac = 'AC'
-
-                        data['allele_num'] = int(info[an])
-                        data['allele_freq'] = None
-                        if 'NS' in info and not samples:
-                            # save this unless we already know the sample size
-                            samples = int(info['NS'])
-
-                        data['allele_count'] = int(info[ac].split(',')[i])
-                        if 'AF' in info and data['allele_num'] > 0:
-                            data['allele_freq'] = data['allele_count']/float(info[an])
-
-                        if not self.settings.beacon_only:
-                            data['vep_annotations'] = vep_annotations
-
-                            genes.append(list(set({annotation['Gene'] for annotation in vep_annotations if annotation['Gene'][:4] == 'ENSG'})))
-                            transcripts.append(list(set({annotation['Feature'] for annotation in vep_annotations if annotation['Feature'][:4] == 'ENST'})))
-
-                        data['hom_count'] = hom_counts[i] if hom_counts else None
-
-                        data['variant_id'] = '{}-{}-{}-{}'.format(data['chrom'], data['pos'], data['ref'], data['alt'])
-                        data['quality_metrics'] = dict([(x, info[x]) for x in METRICS if x in info])
-                        batch += [data]
-                        if self.settings.count_calls:
-                            self.get_callcount(data)  # count calls (one per reference)
-                            self.counter['beaconvariants'] += 1  # count variants (one per alternate)
+                    self._parse_variant_row(line, batch_container, headers, vep_field_names)
                     counter += 1  # count variants (one per vcf row)
 
-                    if len(batch) >= self.settings.batch_size:
+                    if len(batch_container['batch']) >= self.settings.batch_size:
                         if not self.settings.dry_run:
-                            if not self.settings.beacon_only:
-                                try:
-                                    curr_id = db.Variant.select(db.Variant.id).order_by(db.Variant.id.desc()).limit(1).get().id
-                                except db.Variant.DoesNotExist:
-                                    # assumes next id will be 1 if table is empty
-                                    curr_id = 0
+                            self._add_variants_to_db(batch_container['batch'],
+                                                     batch_container['genes'],
+                                                     batch_container['transcripts'],
+                                                     references)
 
-                            db.Variant.insert_many(batch).execute()
-
-                            if not self.settings.beacon_only:
-                                last_id = db.Variant.select(db.Variant.id).order_by(db.Variant.id.desc()).limit(1).get().id
-                                if  last_id-curr_id == len(batch):
-                                    indexes = list(range(curr_id+1, last_id+1))
-                                else:
-                                    indexes = []
-                                    for entry in batch:
-                                        indexes.append(db.Variant.select(db.Variant.id).where(db.Variant.variant_id == entry['variant_id']).get().id)
-                                self.add_variant_genes(indexes, genes, ref_genes)
-                                self.add_variant_transcripts(indexes, transcripts, ref_transcripts)
-
-                        genes = []
-                        transcripts = []
-                        batch = []
+                        batch_container['genes'] = []
+                        batch_container['transcripts'] = []
+                        batch_container['batch'] = []
                         # Update progress
-                        if self.counter['variants'] != None:
-                            last_progress = self._update_progress_bar(counter, self.counter['variants'], last_progress)
+                        if self.counter['variants'] is not None:
+                            last_progress = self._update_progress_bar(counter,
+                                                                      self.counter['variants'],
+                                                                      last_progress)
 
-            if batch and not self.settings.dry_run:
-                if not self.settings.beacon_only:
-                    try:
-                        curr_id = db.Variant.select(db.Variant.id).order_by(db.Variant.id.desc()).limit(1).get().id
-                    except db.Variant.DoesNotExist:
-                        # assumes next id will be 1 if table is empty
-                        curr_id = 0
-
-                db.Variant.insert_many(batch).execute()
-
-                if not self.settings.beacon_only:
-                    last_id = db.Variant.select(db.Variant.id).order_by(db.Variant.id.desc()).limit(1).get().id
-                    if  last_id-curr_id == len(batch):
-                        indexes = list(range(curr_id+1, last_id+1))
-                    else:
-                        indexes = []
-                        for entry in batch:
-                            indexes.append(db.Variant.select(db.Variant.id).where(db.Variant.variant_id == entry['variant_id']).get().id)
-                    self.add_variant_genes(indexes, genes, ref_genes)
-                    self.add_variant_transcripts(indexes, transcripts, ref_transcripts)
+            if batch_container['batch'] and not self.settings.dry_run:
+                self._add_variants_to_db(batch_container['batch'],
+                                         batch_container['genes'],
+                                         batch_container['transcripts'],
+                                         references)
 
         if self.settings.set_vcf_sampleset_size and samples:
             self.sampleset.sample_size = samples
@@ -439,17 +447,21 @@ class RawDataImporter(DataImporter):
 
         self.dataset_version.num_variants = counter
         self.dataset_version.save()
-        if self.counter['variants'] != None:
-            last_progress = self._update_progress_bar(counter, self.counter['variants'], last_progress, finished=True)
+        if self.counter['variants'] is not None:
+            last_progress = self._update_progress_bar(counter,
+                                                      self.counter['variants'],
+                                                      last_progress,
+                                                      finished=True)
 
-        self.log_insertion(counter, "variant", start)
+        self._log_insertion(counter, "variant", start)
 
-    def get_callcount(self, data):
+    def _get_callcount(self, data):
         """Increment the call count by the calls found at this position."""
         if data['chrom'] == self.chrom and data['pos'] < self.lastpos:
             # If this position is smaller than the last, the file order might be invalid.
             # Give a warning, but keep on counting.
-            msg = "VCF file not ok, variants not given in incremental order. Callcount may not be valid!!!\n\n"
+            msg = ("VCF file not ok, variants not given in incremental order." +
+                   "Callcount may not be valid!\n\n")
             logging.warning(msg)
 
         if data['chrom'] != self.chrom or data['pos'] != self.lastpos:
@@ -465,6 +477,7 @@ class RawDataImporter(DataImporter):
         self.counter['tmp_calls'].add(data['ref'])
 
     def count_entries(self):
+        """Count the number of entries."""
         start = time.time()
         if self.settings.coverage_file:
             self.counter['coverage'] = 0
@@ -475,7 +488,7 @@ class RawDataImporter(DataImporter):
                     if line.startswith("#"):
                         continue
                     self.counter['coverage'] += 1
-            logging.info("Found {:,} coverage lines".format(self.counter['coverage']))
+            logging.info(f"Found {self.counter['coverage']:,} coverage lines")
 
         if self.settings.variant_file:
             self.counter['variants'] = 0
@@ -491,14 +504,16 @@ class RawDataImporter(DataImporter):
         logging.info("Counted input data lines in {} ".format(self._time_since(start)))
 
     def prepare_data(self):
+        """Prepare for inserting data into db."""
         self._select_dataset_version()
 
     def start_import(self):
+        """Start importing data."""
         self._set_dataset_info()
         if self.settings.add_mates:
             self._parse_manta()
             if self.settings.count_calls:
-                logging.warning('Do not know how to count calls in the manta file. Skipping this...')
+                logging.warning('Cannot count calls in the manta file. Skipping this...')
         elif self.settings.variant_file:
             self._insert_variants()
             if self.settings.count_calls:
@@ -506,23 +521,129 @@ class RawDataImporter(DataImporter):
         if not self.settings.beacon_only and self.settings.coverage_file:
             self._insert_coverage()
 
-    def add_variant_genes(self, variant_indexes:list, genes_to_add:list, ref_genes:dict):
+    def _add_variant_genes(self, variant_indexes: list,
+                           genes_to_add: list,
+                           ref_genes: dict):
+        """
+        Add genes associated with the provided variants.
+
+        Args:
+            variant_indexes (list): dbids of the variants
+            genes_to_add (list): the genes for each variant (str)
+            ref_genes (dict): genename: dbid
+        """
         batch = []
         for i in range(len(variant_indexes)):
-            connected_genes = [{'variant':variant_indexes[i], 'gene':ref_genes[gene]} for gene in genes_to_add[i] if gene]
+            connected_genes = [{'variant': variant_indexes[i], 'gene': ref_genes[gene]}
+                               for gene in genes_to_add[i]
+                               if gene]
             batch += connected_genes
         if not self.settings.dry_run:
             db.VariantGenes.insert_many(batch).execute()
 
-    def add_variant_transcripts(self, variant_indexes:list, transcripts_to_add:list, ref_transcripts:dict):
+    def _add_variant_transcripts(self, variant_indexes: list,
+                                 transcripts_to_add: list,
+                                 ref_transcripts: dict):
+        """
+        Add transcripts associated with the provided variants.
+
+        Args:
+            variant_indexes (list): dbids of the variants
+            transcripts_to_add (list): the transcripts for each variant (str)
+            ref_transcripts (dict): genename: dbid
+        """
         batch = []
         for i in range(len(variant_indexes)):
-            connected_transcripts = [{'variant':variant_indexes[i], 'transcript':ref_transcripts[transcript]}
+            connected_transcripts = [{'variant': variant_indexes[i],
+                                      'transcript': ref_transcripts[transcript]}
                                      for transcript in transcripts_to_add[i]]
             batch += connected_transcripts
         if not self.settings.dry_run:
             db.VariantTranscripts.insert_many(batch).execute()
 
-    def log_insertion(self, counter, type, start):
+    @staticmethod
+    def _is_non_chromosome(chrom):
+        """
+        Check if this is a GL or MT.
+
+        GL is an unplaced scaffold, MT is mitochondria.
+        """
+        return chrom.startswith('GL') or chrom.startswith('MT')
+
+    def _log_insertion(self, counter, insertion_type, start):
+        """Log the progress of the import."""
         action = "Inserted" if not self.settings.dry_run else "Dry-ran insertion of"
-        logging.info("{} {} {} records in {}".format(action, counter, type, self._time_since(start)))
+        logging.info("{} {} {} records in {}".format(action,
+                                                     counter,
+                                                     insertion_type,
+                                                     self._time_since(start)))
+
+    def _parse_baseinfo(self, header, line):
+        """
+        Parse the fixed columns of a vcf data line.
+
+        Args:
+              header (list): tuples of titles and converter functions for the colums of interest.
+                  Ex ["chrom", str), ("pos", int)].
+              line (str): a vcf line
+
+        Returns:
+            dict: the parsed info as specified by the header, plus the dataset_version.
+
+        """
+        base = {'dataset_version': self.dataset_version}
+        line_info = line.split("\t")
+        for i, (title, conv) in enumerate(header):
+            base[title] = conv(line_info[i])
+        return base
+
+    def _parse_bnd_alleles(self, base, info):
+        """Parse alleles of a structural variant (BND) in a manta file."""
+        batch = []
+        for alt in base['alt'].split(","):
+            data = dict(base)
+            data['allele_freq'] = float(info.get('FRQ'))
+            data['alt'], data['mate_chrom'], data['mate_start'] = \
+                    re.search(r'(.+)[[\]](.*?):(\d+)[[\]]', alt).groups()
+            if self._is_non_chromosome(data['mate_chrom']):
+                # A BND from a chromosome to a non-chromosome.
+                # TODO ask a bioinformatician if these cases should be included or not   # pylint: disable=fixme
+                continue
+            data['mate_id'] = info.get('MATEID', '')
+            data['variant_id'] = '{}-{}-{}-{}'.format(data['chrom'],
+                                                      data['pos'],
+                                                      data['ref'],
+                                                      alt)
+            # Note: these two fields are not present in our data, will always default to 0.
+            # Set to 0 rather than None, as the type should be int (according to the Beacon
+            # API specificition).
+            data['allele_count'] = info.get('AC', 0)
+            data['allele_num'] = info.get('AN', 0)
+
+            batch += [data]
+            if self.settings.add_reversed_mates:
+                # If the vcf only contains one line per breakend,
+                # add the reversed version to the database here.
+                reversed_mates = dict(data)
+                # Note: in general, ref and alt cannot be assumed to be the same in the
+                # reversed direction, but our data (so far) only contains N, so we just
+                # keep them as is for now.
+                reversed_mates.update({'mate_chrom': data['chrom'],
+                                       'chrom': data['mate_chrom'],
+                                       'mate_start': data['pos'],
+                                       'pos': data['mate_start'],
+                                       'chrom_id': data['mate_id'],
+                                       'mate_id': data['chrom_id']})
+                reversed_mates['variant_id'] = '{}-{}-{}-{}'.format(reversed_mates['chrom'],
+                                                                    reversed_mates['pos'],
+                                                                    reversed_mates['ref'],
+                                                                    alt)
+                batch += [reversed_mates]
+
+        return batch
+
+    @staticmethod
+    def _parse_info(line):
+        """Parse the INFO field of a vcf line."""
+        parts = re.split(r';(?=\w)', line.split('\t')[7])
+        return {x[0]: x[1] for x in map(lambda s: s.split('=', 1) if '=' in s else (s, s), parts)}
