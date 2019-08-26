@@ -33,19 +33,22 @@ def test_download():
     response = requests.get('{}/api/dataset/{}/browser/download/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
     assert len(response.text.split('\n')) == 180  # header + 178 + \n
     response = requests.get('{}/api/dataset/{}/browser/download/{}/{}/filter/all~false'.format(BASE_URL, dataset, data_type, data_item))
-    import logging
-    logging.error(response.text.split('\n'))
     assert len(response.text.split('\n')) == 8
     response = requests.get('{}/api/dataset/{}/browser/download/{}/{}/filter/all~true'.format(BASE_URL, dataset, data_type, data_item))
     assert len(response.text.split('\n')) == 180
     response = requests.get('{}/api/dataset/{}/browser/download/{}/{}/filter/mislof~true'.format(BASE_URL, dataset, data_type, data_item))
     assert len(response.text.split('\n')) == 2
+    filename = f'{dataset}_{data_type}_{data_item}.csv'
+    assert response.headers['content-disposition'] == f'attachment; filename={filename}'
+
     data_type = 'region'
     data_item = '22-29450622-29465622'
     response = requests.get('{}/api/dataset/{}/browser/download/{}/{}/filter/mislof~false'.format(BASE_URL, dataset, data_type, data_item))
     assert len(response.text.split('\n')) == 3
     response = requests.get('{}/api/dataset/{}/browser/download/{}/{}/filter/lof~false'.format(BASE_URL, dataset, data_type, data_item))
     assert len(response.text.split('\n')) == 3
+    filename = f'{dataset}_{data_type}_{data_item}.csv'
+    assert response.headers['content-disposition'] == f'attachment; filename={filename}'
 
 
 def test_get_coverage():
