@@ -14,16 +14,16 @@
         };
 
 	function baseUrl(dataset, version) {
-	    var url = "/api/dataset/" + dataset + "/";
-	    if ( version ) {
-		url += "version/" + version + "/"
-	    }
-	    url += 'browser/';
-	    return url;
+            var url = "/api/dataset/" + dataset + "/";
+            if ( version ) {
+		url += "version/" + version + "/";
+            }
+            url += "browser/";
+            return url;
 	}
 	
         function getGene(dataset, version, gene) {
-	    return $http.get(baseUrl(dataset, version) + "gene/" + gene).then(function(data) {
+            return $http.get(baseUrl(dataset, version) + "gene/" + gene).then(function(data) {
                 return data.data;
             });
         }
@@ -41,9 +41,9 @@
         }
 
         function getVariant(dataset, version, variant) {
-	    return $http.get(baseUrl(dataset, version) + "variant/" + variant).then(function(data) {
+            return $http.get(baseUrl(dataset, version) + "variant/" + variant).then(function(data) {
                 return data.data;
-	    });
+            });
         }
 
         function search(dataset, version, query) {

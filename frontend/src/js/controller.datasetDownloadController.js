@@ -44,10 +44,10 @@
         }
 
         function updateAuthorizationLevel() {
-            if (!localThis.hasOwnProperty("user") || localThis.user.user == null) {
+            if (!Object.prototype.hasOwnProperty.call(localThis, "user") || localThis.user.user == null) {
                 localThis.authorizationLevel = "logged_out";
             }
-            else if (localThis.hasOwnProperty("dataset")) {
+            else if (Object.prototype.hasOwnProperty.call(localThis, "dataset")) {
                 localThis.authorizationLevel = localThis.dataset.authorizationLevel;
             }
         }
@@ -89,7 +89,7 @@
         }
 
         function dataContactIsEmail() {
-            return localThis.hasOwnProperty("dataset") &&
+            return Object.prototype.hasOwnProperty.call(localThis, "dataset") &&
                     localThis.dataset.version.dataContactLink.indexOf("@") > -1;
         }
     }]);
