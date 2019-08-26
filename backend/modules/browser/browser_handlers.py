@@ -52,9 +52,10 @@ class Download(handlers.UnsafeHandler):
         """
         # ctrl.filterVariantsBy~ctrl.filterIncludeNonPass
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
+        filename = f'{dataset}_{datatype}_{item}.csv'
         self.set_header('Content-Type', 'text/csv')
         self.set_header(f'content-Disposition',
-                        'attachement; filename={f"{dataset}_{datatype}_{item}.csv"}')
+                        f'attachment; filename={filename}')
 
         data = utils.get_variant_list(dataset, datatype, item, ds_version)
         # filter variants based on what is shown
