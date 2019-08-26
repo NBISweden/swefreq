@@ -55,95 +55,95 @@
                 localThis.itemType = "transcript";
                 localThis.item = $routeParams.transcript;
                 Browser.getTranscript($routeParams.dataset, $routeParams.version, $routeParams.transcript)
-		    .then( function(data) {
+                    .then( function(data) {
 			localThis.transcript = data.transcript;
 			localThis.gene       = data.gene;
 			localThis.coverage.region.exons = data.exons;
                     })
-		    .catch((err) => {
+                    .catch((err) => {
 			localThis.transcript = {"statusCode": err.status,
 						"statusText": err.statusText};
-		    });
-;
+                    });
+
             }
             if ($routeParams.region) {
                 localThis.itemType = "region";
                 localThis.item = $routeParams.region;
                 Browser.getRegion($routeParams.dataset, $routeParams.version, $routeParams.region)
-		    .then( function(data) {
+                    .then( function(data) {
 			localThis.region = data.region;
                     })
-		    .catch((err) => {
+                    .catch((err) => {
 			localThis.region = {"statusCode": err.status,
-					    "statusText": err.statusText,
-					    "variantId": $routeParams.region};
-		    });
+                                            "statusText": err.statusText,
+                                            "variantId": $routeParams.region};
+                    });
             }
             if ($routeParams.gene) {
                 localThis.itemType = "gene";
                 localThis.item = $routeParams.gene;
                 Browser.getGene($routeParams.dataset, $routeParams.version, $routeParams.gene)
-		    .then( function(data) {
+                    .then( function(data) {
 			localThis.gene = data.gene;
 			localThis.transcripts = data.transcripts;
 			localThis.coverage.region.exons = data.exons;
                     })
-		    .catch((err) => {
+                    .catch((err) => {
 			localThis.gene = {"statusCode": err.status,
-					  "statusText": err.statusText};
-		    });
+                                          "statusText": err.statusText};
+                    });
             }
            if (localThis.itemType) {
                Browser.getVariants($routeParams.dataset, $routeParams.version, localThis.itemType, localThis.item)
-		   .then( function(data) {
+                   .then( function(data) {
                        localThis.variants = data.variants;
                        localThis.headers = data.headers;
 
                        // TODO Move to function later
                        let mapFunction = function(variant) {
                            variant.isPass     = variant.filter == "PASS";
-			   if (variant.flags.indexOf("LoF") === -1)
-			       variant.isLof = false;
-			   else
-			       variant.isLof = true;
+                           if (variant.flags.indexOf("LoF") === -1)
+                               variant.isLof = false;
+                           else
+                               variant.isLof = true;
                            variant.isMissense = variant.majorConsequence == "missense";
                        };
                        localThis.variants.map(mapFunction);
 
                        localThis.filterVariants();
-		       localThis.variants.loaded = true;
+                       localThis.variants.loaded = true;
                    })
-	       	   .catch((err) => {
-		       localThis.variants = {"statusCode": err.status,
-					     "statusText": err.statusText,
-					     "loaded": true,};
-		   });
+                   .catch((err) => {
+                       localThis.variants = {"statusCode": err.status,
+                                             "statusText": err.statusText,
+                                             "loaded": true,};
+                   });
                Browser.getCoveragePos($routeParams.dataset, $routeParams.version, localThis.itemType, localThis.item)
-		   .then( function(data) {
+                   .then( function(data) {
                        localThis.coverage.region.start = data.start;
                        localThis.coverage.region.stop  = data.stop;
                        localThis.coverage.region.chrom = data.chrom;
                    });
                Browser.getCoverage($routeParams.dataset, $routeParams.version, localThis.itemType, localThis.item)
-		   .then(function(data) {
+                   .then(function(data) {
                        localThis.coverage.data = data.coverage;
                        localThis.coverage.loaded = true;
                    })
-		   .catch((err) => {
-		       localThis.coverage = {"statusCode": err.status,
-					     "statusText": err.statusText,
-					     "loaded": true,};
-		   });
+                   .catch((err) => {
+                       localThis.coverage = {"statusCode": err.status,
+                                             "statusText": err.statusText,
+                                             "loaded": true,};
+                   });
             }
             if ($routeParams.variant) {
                 Browser.getVariant($routeParams.dataset, $routeParams.version, $routeParams.variant)
-		    .then( function(data) {
+                    .then( function(data) {
 			localThis.variant = data.variant;
                     })
-		    .catch((err) => {
-			localThis.variant = {"statusCode": err.status,
-					     "statusText": err.statusText};
-		    });
+                    .catch((err) => {
+                        localThis.variant = {"statusCode": err.status,
+                                             "statusText": err.statusText};
+                    });
 
             }
             Dataset.getDataset($routeParams.dataset, $routeParams.version, $routeParams.version)

@@ -8,41 +8,42 @@
 
         function getBeaconReferences(name, version) {
             return $http.get("/api/beacon-elixir/").then(function(data) {
-                var d = data.data.datasets;
+                let d = data.data.datasets;
 
 		if (version) {
-                    for (var i = 0; i < d.length; i++) {
-			var dataset = d[i].id;
+                    for (let i = 0; i < d.length; i++) {
+			let dataset = d[i].id;
 			if (dataset.indexOf(name) != -1 && dataset.indexOf(version) != -1) {
-			    return {
-				"reference": dataset.split(":")[0].substring(0, 6),
-				"datasetId": dataset,
-			    }
+                            return {
+                                "reference": dataset.split(":")[0].substring(0, 6),
+                                "datasetId": dataset,
+                            };
 			}
                     }
 		}
 		else {
-		    var references = [];
-		    for (var i = 0; i < d.length; i++) {
-			var dataset = d[i].id;
+                    let references = [];
+                    for (let i = 0; i < d.length; i++) {
+			let dataset = d[i].id;
 			if (dataset.indexOf(name) !== -1) {
-			    references.push(dataset);
+                            references.push(dataset);
 			}
                     }
-		    var highest_ver = 0;
-		    var reference = "";
-		    for (var i = 0; i < references.length; i++) {
-			var ver = parseInt(references[i].split(":")[2]);
-			if (ver > highest_ver) {
-			    highest_ver = ver;
-			    reference = references[i].split(":")[0].substring(0, 6);
-			    beaconId = references[i];
+                    let beaconId = "";
+                    let highestVer = 0;
+                    let reference = "";
+                    for (let i = 0; i < references.length; i++) {
+                        let ver = parseInt(references[i].split(":")[2]);
+                        if (ver > highestVer) {
+                            highestVer = ver;
+                            reference = references[i].split(":")[0].substring(0, 6);
+                            beaconId = references[i];
 			}
-		    }
-		    return {
+                    }
+                    return {
 			"reference": reference,
 			"datasetId": beaconId,
-		    }
+                    };
 		}
             });
         }
