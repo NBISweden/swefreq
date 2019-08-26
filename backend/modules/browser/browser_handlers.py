@@ -55,7 +55,7 @@ class Download(handlers.UnsafeHandler):
         filename = f'{dataset}_{datatype}_{item}.csv'
         self.set_header('Content-Type', 'text/csv')
         self.set_header(f'content-Disposition',
-                        f'attachement; filename={filename}')
+                        f'attachment; filename={filename}')
 
         data = utils.get_variant_list(dataset, datatype, item, ds_version)
         # filter variants based on what is shown
