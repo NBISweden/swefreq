@@ -114,7 +114,7 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
         client_id = self.settings['elixir_oauth']['id']
         secret = self.settings['elixir_oauth']['secret']
 
-        authorization = base64.b64encode(bytes(f"{client_id}: {secret}", 'ascii')).decode('ascii')
+        authorization = base64.b64encode(bytes(f"{client_id}:{secret}", 'ascii')).decode('ascii')
 
         response = await http.fetch(self._OAUTH_ACCESS_TOKEN_URL,
                                     method="POST",
