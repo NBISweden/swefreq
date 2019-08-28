@@ -201,7 +201,7 @@ class GetRegion(handlers.UnsafeHandler):
             chrom, start, stop = utils.parse_region(region)
         except error.ParsingError as err:
             self.send_error(status_code=400, reason=str(err))
-            logging.warning('GetRegion: unable to parse region ({})'.format(region))
+            logging.error('GetRegion: unable to parse region ({})'.format(region))
             return
 
         ret = {'region': {'chrom': chrom,
