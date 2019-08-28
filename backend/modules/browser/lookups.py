@@ -444,7 +444,7 @@ def get_transcripts_in_gene(dataset: str, gene_id: str, ds_version: str = None) 
     try:
         ref_set = db.get_dataset_version(dataset, ds_version).reference_set
     except AttributeError as err:
-        logging.warning(f'get_transcripts_in_gene({dataset}, {gene_id}): unable to get ref dbid')
+        logging.info(f'get_transcripts_in_gene({dataset}, {gene_id}): unable to get ref dbid')
         raise error.NotFoundError(f'Reference set not found for dataset {dataset}.') from err
 
     try:
