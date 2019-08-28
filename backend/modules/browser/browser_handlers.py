@@ -303,7 +303,7 @@ class GetVariant(handlers.UnsafeHandler):
             variant = lookups.get_variant(dataset, split_var[1], split_var[0],
                                           split_var[2], split_var[3], ds_version)
         except error.NotFoundError as err:
-            logging.error('Variant not found ({})'.format(orig_variant))
+            logging.info('Variant not found ({})'.format(orig_variant))
             self.send_error(status_code=404, reason=str(err))
             return
 
