@@ -249,3 +249,5 @@ CREATE INDEX variant_genes_gene ON data.variant_genes (gene);
 CREATE INDEX variant_genes_variant ON data.variant_genes (variant);
 CREATE INDEX variant_transcripts_transcript ON data.variant_transcripts (transcript);
 CREATE INDEX variant_transcripts_variant ON data.variant_transcripts (variant);
+CREATE INDEX mate_chrom ON data.mates (chrom, pos);
+CREATE INDEX mate_mate ON data.mates (mate_chrom, mate_start);
