@@ -1,4 +1,4 @@
-# vue
+# SweFreq Frontend
 
 ## Project setup
 ```
