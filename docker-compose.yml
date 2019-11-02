@@ -9,7 +9,7 @@ services:
       - ./postgres-data:/var/lib/postgresql/data
     ports:
       - 5432:5432
-  web:
+  backend:
     build:
       context: ./
       dockerfile: Dockerfile-backend
@@ -30,3 +30,23 @@ services:
       - type: bind
         source: .
         target: /code
+  frontend:
+    build:
+      context: ./
+      dockerfile: Dockerfile-frontend
+    depends_on:
+      - backend
+    restart: on-failure
+    volumes:
+      - type: bind
+        source: .
+        target: /code
+  proxy:
+    build:
+      context: ./
+      dockerfile: Dockerfile-proxy
+    ports:
+      - 4040:80
+    depends_on:
+      - backend
+      - frontend

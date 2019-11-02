@@ -1,0 +1,8 @@
+FROM node:latest
+
+ADD . /code
+WORKDIR /code/frontend/vue
+
+RUN npm install -g yarn
+
+CMD ["yarn", "run", "serve"]
