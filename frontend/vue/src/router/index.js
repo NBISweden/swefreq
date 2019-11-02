@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 
+import HomeComponent from '../components/HomeComponent.vue';
 import SearchInterface from '../components/SearchInterface.vue';
 
 Vue.use(VueRouter);
@@ -11,9 +12,15 @@ const router = new VueRouter({
   routes: [
     {
       path: '/',
+      component: HomeComponent,
+    },
+    {
+      path: '/search',
       component: SearchInterface,
-      props: { list_type: 'solna' },
-      alias: ['/search']
+    },
+    {
+      path: '*',
+      redirect: '/'
     },
   ]
 });

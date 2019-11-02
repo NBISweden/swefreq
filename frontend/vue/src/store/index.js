@@ -6,22 +6,32 @@ Vue.use(Vuex);
 
 const state = {
   user: {},
+  datasets: {},
   loggedIn: false,
 }
 
 const mutations = {
   UPDATE_USER (state, payload) {
     state.user = payload;
-    state.loggedIn = true;
-  }
+  },
+  UPDATE_DATASETS (state, payload) {
+    state.datasets = payload;
+  },
 }
 
 const actions = {
   getUser ({ commit }) {
     axios
-      .get('/api/user/me')
+      .get('/api/users/me')
       .then((response) => {
         commit('UPDATE_USER', response.data);
+      });
+  },
+  getDatasetList ({ commit }) {
+    axios
+      .get('/api/dataset')
+      .then((response) => {
+        commit('UPDATE_DATASETS', response.data.data);
       });
   }
 }
@@ -29,6 +39,7 @@ const actions = {
 const getters = {
   user: state => state.user,
   loggedIn: state => state.loggedIn,
+  datasets: state => state.datasets,
 }
 
 const store = new Vuex.Store({
