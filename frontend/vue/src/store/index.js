@@ -8,14 +8,30 @@ const state = {
   user: {},
   datasets: {},
   loggedIn: false,
+  dataset: {},
+  study: {},
+  collections: {},
+  variants: {},
 }
 
 const mutations = {
   UPDATE_USER (state, payload) {
     state.user = payload;
   },
+  UPDATE_COLLECTIONS (state, payload) {
+    state.collections = payload;
+  },
+  UPDATE_DATASET (state, payload) {
+    state.dataset = payload;
+  },
   UPDATE_DATASETS (state, payload) {
     state.datasets = payload;
+  },
+  UPDATE_STUDY (state, payload) {
+    state.study = payload;
+  },
+  UPDATE_VARIANTS (state, payload) {
+    state.variants = payload;
   },
 }
 
@@ -33,13 +49,30 @@ const actions = {
       .then((response) => {
         commit('UPDATE_DATASETS', response.data.data);
       });
-  }
+  },
+  getDataset (context, ds_name) {
+    axios
+      .get('/api/dataset/' + ds_name)
+      .then((response) => {
+        context.commit('UPDATE_DATASET', response.data);
+      });
+    axios
+      .get('/api/dataset/' + ds_name + '/collection')
+      .then((response) => {
+        context.commit('UPDATE_COLLECTIONS', response.data.collections);
+        context.commit('UPDATE_STUDY', response.data.study);
+      });
+  },
 }
 
 const getters = {
-  user: state => state.user,
-  loggedIn: state => state.loggedIn,
+  collections: state => state.study,
+  dataset: state => state.dataset,
   datasets: state => state.datasets,
+  loggedIn: state => state.loggedIn,
+  study: state => state.study,
+  user: state => state.user,
+  variants: state => state.variants,
 }
 
 const store = new Vuex.Store({
