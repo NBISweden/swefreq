@@ -10,23 +10,25 @@ const state = {
 }
 
 const mutations = {
-  UPDATE_RESTAURANTS (state, payload) {
-    state.restaurants = payload;
+  UPDATE_USER (state, payload) {
+    state.user = payload;
+    state.loggedIn = true;
   }
 }
 
 const actions = {
-  getRestaurants ({ commit }) {
+  getUser ({ commit }) {
     axios
-      .get('http://scilifelab-lunches.herokuapp.com/api/restaurants')
+      .get('/api/user/me')
       .then((response) => {
-        commit('UPDATE_RESTAURANTS', response.data);
+        commit('UPDATE_USER', response.data);
       });
   }
 }
 
 const getters = {
-  restaurants: state => state.restaurants
+  user: state => state.user,
+  loggedIn: state => state.loggedIn,
 }
 
 const store = new Vuex.Store({

@@ -34,13 +34,22 @@
 </template>
 
 <script>
+import {mapGetters} from 'vuex';
+
 export default {
   name: 'TopBar',
   data() {
     return {
     }
-  }
-}
+  },
+  computed: {
+    ...mapGetters(['user', 'loggedIn'])
+  },
+  created() {
+    this.$store.dispatch('getUser');
+  },
+};
+
 </script>
 
 <style scoped>
