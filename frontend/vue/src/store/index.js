@@ -5,7 +5,8 @@ import axios from 'axios';
 Vue.use(Vuex);
 
 const state = {
-  restaurants: []
+  user: {},
+  loggedIn: false,
 }
 
 const mutations = {
