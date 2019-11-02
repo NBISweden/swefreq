@@ -11,14 +11,13 @@
         </button>
         <a class="navbar-brand" href="/#/">SweFreq &mdash; The Swedish Frequency resource for genomics</a>
       </div>
-
       <div class="collapse navbar-collapse" id="navbar-things">
         <ul class="nav navbar-nav navbar-right">
-          <li><a ng-click="showAbout = !showAbout" style="cursor: pointer">About</a>
-          <li class="dropdown" v-if="this.$store.loggedIn == true"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ this.$store.user.user }}<span class="caret"></span></a>
+          <li><a @click="showAbout = !showAbout" style="cursor: pointer">About</a>
+          <li class="dropdown" v-if="this.$store.loggedIn == true"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ user.user }}<span class="caret"></span></a>
             <ul class="dropdown-menu">
-              <li><a href="/profile" target="_self">User Profile</a></li>
-              <li><a :href="'/logout?next=' + this.$route.query.page" target="_self" :title="'Logout ' + this.$store.user.user">Logout</a></li>
+              <li><router-link to="/profile" class="navigation-link"><span>User Profile</span></router-link></li>
+              <li><a :href="'/logout?next=' + this.$route.query.page" target="_self" :title="'Logout ' + user.user">Logout</a></li>
             </ul>
           </li>
           <li class="dropdown" v-if="this.$store.loggedIn == false">
@@ -28,8 +27,24 @@
       </div>
     </div>
   </nav>
-  <router-link to="/" class="navigation-link"><span>Search</span></router-link>
-  <router-link to="/browse" class="navigation-link"><span>Browse</span></router-link>
+  <!-- About blurb -->
+  <div class="blurb" v-if="showAbout">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-sm-12 col-md-8">
+          <p>The Swedish Frequency resource for genomics (SweFreq) is a
+          website developed to make genomic datasets more findable and
+          accessible in order to promote collaboration, new research and
+          increase public benefit. You can contact <a href="mailto:swefreq@scilifelab.se">swefreq@scilifelab.se</a> if
+          you want to find out more about this resource and how it could
+          benefit you and your research.</p>
+        </div>
+        <div class="col-md-2"></div>
+      </div>
+    </div>
+  </div>
+  
 </div>
 </template>
 
@@ -40,6 +55,7 @@ export default {
   name: 'TopBar',
   data() {
     return {
+      showAbout: false
     }
   },
   computed: {
