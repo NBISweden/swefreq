@@ -2,16 +2,19 @@
 <div id="app">
   <TopBar></TopBar>
   <router-view></router-view>
+  <FooterBar></FooterBar>
 </div>
 </template>
 
 <script>
 import TopBar from './components/TopBar.vue';
+import FooterBar from './components/FooterBar.vue';
 
 export default {
   name: 'App',
   components: {
-    TopBar
+    TopBar,
+    FooterBar
   },
   data() {
     return {
