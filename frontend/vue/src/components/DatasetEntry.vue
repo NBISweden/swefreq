@@ -3,7 +3,7 @@
   <div class="col-md-1"></div>
   <div class="col-md-10">
     <div class="dataset-panel">
-      <div class="dataset-heading">{{ dataset.fullName }}</div>
+      <div :class="{'dataset-heading': true, 'future-title' : dataset.future}">{{ dataset.fullName }}</div>
       <div class="dataset-body">
         <div v-if="dataset.hasImage">
           <img :src="'/api/dataset/' + dataset.shortName + '/logo'" class="dataset-logo" :alt="dataset.shortName + 'logo'" />
