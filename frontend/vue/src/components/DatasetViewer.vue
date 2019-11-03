@@ -28,7 +28,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['dataset', 'collections', 'study'])
+    ...mapGetters(['dataset'])
   },
   props: ["datasetName"],
   components: {
