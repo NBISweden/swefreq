@@ -12,9 +12,9 @@
         <div v-html="dataset.version.description" />
       </div>
       <div class="dataset-links">
-        <li><a :href="dataset.urlbase">More information</a></li>
-        <li><a :href="dataset.urlbase + '/beacon'">Beacon</a></li>
-        <li><a :href="dataset.urlbase + '/browser'">Graphical Browser</a></li>
+        <li><router-link :to="'/dataset/' + dataset.shortName + '/about'">More information</router-link></li>
+        <li><router-link :to="'/dataset/' + dataset.shortName + '/beacon'">Beacon</router-link></li>
+        <li><router-link :to="'/dataset/' + dataset.shortName + '/browser'">Graphical Browser</router-link></li>
       </div>
     </div>
   </div>
