@@ -50,9 +50,9 @@
       <div class="dataset-panel dataset-infobox">
         <div class="dataset-heading">Collection</div>
         <div class="dataset-body">
-          <div v-for="(name, coll) in collections" :key=coll>
+          <div v-for="(name, coll) in collections" :key="name">
             {{ name }} <span class='ethnicity'>{{coll.ethnicity}}</span>
-            <ul ng-repeat="sample in coll.sampleSets" class='samples'>
+            <ul v-for="sample in coll.sampleSets" :key="sample" class='samples'>
               <li>Sample size: {{ sample.sampleSize }}</li>
               <li>Phenotype: {{ sample.phenotype }}</li>
             </ul>
