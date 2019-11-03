@@ -9,7 +9,7 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="/#/">SweFreq &mdash; The Swedish Frequency resource for genomics</a>
+        <router-link class="navbar-brand" to="/">SweFreq &mdash; The Swedish Frequency resource for genomics</router-link>
       </div>
       <div class="collapse navbar-collapse" id="navbar-things">
         <ul class="nav navbar-nav navbar-right">
