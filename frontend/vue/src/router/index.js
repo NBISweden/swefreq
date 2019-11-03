@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 
-import DatasetInfo from '../components/DatasetInfo.vue';
+import DatasetAbout from '../components/DatasetAbout.vue';
 import DatasetViewer from '../components/DatasetViewer.vue';
 import HomeComponent from '../components/HomeComponent.vue';
 import SearchInterface from '../components/SearchInterface.vue';
@@ -27,9 +27,28 @@ const router = new VueRouter({
       children: [
         {
           path: 'about',
-          component: DatasetInfo,
+          component: DatasetAbout,
           alias: ['']
-        }
+        },
+        {
+          path: 'terms',
+          component: DatasetAbout,
+        },
+        {
+          path: 'download',
+          component: DatasetAbout,
+        },
+        {
+          path: 'beacon',
+          component: DatasetAbout,
+        },
+        {
+          path: 'browser',
+          component: DatasetAbout,
+        },
+          path: 'admin',
+          component: DatasetAbout,
+        },
         ]
     },
     {
