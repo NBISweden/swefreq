@@ -2,6 +2,7 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 
 import DatasetAbout from '../components/DatasetAbout.vue';
+import DatasetTerms from '../components/DatasetTerms.vue';
 import DatasetViewer from '../components/DatasetViewer.vue';
 import HomeComponent from '../components/HomeComponent.vue';
 import SearchInterface from '../components/SearchInterface.vue';
@@ -32,7 +33,7 @@ const router = new VueRouter({
         },
         {
           path: 'terms',
-          component: DatasetAbout,
+          component: DatasetTerms,
         },
         {
           path: 'download',
@@ -46,6 +47,7 @@ const router = new VueRouter({
           path: 'browser',
           component: DatasetAbout,
         },
+        {
           path: 'admin',
           component: DatasetAbout,
         },
