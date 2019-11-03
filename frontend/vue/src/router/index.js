@@ -2,6 +2,7 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 
 import DatasetInfo from '../components/DatasetInfo.vue';
+import DatasetViewer from '../components/DatasetViewer.vue';
 import HomeComponent from '../components/HomeComponent.vue';
 import SearchInterface from '../components/SearchInterface.vue';
 
@@ -21,8 +22,15 @@ const router = new VueRouter({
     },
     {
       path: '/dataset/:datasetName',
-      component: DatasetInfo,
+      component: DatasetViewer,
       props: true,
+      children: [
+        {
+          path: 'about',
+          component: DatasetInfo,
+          alias: ['']
+        }
+        ]
     },
     {
       path: '*',

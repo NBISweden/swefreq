@@ -77,10 +77,6 @@ export default {
   computed: {
     ...mapGetters(['dataset', 'collections', 'study'])
   },
-  props: ["datasetName"],
-  created() {
-    this.$store.dispatch('getDataset', this.datasetName);
-  },
 };
 
 </script>

@@ -5,6 +5,7 @@ import axios from 'axios';
 Vue.use(Vuex);
 
 const state = {
+  error: {},
   user: {},
   datasets: {},
   loggedIn: false,
@@ -69,6 +70,7 @@ const getters = {
   collections: state => state.study,
   dataset: state => state.dataset,
   datasets: state => state.datasets,
+  error: state => state.error,
   loggedIn: state => state.loggedIn,
   study: state => state.study,
   user: state => state.user,
