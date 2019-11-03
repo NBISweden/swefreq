@@ -67,7 +67,7 @@ const actions = {
 }
 
 const getters = {
-  collections: state => state.study,
+  collections: state => state.collections,
   dataset: state => state.dataset,
   datasets: state => state.datasets,
   error: state => state.error,
