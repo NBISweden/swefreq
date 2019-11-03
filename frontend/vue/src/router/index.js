@@ -2,6 +2,7 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 
 import DatasetAbout from '../components/DatasetAbout.vue';
+import DatasetAccess from '../components/DatasetAccess.vue';
 import DatasetTerms from '../components/DatasetTerms.vue';
 import DatasetViewer from '../components/DatasetViewer.vue';
 import HomeComponent from '../components/HomeComponent.vue';
@@ -27,9 +28,12 @@ const router = new VueRouter({
       props: true,
       children: [
         {
+          path: '',
+          redirect: 'about',
+        },
+        {
           path: 'about',
           component: DatasetAbout,
-          alias: ['']
         },
         {
           path: 'terms',
@@ -37,7 +41,7 @@ const router = new VueRouter({
         },
         {
           path: 'download',
-          component: DatasetAbout,
+          component: DatasetAccess,
         },
         {
           path: 'beacon',
