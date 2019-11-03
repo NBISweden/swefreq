@@ -50,7 +50,7 @@
       <div class="dataset-panel dataset-infobox">
         <div class="dataset-heading">Collection</div>
         <div class="dataset-body">
-          <div v-for="(name, coll) in collections" :key="name">
+          <div v-for="(coll, name) in collections" :key="coll">
             {{ name }} <span class='ethnicity'>{{coll.ethnicity}}</span>
             <ul v-for="sample in coll.sampleSets" :key="sample" class='samples'>
               <li>Sample size: {{ sample.sampleSize }}</li>
@@ -69,7 +69,7 @@
 import {mapGetters} from 'vuex';
 
 export default {
-  name: 'DatasetInfo',
+  name: 'DatasetAbout',
   data() {
     return {
     }
@@ -82,9 +82,4 @@ export default {
 </script>
 
 <style scoped>
-.navigation-bar {
-    padding: 5px 0px}
-.navigation-link {
-    padding: 0px 10px;
-}
 </style>
