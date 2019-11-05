@@ -37,6 +37,15 @@ const mutations = {
 }
 
 const actions = {
+  baseUrl(dataset, version) {
+    var url = "/api/dataset/" + dataset + "/";
+    if ( version ) {
+      url += "version/" + version + "/";
+    }
+    url += "browser/";
+
+    return url;                                                                                                       
+  },
   getUser ({ commit }) {
     axios
       .get('/api/users/me')
@@ -64,6 +73,13 @@ const actions = {
         context.commit('UPDATE_STUDY', response.data.study);
       });
   },
+  search (query, dataset, version) {
+    axios
+      .get(this.baseUrl(dataset, version) + 'search/' + query)
+      .then((response) => {
+        response;
+      });
+  }
 }
 
 const getters = {

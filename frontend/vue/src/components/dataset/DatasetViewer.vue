@@ -30,7 +30,7 @@ export default {
   computed: {
     ...mapGetters(['dataset'])
   },
-  props: ["datasetName"],
+  props: ["datasetName", "datasetVersion"],
   components: {
     'dataset-nav-bar': DatasetViewerBar,
   },

@@ -1,11 +1,12 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 
-import DatasetAbout from '../components/DatasetAbout.vue';
-import DatasetAccess from '../components/DatasetAccess.vue';
-import DatasetBeacon from '../components/DatasetBeacon.vue';
-import DatasetTerms from '../components/DatasetTerms.vue';
-import DatasetViewer from '../components/DatasetViewer.vue';
+import DatasetAbout from '../components/dataset/DatasetAbout.vue';
+import DatasetAccess from '../components/dataset/DatasetAccess.vue';
+import DatasetBeacon from '../components/dataset/DatasetBeacon.vue';
+import DatasetBrowser from '../components/dataset/DatasetBrowser.vue';
+import DatasetTerms from '../components/dataset/DatasetTerms.vue';
+import DatasetViewer from '../components/dataset/DatasetViewer.vue';
 import HomeComponent from '../components/HomeComponent.vue';
 import SearchInterface from '../components/SearchInterface.vue';
 
@@ -24,9 +25,10 @@ const router = new VueRouter({
       component: SearchInterface,
     },
     {
-      path: '/dataset/:datasetName',
+      path: '/dataset/:datasetName/',
       component: DatasetViewer,
       props: true,
+      alias: ['/dataset/:datasetName/version/:datasetVersion?'],
       children: [
         {
           path: '',
@@ -50,7 +52,7 @@ const router = new VueRouter({
         },
         {
           path: 'browser',
-          component: DatasetAbout,
+          component: DatasetBrowser,
         },
         {
           path: 'admin',
