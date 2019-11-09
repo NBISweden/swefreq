@@ -1,41 +1,41 @@
 <template>
 <div class="dataset-beacon">
   <h2>Search</h2>
-  <div class="alert alert-danger" ng-if="beaconInfo.reference">
+  <div class="alert alert-danger" v-if="!newQuery.beaconInfo.reference">
     <h3>Beacon error</h3>
     <p>Unable to retrieve the reference set from the Beacon.</p>
     <p>Either the dataset version is not available or the service is down.</p>
   </div>
 
-  <form role="form" name="beacon_form" class="form-horizontal">
+  <form role="form" name="beacon_form" class="form-horizontal" @submit="makeQuery">
     <div class="form-group">
       <label for="chromosome" class="col-sm-3 control-label">Chromosome</label>
       <div class="col-sm-3">
-        <input type="text" required class="form-control" id="chromosome" name="chromosome" v-model="chromosome" placeholder="Chromosome" :disabled="!beaconInfo.reference">
+        <input type="text" required class="form-control" id="chromosome" name="chromosome" v-model="newQuery.chromosome" placeholder="Chromosome" :disabled="!newQuery.beaconInfo.reference">
       </div>
 
       <label for="position" class="col-sm-3 control-label">Position</label>
       <div class="col-sm-3">
-        <input type="number" min="0" required class="form-control" id="position" v-model="position" placeholder="Position" :disabled="!beaconInfo.reference">
+        <input type="number" min="0" required class="form-control" id="position" v-model="newQuery.position" placeholder="Position" :disabled="!newQuery.beaconInfo.reference">
       </div>
     </div>
 
     <div class="form-group">
       <label for="referenceAllele" class="col-sm-3 control-label">Reference Allele</label>
       <div class="col-sm-3">
-        <input type="text" required  class="form-control" id="referenceAllele" v-model="referenceAllele" name='referenceAllele' placeholder="Reference Allele" :disabled="!beaconInfo.reference">
+        <input type="text" required  class="form-control" id="referenceAllele" v-model="newQuery.referenceAllele" name='referenceAllele' placeholder="Reference Allele" :disabled="!newQuery.beaconInfo.reference">
       </div>
     
       <label for="allele" class="col-sm-3 control-label">Alternate Allele</label>
       <div class="col-sm-3">
-        <input type="text" required class="form-control" id="allele" v-model="allele" name='allele' placeholder="Alternate Allele" ng-disabled="!beaconInfo.reference">
+        <input type="text" required class="form-control" id="allele" v-model="newQuery.allele" name='allele' placeholder="Alternate Allele" :disabled="!newQuery.beaconInfo.reference">
       </div>
     </div>
 
     <div class="form-group">
       <div class="col-sm-offset-3 col-sm-7">
-        <button @click="search()" class="btn btn-primary" :disabled="!(chromosome && position && referenceAllele && allele && beaconInfo.reference)">Search</button>
-        <span class="left-margin alert-text" v-if="!(chromosome && position && referenceAllele && allele) && beaconInfo.reference">Need to fill in all values before searching</span>
+        <button class="btn btn-primary" :disabled="!(newQuery.chromosome && newQuery.position && newQuery.referenceAllele && newQuery.allele && newQuery.beaconInfo.reference)">Search</button>
+        <span class="left-margin alert-text" v-if="!(newQuery.chromosome && newQuery.position && newQuery.referenceAllele && newQuery.allele) && newQuery.beaconInfo.reference">Need to fill in all values before searching</span>
       </div>
       <div class="col-sm-2">
         <a style='cursor: pointer' @click="showDetails = !showDetails" class="pull-right">
@@ -45,7 +45,7 @@
         </a>
       </div>
       <div class="col-sm-2">
-        <a style='cursor: pointer' @click="fillExample()" class="pull-right">Show example</a>
+        <a style='cursor: pointer' @click="fillExample" class="pull-right">Show example</a>
       </div>
     </div>
   </form>
@@ -92,31 +92,47 @@ export default {
 
   data() {
     return {
-      queryResponses: [],
-      chromosome: '',
-      position: null,
-      referenceAllele: '',
-      allele: '',
-      beaconInfo: null,
+      newQuery: {'chromosome': '',
+                 'position': null,
+                 'referenceAllele': '',
+                 'allele': '',
+                 'beaconInfo': {}},
+      showDetails: false,
+      tmp: null,
     }
   },
 
-  computed: {
-    ...mapGetters(['dataset'])
-  },
-  props: ["datasetName"],
-  methods: {
-  },
+  props: ['datasetName'],
   
+  computed: {
+    ...mapGetters(['dataset', 'queryResponses', 'currentBeacon'])
+  },
+
+  methods: {
+    makeQuery (event) {
+      event.preventDefault();
+      this.$store.dispatch('makeQuery', this.newQuery);
+    },
+    fillExample (event) {
+      event.preventDefault();
+      this.chromosome = "22";
+      this.position = 46615880;
+      this.referenceAllele = "T";
+      this.allele = "C"
+    }
+  },
+
   created () {
+    this.$store.dispatch('updateCurrentBeacon', this.$props.datasetName);
     axios
-      .get('/api/beacon-elixir/')
-      .then(function (response) {
+      .get('https://swefreq.nbis.se/api/beacon-elixir/') // .get('/api/beacon-elixir/')
+      .then((response) => {
         let d = response.data.datasets;
         let references = [];
         for (let i = 0; i < d.length; i++) {
           let dataset = d[i].id;
-          if (dataset.contains(this.datasetName)) {
+          let ds_name = this.$props.datasetName;
+          if (dataset.includes(ds_name)) {
             references.push(dataset);
           }
         }
@@ -131,12 +147,18 @@ export default {
             beaconId = references[i];
           }
         }
-        this.beaconInfo = {
+        this.newQuery.beaconInfo = {
           "reference": reference,
           "datasetId": beaconId,
         };
+      })
+      .catch(() => {
+        this.newQuery.beaconInfo = {
+          'reference': 'bad',
+          'datasetId': 'bad',
+        }
       });
-  },
+  }
 };
 </script>
 

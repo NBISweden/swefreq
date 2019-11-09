@@ -53,7 +53,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['dataset'])
+    ...mapGetters(['dataset']),
   },
   methods: {
     doSearch (query) {
@@ -61,7 +61,6 @@ export default {
     },
   }
 };
-
 </script>
 
 <style scoped>

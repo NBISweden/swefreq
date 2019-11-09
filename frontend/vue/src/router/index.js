@@ -49,6 +49,7 @@ const router = new VueRouter({
         {
           path: 'beacon',
           component: DatasetBeacon,
+          props: true
         },
         {
           path: 'browser',
