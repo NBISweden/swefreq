@@ -111,7 +111,7 @@ export default {
   methods: {
     makeQuery (event) {
       event.preventDefault();
-      this.$store.dispatch('makeQuery', this.newQuery);
+      this.$store.dispatch('makeBeaconQuery', this.newQuery);
     },
     fillExample (event) {
       event.preventDefault();
