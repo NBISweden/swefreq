@@ -14,14 +14,14 @@
       <div class="collapse navbar-collapse" id="navbar-things">
         <ul class="nav navbar-nav navbar-right">
           <li><a @click="showAbout = !showAbout" style="cursor: pointer">About</a>
-          <li class="dropdown" v-if="this.$store.loggedIn == true"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ user.user }}<span class="caret"></span></a>
+          <li class="dropdown" v-if="user.user"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ user.user }}<span class="caret"></span></a>
             <ul class="dropdown-menu">
               <li><router-link to="/profile" class="navigation-link"><span>User Profile</span></router-link></li>
-              <li><a :href="'/logout?next=' + this.$route.query.page" target="_self" :title="'Logout ' + user.user">Logout</a></li>
+              <li><a :href="'/logout?next=' + this.$route.path" target="_self" :title="'Logout ' + user.user">Logout</a></li>
             </ul>
           </li>
-          <li class="dropdown" v-if="this.$store.loggedIn == false">
-            <a href="'/elixir/login?next=' + this.$route.query.page" target="_self">Login</a>
+          <li class="dropdown" v-if="!user.user">
+            <a :href="'/elixir/login?next=' + this.$route.path" target="_self">Login</a>
           </li>
         </ul>
       </div>
@@ -44,7 +44,6 @@
       </div>
     </div>
   </div>
-  
 </div>
 </template>
 
@@ -59,7 +58,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['user', 'loggedIn'])
+    ...mapGetters(['user'])
   },
   created() {
     this.$store.dispatch('getUser');

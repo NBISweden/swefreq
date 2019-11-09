@@ -8,7 +8,6 @@ const state = {
   error: {},
   user: {},
   datasets: {},
-  loggedIn: false,
   dataset: {},
   study: {},
   collections: {},
