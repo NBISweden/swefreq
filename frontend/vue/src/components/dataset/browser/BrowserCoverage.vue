@@ -10,7 +10,7 @@
     <p>Reason: {{ error.statusCode }} {{ error.statusText }}</p>
   </div>
 
-  <div v-else-if="ctrl.coverage.data.length">
+  <div v-else-if="coverage.data.length">
     <h3>Gene summary</h3>
     <p>(Coverage shown for <a href="http://www.ensembl.org/Help/Glossary?id=346" target="_blank">canonical transcript</a>: {
       gene.canonicalTranscript }})</p>
