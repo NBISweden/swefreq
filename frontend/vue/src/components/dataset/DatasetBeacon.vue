@@ -154,8 +154,8 @@ export default {
       })
       .catch(() => {
         this.newQuery.beaconInfo = {
-          'reference': 'bad',
-          'datasetId': 'bad',
+          'reference': '',
+          'datasetId': '',
         }
       });
   }
