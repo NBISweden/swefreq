@@ -5,6 +5,7 @@ import axios from 'axios';
 Vue.use(Vuex);
 
 const state = {
+  availableCountries: [],
   error: {},
   user: {},
   datasets: {},
@@ -23,6 +24,9 @@ const mutations = {
   },
   UPDATE_COLLECTIONS (state, payload) {
     state.collections = payload;
+  },
+  UPDATE_COUNTRIES (state, payload) {
+    state.countries = payload;
   },
   UPDATE_DATASET (state, payload) {
     state.dataset = payload;
@@ -62,6 +66,14 @@ const actions = {
       .get('/api/users/me')
       .then((response) => {
         commit('UPDATE_USER', response.data);
+      });
+  },
+
+  getCountries ({ commit }) {
+    axios
+      .get('/api/countries')
+      .then((response) => {
+        commit('UPDATE_COUNTRIES', response.data);
       });
   },
 
@@ -155,6 +167,7 @@ const actions = {
 }
 
 const getters = {
+  availableCountries: state => state.availableCountries,
   collections: state => state.collections,
   currentBeacon: state => state.currentBeacon,
   dataset: state => state.dataset,
