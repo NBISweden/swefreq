@@ -4,7 +4,9 @@ import VueRouter from 'vue-router';
 import DatasetAbout from '../components/dataset/DatasetAbout.vue';
 import DatasetAccess from '../components/dataset/DatasetAccess.vue';
 import DatasetBeacon from '../components/dataset/DatasetBeacon.vue';
-import DatasetBrowser from '../components/dataset/DatasetBrowser.vue';
+import BrowserContainer from '../components/dataset/browser/BrowserContainer.vue';
+import BrowserGene from '../components/dataset/browser/BrowserGene.vue';
+import BrowserSearch from '../components/dataset/browser/BrowserSearch.vue';
 import DatasetTerms from '../components/dataset/DatasetTerms.vue';
 import DatasetViewer from '../components/dataset/DatasetViewer.vue';
 import HomeComponent from '../components/HomeComponent.vue';
@@ -53,7 +55,24 @@ const router = new VueRouter({
         },
         {
           path: 'browser',
-          component: DatasetBrowser,
+          component: BrowserContainer,
+          props: true,
+          children: [
+            {
+              path: '',
+              redirect: 'search'
+            },
+            {
+              path: 'search',
+              component: BrowserSearch,
+              props: true,
+            },
+            {
+              path: 'gene/:geneName',
+              component: BrowserGene,
+              props: true,
+            }
+          ]
         },
         {
           path: 'admin',
