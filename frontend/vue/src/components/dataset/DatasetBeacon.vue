@@ -115,10 +115,10 @@ export default {
     },
     fillExample (event) {
       event.preventDefault();
-      this.chromosome = "22";
-      this.position = 46615880;
-      this.referenceAllele = "T";
-      this.allele = "C"
+      this.newQuery.chromosome = "22";
+      this.newQuery.position = 46615880;
+      this.newQuery.referenceAllele = "T";
+      this.newQuery.allele = "C"
     }
   },
 
