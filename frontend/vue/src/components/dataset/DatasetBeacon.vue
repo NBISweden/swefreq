@@ -125,7 +125,7 @@ export default {
   created () {
     this.$store.dispatch('updateCurrentBeacon', this.$props.datasetName);
     axios
-      .get('https://swefreq.nbis.se/api/beacon-elixir/') // .get('/api/beacon-elixir/')
+      .get('/api/beacon-elixir/')
       .then((response) => {
         let d = response.data.datasets;
         let references = [];

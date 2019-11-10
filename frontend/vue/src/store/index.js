@@ -105,7 +105,7 @@ const actions = {
   makeBeaconQuery (context, payload) {
     return new Promise((resolve, reject) => {
       axios
-        .get('https://swefreq.nbis.se/api/beacon-elixir/query', // .get('/api/beacon-elixir/query',
+        .get('/api/beacon-elixir/query',
              {
                "params": {
                  "referenceName":   payload.chromosome,
