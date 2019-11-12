@@ -18,13 +18,25 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['dataset', 'errorCode'])
+    ...mapGetters(['dataset', 'errorCode']),
+    dataType() {
+      let urlParts = this.$route.path.split('/');
+      return urlParts[urlParts.length-2];
+    },
   },
   props: ["datasetName", "datasetVersion", "identifier"],
   components: {
   },
   created() {
-    this.$store.dispatch('getDataset', this.datasetName);
+    this.$store.dispatch('getDataset', this.$props.datasetName);
+    if (this.dataType == 'gene' ||
+        this.dataType == 'transcript' ||
+        this.dataType == 'region') {
+      this.$store.dispatch('getVariants', {'dataset': this.$props.datasetName,
+                                           'version': this.$props.datasetVersion,
+                                           'datatype': this.dataType,
+                                           'identifier': this.$props.identifier});
+    }
   },
 };
 

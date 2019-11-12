@@ -48,7 +48,7 @@
 import {mapGetters} from 'vuex';
 
 export default {
-  name: 'BrowserGene',
+  name: 'BrowserVariants',
   data() {
     return {
       error: {
@@ -67,7 +67,7 @@ export default {
   },
   props: ['datasetName', 'datasetVersion', 'geneName'],
   computed: {
-    ...mapGetters(['dataset']),
+    ...mapGetters(['variants', 'variantHeaders']),
   },
   methods: {
     reorderVariants (event) {

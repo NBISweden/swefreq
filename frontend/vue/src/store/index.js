@@ -12,7 +12,8 @@ const state = {
   dataset: {},
   study: {},
   collections: {},
-  variants: {},
+  variants: [],
+  variantHeaders: [],
   queryResponses: [],
   currentBeacon: '',
   tmp: null,
@@ -40,6 +41,9 @@ const mutations = {
   UPDATE_VARIANTS (state, payload) {
     state.variants = payload;
   },
+  UPDATE_VARIANTHEADERS (state, payload) {
+    state.variantHeaders = payload;
+  },
   ADD_BEACON_RESPONSE (state, payload) {
     state.queryResponses.push(payload);
   },
@@ -47,7 +51,9 @@ const mutations = {
     state.currentBeacon = payload;
     state.queryResponses = [];
   },
-  
+  TMP (state, payload) {
+    state.tmp = payload;
+  },
 }
 
 const actions = {
@@ -100,7 +106,6 @@ const actions = {
   },
 
   updateCurrentBeacon(context, current_dataset) {
-    state.cur
     if (state.currentBeacon !== current_dataset) {
       context.commit('UPDATE_CURRENT_BEACON', current_dataset);
     }
@@ -114,6 +119,33 @@ const actions = {
       });
   },
 
+  getVariants(context, payload) {
+    return new Promise((resolve, reject) => {
+      let url = '';
+      if (payload.version) {
+        url = '/api/dataset/' + payload.dataset +
+          '/version/' + payload.version +
+          '/browser/variants' + payload.datatype +
+          '/' + payload.identifier;
+      }
+      else {
+        url = '/api/dataset/' + payload.dataset +
+          '/browser/variants/' + payload.datatype +
+          '/' + payload.identifier;
+      }
+      axios
+        .get(url)
+        .then((response) => {
+          context.commit('UPDATE_VARIANTS', response.data.variants);
+          context.commit('UPDATE_VARIANT_HEADERS', response.data.headers);
+          resolve(response);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  },
+  
   makeBeaconQuery (context, payload) {
     return new Promise((resolve, reject) => {
       axios
@@ -177,6 +209,7 @@ const getters = {
   study: state => state.study,
   user: state => state.user,
   variants: state => state.variants,
+  variantHeaders: state => state.variantHeaders,
   queryResponses: state => state.queryResponses,
   tmp: state => state.tmp
 }
