@@ -35,7 +35,6 @@ const router = new VueRouter({
       path: '/dataset/:datasetName/',
       component: DatasetViewer,
       props: true,
-      alias: ['/dataset/:datasetName/version/:datasetVersion'],
       children: [
         {
           path: '',
@@ -111,7 +110,88 @@ const router = new VueRouter({
           path: 'admin',
           component: DatasetAbout,
         },
-        ]
+      ]
+    },
+    {
+      path: '/dataset/:datasetName/version/:datasetVersion',
+      component: DatasetViewer,
+      props: true,
+      children: [
+        {
+          path: '',
+          redirect: 'about',
+        },
+        {
+          path: 'about',
+          component: DatasetAbout,
+        },
+        {
+          path: 'terms',
+          component: DatasetTerms,
+        },
+        {
+          path: 'download',
+          component: DatasetAccess,
+        },
+        {
+          path: 'beacon',
+          component: DatasetBeacon,
+          props: true
+        },
+        {
+          path: 'browser',
+          component: BrowserContainer,
+          props: true,
+          children: [
+            {
+              path: '',
+              redirect: 'search',
+            },
+            {
+              path: 'search',
+              components: {default: BrowserSearch},
+              props: true,
+            },
+            {
+              path: 'variant/:variantId',
+              components: {default: BrowserSearch},
+              props: true,
+            },
+            {
+              path: 'gene/:identifier',
+              components: {
+                default: BrowserGene,
+                coverage_plot: BrowserCoverage,
+                variant_list: BrowserVariants,
+              },
+              props: true
+            },
+            {
+              path: 'transcript/:identifier',
+              components: {
+                default: BrowserGene,
+                coverage_plot: BrowserCoverage,
+                variant_list: BrowserVariants,
+              },
+              props: true
+            },
+            {
+              path: 'region/:identifier',
+              components: {
+                default: BrowserGene,
+                coverage_plot: BrowserCoverage,
+                variant_list: BrowserVariants,
+              },
+              props: true
+            },
+          ]
+        },
+
+        {
+          path: 'admin',
+          component: DatasetAbout,
+        },
+      ]
     },
     {
       path: '*',
