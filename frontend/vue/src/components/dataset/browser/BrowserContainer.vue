@@ -2,14 +2,14 @@
 <div class="dataset-viewer">
   <div class="container">
     <router-view></router-view>
-    <coverage-plot></coverage-plot>
+    <router-view name="coverage_plot"></router-view>
+    <router-view name="variant_list"></router-view>
   </div>
 </div>
 </template>
 
 <script>
 import {mapGetters} from 'vuex';
-import BrowserCoverage from './BrowserCoverage.vue';
 
 export default {
   name: 'DatasetViewer',
@@ -20,10 +20,8 @@ export default {
   computed: {
     ...mapGetters(['dataset', 'errorCode'])
   },
-  props: ["datasetName", "datasetVersion"],
+  props: ["datasetName", "datasetVersion", "identifier"],
   components: {
-    'coverage-plot': BrowserCoverage,
-    
   },
   created() {
     this.$store.dispatch('getDataset', this.datasetName);

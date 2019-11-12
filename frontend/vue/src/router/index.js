@@ -1,15 +1,20 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 
+import BrowserContainer from '../components/dataset/browser/BrowserContainer.vue';
+import BrowserCoverage from '../components/dataset/browser/BrowserCoverage.vue';
+import BrowserGene from '../components/dataset/browser/BrowserGene.vue';
+import BrowserSearch from '../components/dataset/browser/BrowserSearch.vue';
+import BrowserVariants from '../components/dataset/browser/BrowserVariants.vue';
+
 import DatasetAbout from '../components/dataset/DatasetAbout.vue';
 import DatasetAccess from '../components/dataset/DatasetAccess.vue';
 import DatasetBeacon from '../components/dataset/DatasetBeacon.vue';
-import BrowserContainer from '../components/dataset/browser/BrowserContainer.vue';
-import BrowserGene from '../components/dataset/browser/BrowserGene.vue';
-import BrowserSearch from '../components/dataset/browser/BrowserSearch.vue';
 import DatasetTerms from '../components/dataset/DatasetTerms.vue';
 import DatasetViewer from '../components/dataset/DatasetViewer.vue';
+
 import HomeComponent from '../components/HomeComponent.vue';
+
 import SearchInterface from '../components/SearchInterface.vue';
 
 Vue.use(VueRouter);
@@ -30,7 +35,7 @@ const router = new VueRouter({
       path: '/dataset/:datasetName/',
       component: DatasetViewer,
       props: true,
-      alias: ['/dataset/:datasetName/version/:datasetVersion?'],
+      alias: ['/dataset/:datasetName/version/:datasetVersion'],
       children: [
         {
           path: '',
@@ -60,20 +65,48 @@ const router = new VueRouter({
           children: [
             {
               path: '',
-              redirect: 'search'
+              redirect: 'search',
             },
             {
               path: 'search',
-              component: BrowserSearch,
+              components: {default: BrowserSearch},
               props: true,
             },
             {
-              path: 'gene/:geneName',
-              component: BrowserGene,
+              path: 'variant/:variantId',
+              components: {default: BrowserSearch},
               props: true,
-            }
+            },
+            {
+              path: 'gene/:identifier',
+              components: {
+                default: BrowserGene,
+                coverage_plot: BrowserCoverage,
+                variant_list: BrowserVariants,
+              },
+              props: true
+            },
+            {
+              path: 'transcript/:identifier',
+              components: {
+                default: BrowserGene,
+                coverage_plot: BrowserCoverage,
+                variant_list: BrowserVariants,
+              },
+              props: true
+            },
+            {
+              path: 'region/:identifier',
+              components: {
+                default: BrowserGene,
+                coverage_plot: BrowserCoverage,
+                variant_list: BrowserVariants,
+              },
+              props: true
+            },
           ]
         },
+
         {
           path: 'admin',
           component: DatasetAbout,

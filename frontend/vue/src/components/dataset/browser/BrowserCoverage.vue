@@ -1,7 +1,7 @@
 <template>
 <div class="browser-coverage">
   <!-- Loading message -->
-  <div v-if="coverage.loaded" class="alert alert-info col-md-4 col-md-offset-4 text-center" >
+  <div v-if="!coverage.loaded" class="alert alert-info col-md-4 col-md-offset-4 text-center" >
     <strong>Loading Coverage</strong>
   </div>
 
