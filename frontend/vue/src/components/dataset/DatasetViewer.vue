@@ -28,7 +28,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['dataset', 'errorCode'])
+    ...mapGetters(['dataset'])
   },
   props: ["datasetName", "datasetVersion"],
   components: {

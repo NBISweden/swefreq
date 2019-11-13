@@ -1,3 +1,4 @@
+
 <template>
 <div class="dataset-viewer">
   <div class="container">
@@ -21,7 +22,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['dataset', 'errorCode']),
+    ...mapGetters(['dataset']),
     dataType() {
       let urlParts = this.$route.path.split('/');
       return urlParts[urlParts.length-2];
