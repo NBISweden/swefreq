@@ -23,7 +23,7 @@
 
           <dt>UCSC Browser</dt>
           <dd class="hidden-xs">
-            <a :href="'http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=chr' + gene.chrom + '%3A' + (gene.start - 1) + '-' + (ctrl.gene.stop - 1) + '&hgt.customText=http://personal.broadinstitute.org/ruderfer/exac/exac-final.autosome-1pct-sq60-qc-prot-coding.cnv.bed'" target="_blank">
+            <a :href="'http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=chr' + gene.chrom + '%3A' + (gene.start - 1) + '-' + (gene.stop - 1) + '&hgt.customText=http://personal.broadinstitute.org/ruderfer/exac/exac-final.autosome-1pct-sq60-qc-prot-coding.cnv.bed'" target="_blank">
               {{ gene.chrom }}:{{ gene.start - 1 }}-{{ gene.stop - 1 }}
               <i class="fa fa-external-link"></i>
             </a>
@@ -46,7 +46,7 @@
               </button>
               <ul class="dropdown-menu" role="menu" aria-labelledby="external_ref_dropdown">
                 <li role="presentation">
-                  <a :href="'http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=chr' + gene.chrom + '%3A' + (gene.start - 1) + '-' + (ctrl.gene.stop - 1)">
+                  <a :href="'http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=chr' + gene.chrom + '%3A' + (gene.start - 1) + '-' + (gene.stop - 1)">
                     UCSC Browser
                     <i class="fa fa-external-link"></i>
                   </a>
@@ -94,22 +94,22 @@
         </dl>
       </div> <!-- END HEADER -->
 
-        <div class="col-md-1 hidden-xs">
-            <div class="dropdown">
-                <button class="btn btn-default dropdown-toggle" type="button" id="transcript_dropdown" data-toggle="dropdown">
-                    Transcripts
-                    <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu" role="menu" aria-labelledby="transcript_dropdown">
-                    <li f-for="transcript in transcripts" role="presentation">
-                        <a role="menuitem" tabindex="-1" :href="browserLink('transcript/' + transcript.transcriptId)">
-                          {{ transcript.transcriptId }}
-                          <span v-if="transcript.transcriptId == ctrl.gene.canonicalTranscript">*</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
+      <div class="col-md-1 hidden-xs">
+        <div class="dropdown">
+          <button class="btn btn-default dropdown-toggle" type="button" id="transcript_dropdown" data-toggle="dropdown">
+            Transcripts
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu" aria-labelledby="transcript_dropdown">
+            <li v-for="transcript in transcripts" :key="transcript.transcriptId" role="presentation">
+              <a role="menuitem" tabindex="-1" :href="browserLink('transcript/' + transcript.transcriptId)">
+                {{ transcript.transcriptId }}
+                <span v-if="transcript.transcriptId == gene.canonicalTranscript">*</span>
+              </a>
+            </li>
+          </ul>
         </div>
+      </div>
     </div> <!-- END row -->
   </div>
 </div>
@@ -117,6 +117,7 @@
 
 <script>
 import {mapGetters} from 'vuex';
+import axios from 'axios';
 
 export default {
   name: 'BrowserGene',
@@ -127,6 +128,9 @@ export default {
         'statusText': null
       },
       'gene': null,
+      'exons': null,
+      'transcripts': null,
+      'tmp': null,
     }
   },
   props: ['datasetName', 'datasetVersion', 'geneName'],
@@ -134,13 +138,36 @@ export default {
     ...mapGetters(['dataset']),
   },
   methods: {
-    
     browserLink (link) {
       if (this.datasetVersion) {
         return "/dataset/" + this.datasetName + "/version/" + this.datasetVersion + "/browser/" + link;
       }
       return "/dataset/" + this.datasetName + "/browser/" + link;
     }
+  },
+  created () {
+    let url = '';
+    if (this.$props.datasetVersion) {
+      url = '/api/dataset/' + this.$props.datasetName +
+        '/version/' + this.$props.datasetVersion +
+        '/browser/gene/' + this.$props.geneName;
+    }
+    else {
+      url = '/api/dataset/' + this.$props.datasetName +
+        '/browser/gene/' + this.$props.geneName;
+    }
+    axios
+      .get(url)
+      .then((response) => {
+        this.tmp = response;
+        this.gene = response.data.gene;
+        this.exons = response.data.exons;
+        this.transcripts = response.data.transcripts;
+      })
+      .catch((error) => {
+        this.error.statusCode = error.status;
+        this.error.statusText = error.statusText;
+      });
   },
 };
 </script>

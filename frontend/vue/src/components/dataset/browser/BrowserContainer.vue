@@ -1,7 +1,7 @@
 <template>
 <div class="dataset-viewer">
   <div class="container">
-    <gene-info v-if="dataType==='gene'"></gene-info>
+    <gene-info v-if="dataType==='gene'" :geneName="identifier" :datasetName="datasetName" :datasetVersion="datasetVersion"></gene-info>
     <coverage-plot></coverage-plot>
     <variant-list></variant-list>
   </div>
@@ -39,6 +39,7 @@ export default {
                                          'version': this.$props.datasetVersion,
                                          'datatype': this.dataType,
                                          'identifier': this.$props.identifier});
+
   },
 };
 
