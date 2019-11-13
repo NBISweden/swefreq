@@ -41,7 +41,7 @@ const mutations = {
   UPDATE_VARIANTS (state, payload) {
     state.variants = payload;
   },
-  UPDATE_VARIANTHEADERS (state, payload) {
+  UPDATE_VARIANT_HEADERS (state, payload) {
     state.variantHeaders = payload;
   },
   ADD_BEACON_RESPONSE (state, payload) {

@@ -2,10 +2,7 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 
 import BrowserContainer from '../components/dataset/browser/BrowserContainer.vue';
-import BrowserCoverage from '../components/dataset/browser/BrowserCoverage.vue';
-import BrowserGene from '../components/dataset/browser/BrowserGene.vue';
 import BrowserSearch from '../components/dataset/browser/BrowserSearch.vue';
-import BrowserVariants from '../components/dataset/browser/BrowserVariants.vue';
 
 import DatasetAbout from '../components/dataset/DatasetAbout.vue';
 import DatasetAccess from '../components/dataset/DatasetAccess.vue';
@@ -18,6 +15,68 @@ import HomeComponent from '../components/HomeComponent.vue';
 import SearchInterface from '../components/SearchInterface.vue';
 
 Vue.use(VueRouter);
+
+let datasetStructure = [
+  {
+    path: '',
+    redirect: 'about',
+  },
+  {
+    path: 'about',
+    component: DatasetAbout,
+    props: true
+  },
+  {
+    path: 'terms',
+    component: DatasetTerms,
+    props: true
+  },
+  {
+    path: 'download',
+    component: DatasetAccess,
+    props: true
+  },
+  {
+    path: 'beacon',
+    component: DatasetBeacon,
+    props: true
+  },
+  {
+    path: 'browser',
+    redirect: 'browser/search',
+    props: true
+  },
+  {
+    path: 'browser/search',
+    component: BrowserSearch,
+    props: true,
+  },
+  {
+    path: 'browser/variant/:variantId',
+    components: BrowserSearch,
+    props: true,
+  },
+  {
+    path: 'browser/gene/:identifier',
+    component: BrowserContainer,
+    props: true
+  },
+  {
+    path: 'browser/transcript/:identifier',
+    component: BrowserContainer,
+    props: true
+  },
+  {
+    path: 'browser/region/:identifier',
+    component: BrowserContainer,
+    props: true
+  },
+  {
+    path: 'admin',
+    component: DatasetAbout,
+  },
+]
+
 
 const router = new VueRouter({
   mode: 'history',
@@ -35,163 +94,13 @@ const router = new VueRouter({
       path: '/dataset/:datasetName/',
       component: DatasetViewer,
       props: true,
-      children: [
-        {
-          path: '',
-          redirect: 'about',
-        },
-        {
-          path: 'about',
-          component: DatasetAbout,
-        },
-        {
-          path: 'terms',
-          component: DatasetTerms,
-        },
-        {
-          path: 'download',
-          component: DatasetAccess,
-        },
-        {
-          path: 'beacon',
-          component: DatasetBeacon,
-          props: true
-        },
-        {
-          path: 'browser',
-          component: BrowserContainer,
-          props: true,
-          children: [
-            {
-              path: '',
-              redirect: 'search',
-            },
-            {
-              path: 'search',
-              components: {default: BrowserSearch},
-              props: true,
-            },
-            {
-              path: 'variant/:variantId',
-              components: {default: BrowserSearch},
-              props: true,
-            },
-            {
-              path: 'gene/:identifier',
-              components: {
-                default: BrowserGene,
-                coverage_plot: BrowserCoverage,
-                variant_list: BrowserVariants,
-              },
-              props: true
-            },
-            {
-              path: 'transcript/:identifier',
-              components: {
-                default: BrowserGene,
-                coverage_plot: BrowserCoverage,
-                variant_list: BrowserVariants,
-              },
-              props: true
-            },
-            {
-              path: 'region/:identifier',
-              components: {
-                default: BrowserGene,
-                coverage_plot: BrowserCoverage,
-                variant_list: BrowserVariants,
-              },
-              props: true
-            },
-          ]
-        },
-
-        {
-          path: 'admin',
-          component: DatasetAbout,
-        },
-      ]
+      children: datasetStructure
     },
     {
       path: '/dataset/:datasetName/version/:datasetVersion',
       component: DatasetViewer,
       props: true,
-      children: [
-        {
-          path: '',
-          redirect: 'about',
-        },
-        {
-          path: 'about',
-          component: DatasetAbout,
-        },
-        {
-          path: 'terms',
-          component: DatasetTerms,
-        },
-        {
-          path: 'download',
-          component: DatasetAccess,
-        },
-        {
-          path: 'beacon',
-          component: DatasetBeacon,
-          props: true
-        },
-        {
-          path: 'browser',
-          component: BrowserContainer,
-          props: true,
-          children: [
-            {
-              path: '',
-              redirect: 'search',
-            },
-            {
-              path: 'search',
-              components: {default: BrowserSearch},
-              props: true,
-            },
-            {
-              path: 'variant/:variantId',
-              components: {default: BrowserSearch},
-              props: true,
-            },
-            {
-              path: 'gene/:identifier',
-              components: {
-                default: BrowserGene,
-                coverage_plot: BrowserCoverage,
-                variant_list: BrowserVariants,
-              },
-              props: true
-            },
-            {
-              path: 'transcript/:identifier',
-              components: {
-                default: BrowserGene,
-                coverage_plot: BrowserCoverage,
-                variant_list: BrowserVariants,
-              },
-              props: true
-            },
-            {
-              path: 'region/:identifier',
-              components: {
-                default: BrowserGene,
-                coverage_plot: BrowserCoverage,
-                variant_list: BrowserVariants,
-              },
-              props: true
-            },
-          ]
-        },
-
-        {
-          path: 'admin',
-          component: DatasetAbout,
-        },
-      ]
+      children: datasetStructure
     },
     {
       path: '*',

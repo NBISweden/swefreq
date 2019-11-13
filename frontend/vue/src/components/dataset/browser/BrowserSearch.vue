@@ -45,7 +45,7 @@
 import {mapGetters} from 'vuex';
 
 export default {
-  name: 'DatasetBrowser',
+  name: 'BrowserSearch',
   data() {
     return {
       query: '',

@@ -8,8 +8,7 @@
   <div v-if="!variants" class="alert alert-info col-md-4 col-md-offset-4 text-center" >
     <strong>Loading Variants</strong>
   </div>
-
-  <div class="container" v-else>
+  <div class="container" v-if="variants && !error.statusCode">
     <div class="row">
       <div class="col-md-12">
         <span class="btn-group radio-button-group" @click="filterVariants">
@@ -59,7 +58,7 @@ export default {
       filterIncludeNonPass: false,
       item: null,
       itemType: null,
-      filteredVariants: null,
+      filteredVariants: [],
       orderByField: null,
       headers: null,
       reverseSort: null,

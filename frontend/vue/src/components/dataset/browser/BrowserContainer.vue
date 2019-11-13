@@ -1,18 +1,21 @@
 <template>
 <div class="dataset-viewer">
   <div class="container">
-    <router-view></router-view>
-    <router-view name="coverage_plot"></router-view>
-    <router-view name="variant_list"></router-view>
+    <gene-info v-if="dataType==='gene'"></gene-info>
+    <coverage-plot></coverage-plot>
+    <variant-list></variant-list>
   </div>
 </div>
 </template>
 
 <script>
 import {mapGetters} from 'vuex';
+import BrowserGene from './BrowserGene.vue';
+import BrowserCoverage from './BrowserCoverage.vue';
+import BrowserVariants from './BrowserVariants.vue';
 
 export default {
-  name: 'DatasetViewer',
+  name: 'BrowserContainer',
   data() {
     return {
     }
@@ -26,17 +29,16 @@ export default {
   },
   props: ["datasetName", "datasetVersion", "identifier"],
   components: {
+    'coverage-plot': BrowserCoverage,
+    'variant-list': BrowserVariants,
+    'gene-info': BrowserGene,
   },
   created() {
     this.$store.dispatch('getDataset', this.$props.datasetName);
-    if (this.dataType == 'gene' ||
-        this.dataType == 'transcript' ||
-        this.dataType == 'region') {
-      this.$store.dispatch('getVariants', {'dataset': this.$props.datasetName,
-                                           'version': this.$props.datasetVersion,
-                                           'datatype': this.dataType,
-                                           'identifier': this.$props.identifier});
-    }
+    this.$store.dispatch('getVariants', {'dataset': this.$props.datasetName,
+                                         'version': this.$props.datasetVersion,
+                                         'datatype': this.dataType,
+                                         'identifier': this.$props.identifier});
   },
 };
 

@@ -134,6 +134,7 @@ export default {
     ...mapGetters(['dataset']),
   },
   methods: {
+    
     browserLink (link) {
       if (this.datasetVersion) {
         return "/dataset/" + this.datasetName + "/version/" + this.datasetVersion + "/browser/" + link;
