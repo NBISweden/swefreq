@@ -3,7 +3,7 @@
 <div class="dataset-viewer">
   <div class="container">
     <gene-info v-if="dataType==='gene'" :geneName="identifier" :datasetName="datasetName" :datasetVersion="datasetVersion"></gene-info>
-    <coverage-plot></coverage-plot>
+    <coverage-plot :identifier="identifier" :datasetName="datasetName" :dataType="dataType" :datasetVersion="datasetVersion"></coverage-plot>
     <variant-list></variant-list>
   </div>
 </div>

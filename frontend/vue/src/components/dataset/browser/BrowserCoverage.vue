@@ -5,9 +5,10 @@
     <strong>Loading Coverage</strong>
   </div>
 
-  <div v-else-if="error.statusCode">
+  <div v-else-if="cov_error || covpos_error">
     <p>Unable to load the coverage information.</p>
-    <p>Reason: {{ error.statusCode }} {{ error.statusText }}</p>
+    <p>Reason (coverage): {{ cov_error }}</p>
+    <p>Reason (coverage position): {{ covpos_error }}</p>
   </div>
 
   <div v-else-if="coverage.data.length">
@@ -72,19 +73,25 @@
 
 <script>
 import {mapGetters} from 'vuex';
+import axios from 'axios';
 
 export default {
   name: 'BrowserCoverage',
+  props: ['datasetName',
+          'datasetVersion̈́',
+          'dataType',
+          'identifier'],
   data() {
     return {
       coverage: {
         data: [],
         loaded: false,
       },
-      error: {
-        statusCode: undefined,
-        statusText: '',
-      },
+      region: {'start': null,
+               'stop': null,
+               'chrom': null},
+      cov_error: undefined,
+      covpos_error: undefined,
       coverageMetric: undefined,
       zoom: undefined,
       overValue: undefined,
@@ -98,7 +105,42 @@ export default {
     doSearch (query) {
       query;
     },
-  }
+  },
+  created () {
+    let url = '/api/dataset/' + this.$props.datasetName;
+    if (this.$props.datasetVersion) {
+      url += '/version/' + this.$props.datasetVersion;
+    }
+    url += '/browser/coverage/' + this.$props.dataType +
+      '/' +  this.$props.identifier;
+    axios
+      .get(url)
+      .then((response) => {
+        this.coverage.data = response.data.coverage;
+        this.coverage.loaded = true;
+      })
+      .catch((error) => {
+        this.error = error;
+        this.coverage.loaded = true;
+      });
+    url = '/api/dataset/' + this.$props.datasetName;
+    if (this.$props.datasetVersion) {
+      url += '/version/' + this.$props.datasetVersion;
+    }
+    url += '/browser/coverage_pos/' + this.$props.dataType +
+      '/' +  this.$props.identifier;
+    axios
+      .get(url)
+      .then((response) => {
+        this.region.start = response.data.start;
+        this.region.stop = response.data.stop;
+        this.region.chrom = response.data.chrom;
+      })
+      .catch((error) => {
+        this.error = error;
+      });
+  },
+
 };
 </script>
 
