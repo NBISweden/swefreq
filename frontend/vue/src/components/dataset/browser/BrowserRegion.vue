@@ -1,13 +1,12 @@
 <template>
 <div class="browser-gene">
-  <div v-if="error.statusCode">
+  <div v-if="error">
     Unable to load region information.
   </div>
   <div class="container" v-if="region">
     <!-- HEADER -->
     <div class="col-md-12">
-      <h1 v-if="rsid">{{ rsid }}</h1>
-      <h1 v-else>Region: {{ region.chrom }}
+      <h1>Region: {{ region.chrom }}
         <span v-if="region.stop"> / {{ region.start }} / {{ region.stop }}</span>
       </h1>
     </div>
@@ -52,15 +51,11 @@ import {mapGetters} from 'vuex';
 import axios from 'axios';
 
 export default {
-  name: 'BrowserGene',
+  name: 'BrowserRegion',
   data() {
     return {
-      error: {
-        'statusCode': null,
-        'statusText': null
-      },
+      error: null,
       region: null,
-      'tmp': null,
     }
   },
   props: ['datasetName', 'datasetVersion', 'identifier'],
