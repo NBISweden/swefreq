@@ -12,26 +12,28 @@
   </div>
 
   <div v-else-if="coverage.data.length">
-    <h3>Gene summary</h3>
-    <p>(Coverage shown for <a href="http://www.ensembl.org/Help/Glossary?id=346" target="_blank">canonical transcript</a>: {
-      gene.canonicalTranscript }})</p>
+    <div v-if="gene">
+      <h3>Gene summary</h3>
+      <p>(Coverage shown for <a href="http://www.ensembl.org/Help/Glossary?id=346" target="_blank">canonical transcript</a>:
+        {{ gene.canonicalTranscript }})</p>
+    </div>
     <p>Mean coverage: {{ dataset.avgSeqDepth }} (entire dataset)</p>
     <div class="row">
       <div class="col-md-6">
         <label>Display:</label>
         <span class="btn-group radio-button-group">
-          <input type="radio" id="display-overview" v-model="coverage.zoom" value="overview">
+          <input type="radio" id="display-overview" v-model="zoom" value="overview">
           <label class="btn btn-primary first-button" for="display-overview">
             Overview
           </label>
-          <input type="radio" id="display-detail" v-model="coverage.zoom" value="detail">
+          <input type="radio" id="display-detail" v-model="zoom" value="detail">
           <label class="btn btn-primary" for="display-detail">
             Detail
           </label>
         </span>
 
         <label for="includeUtr">Include UTRs in plot</label>
-        <input id="includeUtr" name="includeUtr" type="checkbox" v-model="coverage.includeUTR" />
+        <input id="includeUtr" name="includeUtr" type="checkbox" v-model="includeUTR" />
       </div>
 
       <div class="col-md-6">
@@ -48,11 +50,10 @@
           <label>
             <input type="radio" v-model="coverageMetric" value="over">
             Individuals over
-            <select v-model="overValue" v-selected="coverage.overValue">
+            <select v-model="overValue" @change="updatedOverValue">
               <option v-for="cov in [1,5,10,15,20,25,30,50,100]" :key="cov" :value="cov">
-                @change="updatedOverValue">
                 {{ cov }}
-                </option>
+              </option>
             </select> X coverage
           </label>
         </span>
@@ -62,9 +63,6 @@
     <div class="row">
       <div class="col-md-12">
         <canvas id="canvas" width="1000" height="300" coverage></canvas>
-        <div id="annotationPanel" class="panel panel-default">
-          <div id="annotationInfo" class="panel-body"></div>
-        </div>
       </div>
     </div>
   </div>
@@ -83,6 +81,7 @@ export default {
           'identifier'],
   data() {
     return {
+      gene: null,
       coverage: {
         data: [],
         loaded: false,
@@ -92,9 +91,9 @@ export default {
                'chrom': null},
       cov_error: undefined,
       covpos_error: undefined,
-      coverageMetric: undefined,
+      coverageMetric: "mean",
       zoom: undefined,
-      overValue: undefined,
+      overValue: 50,
       includeUTR: false,
     }
   },
@@ -102,8 +101,9 @@ export default {
     ...mapGetters(['dataset']),
   },
   methods: {
-    doSearch (query) {
-      query;
+    updatedOverValue (event) {
+      event.preventDefault();
+      this.coverageMetric = "over";
     },
   },
   created () {
