@@ -136,7 +136,20 @@ const actions = {
       axios
         .get(url)
         .then((response) => {
-          context.commit('UPDATE_VARIANTS', response.data.variants);
+          let variants = response.data.variants;
+
+          let mapFunction = function(variant) {
+            variant.isPass = variant.filter == "PASS";
+            if (variant.flags.indexOf("LoF") === -1)
+              variant.isLof = false;
+            else
+              variant.isLof = true;
+            variant.isMissense = variant.majorConsequence == "missense";
+          };
+
+          variants.map(mapFunction);
+
+          context.commit('UPDATE_VARIANTS', variants);
           context.commit('UPDATE_VARIANT_HEADERS', response.data.headers);
           resolve(response);
         })
