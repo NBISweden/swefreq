@@ -3,6 +3,7 @@ import VueRouter from 'vue-router';
 
 import BrowserContainer from '../components/dataset/browser/BrowserContainer.vue';
 import BrowserSearch from '../components/dataset/browser/BrowserSearch.vue';
+import BrowserVariant from '../components/dataset/browser/BrowserVariant.vue';
 
 import DatasetAbout from '../components/dataset/DatasetAbout.vue';
 import DatasetAccess from '../components/dataset/DatasetAccess.vue';
@@ -24,59 +25,61 @@ let datasetStructure = [
   {
     path: 'about',
     component: DatasetAbout,
-    props: true
+    props: true,
   },
   {
     path: 'terms',
     component: DatasetTerms,
-    props: true
+    props: true,
   },
   {
     path: 'download',
     component: DatasetAccess,
-    props: true
+    props: true,
   },
   {
     path: 'beacon',
     component: DatasetBeacon,
-    props: true
+    props: true,
   },
   {
-    path: 'browser',
+    path: 'browser/',
     redirect: 'browser/search',
-    props: true
   },
   {
     path: 'browser/search',
     component: BrowserSearch,
     props: true,
   },
-  {
-    path: 'browser/variant/:variantId',
-    components: BrowserSearch,
-    props: true,
-  },
+    {
+      path: 'browser/variant/:variantId',
+      component: BrowserVariant,
+      props: true,
+    },
   {
     path: 'browser/gene/:identifier',
     component: BrowserContainer,
-    props: true
-  },
-  {
-    path: 'browser/transcript/:identifier',
-    component: BrowserContainer,
-    props: true
+    props: true,
   },
   {
     path: 'browser/region/:identifier',
     component: BrowserContainer,
-    props: true
+    props: true,
   },
   {
-    path: 'admin',
-    component: DatasetAbout,
+    path: 'browser/transcript/:identifier',
+    component: BrowserContainer,
+    props: true,
   },
-]
-
+  {
+    path: 'browser/*',
+    redirect: 'browser/search',
+  },
+  {
+    path: '*',
+    redirect: 'about',
+  },
+];
 
 const router = new VueRouter({
   mode: 'history',
