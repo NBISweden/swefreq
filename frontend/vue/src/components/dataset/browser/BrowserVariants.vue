@@ -11,7 +11,7 @@
   <div class="container" v-if="variants && !error.statusCode">
     <div class="row">
       <div class="col-md-12">
-        <span class="btn-group radio-button-group" @click="filterVariants">
+        <span class="btn-group radio-button-group" @change="filterVariants">
           <input type="radio" id="variants-filter-all" v-model="filterVariantsBy" value="all">
           <label class="btn btn-primary first-button" for="variants-filter-all">
             All
@@ -25,7 +25,7 @@
             LoF
           </label>
         </span>
-        <input type="checkbox" id="variants-filter-non-pass" v-model="filterIncludeNonPass" @click="filterVariants">
+        <input type="checkbox" id="variants-filter-non-pass" v-model="filterIncludeNonPass" @change="filterVariants">
         <label for="variants-filter-non-pass">
           Include filtered (non-PASS) variants
         </label>
@@ -55,6 +55,37 @@
               </th>
             </tr>
           </thead>
+          <tbody>
+            <tr v-for="variant in filteredVariants" :key="variant.variantId">
+              <td :title="variant['variantId']" class="variantId">
+                <router-link :to="browserLink('variant/' + variant['variantId'] )">
+                  {{formatVariant(variant)}}
+                </router-link>
+              </td>
+              <td :title="variant['chrom']" class="chrom" >{{variant['chrom'] }}</td>
+              <td :title="variant['pos']" class="pos" >{{variant['pos'] }}</td>
+              <td :title="variant['HGVS']" class="HGVS" >
+                {{variant['HGVS'] }}
+                <span v-if="variant['HGVS'] && variant['CANONICAL'] != 'YES'" title="Non-canonical">
+                  &dagger;
+                </span>
+              </td>
+              <td :title="variant['filter']" class="filter">{{variant['filter'] }}</td>
+              <td :title="variant['majorConsequence']" class="majorConsequence">{{variant['majorConsequence'] }}</td>
+              <td :title="variant['flags']" class="flags">{{variant['flags'] }}</td>
+              <td :title="variant['alleleCount']" class="alleleCount">{{variant['alleleCount'] }}</td>
+              <td :title="variant['alleleNum']" class="alleleNum">{{variant['alleleNum'] }}</td>
+              <td :title="variant['homCount']" class="homCount">{{variant['homCount'] }}</td>
+              <td :title="variant['alleleFreq']" class="alleleFreq">
+                <div>{{variant['alleleFreq'].toFixed(4)}}</div>
+                <img :src="require('../../../assets/img/steel_blue.png')">
+                <img v-for="threshold in variantBoxThresholds" :key="threshold"
+                     :src="variant['alleleFreq'] >= threshold && variant['alleleCount'] > 1 
+                           ?  require('../../../assets/img/steel_blue.png')
+                           : require('../../../assets/img/white.png')">
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </div>
@@ -76,6 +107,7 @@ export default {
       filterVariantsBy: "all",
       filterIncludeNonPass: false,
       filterVariantsOld: null,
+      variantBoxThresholds: [0, 1/10000, 1/1000, 1/100, 1/20, 1/2],
       item: null,
       itemType: null,
       filteredVariants: [],
@@ -89,6 +121,26 @@ export default {
     ...mapGetters(['variants', 'variantHeaders']),
   },
   methods: {
+    formatVariant (variant, len=12) {
+      function shortenSeq(input, len=12) {
+        let tail = Math.floor((len-5)/2);
+        if (input.length >= len) {
+          return input.substr(0,tail) + "[...]" + input.substr(input.length-tail,input.length);
+        }
+        return input;
+      }
+
+      let segments = variant["variantId"].split("-");
+      let text = "";
+      text += segments[0] + "-" + segments[1];
+      text += " " + shortenSeq(segments[2], len);
+      text += " → ";
+      text += " " + shortenSeq(segments[3], len);
+      if ( variant["rsid"] ) {
+        text += " (" + variant["rsid"] + ")";
+      }
+      return text;
+    },
     reorderVariants (event) {
       event.preventDefault();
     },
