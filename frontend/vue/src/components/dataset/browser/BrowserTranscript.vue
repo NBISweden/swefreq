@@ -2,7 +2,7 @@
 <div class="browser-transcript">
   <div v-if="error">
     <p>Unable to load the transcript information.</p>
-    <p>Reason: {{ ctrl.transcript.statusCode }} {{ ctrl.transcript.statusText }}</p>
+    <p>Reason: {{ error }}</p>
   </div>
 
   <div class="container" v-if="transcript">
@@ -25,7 +25,7 @@
     </div>
   </div>
   <!-- LOADING MESSAGE -->
-  <div v-if="!transcript" class="alert alert-info col-md-4 col-md-offset-4 text-center">
+  <div v-if="!transcript && !error" class="alert alert-info col-md-4 col-md-offset-4 text-center">
     <strong>Loading Transcript</strong>
   </div>
 </div>
@@ -74,7 +74,7 @@ export default {
         this.gene = response.data.gene;
       })
       .catch((error) => {
-        this.error.statusCode = error;
+        this.error = error;
       });
   },
 };
