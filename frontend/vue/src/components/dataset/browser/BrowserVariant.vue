@@ -35,8 +35,8 @@
     <!--  Left top pane -->
     <div class="alert alert-warning" v-if="variant.alleleNum < dataset.datasetSize * 1.6">
       <h4>Warning!</h4>
-      <p>This variant is only covered in {{ (ctrl.variant.alleleNum/2) | number:0 }} individuals (adjusted allele number = {{ ctrl.variant.alleleNum }}).</p>
-      <p>This means that the site is covered in fewer than 80% of the individuals in {{ ctrl.dataset.shortName }}, which may indicate a low-quality site.</p>
+      <p>This variant is only covered in {{ (variant.alleleNum/2) | number:0 }} individuals (adjusted allele number = {{ variant.alleleNum }}).</p>
+      <p>This means that the site is covered in fewer than 80% of the individuals in {{ dataset.shortName }}, which may indicate a low-quality site.</p>
     </div>
     <div class="col-md-6">
       <dl class="dl-horizontal">
@@ -57,7 +57,7 @@
         <dt>UCSC</dt>
         <dd>
           <a :href="'http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr' + variant.chrom + 
-                    '%3A' + variant.pos + '-' (ctrl.variant.pos + ctrl.variant.ref.length) + 
+                    '%3A' + variant.pos + '-' + (variant.pos + variant.ref.length) + 
                     '&position=chr' + variant.chrom + '%3A' + (variant.pos - 25) + '-' + (variant.pos + variant.ref.length - 1 + 25)" target="_blank">
             {{ variant.variantId }}
             <i class="fa fa-external-link"></i>
@@ -122,7 +122,7 @@
         <h2>Annotations</h2>
         <div v-if="variant.annotations">
           <p>This variant falls on {{ variant.transcripts.length }} transcripts in {{ variant.genes.length }}</p>
-          <div class="col-md-6" ng-repeat="(type, annotation) in ctrl.variant.annotations">
+          <div class="col-md-6" v-for="(annotation, type) in variant.annotations" :key="type">
             <h5>{{ type }}</h5>
 
             <table class="table table-sm table-striped table-condensed small">
@@ -176,23 +176,23 @@
     <!-- Right middle pane -->
     <div class="col-md-6">
       <h2>Dataset Frequencies</h2>
-      For all available datasets using the same reference set as {{ ctrl.dataset.shortName }}.
+      For all available datasets using the same reference set as {{ dataset.shortName }}.
       <div v-if="variant.popFreq">
         <table class="table table-sm table-striped table-condensed small">
           <thead>
             <tr>
-              <th v-for="header in variant.popFreq.headers" :key="header[0]">{{ header[0] }}</th>
+              <th v-for="header in variant.popFreq.headers" :key="header[0]">{{ header[1] }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="(value, dataset) in variant.popFreq.datasets" :key="dataset">
-              <td v-for="header in variant.popFreq.headers" :key="header">
+              <td v-for="header in variant.popFreq.headers" :key="header[1]">
                 <span v-if="header[1] === 'freq'">{{ value[header[1]].toFixed(4) }}</span>
                 <span v-else>{{ value[header[1]] }}</span>
               </td>
             </tr>
             <tr>
-              <th v-for="header in variant.popFreq.headers" :key="header">
+              <th v-for="header in variant.popFreq.headers" :key="header[1]">
                 <span v-if="header[1] === 'pop'">Total</span>
                 <span v-else-if="header[1] === 'freq'">{{ variant.popFreq.total[header[1]].toFixed(4) }}</span>
                 <span v-else>{{ variant.popFreq.total[header[1]] }}</span>
