@@ -35,7 +35,6 @@
           using software adapted from the Exome Aggregation Consortium (ExAC).</p>
       </div>
     </div>
-    
   </div>
 </div>
 </template>
