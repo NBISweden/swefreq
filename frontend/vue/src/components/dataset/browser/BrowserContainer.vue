@@ -3,6 +3,7 @@
 <div class="dataset-viewer">
   <div class="container">
     <gene-info v-if="dataType==='gene'" :geneName="identifier" :datasetName="datasetName" :datasetVersion="datasetVersion"></gene-info>
+    <region-info v-if="dataType==='region'" :identifier="identifier" :datasetName="datasetName" :datasetVersion="datasetVersion"></region-info>
     <coverage-plot :identifier="identifier" :datasetName="datasetName" :dataType="dataType" :datasetVersion="datasetVersion"></coverage-plot>
     <variant-list :identifier="identifier" :datasetName="datasetName" :dataType="dataType" :datasetVersion="datasetVersion"></variant-list>
   </div>
@@ -12,6 +13,7 @@
 <script>
 import {mapGetters} from 'vuex';
 import BrowserGene from './BrowserGene.vue';
+import BrowserRegion from './BrowserRegion.vue';
 import BrowserCoverage from './BrowserCoverage.vue';
 import BrowserVariants from './BrowserVariants.vue';
 
@@ -33,6 +35,7 @@ export default {
     'coverage-plot': BrowserCoverage,
     'variant-list': BrowserVariants,
     'gene-info': BrowserGene,
+    'region-info': BrowserRegion,
   },
   created() {
     this.$store.dispatch('getDataset', this.$props.datasetName);
