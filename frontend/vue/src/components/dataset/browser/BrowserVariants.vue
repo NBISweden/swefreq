@@ -30,7 +30,10 @@
           Include filtered (non-PASS) variants
         </label>
         <br />
-        <a v-if="item" class="btn btn-success" :_href="'/api/dataset/' + dataset.shortName + '/browser/download/' + itemType + '/' + item + '/filter/' + filterVariantsBy + '~' + filterIncludeNonPass" target="_self">Export table to CSV</a><br/>
+        <a class="btn btn-success" :href="'/api/dataset/' + dataset.shortName +
+                                          '/browser/download/' + dataType + '/' + identifier +
+                                          '/filter/' + filterVariantsBy + '~' + filterIncludeNonPass"
+           target="_self">Export table to CSV</a><br/>
         <span class="label label-info">&dagger; denotes a consequence that is for a non-canonical transcript</span>
       </div>
     </div>
@@ -118,7 +121,7 @@ export default {
   },
   props: ['datasetName', 'datasetVersion', 'dataType', 'identifier'],
   computed: {
-    ...mapGetters(['variants', 'variantHeaders']),
+    ...mapGetters(['dataset', 'variants', 'variantHeaders']),
   },
   methods: {
     formatVariant (variant, len=12) {
