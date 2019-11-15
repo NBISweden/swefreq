@@ -75,7 +75,7 @@ export default {
     if (this.$props.datasetVersion) {
       url = '/api/dataset/' + this.$props.datasetName +
         '/version/' + this.$props.datasetVersion +
-        '/browser/region/' + this.$props.geneName;
+        '/browser/region/' + this.$props.identifier;
     }
     else {
       url = '/api/dataset/' + this.$props.datasetName +
@@ -87,8 +87,7 @@ export default {
         this.region = response.data.region;
       })
       .catch((error) => {
-        this.error.statusCode = error.status;
-        this.error.statusText = error.statusText;
+        this.error = error;
       });
   },
 };

@@ -125,7 +125,7 @@ const actions = {
       if (payload.version) {
         url = '/api/dataset/' + payload.dataset +
           '/version/' + payload.version +
-          '/browser/variants' + payload.datatype +
+          '/browser/variants/' + payload.datatype +
           '/' + payload.identifier;
       }
       else {
