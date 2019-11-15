@@ -4,7 +4,7 @@
   <div class="container">
     <gene-info v-if="dataType==='gene'" :geneName="identifier" :datasetName="datasetName" :datasetVersion="datasetVersion"></gene-info>
     <coverage-plot :identifier="identifier" :datasetName="datasetName" :dataType="dataType" :datasetVersion="datasetVersion"></coverage-plot>
-    <variant-list></variant-list>
+    <variant-list :identifier="identifier" :datasetName="datasetName" :dataType="dataType" :datasetVersion="datasetVersion"></variant-list>
   </div>
 </div>
 </template>
@@ -36,11 +36,6 @@ export default {
   },
   created() {
     this.$store.dispatch('getDataset', this.$props.datasetName);
-    this.$store.dispatch('getVariants', {'dataset': this.$props.datasetName,
-                                         'version': this.$props.datasetVersion,
-                                         'datatype': this.dataType,
-                                         'identifier': this.$props.identifier});
-
   },
 };
 

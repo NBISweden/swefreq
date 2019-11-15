@@ -30,13 +30,32 @@
           Include filtered (non-PASS) variants
         </label>
         <br />
-        <a v-if="item" class="btn btn-success" _href="'/api/dataset/' + dataset.shortName + '/browser/download/' + itemType + '/' + item + '/filter/' + filterVariantsBy + '~' + ctrl.filterIncludeNonPass" target="_self">Export table to CSV</a><br/>
+        <a v-if="item" class="btn btn-success" :_href="'/api/dataset/' + dataset.shortName + '/browser/download/' + itemType + '/' + item + '/filter/' + filterVariantsBy + '~' + filterIncludeNonPass" target="_self">Export table to CSV</a><br/>
         <span class="label label-info">&dagger; denotes a consequence that is for a non-canonical transcript</span>
       </div>
     </div>
     <div class="row">
       <div class="col-md-12">
         Number of variants: {{filteredVariants.length}} (including filtered: {{variants.length}})
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <table class="table table-sm table-condensed small variant-table">
+          <thead>
+            <tr>
+              <th v-for="header in variantHeaders" :key="header[0]" :class="header[0]">
+                <a @click="reorderVariants($event, header[0])">
+                  <span v-if="orderByField === header[0]">
+                    <span v-if="!reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+                    <span v-else class="glyphicon glyphicon-triangle-bottom"></span>
+                  </span>
+                  {{ header[1] }}
+                </a>
+              </th>
+            </tr>
+          </thead>
+        </table>
       </div>
     </div>
   </div>
@@ -54,8 +73,9 @@ export default {
         'statusCode': null,
         'statusText': null
       },
-      filterVariantsBy: null,
+      filterVariantsBy: "all",
       filterIncludeNonPass: false,
+      filterVariantsOld: null,
       item: null,
       itemType: null,
       filteredVariants: [],
@@ -64,16 +84,39 @@ export default {
       reverseSort: null,
     }
   },
-  props: ['datasetName', 'datasetVersion', 'geneName'],
+  props: ['datasetName', 'datasetVersion', 'dataType', 'identifier'],
   computed: {
     ...mapGetters(['variants', 'variantHeaders']),
   },
   methods: {
     reorderVariants (event) {
-      event;
+      event.preventDefault();
     },
-    filterVariants (event) {
-      event;
+    filterVariants () {
+      let filterAsText = this.filterVariantsBy + this.filterIncludeNonPass;
+      if (this.filterVariantsOld == filterAsText) {
+        return;
+      }
+      this.filterVariantsOld = filterAsText;
+      let localThis = this;
+
+      let filterFunction = function(variant) {
+        // Remove variants that didn't PASS QC
+        if (! (localThis.filterIncludeNonPass || variant.isPass )) {
+          return false;
+        }
+        switch(localThis.filterVariantsBy) {
+        case "all":
+          return true;
+        case "lof":
+          return variant.isLof;
+        case "mislof":
+          return variant.isLof || variant.isMissense;
+        default:
+          return false;
+        }
+      }
+      this.filteredVariants = this.variants.filter( filterFunction );
     },
     browserLink (link) {
       if (this.datasetVersion) {
@@ -82,6 +125,15 @@ export default {
       return "/dataset/" + this.datasetName + "/browser/" + link;
     }
   },
+  created () {
+    this.$store.dispatch('getVariants', {'dataset': this.$props.datasetName,
+                                         'version': this.$props.datasetVersion,
+                                         'datatype': this.dataType,
+                                         'identifier': this.$props.identifier})
+      .then(() => {
+        this.filterVariants();
+      });
+  }
 };
 </script>
 
