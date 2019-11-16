@@ -1,14 +1,20 @@
 <template>
 <div class="container">
-  <div class="row">
-    <div>
-      <div v-if="dataset.future" class="alert alert-danger alert-future">This version will become public at {{ctrl.dataset.version.availableFrom}}</div>
-      <h1>{{ dataset.fullName }}</h1>
-    </div>
-    <dataset-nav-bar :datasetName="datasetName" :datasetVersion="datasetVersion"></dataset-nav-bar>
+  <div v-if="error">
+    Unable to retrieve the dataset<span v-if="datasetVersion">/version combination</span> ({{ datasetName }}<span v-if="datasetVersion">/{{ datasetVersion }}</span>). Maybe it doesn't exist?
   </div>
-  <div class="row">
-    <router-view></router-view>
+
+  <div v-else>
+    <div class="row">
+      <div>
+	<div v-if="dataset.future" class="alert alert-danger alert-future">This version will become public at {{dataset.version.availableFrom}}</div>
+	<h1>{{ dataset.fullName }}</h1>
+      </div>
+      <dataset-nav-bar :datasetName="datasetName" :datasetVersion="datasetVersion"></dataset-nav-bar>
+    </div>
+    <div class="row">
+      <router-view></router-view>
+    </div>
   </div>
 </div>
 </template>
@@ -21,10 +27,11 @@ export default {
   name: 'DatasetViewer',
   data() {
     return {
+      error: null,
     }
   },
   computed: {
-    ...mapGetters(['dataset', 'user'])
+    ...mapGetters(['dataset', 'tmp'])
   },
   props: ["datasetName", "datasetVersion"],
   components: {
@@ -33,8 +40,11 @@ export default {
   created() {
     this.$store.dispatch('getDataset', {
       datasetName: this.$props.datasetName,
-      datasetVerstion: this.$props.datasetVersion,
-    });
+      datasetVersion: this.$props.datasetVersion,
+    })
+      .catch((error) => {
+        this.error = error;
+      });
   },
 };
 

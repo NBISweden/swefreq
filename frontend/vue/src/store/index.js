@@ -88,34 +88,52 @@ const actions = {
   },
 
   getDatasetList ({ commit }) {
-    axios
-      .get('/api/dataset')
-      .then((response) => {
-        commit('UPDATE_DATASETS', response.data.data);
-      });
+    return new Promise((resolve, reject) => {
+      axios
+        .get('/api/dataset')
+        .then((response) => {
+          commit('UPDATE_DATASETS', response.data.data);
+          resolve(response);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
   },
 
   getDataset (context, payload) {
-    let baseUrl = '/api/dataset/' + payload.datasetName;
-    if (payload.datasetVersion) {
-      baseUrl += '/versions/' + payload.datasetVersion;
-    }
-    axios
-      .get(baseUrl)
-      .then((response) => {
-        context.commit('UPDATE_DATASET', response.data);
-      });
-    axios
-      .get('/api/dataset/' + payload.datasetName + '/versions') 
-      .then((response) => {
-        context.commit('UPDATE_DATASET_VERSIONS', response.data.data);
-      });
-    axios
-      .get(baseUrl + '/collection')
-      .then((response) => {
-        context.commit('UPDATE_COLLECTIONS', response.data.collections);
-        context.commit('UPDATE_STUDY', response.data.study);
-      });
+    return new Promise((resolve, reject) => {
+      let baseUrl = '/api/dataset/' + payload.datasetName;
+      if (payload.datasetVersion) {
+        baseUrl += '/versions/' + payload.datasetVersion;
+      }
+      axios
+        .get(baseUrl)
+        .then((response) => {
+          context.commit('UPDATE_DATASET', response.data);
+          axios
+            .get('/api/dataset/' + payload.datasetName + '/versions') 
+            .then((response) => {
+              context.commit('UPDATE_DATASET_VERSIONS', response.data.data);
+              axios
+                .get(baseUrl + '/collection')
+                .then((response) => {
+                  context.commit('UPDATE_COLLECTIONS', response.data.collections);
+                  context.commit('UPDATE_STUDY', response.data.study);
+                  resolve();
+                })
+                .catch((error) => {
+                  reject(error);
+                });
+            })
+            .catch((error) => {
+              reject(error);
+            });
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
   },
 
   updateCurrentBeacon(context, current_dataset) {
@@ -168,6 +186,7 @@ const actions = {
         })
         .catch((error) => {
           reject(error);
+          context.commit('UPDATE_VARIANTS', []);
         });
     });
   },
