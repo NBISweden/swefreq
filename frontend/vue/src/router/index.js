@@ -75,10 +75,6 @@ let datasetStructure = [
     path: 'browser/*',
     redirect: 'browser/search',
   },
-  {
-    path: '*',
-    redirect: 'about',
-  },
 ];
 
 const router = new VueRouter({
@@ -94,7 +90,7 @@ const router = new VueRouter({
       component: SearchInterface,
     },
     {
-      path: '/dataset/:datasetName/',
+      path: '/dataset/:datasetName',
       component: DatasetViewer,
       props: true,
       children: datasetStructure
@@ -104,6 +100,14 @@ const router = new VueRouter({
       component: DatasetViewer,
       props: true,
       children: datasetStructure
+    },
+    {
+      path: '/dataset/:datasetName/version/:datasetVersion/*',
+      redirect: '/dataset/:datasetName/version/:datasetVersion/about',
+    },
+    {
+      path: '/dataset/:datasetName/*',
+      redirect: '/dataset/:datasetName/about',
     },
     {
       path: '*',
