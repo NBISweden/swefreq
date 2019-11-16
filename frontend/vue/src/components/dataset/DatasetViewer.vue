@@ -5,7 +5,7 @@
       <div v-if="dataset.future" class="alert alert-danger alert-future">This version will become public at {{ctrl.dataset.version.availableFrom}}</div>
       <h1>{{ dataset.fullName }}</h1>
     </div>
-    <dataset-nav-bar :datasetName="datasetName"></dataset-nav-bar>
+    <dataset-nav-bar :datasetName="datasetName" :datasetVersion="datasetVersion"></dataset-nav-bar>
   </div>
   <div class="row">
     <router-view></router-view>
