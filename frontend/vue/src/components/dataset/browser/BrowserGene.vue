@@ -8,7 +8,7 @@
   <div v-if="!gene && !error.statusCode" class="alert alert-info col-md-4 col-md-offset-4 text-center" >
     <strong>Loading Gene</strong>
   </div>
-  <div class="container-fluid" v-if="gene">
+  <div v-if="gene">
     <div class="row">
       <div class="col-md-12">
         <h1>Gene: {{ gene.geneName }}</h1>

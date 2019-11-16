@@ -3,7 +3,7 @@
   <div v-if="error">
     Unable to load region information.
   </div>
-  <div class="container" v-if="region">
+  <div v-if="region">
     <!-- HEADER -->
     <div class="col-md-12">
       <h1>Region: {{ region.chrom }}

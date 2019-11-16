@@ -1,13 +1,11 @@
 
 <template>
-<div class="dataset-viewer">
-  <div class="container">
-    <gene-info v-if="dataType==='gene'" :geneName="identifier" :datasetName="datasetName" :datasetVersion="datasetVersion"></gene-info>
-    <region-info v-if="dataType==='region'" :identifier="identifier" :datasetName="datasetName" :datasetVersion="datasetVersion"></region-info>
-    <transcript-info v-if="dataType==='transcript'" :identifier="identifier" :datasetName="datasetName" :datasetVersion="datasetVersion"></transcript-info>
-    <coverage-plot :identifier="identifier" :datasetName="datasetName" :dataType="dataType" :datasetVersion="datasetVersion"></coverage-plot>
-    <variant-list :identifier="identifier" :datasetName="datasetName" :dataType="dataType" :datasetVersion="datasetVersion"></variant-list>
-  </div>
+<div class="dataset-viewer container">
+  <gene-info v-if="dataType==='gene'" :geneName="identifier" :datasetName="datasetName" :datasetVersion="datasetVersion"></gene-info>
+  <region-info v-if="dataType==='region'" :identifier="identifier" :datasetName="datasetName" :datasetVersion="datasetVersion"></region-info>
+  <transcript-info v-if="dataType==='transcript'" :identifier="identifier" :datasetName="datasetName" :datasetVersion="datasetVersion"></transcript-info>
+  <coverage-plot :identifier="identifier" :datasetName="datasetName" :dataType="dataType" :datasetVersion="datasetVersion"></coverage-plot>
+  <variant-list :identifier="identifier" :datasetName="datasetName" :dataType="dataType" :datasetVersion="datasetVersion"></variant-list>
 </div>
 </template>
 
@@ -40,17 +38,10 @@ export default {
     'region-info': BrowserRegion,
     'transcript-info': BrowserTranscript,
   },
-  created() {
-    this.$store.dispatch('getDataset', this.$props.datasetName);
-  },
 };
 
 </script>
 
 <style scoped>
-.navigation-bar {
-    padding: 5px 0px}
-.navigation-link {
-    padding: 0px 10px;
-}
+
 </style>

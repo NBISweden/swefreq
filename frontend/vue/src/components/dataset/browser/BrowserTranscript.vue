@@ -5,7 +5,7 @@
     <p>Reason: {{ error }}</p>
   </div>
 
-  <div class="container" v-if="transcript">
+  <div v-if="transcript">
     <h1>{{ gene.name }}</h1>
     <h4>{{ gene.fullName }}</h4>
     <h3>Transcript: {{ transcript.id }} ({{ transcript.numberOfCDS }} coding exons)</h3>
