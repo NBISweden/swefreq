@@ -1,17 +1,13 @@
 <template>
-<div class="dataset-viewer">
-  <div class="container">
-    <div class="row">
-      <div>
-        <div v-if="dataset.future" class="alert alert-danger alert-future">This version will become public at {{ctrl.dataset.version.availableFrom}}</div>
-        <h1>{{ dataset.fullName }}</h1>
-      </div>
-      <dataset-nav-bar :datasetName="datasetName"></dataset-nav-bar>
+<div class="container">
+  <div class="row">
+    <div>
+      <div v-if="dataset.future" class="alert alert-danger alert-future">This version will become public at {{ctrl.dataset.version.availableFrom}}</div>
+      <h1>{{ dataset.fullName }}</h1>
     </div>
-    <div class="row">
-      <div id="tab-bar">
-      </div>
-    </div>
+    <dataset-nav-bar :datasetName="datasetName"></dataset-nav-bar>
+  </div>
+  <div class="row">
     <router-view></router-view>
   </div>
 </div>
@@ -42,9 +38,5 @@ export default {
 </script>
 
 <style scoped>
-.navigation-bar {
-    padding: 5px 0px}
-.navigation-link {
-    padding: 0px 10px;
-}
+
 </style>
