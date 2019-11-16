@@ -10,6 +10,7 @@ const state = {
   user: {},
   datasets: {},
   dataset: {},
+  datasetVersions: [],
   study: {},
   collections: {},
   variants: [],
@@ -31,6 +32,9 @@ const mutations = {
   },
   UPDATE_DATASET (state, payload) {
     state.dataset = payload;
+  },
+  UPDATE_DATASET_VERSIONS (state, payload) {
+    state.datasetVersions = payload;
   },
   UPDATE_DATASETS (state, payload) {
     state.datasets = payload;
@@ -91,14 +95,23 @@ const actions = {
       });
   },
 
-  getDataset (context, ds_name) {
+  getDataset (context, payload) {
+    let baseUrl = '/api/dataset/' + payload.datasetName;
+    if (payload.datasetVersion) {
+      baseUrl += '/versions/' + payload.datasetVersion;
+    }
     axios
-      .get('/api/dataset/' + ds_name)
+      .get(baseUrl)
       .then((response) => {
         context.commit('UPDATE_DATASET', response.data);
       });
     axios
-      .get('/api/dataset/' + ds_name + '/collection')
+      .get('/api/dataset/' + payload.datasetName + '/versions') 
+      .then((response) => {
+        context.commit('UPDATE_DATASET_VERSIONS', response.data.data);
+      });
+    axios
+      .get(baseUrl + '/collection')
       .then((response) => {
         context.commit('UPDATE_COLLECTIONS', response.data.collections);
         context.commit('UPDATE_STUDY', response.data.study);
@@ -216,6 +229,7 @@ const getters = {
   collections: state => state.collections,
   currentBeacon: state => state.currentBeacon,
   dataset: state => state.dataset,
+  datasetVersions: state => state.datasetVersions,
   datasets: state => state.datasets,
   error: state => state.error,
   loggedIn: state => state.loggedIn,

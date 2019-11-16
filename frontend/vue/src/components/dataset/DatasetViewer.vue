@@ -24,14 +24,17 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['dataset'])
+    ...mapGetters(['dataset', 'user'])
   },
   props: ["datasetName", "datasetVersion"],
   components: {
     'dataset-nav-bar': DatasetViewerBar,
   },
   created() {
-    this.$store.dispatch('getDataset', this.datasetName);
+    this.$store.dispatch('getDataset', {
+      datasetName: this.$props.datasetName,
+      datasetVerstion: this.$props.datasetVersion,
+    });
   },
 };
 
