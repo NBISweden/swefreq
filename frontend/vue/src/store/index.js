@@ -72,11 +72,17 @@ const actions = {
   },
 
   getUser ({ commit }) {
-    axios
-      .get('/api/users/me')
-      .then((response) => {
-        commit('UPDATE_USER', response.data);
-      });
+    return new Promise((resolve, reject) => {
+      axios
+        .get('/api/users/me')
+        .then((response) => {
+          commit('UPDATE_USER', response.data);
+          resolve(response);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
   },
 
   getCountries ({ commit }) {

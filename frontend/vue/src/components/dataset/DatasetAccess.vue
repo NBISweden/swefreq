@@ -1,5 +1,5 @@
 <template>
-<div class="dataset-access">
+<div class="dataset-access" v-if="Object.keys(dataset) > 0">
   <div class="row">
     <div class="col-sm-12">
       <div class="alert" role="alert">
@@ -11,14 +11,14 @@
       </div>
     </div>
   </div>
-  <div v-if="authorizationLevel === logged_out">
+  <div v-if="!user.user">
     <div class="row">
       <div class="col-sm-12">
         <div class="dataset-body padding-tb">You need to login to request access to the summary files.</div>
       </div>
     </div>
   </div>
-  <div v-else-if="authorizationLevel === no_access">
+  <div v-else-if="dataset.authorizationLevel === 'no_access'">
     <h3>Request access to summary files</h3>
     <div class="row clearfix">
       <div class="col-md-12 column">
@@ -38,16 +38,23 @@
           <div class="form-group">
             <label for="affiliation" class="col-sm-2 control-label">Affiliation</label>
             <div class="col-sm-4">
-              <input type="text" class="form-control" id="affiliation" name="affiliation" required v-model="ctrl.user.affiliation" placeholder="Your affiliation" />
+              <input type="text" class="form-control" id="affiliation" name="affiliation" required v-model="affiliation" placeholder="Your affiliation"/>
             </div>
           </div>
           <div class="form-group">
             <label for="country" class="col-sm-2 control-label">Country</label>
             <div class="col-sm-4">
-              <select name="country" class="form-control" id="country"  v-model="user.country" required>
-                <option value="None">Select country</option>
+              <select name="country" class="form-control" id="country"  v-model="country" required>
+                <option value="">-- Select country --</option>
                 <option v-for="country in availableCountries" :key="country.name" :value="country.name">{{country.name}}</option>
               </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-sm-2"></div>
+            <div class="col-sm-4 checkbox">
+              <input type="checkbox" id="newsletter" v-model="newsletter">
+              <label class="control-label" for="newsletter">I want a newsletter</label>
             </div>
           </div>
           <div class="form-group">
@@ -55,7 +62,7 @@
           </div>
           <div class="form-group">
             <div class="col-sm-offset-2 col-sm-10">
-              <input type="submit" class="btn btn-primary" @click="sendRequest(requestForm.$valid)" />
+              <input type="submit" class="btn btn-primary" @click="sendRequest" />
             </div>
           </div>
         </form>
@@ -69,57 +76,166 @@
       </div>
     </div>
   </div>
-  <div v-else-if="authorizationLevel === thank_you">
+  <div v-else-if="dataset.authorizationLevel === 'thank_you'">
     <div class="row">
       <div class="col-sm-12">
-        <div class="dataset-body padding-tb">Thank you for your application. We will review it as soon as possible, thank you for your patience.</div>
+        <div class="dataset-body padding-tb">
+          Thank you for your application. We will review it as soon as possible, thank you for your patience.
+        </div>
       </div>
     </div>
   </div>
-  <div v-else-if='authorizationLevel === has_requested_access'>
+  <div v-else-if="dataset.authorizationLevel === 'has_requested_access'">
     <div class="row">
       <div class="col-sm-12">
-        <div class="dataset-body padding-tb">Your access request is currently under review, thank you for your patience.</div>
+        <div class="dataset-body padding-tb">
+          Your access request is currently under review, thank you for your patience.
+        </div>
       </div>
     </div>
   </div>
+  <div v-else-if="dataset.authorizationLevel === has_access">
+    <h2>Terms of use for the {{ dataset.shortName }} dataset (release {{ dataset.version.version }})</h2>
+    <div v-html="dataset.version.terms"></div>
+
+    <h2>Consent</h2>
+
+    <p>
+      <label for="consent"><b>I hereby consent to the agreement:</b></label>
+      <input id="consent" type="checkbox" v-model="checked" @change="consented" :disabled="checked">
+    </p>
+
+    <h2>Files</h2>
+
+    <div class='table-responsive'>
+      <table class="table file-download">
+        <thead>
+          <tr>
+            <th></th>
+            <th>File</th>
+            <th>Size</th>
+            <th>Temporary link<a class="popup-trigger"
+                                 tabindex="0"
+                                 data-trigger="focus"
+                                 title="Temporary link"
+                                 data-placement="top"
+                                 data-toggle="popover"
+                                 :data-content="'Time-limited link' + (files.length>1?'s':'') + ' that can be used to download the file' + files.length>1?'s':'' + ' without logging in to the site, e.g. with a command line tool'">[?]</a> <span v-if='!temporaries'><a class="btn btn-primary btn-xs" :class="{'disabled': !checked}" href="#" @click="createTemporaryLink">Create</a></span></th>
+            <th>Valid Until</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="file in files" class="table" :key="file">
+            <td><a class="btn btn-primary btn-download btn-sm" :class="{'disabled': checked}" :download="file.name" :href="file.uri" target="_self" @click="downloadData" aria-label="Download" title="Download"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span></a></td>
+            <td>{{file.name}}</td>
+            <td class="text-right">{{file.humanSize}}</td>            
+            <td>
+              <div class="temporary-links">
+                <input class="input-sm" type="text" :value="file.tempUrl" size="50" readonly>
+                <a v-if="canCopy" :class="{'disabled': !temporaries}" class="btn btn-primary btn-sm" @click="copyLink(file.tempUrl)" :aria-label="'Copy' + file.tempUrl + ' to clipboard'" title="Copy to clipboard"><span class="glyphicon glyphicon-copy" aria-hidden="true"></span></a>
+              </div>
+            <td><nobr>{{ file.expiresOn }}</nobr></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>>
 </div>
 </template>
 
 <script>
 import {mapGetters} from 'vuex';
+import axios from 'axios';
 
 export default {
   name: 'DatasetAccess',
   data() {
     return {
-      authorizationLevel: '',
+      authorizationLevel: 'loggedOut',
+      affiliation: '',
+      country: '',
+      sendError: '',
+      newsLetter: false,
+      checked: false,
+      files: [],
+      temporaries: [],
+      canCopy: false,
+    }
+  },
+  props: ['datasetName', 'datasetVersion'],
+  watch: {
+    user: function () {
+      this.country = this.user.country;
+      this.affiliation = this.user.affiliation;
     }
   },
   computed: {
     dataContactIsEmail () {
       return this.dataset.version.dataContactLink.includes("@");
     },
-    ...mapGetters(['dataset', 'collections', 'study', 'user', 'avalableCountries'])
-  },
+    ...mapGetters(['dataset', 'user', 'availableCountries'])
+  },    
   methods: {
-    updateAuthorizationLevel() {
-      if (!Object.prototype.hasOwnProperty.call(this, "user") || this.user.user == null) {
-        this.authorizationLevel = "logged_out";
+    requestAccess(dataset, user) {
+      axios.post("/api/dataset/" + this.$props.datasetName + "/users/" + user.email + "/request",
+                 {
+                   "email":       this.user.email,
+                   "userName":    this.user.userName,
+                   "affiliation": this.user.affiliation,
+                   "country":     this.country,
+                   "_xsrf":       this.getXsrf(),
+                   "newsletter":  this.newsletter ? 1 : 0
+                 })
+        .then(() => {
+          this.$store.dispatch('getUser');
+        })
+        .catch((error) => {
+          this.sendError = error;
+        });
+    },
+    getXsrf() {
+      let name = "_xsrf=";
+      let decodedCookie = decodeURIComponent(document.cookie);
+      let ca = decodedCookie.split(';');
+      for(let i = 0; i <ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') {
+          c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+          return c.substring(name.length, c.length);
+        }
       }
-      else if (Object.prototype.hasOwnProperty.call(this, "dataset")) {
-        this.authorizationLevel = this.dataset.authorizationLevel;
-      }
-    }
+      return ""
+    },
+    createTemporaryLink(fileName) {
+      fileName;
+    },
+    downloadData() {
+    },
+    copyLink(fileUrl) {
+      fileUrl;
+    },
   },
   created () {
+    let url = "/api/dataset/" + this.$props.datasetName;
+    if (this.$props.datasetVersion) {
+      url += "/versions/" + this.$props.datasetVersion;
+    }
+    url += "/files";
+    axios
+      .get(url)
+      .then((response) => {
+        this.files = response.data.files;
+      });
+    
     this.$store.dispatch('getCountries');
-    this.$store.dispatch('getUser');
-    this.updateAuthorizationLevel();
+    this.affiliation = this.user.affiliation;
+    this.country = this.user.country;
   },
 };
-
 </script>
 
 <style scoped>
+  
 </style>
