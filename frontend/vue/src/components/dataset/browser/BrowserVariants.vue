@@ -1,8 +1,8 @@
 <template>
 <div class="browser-variants">
-  <div v-if="error.statusCode">
+  <div v-if="error">
     <p>Unable to load the variants.</p>
-    <p>Reason: {{ error.statusCode }} {{ error.statusText }}</p>
+    <p>Reason: {{ error }}</p>
   </div>
   <!-- LOADING MESSAGE -->
   <div v-if="!variants" class="alert alert-info col-md-4 col-md-offset-4 text-center" >
