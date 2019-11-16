@@ -1,7 +1,7 @@
 <template>
 <div id="app">
   <TopBar></TopBar>
-  <router-view></router-view>
+  <router-view :key="$route.fullPath"></router-view>
   <FooterBar></FooterBar>
 </div>
 </template>
