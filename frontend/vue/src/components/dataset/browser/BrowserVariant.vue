@@ -40,7 +40,7 @@
     </div>
     <div class="col-md-6">
       <dl class="dl-horizontal">
-        <dt><span :class="{'label': true, 'label-danger': variant.filter != 'PASS'}">Filter Status</span></dt>
+        <dt><span :class="{'label label-danger': variant.filter !== 'PASS'}">Filter Status</span></dt>
         <dd>{{ variant.filter }}</dd>
         <dt>dbSNP</dt>
         <dd v-if="variant.rsid && variant.rsid != '.'">
@@ -104,7 +104,7 @@
             <div class="col-md-6">
               <table class="mini-table">
                 <tr v-for="(value, metric, index) in variant.qualityMetrics" :key="metric">
-                  <th v-if="index%2+1">{{ metric }}</th><td v-if="index%2+1">{{ value }}</td>
+                  <th v-if="(index+1)%2">{{ metric }}</th><td v-if="(index+1)%2">{{ value }}</td>
                 </tr>
               </table>
             </div>
@@ -181,7 +181,7 @@
         <table class="table table-sm table-striped table-condensed small">
           <thead>
             <tr>
-              <th v-for="header in variant.popFreq.headers" :key="header[0]">{{ header[1] }}</th>
+              <th v-for="header in variant.popFreq.headers" :key="header[1]">{{ header[0] }}</th>
             </tr>
           </thead>
           <tbody>
