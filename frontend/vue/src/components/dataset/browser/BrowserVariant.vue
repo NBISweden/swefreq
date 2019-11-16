@@ -85,7 +85,7 @@
 
         <div class="panel-body">
           <div class="alert alert-info alert-dismissable"
-               ng-if="variant.origAltAlleles.length > 1" role="alert">
+               v-if="variant.origAltAlleles.length > 1" role="alert">
             <strong>Note:</strong>
             These are site-level quality metrics: they may be unpredictable for multi-allelic sites.
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
