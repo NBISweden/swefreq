@@ -155,47 +155,6 @@ const actions = {
         response;
       });
   },
-
-  getVariants(context, payload) {
-    return new Promise((resolve, reject) => {
-      let url = '';
-      if (payload.version) {
-        url = '/api/dataset/' + payload.dataset +
-          '/version/' + payload.version +
-          '/browser/variants/' + payload.datatype +
-          '/' + payload.identifier;
-      }
-      else {
-        url = '/api/dataset/' + payload.dataset +
-          '/browser/variants/' + payload.datatype +
-          '/' + payload.identifier;
-      }
-      axios
-        .get(url)
-        .then((response) => {
-          let variants = response.data.variants;
-
-          let mapFunction = function(variant) {
-            variant.isPass = variant.filter == "PASS";
-            if (variant.flags.indexOf("LoF") === -1)
-              variant.isLof = false;
-            else
-              variant.isLof = true;
-            variant.isMissense = variant.majorConsequence == "missense";
-          };
-
-          variants.map(mapFunction);
-
-          context.commit('UPDATE_VARIANTS', variants);
-          context.commit('UPDATE_VARIANT_HEADERS', response.data.headers);
-          resolve(response);
-        })
-        .catch((error) => {
-          reject(error);
-          context.commit('UPDATE_VARIANTS', []);
-        });
-    });
-  },
   
   makeBeaconQuery (context, payload) {
     return new Promise((resolve, reject) => {

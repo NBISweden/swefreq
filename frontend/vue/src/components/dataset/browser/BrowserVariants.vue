@@ -4,11 +4,7 @@
     <p>Unable to load the variants.</p>
     <p>Reason: {{ error }}</p>
   </div>
-  <!-- LOADING MESSAGE -->
-  <div v-if="!variants" class="alert alert-info col-md-4 col-md-offset-4 text-center" >
-    <strong>Loading Variants</strong>
-  </div>
-  <div class="container" v-if="variants && !error.statusCode">
+  <div class="container" v-else>
     <div class="row">
       <div class="col-md-12">
         <span class="btn-group radio-button-group" @change="filterVariants">
@@ -39,7 +35,7 @@
     </div>
     <div class="row">
       <div class="col-md-12">
-        Number of variants: {{filteredVariants.length}} (including filtered: {{variants.length}})
+        <div v-if="loaded">Number of variants: {{filteredVariants.length}} (including filtered: {{variants.length}})</div><div v-else>Loading...</div>
       </div>
     </div>
     <div class="row">
@@ -59,7 +55,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="variant in filteredVariants" :key="variant.variantId">
+            <tr v-for="variant in orderedVariants" :key="variant.variantId">
               <td :title="variant['variantId']" class="variantId">
                 <router-link :to="browserLink('variant/' + variant['variantId'] )">
                   {{formatVariant(variant)}}
@@ -98,15 +94,17 @@
 
 <script>
 import {mapGetters} from 'vuex';
+import axios from 'axios';
+import Vue2Filters from 'vue2-filters'
 
 export default {
   name: 'BrowserVariants',
+
+  mixins: [Vue2Filters.mixin],
+
   data() {
     return {
-      error: {
-        'statusCode': null,
-        'statusText': null
-      },
+      error: null,
       filterVariantsBy: "all",
       filterIncludeNonPass: false,
       filterVariantsOld: null,
@@ -114,15 +112,22 @@ export default {
       item: null,
       itemType: null,
       filteredVariants: [],
-      orderByField: null,
-      headers: null,
-      reverseSort: null,
+      orderByField: "pos",
+      reverseSort: false,
+      variants: [],
+      variantHeaders: [],
+      loaded: false,
     }
   },
+
   props: ['datasetName', 'datasetVersion', 'dataType', 'identifier'],
   computed: {
-    ...mapGetters(['dataset', 'variants', 'variantHeaders']),
+    ...mapGetters(['dataset']),
+    orderedVariants: function() {
+      return this.orderBy(this.filteredVariants, this.orderByField, this.reverseSort ? -1 : 1);
+    }
   },
+
   methods: {
     formatVariant (variant, len=12) {
       function shortenSeq(input, len=12) {
@@ -144,9 +149,17 @@ export default {
       }
       return text;
     },
-    reorderVariants (event) {
-      event.preventDefault();
+
+    reorderVariants (event, field) {
+      if (field == this.orderByField) {
+        this.reverseSort = !this.reverseSort;
+      }
+      else {
+        this.orderByField = field;
+        this.reverseSort = false;
+      }
     },
+
     filterVariants () {
       let filterAsText = this.filterVariantsBy + this.filterIncludeNonPass;
       if (this.filterVariantsOld == filterAsText) {
@@ -173,6 +186,7 @@ export default {
       }
       this.filteredVariants = this.variants.filter( filterFunction );
     },
+
     browserLink (link) {
       if (this.datasetVersion) {
         return "/dataset/" + this.datasetName + "/version/" + this.datasetVersion + "/browser/" + link;
@@ -181,12 +195,35 @@ export default {
     }
   },
   created () {
-    this.$store.dispatch('getVariants', {'dataset': this.$props.datasetName,
-                                         'version': this.$props.datasetVersion,
-                                         'datatype': this.dataType,
-                                         'identifier': this.$props.identifier})
-      .then(() => {
+    let url = '/api/dataset/' + this.$props.datasetName;
+    if (this.$props.datasetVersion) {
+      url += '/version/' + this.$props.datasetVersion;
+    }
+    url += '/browser/variants/' + this.$props.dataType +
+      '/' + this.$props.identifier;
+    axios
+      .get(url)
+      .then((response) => {
+        let variants = response.data.variants;
+
+        let mapFunction = function(variant) {
+          variant.isPass = variant.filter == "PASS";
+          if (variant.flags.indexOf("LoF") === -1)
+            variant.isLof = false;
+          else
+            variant.isLof = true;
+          variant.isMissense = variant.majorConsequence == "missense";
+        };
+
+        variants.map(mapFunction);
+
+        this.variants = variants;
+        this.variantHeaders = response.data.headers;
         this.filterVariants();
+        this.loaded = true;
+      })
+      .catch((error) => {
+        this.error = error;
       });
   }
 };
