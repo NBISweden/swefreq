@@ -64,20 +64,24 @@
   <h2>Results</h2>
   <div class="table-responsive">
     <table class="table table-striped">
-      <tr>
-        <th></th>
-        <th>Chromosome</th>
-        <th>Position</th>
-        <th>Reference Allele</th>
-        <th>Alternate Allele</th>
-      </tr>
-      <tr v-for="row in queryResponses" :key="row">
-        <td>{{row.response.state}}</td>
-        <td>{{row.query.chromosome}}</td>
-        <td>{{row.query.position}}</td>
-        <td>{{row.query.referenceAllele}}</td>
-        <td>{{row.query.allele}}</td>
-      </tr>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Chromosome</th>
+          <th>Position</th>
+          <th>Reference Allele</th>
+          <th>Alternate Allele</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="row in queryResponses" :key="row">
+          <td>{{row.response.state}}</td>
+          <td>{{row.query.chromosome}}</td>
+          <td>{{row.query.position}}</td>
+          <td>{{row.query.referenceAllele}}</td>
+          <td>{{row.query.allele}}</td>
+        </tr>
+      </tbody>
     </table>
   </div>
  </div>
@@ -98,14 +102,14 @@ export default {
                  'allele': '',
                  'beaconInfo': {}},
       showDetails: false,
-      tmp: null,
+      localResponses: [],
     }
   },
-
-  props: ['datasetName'],
   
+  props: ['datasetName', 'datasetVersion'],
+
   computed: {
-    ...mapGetters(['dataset', 'queryResponses', 'currentBeacon'])
+    ...mapGetters(['dataset', 'queryResponses', 'currentBeacon']),
   },
 
   methods: {
@@ -123,7 +127,6 @@ export default {
   },
 
   created () {
-    this.$store.dispatch('updateCurrentBeacon', this.$props.datasetName);
     axios
       .get('/api/beacon-elixir/')
       .then((response) => {
@@ -137,26 +140,39 @@ export default {
           }
         }
         let beaconId = "";
-        let highestVer = 0;
         let reference = "";
-        for (let i = 0; i < references.length; i++) {
-          let ver = parseInt(references[i].split(":")[2]);
-          if (ver > highestVer) {
-            highestVer = ver;
-            reference = references[i].split(":")[0].substring(0, 6);
-            beaconId = references[i];
+
+        if (this.$props.datasetVersion) {
+          for (let i = 0; i < references.length; i++) {
+            if (references[i].split(":")[2] === this.$props.datasetVersion) {
+              reference = references[i].split(":")[0].substring(0, 6);
+              beaconId = references[i];
+            }
+          }
+        }
+        else {
+          let highestVer = 0;
+          for (let i = 0; i < references.length; i++) {
+            let ver = parseInt(references[i].split(":")[2]);
+            if (ver > highestVer) {
+              highestVer = ver;
+              reference = references[i].split(":")[0].substring(0, 6);
+              beaconId = references[i];
+            }
           }
         }
         this.newQuery.beaconInfo = {
           "reference": reference,
           "datasetId": beaconId,
         };
+        this.$store.dispatch('updateCurrentBeacon', beaconId);
       })
       .catch(() => {
         this.newQuery.beaconInfo = {
           'reference': '',
           'datasetId': '',
         }
+        this.$store.dispatch('updateCurrentBeacon', this.$props.datasetName);
       });
   }
 };
