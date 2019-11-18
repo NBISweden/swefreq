@@ -6,6 +6,7 @@ import BrowserSearch from '../components/dataset/browser/BrowserSearch.vue';
 import BrowserVariant from '../components/dataset/browser/BrowserVariant.vue';
 
 import DatasetAbout from '../components/dataset/DatasetAbout.vue';
+import DatasetAdmin from '../components/dataset/DatasetAdmin.vue';
 import DatasetAccess from '../components/dataset/DatasetAccess.vue';
 import DatasetBeacon from '../components/dataset/DatasetBeacon.vue';
 import DatasetTerms from '../components/dataset/DatasetTerms.vue';
@@ -25,6 +26,11 @@ let datasetStructure = [
   {
     path: 'about',
     component: DatasetAbout,
+    props: true,
+  },
+  {
+    path: 'admin',
+    component: DatasetAdmin,
     props: true,
   },
   {
