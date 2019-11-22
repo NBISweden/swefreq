@@ -5660,3 +5660,13 @@ COPY data.variant_transcripts (id, variant, transcript) FROM stdin;
 4148	1665	31
 4153	1668	54
 \.
+
+COPY data.dataset_files(id, dataset_version, basename, uri, file_size) FROM stdin;
+1	1	bFile11-1	/release/bfile111.txt	100
+2	1	bFile11-2	/release/bfile112.txt	101
+3	2	bFile12-1	/release/bfile121.txt	102
+4	3	bFile13-1	/release/bfile131.txt	103
+5	4	bFile13-1	/release/bfile141.txt	104
+6	5	bFile21-1	/release/bfile211.txt	105
+7	6	bFile22-1	/release/bfile221.txt	106
+\.
