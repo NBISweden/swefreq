@@ -30,7 +30,7 @@
           <div class="form-group">
             <label for="email" class="col-sm-2 control-label">E-mail</label>
             <div class="col-sm-4">
-              <input type="text" class="form-control" id="email" v-model="user.email" v-disabled="true" placeholder="Your e-mail" />
+              <input type="text" class="form-control" id="email" v-model="user.email" :disabled="true" placeholder="Your e-mail" />
             </div>
           </div>
           <div class="form-group">
@@ -50,8 +50,8 @@
           </div>
           <div class="form-group">
             <div class="col-sm-2"></div>
-            <div class="col-sm-4 checkbox">
-              <input type="checkbox" id="newsletter" v-model="newsletter">
+            <div class="col-sm-4">
+              <input type="checkbox" id="newsletter" v-model="newsLetter">
               <label class="control-label" for="newsletter">I want a newsletter</label>
             </div>
           </div>
@@ -60,7 +60,7 @@
           </div>
           <div class="form-group">
             <div class="col-sm-offset-2 col-sm-10">
-              <input type="submit" class="btn btn-primary" @click="sendRequest" />
+              <input type="submit" class="btn btn-primary" @click="requestAccess" />
             </div>
           </div>
         </form>
@@ -181,7 +181,7 @@ export default {
                    "affiliation": this.user.affiliation,
                    "country":     this.country,
                    "_xsrf":       this.getXsrf(),
-                   "newsletter":  this.newsletter ? 1 : 0
+                   "newsletter":  this.newsLetter ? 1 : 0
                  })
         .then(() => {
           this.$store.dispatch('getUser');
