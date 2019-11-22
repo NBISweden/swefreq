@@ -28,7 +28,7 @@ const mutations = {
     state.collections = payload;
   },
   UPDATE_COUNTRIES (state, payload) {
-    state.countries = payload;
+    state.availableCountries = payload;
   },
   UPDATE_DATASET (state, payload) {
     state.dataset = payload;
@@ -89,7 +89,7 @@ const actions = {
     axios
       .get('/api/countries')
       .then((response) => {
-        commit('UPDATE_COUNTRIES', response.data);
+        commit('UPDATE_COUNTRIES', response.data.countries);
       });
   },
 

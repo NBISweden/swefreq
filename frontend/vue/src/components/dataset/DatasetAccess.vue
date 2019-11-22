@@ -149,7 +149,6 @@ export default {
   name: 'DatasetAccess',
   data() {
     return {
-      authorizationLevel: 'loggedOut',
       affiliation: '',
       country: '',
       sendError: '',
