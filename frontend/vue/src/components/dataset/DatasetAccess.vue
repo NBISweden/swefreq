@@ -1,5 +1,5 @@
 <template>
-<div class="dataset-access" v-if="Object.keys(dataset) > 0">
+<div class="dataset-access" v-if="Object.keys(dataset).length > 0">
   <div class="row">
     <div class="col-sm-12">
       <div class="alert" role="alert">
@@ -12,10 +12,8 @@
     </div>
   </div>
   <div v-if="!user.user">
-    <div class="row">
-      <div class="col-sm-12">
-        <div class="dataset-body padding-tb">You need to login to request access to the summary files.</div>
-      </div>
+    <div class="col-sm-12">
+      <div class="dataset-body padding-tb">You need to login to request access to the summary files.</div>
     </div>
   </div>
   <div v-else-if="dataset.authorizationLevel === 'no_access'">
@@ -94,7 +92,7 @@
       </div>
     </div>
   </div>
-  <div v-else-if="dataset.authorizationLevel === has_access">
+  <div v-else-if="dataset.authorizationLevel === 'has_access'">
     <h2>Terms of use for the {{ dataset.shortName }} dataset (release {{ dataset.version.version }})</h2>
     <div v-html="dataset.version.terms"></div>
 
@@ -125,10 +123,10 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="file in files" class="table" :key="file">
-            <td><a class="btn btn-primary btn-download btn-sm" :class="{'disabled': checked}" :download="file.name" :href="file.uri" target="_self" @click="downloadData" aria-label="Download" title="Download"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span></a></td>
+          <tr v-for="file in files" class="table" :key="file.name">
+            <td><a class="btn btn-primary btn-download btn-sm" :class="{'disabled': !checked}" :download="file.name" :href="file.uri" target="_self" @click="downloadData" aria-label="Download" title="Download"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span></a></td>
             <td>{{file.name}}</td>
-            <td class="text-right">{{file.humanSize}}</td>            
+            <td class="text-right">{{file.humanSize}}</td>
             <td>
               <div class="temporary-links">
                 <input class="input-sm" type="text" :value="file.tempUrl" size="50" readonly>
@@ -139,7 +137,7 @@
         </tbody>
       </table>
     </div>
-  </div>>
+  </div>
 </div>
 </template>
 
