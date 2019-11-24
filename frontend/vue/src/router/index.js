@@ -1,16 +1,16 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 
-import BrowserContainer from '../components/dataset/browser/BrowserContainer.vue';
-import BrowserSearch from '../components/dataset/browser/BrowserSearch.vue';
-import BrowserVariant from '../components/dataset/browser/BrowserVariant.vue';
+const BrowserContainer = () => import(/* webpackChunkName: "browser" */ '../components/dataset/browser/BrowserContainer.vue')
+const BrowserSearch = () => import(/* webpackChunkName: "browser" */ '../components/dataset/browser/BrowserSearch.vue')
+const BrowserVariant = () => import(/* webpackChunkName: "browser" */ '../components/dataset/browser/BrowserVariant.vue')
 
-import DatasetAbout from '../components/dataset/DatasetAbout.vue';
-import DatasetAdmin from '../components/dataset/DatasetAdmin.vue';
-import DatasetAccess from '../components/dataset/DatasetAccess.vue';
-import DatasetBeacon from '../components/dataset/DatasetBeacon.vue';
-import DatasetTerms from '../components/dataset/DatasetTerms.vue';
-import DatasetViewer from '../components/dataset/DatasetViewer.vue';
+const DatasetAbout = () => import(/* webpackChunkName: "dataset" */ '../components/dataset/DatasetAbout.vue')
+const DatasetAdmin = () => import(/* webpackChunkName: "dataset" */ '../components/dataset/DatasetAdmin.vue')
+const DatasetAccess = () => import(/* webpackChunkName: "dataset" */ '../components/dataset/DatasetAccess.vue')
+const DatasetBeacon = () => import(/* webpackChunkName: "dataset" */ '../components/dataset/DatasetBeacon.vue')
+const DatasetTerms = () => import(/* webpackChunkName: "dataset" */ '../components/dataset/DatasetTerms.vue')
+const DatasetViewer = () => import(/* webpackChunkName: "dataset" */ '../components/dataset/DatasetViewer.vue')
 
 import HomeComponent from '../components/HomeComponent.vue';
 
