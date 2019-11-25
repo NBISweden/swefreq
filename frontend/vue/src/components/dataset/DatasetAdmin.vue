@@ -20,25 +20,29 @@
       <div class="tab-pane active" id="pending">
         <div class="table-responsive">
           <table class="table table-striped">
-            <tr>
-              <th></th>
-              <th>Name</th>
-              <th>E-mail</th>
-              <th>Affiliation</th>
-              <th>Country</th>
-              <th>Applied date</th>
-            </tr>
-            <tr v-for="row in users.pending" :key="row.user">
-              <td>
-                <div class="btn btn-primary btn-xs" data-toggle="tooltip" title="Give the user access" @click="approveUser(row)">Approve</div>
-                <div class="btn btn-danger btn-xs" data-toggle="tooltip" title="Deny access"  @click="revokeUser(row)">Deny</div>
-              </td>
-              <td>{{row.user}}</td>
-              <td>{{row.email}}</td>
-              <td>{{row.affiliation}}</td>
-              <td>{{row.country}}</td>
-              <td>{{row.applyDate}}</td>
-            </tr>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Name</th>
+                <th>E-mail</th>
+                <th>Affiliation</th>
+                <th>Country</th>
+                <th>Applied date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in users.pending" :key="row.email">
+                <td>
+                  <div class="btn btn-primary btn-xs" data-toggle="tooltip" title="Give the user access" @click="approveUser(row)">Approve</div>
+                  <div class="btn btn-danger btn-xs" data-toggle="tooltip" title="Deny access" @click="revokeUser(row)">Deny</div>
+                </td>
+                <td>{{row.user}}</td>
+                <td>{{row.email}}</td>
+                <td>{{row.affiliation}}</td>
+                <td>{{row.country}}</td>
+                <td>{{row.applyDate}}</td>
+              </tr>
+            </tbody>
           </table>
         </div>
       </div>
@@ -46,24 +50,28 @@
       <div class="tab-pane" id="approved">
         <div class="table-responsive">
           <table class="table table-striped">
-            <tr>
-              <th></th>
-              <th>Name</th>
-              <th>E-mail</th>
-              <th>Affiliation</th>
-              <th>Country</th>
-              <th>Applied date</th>
-            </tr>
-            <tr v-for="row in users.current" :key="row">
-              <td>
-                <div class="btn btn-danger btn-xs" data-toggle="tooltip" title="Deny access" @click="revokeUser(row)">Revoke</div>
-              </td>
-              <td>{{row.user}}</td>
-              <td>{{row.email}}</td>
-              <td>{{row.affiliation}}</td>
-              <td>{{row.country}}</td>
-              <td>{{row.applyDate}}</td>
-            </tr>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Name</th>
+                <th>E-mail</th>
+                <th>Affiliation</th>
+                <th>Country</th>
+                <th>Applied date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in users.current" :key="row.email">
+                <td>
+                  <div class="btn btn-danger btn-xs" data-toggle="tooltip" title="Deny access" @click="revokeUser(row)">Revoke</div>
+                </td>
+                <td>{{row.user}}</td>
+                <td>{{row.email}}</td>
+                <td>{{row.affiliation}}</td>
+                <td>{{row.country}}</td>
+                <td>{{row.applyDate}}</td>
+              </tr>
+            </tbody>
           </table>
         </div>
       </div>
@@ -71,7 +79,7 @@
       <div class="tab-pane" id="emaillist">
         <span v-for="user in users.current" :key="user.name">
           <span v-if="user.newsletter">
-            {{user.email}}{{$last ? '' : ', '}}
+            {{user.email}},
           </span>
         </span>
       </div>
@@ -85,18 +93,20 @@ import {mapGetters} from 'vuex';
 import axios from 'axios';
 
 export default {
-  name: 'DatasetAbout',
+  name: 'DatasetAdmin',
   
   data() {
     return {
       users: {},
+      nr_updates: 0,
+      error: '',
     }
   },
   
-  props: ['currentPage'],
+  props: ['currentPage', 'datasetName'],
   
   computed: {
-    ...mapGetters(['dataset'])
+    ...mapGetters(['dataset', 'user'])
   },
   methods: {
     getXsrf() {
@@ -116,31 +126,40 @@ export default {
     },
 
     getUsers() {
-      var users = {"pending": [], "current": []};
+      let users = {"pending": [], "current": []};
       axios.get( "/api/dataset/" + this.datasetName + "/users_pending" )
-        .then(function(data) {
-          users.pending = data.data.data;
+        .then(function(request) {
+          users.pending = request.data.data;
         }
              ),
       axios.get( "/api/dataset/" + this.datasetName + "/users_current" )
-        .then(function(data) {
-          users.current = data.data.data;
+        .then(function(request) {
+          users.current = request.data.data;
         });
+      this.users = users;
     },
 
     approveUser(user) {
-      axios
-        .post("/api/dataset/" + this.datasetName + "/users/" + user.email + "/approve",
-              {"_xsrf": this.getXsrf("_xsrf")})
+      axios({
+        method: 'post',
+        url: "/api/dataset/" + this.datasetName + "/users/" + user.email + "/approve",
+        params: {
+          "_xsrf": this.getXsrf("_xsrf")
+        },
+      })
         .then(() => {
           this.getUsers();
         });
     },
 
     revokeUser(user) {
-      axios
-        .post("/api/dataset/" + this.datasetName + "/users/" + user.email + "/revoke",
-              {"_xsrf": this.getXsrf("_xsrf")})
+      axios({
+        method: 'post',
+        url: "/api/dataset/" + this.datasetName + "/users/" + user.email + "/revoke",
+        params: {
+          "_xsrf": this.getXsrf("_xsrf")
+        }
+      })
         .then(() => {
           this.getUsers();
         });
