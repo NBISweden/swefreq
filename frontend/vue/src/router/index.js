@@ -13,6 +13,7 @@ const DatasetTerms = () => import(/* webpackChunkName: "dataset" */ '../componen
 const DatasetViewer = () => import(/* webpackChunkName: "dataset" */ '../components/dataset/DatasetViewer.vue')
 
 import HomeComponent from '../components/HomeComponent.vue';
+import UserProfile from '../components/UserProfile.vue';
 
 import SearchInterface from '../components/SearchInterface.vue';
 
@@ -90,6 +91,10 @@ const router = new VueRouter({
     {
       path: '/',
       component: HomeComponent,
+    },
+    {
+      path: '/profile',
+      component: UserProfile,
     },
     {
       path: '/search',
