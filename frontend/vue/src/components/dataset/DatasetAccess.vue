@@ -130,7 +130,7 @@
             <td>
               <div class="temporary-links">
                 <input class="input-sm" type="text" :value="file.tempUrl" size="50" readonly>
-                <a v-if="canCopy" :class="{'disabled': !temporaries}" class="btn btn-primary btn-sm" @click="copyLink(file.tempUrl)" :aria-label="'Copy' + file.tempUrl + ' to clipboard'" title="Copy to clipboard"><span class="glyphicon glyphicon-copy" aria-hidden="true"></span></a>
+                <a v-if="canCopy" :class="{'disabled': temporaries}" class="btn btn-primary btn-sm" @click="copyLink(file.tempUrl)" :aria-label="'Copy' + file.tempUrl + ' to clipboard'" title="Copy to clipboard"><span class="glyphicon glyphicon-copy" aria-hidden="true"></span></a>
               </div>
             <td><nobr>{{ file.expiresOn }}</nobr></td>
           </tr>
@@ -162,8 +162,8 @@ export default {
   props: ['datasetName', 'datasetVersion'],
   watch: {
     user: function () {
-      this.country = this.user.country;
       this.affiliation = this.user.affiliation;
+      this.country = this.user.country;
     }
   },
   computed: {
@@ -173,18 +173,21 @@ export default {
     ...mapGetters(['dataset', 'user', 'availableCountries'])
   },    
   methods: {
-    requestAccess(dataset, user) {
-      axios.post("/api/dataset/" + this.$props.datasetName + "/users/" + user.email + "/request",
-                 {
-                   "email":       this.user.email,
-                   "userName":    this.user.userName,
-                   "affiliation": this.user.affiliation,
-                   "country":     this.country,
-                   "_xsrf":       this.getXsrf(),
-                   "newsletter":  this.newsLetter ? 1 : 0
-                 })
+    requestAccess() {
+      axios({method: 'post',
+             url: "/api/dataset/" + this.$props.datasetName + "/users/" + this.user.email + "/request",
+             params: {
+               "email":       this.user.email,
+               "userName":    this.user.userName,
+               "affiliation": this.affiliation,
+               "country":     this.country,
+               "newsletter":  this.newsLetter ? 1 : 0,
+               "_xsrf": this.getXsrf(),
+             },
+            })
         .then(() => {
           this.$store.dispatch('getUser');
+          this.$store.dispatch('getDataset');
         })
         .catch((error) => {
           this.sendError = error;
@@ -227,6 +230,7 @@ export default {
       });
     
     this.$store.dispatch('getCountries');
+
     this.affiliation = this.user.affiliation;
     this.country = this.user.country;
   },
