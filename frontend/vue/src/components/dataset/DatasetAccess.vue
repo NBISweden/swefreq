@@ -100,7 +100,7 @@
 
     <p>
       <label for="consent"><b>I hereby consent to the agreement:</b></label>
-      <input id="consent" type="checkbox" v-model="checked" @change="consented" :disabled="checked">
+      <input id="consent" type="checkbox" v-model="checked" @change="!checked" :disabled="checked">
     </p>
 
     <h2>Files</h2>
