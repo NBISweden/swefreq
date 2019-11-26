@@ -22,14 +22,6 @@ services:
       - type: bind
         source: .
         target: /code
-  rebuilder:
-    build:
-      context: ./
-      dockerfile: Dockerfile-frontend-rebuilder
-    volumes:
-      - type: bind
-        source: .
-        target: /code
   frontend:
     build:
       context: ./
