@@ -16,7 +16,7 @@
           <li><a @click="showAbout = !showAbout" style="cursor: pointer">About</a>
           <li class="dropdown" v-if="user.user"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ user.user }}<span class="caret"></span></a>
             <ul class="dropdown-menu">
-              <li><router-link to="/profile" class="navigation-link"><span>User Profile</span></router-link></li>
+              <li><router-link to="/profile">User Profile</router-link></li>
               <li><a :href="'/logout?next=' + this.$route.path" target="_self" :title="'Logout ' + user.user">Logout</a></li>
             </ul>
           </li>
