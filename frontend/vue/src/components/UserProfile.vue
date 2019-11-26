@@ -62,7 +62,7 @@
             <th>Subscribed to email updates</th>
             <th>Access</th>
           </tr>
-          <tr v-for="row in datasets" :key="row.id">
+          <tr v-for="row in userDatasets" :key="row.shortName">
             <td>{{row.shortName}}</td>
             <td>{{row.email ? "Yes" : "No"}}</td>
             <td>{{row.access ? (row.isAdmin ? "Admin" : "Approved" ) : "Request pending" }}</td>
@@ -120,7 +120,7 @@ export default {
       error: '',
       isAdmin: 0,
       sftp: null,
-      tmp: null,
+      userDatasets: [],
     }
   },
 
@@ -132,20 +132,21 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['datasets', 'availableCountries', 'user'])
+    ...mapGetters(['availableCountries', 'user'])
   },
 
   created() {
     this.$store.dispatch('getCountries');
     this.$store.dispatch('getDatasetList')
       .then(() => {
-        this.datasets.forEach(function(dataset) {
+        this.userDatasets.forEach(function(dataset) {
           this.isAdmin = this.isAdmin | dataset.isAdmin;
         }, this);
       });
     this.affiliation = this.user.affiliation;
     this.country = this.user.country;
 
+    this.getUserDatasets();
     this.getSFTPCredentials();
   },
 
@@ -185,6 +186,13 @@ export default {
       axios.get("/api/users/sftp_access")
         .then((response) => {
           this.sftp = response.data;
+        });
+    },
+
+    getUserDatasets () {
+      axios.get("/api/users/datasets")
+        .then((response) => {
+          this.userDatasets = response.data.data;
         });
     },
   },
