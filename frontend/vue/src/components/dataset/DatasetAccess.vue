@@ -174,16 +174,19 @@ export default {
   },    
   methods: {
     requestAccess() {
-      axios({method: 'post',
-             url: "/api/dataset/" + this.$props.datasetName + "/users/" + this.user.email + "/request",
-             params: {
+      let body = {
                "email":       this.user.email,
                "userName":    this.user.userName,
                "affiliation": this.affiliation,
                "country":     this.country,
                "newsletter":  this.newsLetter ? 1 : 0,
                "_xsrf": this.getXsrf(),
-             },
+      };
+      axios({method: 'post',
+             url: "/api/dataset/" + this.$props.datasetName + "/users/" + this.user.email + "/request",
+             data: Object.keys(body).map(function(k) {
+               return encodeURIComponent(k) + '=' + encodeURIComponent(body[k])
+             }).join('&'),
             })
         .then(() => {
           this.$store.dispatch('getUser');

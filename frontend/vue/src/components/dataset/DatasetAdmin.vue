@@ -140,12 +140,15 @@ export default {
     },
 
     approveUser(user) {
+      let body = {
+        "_xsrf": this.getXsrf("_xsrf")
+      };
       axios({
         method: 'post',
         url: "/api/dataset/" + this.datasetName + "/users/" + user.email + "/approve",
-        params: {
-          "_xsrf": this.getXsrf("_xsrf")
-        },
+        data: Object.keys(body).map(function(k) {
+          return encodeURIComponent(k) + '=' + encodeURIComponent(body[k])
+        }).join('&'),
       })
         .then(() => {
           this.getUsers();
@@ -153,12 +156,15 @@ export default {
     },
 
     revokeUser(user) {
+      let body = {
+        "_xsrf": this.getXsrf("_xsrf")
+      };
       axios({
         method: 'post',
         url: "/api/dataset/" + this.datasetName + "/users/" + user.email + "/revoke",
-        params: {
-          "_xsrf": this.getXsrf("_xsrf")
-        }
+        data: Object.keys(body).map(function(k) {
+          return encodeURIComponent(k) + '=' + encodeURIComponent(body[k])
+        }).join('&'),
       })
         .then(() => {
           this.getUsers();
