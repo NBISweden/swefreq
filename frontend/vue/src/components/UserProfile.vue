@@ -20,13 +20,13 @@
           <div class="form-group">
             <label for="user_name" class="col-sm-2 control-label">Name</label>
             <div class="col-sm-4">
-              <input type="text" class="form-control" id="user-name" ng-model="ctrl.user.user" :disabled="true" placeholder="Your name">
+              <input type="text" class="form-control" id="user-name" :value="user.user" :disabled="true" placeholder="Your name">
             </div>
           </div>
           <div class="form-group">
             <label for="email" class="col-sm-2 control-label">E-mail</label>
             <div class="col-sm-4">
-              <input type="text" class="form-control" id="email" ng-model="ctrl.user.email" required :disabled="true" placeholder="Your e-mail">
+              <input type="text" class="form-control" id="email" :value="user.email" required :disabled="true" placeholder="Your e-mail">
             </div>
           </div>
           <div class="form-group">
@@ -72,7 +72,7 @@
     </div>
       
     <!-- sFTP Access -->
-    <div v-if="isAdmin == true">
+    <div v-if="isAdmin">
       <div class="row">
         <div class="col-sm-12">
           <h1>sFTP Access</h1>
@@ -81,18 +81,22 @@
       <div class="row">
         <div class="col-sm-12">
           <table class="table table-striped">
-            <tr>
-              <th>Username</th>
-              <th>Password</th>
-              <th>Expiry date</th>
-              <th></th>
-            </tr>
-            <tr>
-              <td>{{ sftp.user }}</td>
-              <td>{{ sftp.password }}</td>
-              <td>{{ sftp.expires }}</td>
-              <td><button type="button" @click="createSFTPCredentials" class="btn btn-primary form-control">Generate Credentials</button></td>
-            </tr>
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Password</th>
+                <th>Expiry date</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{{ sftp.user }}</td>
+                <td>{{ sftp.password }}</td>
+                <td>{{ sftp.expires }}</td>
+                <td><button type="button" @click="createSFTPCredentials" class="btn btn-primary form-control">Generate Credentials</button></td>
+              </tr>
+            </tbody>
           </table>
         </div>
       </div>
@@ -107,33 +111,44 @@ import {mapGetters} from 'vuex';
 import axios from 'axios';
 
 export default {
-  name: 'HomeComponent',
+  name: 'UserProfile',
+
   data() {
     return {
       affiliation: '',
       country: '',
       error: '',
-      isAdmin: false,
+      isAdmin: 0,
       sftp: null,
+      tmp: null,
     }
   },
+
   watch: {
     user: function () {
       this.affiliation = this.user.affiliation;
       this.country = this.user.country;
     }
   },
+
   computed: {
     ...mapGetters(['datasets', 'availableCountries', 'user'])
   },
+
   created() {
     this.$store.dispatch('getCountries');
-    this.$store.dispatch('getDatasetList');
+    this.$store.dispatch('getDatasetList')
+      .then(() => {
+        this.datasets.forEach(function(dataset) {
+          this.isAdmin = this.isAdmin | dataset.isAdmin;
+        }, this);
+      });
     this.affiliation = this.user.affiliation;
     this.country = this.user.country;
 
     this.getSFTPCredentials();
   },
+
   methods: {
     getXsrf() {
       let name = "_xsrf=";
@@ -155,21 +170,21 @@ export default {
       axios({
         method: 'post',
         url: "/api/users/sftp_access",
-        param:{
+        params: {
           "_xsrf": this.getXsrf(),
         },
         headers : {
           "Content-Type": "application/x-www-form-urlencoded;"
         }})
-        .then( function(data) {
-          this.sftp = data.data;
+        .then((response) => {
+          this.sftp = response.data;
         });
     },
 
     getSFTPCredentials () {
       axios.get("/api/users/sftp_access")
-        .then( function(data) {
-          this.sftp = data.data;
+        .then((response) => {
+          this.sftp = response.data;
         });
     },
   },
