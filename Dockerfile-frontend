@@ -1,7 +1,7 @@
 FROM node:latest
 
 ADD . /code
-WORKDIR /code/frontend/vue
+WORKDIR /code/frontend
 
 RUN npm install -g yarn
 
