@@ -537,7 +537,7 @@ def get_next_free_uid() -> int:
     default = 10000
     next_uid = default
     try:
-        current_max_uid = SFTPUser.select(fn.MAX(SFTPUser.user_uid)).get().user_uid
+        current_max_uid = SFTPUser.select(fn.MAX(SFTPUser.user_uid)).get().max
         if current_max_uid:
             next_uid = current_max_uid+1
     except SFTPUser.DoesNotExist:
