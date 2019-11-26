@@ -124,7 +124,7 @@
         </thead>
         <tbody>
           <tr v-for="file in files" class="table" :key="file.name">
-            <td><a class="btn btn-primary btn-download btn-sm" :class="{'disabled': !checked}" :download="file.name" :href="file.uri" target="_self" @click="downloadData" aria-label="Download" title="Download"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span></a></td>
+            <td><a class="btn btn-primary btn-download btn-sm" :class="{'disabled': !checked}" :download="file.name" :href="file.uri" target="_self" aria-label="Download" title="Download"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span></a></td>
             <td>{{file.name}}</td>
             <td class="text-right">{{file.humanSize}}</td>
             <td>
@@ -155,7 +155,7 @@ export default {
       newsLetter: false,
       checked: false,
       files: [],
-      temporaries: [],
+      temporaries: false,
       canCopy: false,
     }
   },
@@ -196,6 +196,7 @@ export default {
           this.sendError = error;
         });
     },
+
     getXsrf() {
       let name = "_xsrf=";
       let decodedCookie = decodeURIComponent(document.cookie);
@@ -211,11 +212,31 @@ export default {
       }
       return ""
     },
-    createTemporaryLink(fileName) {
-      fileName;
+
+    createTemporaryLink() {
+      let url = "/api/dataset/" + this.datasetName;
+      if (this.datasetVersion) {
+        url += "/versions/" + this.datasetVersion;
+      }
+      url += "/temporary_link";
+      let body = {
+        "_xsrf": this.getXsrf(),
+      };
+      axios.post(url, Object.keys(body).map(function(k) {
+        return encodeURIComponent(k) + '=' + encodeURIComponent(body[k])
+      }).join('&'))
+        .then((response) => {
+          this.temporaries = true;
+          for (let file of this.files) {
+            file.tempUrl = window.location.origin
+              + file["dirname"] + "/"
+              + response.data.hash + "/"
+              + file["name"];
+            file.expiresOn = response.data.expiresOn;
+          }
+        });
     },
-    downloadData() {
-    },
+
     copyLink(fileUrl) {
       fileUrl;
     },
