@@ -64,7 +64,7 @@
   <h2>Results</h2>
   <div class="table-responsive">
     <table class="table table-striped">
-      <thead>
+      <tbody>
         <tr>
           <th></th>
           <th>Chromosome</th>
@@ -72,8 +72,6 @@
           <th>Reference Allele</th>
           <th>Alternate Allele</th>
         </tr>
-      </thead>
-      <tbody>
         <tr v-for="row in queryResponses" :key="row">
           <td>{{row.response.state}}</td>
           <td>{{row.query.chromosome}}</td>
