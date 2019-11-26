@@ -57,16 +57,18 @@
     <div class="row">
       <div class="col-sm-12">
         <table class="table table-striped">
-          <tr>
-            <th>Dataset</th>
-            <th>Subscribed to email updates</th>
-            <th>Access</th>
-          </tr>
-          <tr v-for="row in userDatasets" :key="row.shortName">
-            <td>{{row.shortName}}</td>
-            <td>{{row.email ? "Yes" : "No"}}</td>
-            <td>{{row.access ? (row.isAdmin ? "Admin" : "Approved" ) : "Request pending" }}</td>
-          </tr>
+          <tbody>
+            <tr>
+              <th>Dataset</th>
+              <th>Subscribed to email updates</th>
+              <th>Access</th>
+            </tr>
+            <tr v-for="row in userDatasets" :key="row.shortName">
+              <td>{{row.shortName}}</td>
+              <td>{{row.email ? "Yes" : "No"}}</td>
+              <td>{{row.access ? (row.isAdmin ? "Admin" : "Approved" ) : "Request pending" }}</td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </div>
@@ -81,15 +83,13 @@
       <div class="row">
         <div class="col-sm-12">
           <table class="table table-striped">
-            <thead>
+            <tbody>
               <tr>
                 <th>Username</th>
                 <th>Password</th>
                 <th>Expiry date</th>
                 <th></th>
               </tr>
-            </thead>
-            <tbody>
               <tr>
                 <td>{{ sftp.user }}</td>
                 <td>{{ sftp.password }}</td>
@@ -118,7 +118,7 @@ export default {
       affiliation: '',
       country: '',
       error: '',
-      isAdmin: 0,
+      isAdmin: false,
       sftp: null,
       userDatasets: [],
     }
@@ -137,8 +137,9 @@ export default {
 
   created() {
     this.$store.dispatch('getCountries');
-    this.$store.dispatch('getDatasetList')
-      .then(() => {
+    axios.get("/api/users/datasets")
+      .then((response) => {
+        this.userDatasets = response.data.data;
         this.userDatasets.forEach(function(dataset) {
           this.isAdmin = this.isAdmin | dataset.isAdmin;
         }, this);
@@ -146,7 +147,6 @@ export default {
     this.affiliation = this.user.affiliation;
     this.country = this.user.country;
 
-    this.getUserDatasets();
     this.getSFTPCredentials();
   },
 
@@ -168,14 +168,18 @@ export default {
     },
 
     createSFTPCredentials () {
+      let body = {
+        '_xsrf': this.getXsrf()
+      };
       axios({
         method: 'post',
         url: "/api/users/sftp_access",
-        params: {
-          "_xsrf": this.getXsrf(),
-        },
+        data: Object.keys(body).map(function(k) {
+          return encodeURIComponent(k) + '=' + encodeURIComponent(body[k])
+        }).join('&'),
         headers : {
-          "Content-Type": "application/x-www-form-urlencoded;"
+          "Content-Type": "application/x-www-form-urlencoded;",
+
         }})
         .then((response) => {
           this.sftp = response.data;
@@ -186,13 +190,6 @@ export default {
       axios.get("/api/users/sftp_access")
         .then((response) => {
           this.sftp = response.data;
-        });
-    },
-
-    getUserDatasets () {
-      axios.get("/api/users/datasets")
-        .then((response) => {
-          this.userDatasets = response.data.data;
         });
     },
   },
