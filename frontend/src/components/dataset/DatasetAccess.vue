@@ -130,7 +130,7 @@
             <td>
               <div class="temporary-links">
                 <input class="input-sm" type="text" :value="file.tempUrl" size="50" readonly>
-                <a v-if="canCopy" :class="{'disabled': temporaries}" class="btn btn-primary btn-sm" @click="copyLink(file.tempUrl)" :aria-label="'Copy' + file.tempUrl + ' to clipboard'" title="Copy to clipboard"><span class="glyphicon glyphicon-copy" aria-hidden="true"></span></a>
+                <a :class="{'disabled': !temporaries}" class="btn btn-primary btn-sm" @click="copyLink(file.tempUrl)" :aria-label="'Copy ' + file.tempUrl + ' to clipboard'" title="Copy to clipboard"><span class="glyphicon glyphicon-copy" aria-hidden="true"></span></a>
               </div>
             <td><nobr>{{ file.expiresOn }}</nobr></td>
           </tr>
@@ -156,7 +156,6 @@ export default {
       checked: false,
       files: [],
       temporaries: false,
-      canCopy: false,
     }
   },
   props: ['datasetName', 'datasetVersion'],
