@@ -17,7 +17,6 @@ const state = {
   variantHeaders: [],
   queryResponses: [],
   currentBeacon: '',
-  tmp: null,
 }
 
 const mutations = {
@@ -54,9 +53,6 @@ const mutations = {
   UPDATE_CURRENT_BEACON (state, payload) {
     state.currentBeacon = payload;
     state.queryResponses = [];
-  },
-  TMP (state, payload) {
-    state.tmp = payload;
   },
 }
 
@@ -222,7 +218,6 @@ const getters = {
   variants: state => state.variants,
   variantHeaders: state => state.variantHeaders,
   queryResponses: state => state.queryResponses,
-  tmp: state => state.tmp
 }
 
 const store = new Vuex.Store({
