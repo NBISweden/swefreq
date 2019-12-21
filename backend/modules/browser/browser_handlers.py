@@ -98,7 +98,7 @@ class GetCoverage(handlers.UnsafeHandler):
         try:
             ret = utils.get_coverage(dataset, datatype, item, ds_version)
         except error.NotFoundError as err:
-            self.send_error(status_code=404, reason=str(err))
+            self.send_error(status_code=204, reason=str(err))
             return
         except (error.ParsingError, error.MalformedRequest) as err:
             self.send_error(status_code=400, reason=str(err))
@@ -124,7 +124,7 @@ class GetCoveragePos(handlers.UnsafeHandler):
         try:
             ret = utils.get_coverage_pos(dataset, datatype, item, ds_version)
         except error.NotFoundError as err:
-            self.send_error(status_code=404, reason=str(err))
+            self.send_error(status_code=204, reason=str(err))
             return
         except (error.ParsingError, error.MalformedRequest) as err:
             self.send_error(status_code=400, reason=str(err))
@@ -155,7 +155,7 @@ class GetGene(handlers.UnsafeHandler):
         try:
             gene = lookups.get_gene(dataset, gene_id, ds_version)
         except error.NotFoundError as err:
-            self.send_error(status_code=404, reason=str(err))
+            self.send_error(status_code=204, reason=str(err))
             return
 
         ret['gene'] = gene
@@ -243,7 +243,7 @@ class GetTranscript(handlers.UnsafeHandler):
         try:
             transcript = lookups.get_transcript(dataset, transcript_id, ds_version)
         except error.NotFoundError as err:
-            self.send_error(status_code=404, reason=str(err))
+            self.send_error(status_code=204, reason=str(err))
             return
 
         ret['transcript']['id'] = transcript['transcript_id']
@@ -304,7 +304,7 @@ class GetVariant(handlers.UnsafeHandler):
                                           split_var[2], split_var[3], ds_version)
         except error.NotFoundError as err:
             logging.info('Variant not found ({})'.format(orig_variant))
-            self.send_error(status_code=404, reason=str(err))
+            self.send_error(status_code=204, reason=str(err))
             return
 
         # Just get the information we need
@@ -417,7 +417,7 @@ class GetVariants(handlers.UnsafeHandler):
         try:
             ret = utils.get_variant_list(dataset, datatype, item, ds_version)
         except error.NotFoundError as err:
-            self.send_error(status_code=404, reason=str(err))
+            self.send_error(status_code=204, reason=str(err))
             return
         except (error.ParsingError, error.MalformedRequest) as err:
             self.send_error(status_code=400, reason=str(err))

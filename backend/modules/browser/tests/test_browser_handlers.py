@@ -68,7 +68,7 @@ def test_get_coverage():
     assert response.status_code == 400
     data_item = '1-1-5'
     response = requests.get('{}/api/dataset/{}/browser/coverage/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
-    assert response.status_code == 404
+    assert response.status_code == 204
 
 
 def test_get_coverage_pos():
@@ -98,7 +98,7 @@ def test_get_coverage_pos():
     data_type = 'transcript'
     data_item = 'BAD_TRANSCRIPT'
     response = requests.get('{}/api/dataset/{}/browser/coverage_pos/{}/{}'.format(BASE_URL, dataset, data_type, data_item))
-    assert response.status_code == 404
+    assert response.status_code == 204
 
 
 def test_get_gene():
@@ -125,7 +125,7 @@ def test_get_gene():
     dataset = 'SweGen'
     gene_id = 'BAD_GENE_ID'
     response = requests.get('{}/api/dataset/{}/browser/gene/{}'.format(BASE_URL, dataset, gene_id))
-    assert response.status_code == 404
+    assert response.status_code == 204
 
 
 def test_get_region():
@@ -178,7 +178,7 @@ def test_get_transcript():
     dataset = 'SweGen'
     transcript_id = 'BAD_TRANSCRIPT'
     response = requests.get('{}/api/dataset/{}/browser/transcript/{}'.format(BASE_URL, dataset, transcript_id))
-    assert response.status_code == 404
+    assert response.status_code == 204
 
 
 def test_get_variant():
@@ -207,7 +207,7 @@ def test_get_variant():
     variant_id = '21-9411609-G-T'
     version = '20161223'
     response = requests.get('{}/api/dataset/{}/browser/variant/{}'.format(BASE_URL, dataset, variant_id))
-    assert response.status_code == 404
+    assert response.status_code == 204
     response = requests.get('{}/api/dataset/{}/version/{}/browser/variant/{}'.format(BASE_URL, dataset, version, variant_id))
     variant = json.loads(response.text)
     assert variant['variant']['variantId'] == '21-9411609-G-T'

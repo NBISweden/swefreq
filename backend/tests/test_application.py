@@ -35,11 +35,11 @@ def test_get_schema():
 
     response = requests.get(f'{BASE_URL}/api/schema?url={BASE_URL}/dataset/{ds_name}/version/123456/browser')
     assert not response.text
-    assert response.status_code == 404
+    assert response.status_code == 204
 
     response = requests.get(f'{BASE_URL}/api/schema?url={BASE_URL}/dataset/bad_ds_name/browser')
     assert not response.text
-    assert response.status_code == 404
+    assert response.status_code == 204
 
     ds_name = 'SweGen2'
     response = requests.get(f'{BASE_URL}/api/schema?url={BASE_URL}/dataset/{ds_name}/version/UNRELEASED/browser')
@@ -134,5 +134,5 @@ def test_get_dataset():
     ds_name = 'Unrel'
     response = requests.get(f'{BASE_URL}/api/dataset/{ds_name}')
     assert not response.text
-    assert response.status_code == 404
+    assert response.status_code == 204
 

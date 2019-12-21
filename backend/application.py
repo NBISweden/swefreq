@@ -104,7 +104,7 @@ class GetSchema(handlers.UnsafeHandler):
 
             dataset_version = db.get_dataset_version(dataset, version)
             if dataset_version is None:
-                self.send_error(status_code=404)
+                self.send_error(status_code=204)
                 return
 
             if dataset_version.available_from > datetime.now():
@@ -178,7 +178,7 @@ class GetDataset(handlers.UnsafeHandler):
 
         version = db.get_dataset_version(dataset, version)
         if version is None:
-            self.send_error(status_code=404)
+            self.send_error(status_code=204)
             return
 
         if version.available_from > datetime.now():
@@ -233,7 +233,7 @@ class GenerateTemporaryLink(handlers.AuthorizedHandler):
         user = self.current_user
         dataset_version = db.get_dataset_version(dataset, ds_version)
         if dataset_version is None:
-            self.send_error(status_code=404)
+            self.send_error(status_code=204)
             return
 
         link_hash = db.Linkhash.create(user=user,
@@ -257,7 +257,7 @@ class DatasetFiles(handlers.AuthorizedHandler):
         dataset, ds_version = utils.parse_dataset(dataset, ds_version)
         dataset_version = db.get_dataset_version(dataset, ds_version)
         if dataset_version is None:
-            self.send_error(status_code=404)
+            self.send_error(status_code=204)
             return
 
         ret = []
