@@ -40,7 +40,7 @@
             <li v-if="study.piName">Principal Investigator: {{ study.piName }}</li>
             <li v-if="study.refDoi">DOI: <a :href="'https://dx.doi.org/' + study.refDoi">{{ study.refDoi }}</a></li>
             <li v-if="study.publicationDate">Publication date: {{ study.publicationDate }}</li>
-            <li v-if="study.contactEmail">Contact: <a :href="'mailto:' + study.contactEmail">{{ study.contactNameUc }}</a></li>
+            <li v-if="study.contactEmail">Contact: <a :href="'mailto:' + study.contactEmail">{{ study.contactName }}</a></li>
             <li v-if="study.description">Description: {{ study.description }}</li>
           </ul>
         </div>
