@@ -526,7 +526,7 @@ def get_variants_by_rsid(dataset: str, rsid: str, ds_version: str = None) -> lis
     try:
         int_rsid = int(rsid.lstrip('rs'))
     except ValueError as err:
-        logging.warning(f'get_variants_by_rsid({}, {}): not an integer after rs'.format(dataset, rsid))
+        logging.warning(f'get_variants_by_rsid({dataset}, {rsid}): not an integer after rs')
         raise error.ParsingError('Not an integer after rs') from err
 
     variants = (db.Variant
