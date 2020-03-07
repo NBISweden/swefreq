@@ -1,24 +1,15 @@
 language: python
-matrix:
-    include:
-        - python: 3.6
-          dist: bionic
-        - python: 3.7
-          dist: bionic
+python:
+ - "3.6"
+ - "3.7"
+ - "3.8"
 services:
-    - docker
-before_install:
-    - test/travis_before_install.sh
+  - postgresql
 install:
     - pip install -r backend/requirements.txt
     - pip install -r test/requirements.txt
     - pip install -r scripts/importer/requirements.txt
-    - pip install coverage coveralls
-    - pip install pylint
 script:
     - test/travis_script.sh
 addons:
   postgresql: "10"
-  apt:
-    packages:
-    - postgresql-client-10
