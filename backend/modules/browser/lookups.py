@@ -520,13 +520,13 @@ def get_variants_by_rsid(dataset: str, rsid: str, ds_version: str = None) -> lis
         raise error.NotFoundError(f'Unable to find the dataset version in the database')
 
     if not rsid.startswith('rs'):
-        logging.error('get_variants_by_rsid({dataset}, {rsid}): rsid not starting with rs')
+        logging.warning(f'get_variants_by_rsid({dataset}, {rsid}): rsid not starting with rs')
         raise error.ParsingError('rsid not starting with rs')
 
     try:
         int_rsid = int(rsid.lstrip('rs'))
     except ValueError as err:
-        logging.error('get_variants_by_rsid({}, {}): not an integer after rs'.format(dataset, rsid))
+        logging.warning(f'get_variants_by_rsid({dataset}, {rsid}): not an integer after rs')
         raise error.ParsingError('Not an integer after rs') from err
 
     variants = (db.Variant
