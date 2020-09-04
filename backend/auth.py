@@ -87,7 +87,7 @@ class ElixirLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
             state = self._generate_state()
             self.authorize_redirect(redirect_uri=self.settings['elixir_oauth']['redirect_uri'],
                                     client_id=self.settings['elixir_oauth']['id'],
-                                    scope=['openid', 'profile', 'email', 'bona_fide_status'],
+                                    scope=['openid', 'profile', 'email'],
                                     response_type='code',
                                     extra_params={'state': state})
 
