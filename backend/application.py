@@ -271,7 +271,7 @@ class DatasetFiles(handlers.AuthorizedHandler):
 
 
 def format_bytes(nbytes):
-    postfixes = ['b', 'Kb', 'Mb', 'Gb', 'Tb', 'Pb', 'Eb']
+    postfixes = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB']
     exponent = math.floor(math.log(nbytes) / math.log(1000))
     return f"{round(nbytes/1000**exponent, 2)} {postfixes[exponent]}"
 

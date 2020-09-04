@@ -69,8 +69,8 @@ class RawDataImporter(DataImporter):
         logging.info(f"Using dataset {chosen_ds.short_name}")
         self.dataset = chosen_ds
 
-        versions = [v for v in (db.DatasetVersion.select().
-                                where(db.DatasetVersion.dataset == chosen_ds))]
+        versions = list(db.DatasetVersion.select().
+                        where(db.DatasetVersion.dataset == chosen_ds))
 
         # Make sure that the dataset version exists
         if not versions:

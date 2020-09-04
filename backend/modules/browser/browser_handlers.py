@@ -201,7 +201,7 @@ class GetRegion(handlers.UnsafeHandler):
             chrom, start, stop = utils.parse_region(region)
         except error.ParsingError as err:
             self.send_error(status_code=400, reason=str(err))
-            logging.warning('GetRegion: unable to parse region ({})'.format(region))
+            logging.error('GetRegion: unable to parse region ({})'.format(region))
             return
 
         ret = {'region': {'chrom': chrom,
@@ -303,7 +303,7 @@ class GetVariant(handlers.UnsafeHandler):
             variant = lookups.get_variant(dataset, split_var[1], split_var[0],
                                           split_var[2], split_var[3], ds_version)
         except error.NotFoundError as err:
-            logging.error('Variant not found ({})'.format(orig_variant))
+            logging.info('Variant not found ({})'.format(orig_variant))
             self.send_error(status_code=404, reason=str(err))
             return
 
@@ -356,7 +356,6 @@ class GetVariant(handlers.UnsafeHandler):
                 if dset.short_name != dataset]
         # if the only available version is not released yet
         dsvs = list(filter(lambda dsv: dsv, dsvs))
-        logging.error(dsvs)
         dsvs = [dsv for dsv in dsvs if dsv.reference_set == curr_dsv.reference_set]
         dsv_groups = [(curr_dsv, variant)]
         for dsv in dsvs:

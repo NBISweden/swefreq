@@ -7,35 +7,35 @@ echo '>>> Preparing for testing: Fix settings.json file'
 cp settings_sample.json settings.json
 
 sed -i.tmp 's/"postgresHost" : "postgres host"/"postgresHost" : "127.0.0.1"/' settings.json
-sed -i.tmp 's/"postgresPort" : 5432/"postgresPort" : 5433/' settings.json
 sed -i.tmp "s/\"postgresName\" : \"swefreq\"/\"postgresName\" : \"$DBNAME\"/" settings.json
 
 echo 'SETTINGS'
 cat settings.json
 echo '/SETTINGS'
 
-
 echo '>>> Test 1: The SQL Patch'
 
 LATEST_RELEASE=$(git tag | grep '^v' | sort -V | tail -n 1)
 git show "$LATEST_RELEASE:sql/*_schema.sql" > master-schema.sql
 
-psql -U postgres -h 127.0.0.1 -p 5433 -f master-schema.sql "$DBNAME"
-psql -U postgres -h 127.0.0.1 -p 5433 -f sql/patch-master-db.sql "$DBNAME"
+echo "CREATE DATABASE $DBNAME" > create_db.sql
+psql -U postgres -h 127.0.0.1 -f create_db.sql
+psql -U postgres -h 127.0.0.1 -f master-schema.sql "$DBNAME"
+psql -U postgres -h 127.0.0.1 -f sql/patch-master-db.sql "$DBNAME"
 
 # Empty the database
-psql -U postgres -h 127.0.0.1 -p 5433 "$DBNAME" <<__END__
+psql -U postgres -h 127.0.0.1 "$DBNAME" <<__END__
 DROP SCHEMA data CASCADE;
 DROP SCHEMA users CASCADE;
 __END__
 
 
 echo '>>> Test 2: Load the swefreq schema'
-psql -U postgres -h 127.0.0.1 -p 5433 -f sql/data_schema.sql "$DBNAME"
-psql -U postgres -h 127.0.0.1 -p 5433 -f sql/user_schema.sql "$DBNAME"
-psql -U postgres -h 127.0.0.1 -p 5433 -f sql/beacon_schema.sql "$DBNAME"
-psql -U postgres -h 127.0.0.1 -p 5433 -f test/data/load_dummy_data.sql "$DBNAME"
-psql -U postgres -h 127.0.0.1 -p 5433 -f test/data/browser_test_data.sql "$DBNAME"
+psql -U postgres -h 127.0.0.1 -f sql/data_schema.sql "$DBNAME"
+psql -U postgres -h 127.0.0.1 -f sql/user_schema.sql "$DBNAME"
+psql -U postgres -h 127.0.0.1 -f sql/beacon_schema.sql "$DBNAME"
+psql -U postgres -h 127.0.0.1 -f test/data/load_dummy_data.sql "$DBNAME"
+psql -U postgres -h 127.0.0.1 -f test/data/browser_test_data.sql "$DBNAME"
 
 
 echo '>>> Test 3: Check that the backend starts'
@@ -83,13 +83,13 @@ sleep 2 # Lets wait a little bit so the server has stopped
 
 
 echo '>>> Prepare for test 5'
-psql -U postgres -h 127.0.0.1 -p 5433 "$DBNAME" <<__END__
+psql -U postgres -h 127.0.0.1 "$DBNAME" <<__END__
 DROP SCHEMA data CASCADE;
 DROP SCHEMA users CASCADE;
 __END__
 
-psql -U postgres -h 127.0.0.1 -p 5433 -f sql/data_schema.sql "$DBNAME"
-psql -U postgres -h 127.0.0.1 -p 5433 -f sql/user_schema.sql "$DBNAME"
+psql -U postgres -h 127.0.0.1 -f sql/data_schema.sql "$DBNAME"
+psql -U postgres -h 127.0.0.1 -f sql/user_schema.sql "$DBNAME"
 
 BASE=scripts/importer
 ln -s tests/data "$BASE/downloaded_files"
@@ -114,7 +114,7 @@ scripts/manage.sh import --add_reference\
                   --ref_name GRCh37p13
 
 # read dataset names, versions etc
-psql -U postgres -h 127.0.0.1 -p 5433 -f "$BASE/tests/data/base_info.sql" "$DBNAME"
+psql -U postgres -h 127.0.0.1 -f "$BASE/tests/data/base_info.sql" "$DBNAME"
 
 
 # read variant data
@@ -144,7 +144,7 @@ scripts/manage.sh import --add_raw_data \
 
 # make pg_dump
 # compare file to reference; must remove comments, empty rows and id column
-pg_dump -U postgres -h 127.0.0.1 -p 5433 "$DBNAME" -f dbdump.psql --data-only
+pg_dump -U postgres -h 127.0.0.1 "$DBNAME" -f dbdump.psql --data-only
 sed -i -r -e '/^--/d;/^$/d;s/^[0-9]+[^I]//' dbdump.psql
 grep -v -P "^SE[TL]" dbdump.psql | sort > sdump.psql
 sed -i -r -e 's/^[0-9]+[^I]//' "$BASE/tests/data/reference.psql"
@@ -164,7 +164,7 @@ sed -i -e 's/import_4/mate_1/' scripts/manage.sh
                    --add_reversed_mates \
                    --variant_file "$BASE/tests/data/manta.vcf"
 
-psql -U postgres -h 127.0.0.1 -p 5433 "$DBNAME" -c "select chrom_id, pos, ref, alt, chrom, mate_chrom, mate_start, mate_id, allele_freq, variant_id, allele_count, allele_num from data.mates ;" > mates_res.txt
+psql -U postgres -h 127.0.0.1 "$DBNAME" -c "select chrom_id, pos, ref, alt, chrom, mate_chrom, mate_start, mate_id, allele_freq, variant_id, allele_count, allele_num from data.mates ;" > mates_res.txt
 diff mates_res.txt "$BASE/tests/data/mates_reference.txt"
 RETURN_VALUE=$((RETURN_VALUE + $?))
 

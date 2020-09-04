@@ -157,12 +157,12 @@ def get_coverage_for_bases(dataset: str, chrom: str, start_pos: int,
 
     if end_pos is None:
         end_pos = start_pos
-    coverage = [row for row in (db.Coverage.select()
-                                .where((db.Coverage.pos >= start_pos) &
-                                       (db.Coverage.pos <= end_pos) &
-                                       (db.Coverage.chrom == chrom) &
-                                       (db.Coverage.dataset_version == dataset_version.id))
-                                .dicts())]
+    coverage = list(db.Coverage.select()
+                    .where((db.Coverage.pos >= start_pos) &
+                           (db.Coverage.pos <= end_pos) &
+                           (db.Coverage.chrom == chrom) &
+                           (db.Coverage.dataset_version == dataset_version.id))
+                    .dicts())
     if not coverage:
         raise error.NotFoundError('No coverage found for the region')
     return coverage
@@ -444,7 +444,7 @@ def get_transcripts_in_gene(dataset: str, gene_id: str, ds_version: str = None) 
     try:
         ref_set = db.get_dataset_version(dataset, ds_version).reference_set
     except AttributeError as err:
-        logging.warning(f'get_transcripts_in_gene({dataset}, {gene_id}): unable to get ref dbid')
+        logging.info(f'get_transcripts_in_gene({dataset}, {gene_id}): unable to get ref dbid')
         raise error.NotFoundError(f'Reference set not found for dataset {dataset}.') from err
 
     try:
@@ -457,9 +457,9 @@ def get_transcripts_in_gene(dataset: str, gene_id: str, ds_version: str = None) 
         logging.info('get_transcripts_in_gene({dataset}, {gene_id}): unable to retrieve gene')
         raise error.NotFoundError(f'Gene {gene_id} not found in reference data') from err
 
-    return [transcript for transcript in (db.Transcript.select()
-                                          .where(db.Transcript.gene == gene['id'])
-                                          .dicts())]
+    return list(db.Transcript.select()
+                .where(db.Transcript.gene == gene['id'])
+                .dicts())
 
 
 def get_transcripts_in_gene_by_dbid(gene_dbid: int) -> list:
@@ -473,9 +473,9 @@ def get_transcripts_in_gene_by_dbid(gene_dbid: int) -> list:
         list: transcripts (dict) associated with the gene; empty if no hits
 
     """
-    return [transcript for transcript in (db.Transcript.select()
-                                          .where(db.Transcript.gene == gene_dbid)
-                                          .dicts())]
+    return list(db.Transcript.select()
+                .where(db.Transcript.gene == gene_dbid)
+                .dicts())
 
 
 def get_variant(dataset: str, pos: int, chrom: str, ref: str,  # pylint: disable=too-many-arguments
@@ -520,13 +520,13 @@ def get_variants_by_rsid(dataset: str, rsid: str, ds_version: str = None) -> lis
         raise error.NotFoundError(f'Unable to find the dataset version in the database')
 
     if not rsid.startswith('rs'):
-        logging.error('get_variants_by_rsid({dataset}, {rsid}): rsid not starting with rs')
+        logging.warning(f'get_variants_by_rsid({dataset}, {rsid}): rsid not starting with rs')
         raise error.ParsingError('rsid not starting with rs')
 
     try:
         int_rsid = int(rsid.lstrip('rs'))
     except ValueError as err:
-        logging.error('get_variants_by_rsid({}, {}): not an integer after rs'.format(dataset, rsid))
+        logging.warning(f'get_variants_by_rsid({dataset}, {rsid}): not an integer after rs')
         raise error.ParsingError('Not an integer after rs') from err
 
     variants = (db.Variant
@@ -560,11 +560,11 @@ def get_variants_in_gene(dataset: str, gene_id: str, ds_version: str = None) -> 
     if not gene:
         raise error.NotFoundError(f'Gene {gene_id} not found in reference data')
 
-    variants = [variant for variant in (db.Variant.select()
-                                        .join(db.VariantGenes)
-                                        .where((db.VariantGenes.gene == gene['id']) &
-                                               (db.Variant.dataset_version == dataset_version))
-                                        .dicts())]
+    variants = list(db.Variant.select()
+                    .join(db.VariantGenes)
+                    .where((db.VariantGenes.gene == gene['id']) &
+                           (db.Variant.dataset_version == dataset_version))
+                    .dicts())
     for variant in variants:
         if not variant['hom_count']:
             variant['hom_count'] = 0
@@ -603,7 +603,7 @@ def get_variants_in_region(dataset: str, chrom: str, start_pos: int,
                     (db.Variant.dataset_version == dataset_version))
              .dicts())
 
-    variants = [variant for variant in query]
+    variants = list(query)
 
     for variant in variants:
         if not variant['hom_count']:
@@ -637,11 +637,11 @@ def get_variants_in_transcript(dataset: str, transcript_id: str, ds_version: str
     if not transcript:
         raise error.NotFoundError(f'Transcript {transcript_id} not found in reference data')
 
-    variants = [variant for variant in db.Variant.select()
-                .join(db.VariantTranscripts)
-                .where((db.VariantTranscripts.transcript == transcript['id']) &
-                       (db.Variant.dataset_version == dataset_version))
-                .dicts()]
+    variants = list(db.Variant.select()
+                    .join(db.VariantTranscripts)
+                    .where((db.VariantTranscripts.transcript == transcript['id']) &
+                           (db.Variant.dataset_version == dataset_version))
+                    .dicts())
 
     for variant in variants:
         if not variant['hom_count']:
