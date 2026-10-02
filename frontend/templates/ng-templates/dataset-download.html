@@ -5,8 +5,19 @@
 <div class="row">
     <div class="col-sm-12">
         <div class="alert" role="alert">
-                Only aggregated data is available on this website. The underlying individual-level data has been deposited in FEGA Sweden, a national node of the Federated European Genome-phenome Archive (FEGA).<br><br>
-                More information about the data and instructions for data access can be found on the EGA study page: <a href="https://ega-archive.org/studies/EGAS50000000906">https://ega-archive.org/studies/EGAS500000</a>.
+                Only aggregated data is available on this website. <span id="special-text" hidden>The underlying individual-level data has been deposited in FEGA Sweden, a national node of the Federated European Genome-phenome Archive (FEGA).<br><br>
+                More information about the data and instructions for data access can be found on the EGA study page: <a href="https://ega-archive.org/studies/EGAS50000000906">https://ega-archive.org/studies/EGAS500000</a>.<</span>
+    <script>
+		  (function () {
+			      var el = document.getElementById('special-text');
+			      function update() {
+				            el.hidden = location.href.indexOf('/dataset/SweGen') === -1;
+				          }
+			      update();
+			      window.addEventListener('hashchange', update);
+			      window.addEventListener('popstate', update);
+			    })();
+	</script>
         </div>
     </div>
 </div>
