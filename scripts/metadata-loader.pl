@@ -47,14 +47,24 @@ sub usage {
     print("back to NULL.  Nothing is ever deleted: dropping a dataset\n");
     print("version, sample set, logotype or released file from the\n");
     print("metadata leaves what is already loaded in place.\n");
+    print("\n");
+    print("Study and dataset descriptions and the terms of use are read\n");
+    print("as UTF-8, and non-breaking spaces in them are turned into\n");
+    print("ordinary spaces.\n");
 }
 
+# Text is decoded from UTF-8 so that what comes back is Perl characters
+# rather than bytes.  Without this the bytes get encoded to UTF-8 a second
+# time on the way to the database and every non-ASCII character arrives
+# mangled -- a non-breaking space turns up as "\x{c2}\x{a0}".  decode_json
+# already does this for values written inline in the metadata file, so
+# skipping it here would leave the two sources inconsistent.
 sub get_file {
     my ( $fname, $binary ) = @_;
 
     local $/;
     my $fh = IO::File->new( $fname, "r" ) or croak("$!");
-    if ($binary) { binmode($fh) }
+    binmode( $fh, $binary ? ':raw' : ':encoding(UTF-8)' );
     my $text = <$fh>;
     $fh->close();
 
@@ -79,16 +89,30 @@ sub looks_like_filename {
       && $value !~ /\n/;
 }
 
+# Non-breaking spaces come along with text copied out of word processors,
+# PDFs and web pages.  They are invisible to whoever wrote the text but
+# refuse to line-break on the site, so turn them into ordinary spaces.
+# U+202F is the narrow variant, which arrives the same way.
+sub normalise_spaces {
+    my ($text) = @_;
+
+    return $text if !defined($text);
+
+    $text =~ s/[\x{00a0}\x{202f}]/ /g;
+
+    return $text;
+}
+
 # Read a value that may be either inline text or the name of a file
 # holding that text.
 sub text_or_file {
     my ($value) = @_;
 
     if ( looks_like_filename($value) && -f $value ) {
-        return get_file($value);
+        return normalise_spaces( get_file($value) );
     }
 
-    return $value;
+    return normalise_spaces($value);
 }
 
 sub validate_required {
@@ -237,7 +261,9 @@ my $dbh = DBI->connect(sprintf( "DBI:Pg:dbname=%s;host=%s;port=%s",
 				$settings->{'postgresPort'} ),
 			$settings->{'postgresUser'},
 			$settings->{'postgresPass'},
-			{ 'RaiseError' => 1, 'AutoCommit' => 0 } );
+			{ 'RaiseError'    => 1,
+			  'AutoCommit'    => 0,
+			  'pg_enable_utf8' => 1 } );
 
 $dbh->do("SET search_path TO data, public");
 
