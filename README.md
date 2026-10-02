@@ -83,3 +83,34 @@ psql -h localhost -U postgres swefreq -f test/data/browser_test_data.sql
 [travis-link]: https://travis-ci.org/NBISweden/swefreq
 [coveralls-badge]: https://coveralls.io/repos/github/NBISweden/swefreq/badge.svg?branch=develop
 [coveralls-link]: https://coveralls.io/github/NBISweden/swefreq?branch=develop
+
+# Database Schema
+
+```mermaid
+---
+config:
+  layout: elk
+  look: handDrawn
+  theme: default
+---
+erDiagram
+    GENES |{--|| REFERENCE_SETS : reference_set
+    GENE_OTHER_NAMES |{--|| GENES : gene
+    TRANSCRIPTS |{--|| GENES : gene
+    FEATURES |{--|| GENES : gene
+    FEATURES |{--|| TRANSCRIPTS : transcript
+
+    DATASETS |{--|| STUDY : STUDY
+    DATASET_LOGOS ||--|| DATASETS : dataset
+    SAMPLE_SETS |{--|| DATASETS : dataset
+    SAMPLE_SETS |{--|| COLLECTIONS : collection
+    DATASET_VERSIONS |{--|| DATASETS : dataset
+    DATASET_VERSIONS |{--|| REFERENCE_SETS : reference_set
+    DATASET_FILES |{--|| DATASET_VERSIONS : dataset_version
+
+    VARIANTS |{--|| DATASET_VERSIONS : dataset_version
+    MATES |{--|| DATASET_VERSIONS : dataset_version
+    GENES |{--}| VARIANTS : gene_variant
+    COVERAGE |{--|| DATASET_VERSIONS : dataset_version
+    METRICS |{--|| DATASET_VERSIONS : dataset_version
+```

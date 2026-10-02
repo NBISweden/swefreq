@@ -1,7 +1,7 @@
 {
   "title": "Title/name of study [VARCHAR(100)]",
   "description": "Long description of study (or filename) [optional, TEXT]",
-  "publication-date": "Date of publication [DATE]",
+  "publication-date": "Date of publication [TIMESTAMP]",
   "ref-doi": "DOI of publication [optional, VARCHAR(100)]",
   "pi-name": "Name of the Principle Investigator [VARCHAR(100)]",
   "pi-email": "Email for the above [VARCHAR(100)]",
@@ -11,26 +11,29 @@
     {
       "short-name": "Short name of dataset [VARCHAR(50)]",
       "full-name": "Long name of dataset [VARCHAR(100)]",
-      "dataset-size": "Size of dataset [INTEGER]",
-      "avg-seq-depth": "Average sequencing depth [optional, FLOAT]",
+      "dataset-size": "Size of dataset, must not be negative [INTEGER]",
+      "avg-seq-depth": "Average sequencing depth [optional, REAL]",
       "seq-type": "Sequencing type [optional, VARCHAR(50)]",
       "seq-tech": "Sequencing technology [optional, VARCHAR(50)]",
       "seq-center": "Sequencing centre [optional, VARCHAR(100)]",
-      "logotype": "Filename for dataset logotype [optional, MEDIUMBLOB]",
+      "logotype": "Filename for dataset logotype [optional, BYTEA]",
       "version": {
         "version": "Dataset version identifier [VARCHAR(20)]",
         "description": "Long description of dataset (or filename) [TEXT]",
         "terms": "Terms of use for this dataset (or filename) [TEXT]",
-        "var-call-ref": "Reference genome used [optional, VARCHAR(50)]",
+        "var-call-ref": "Reference genome used; must match reference_build or reference_name of an existing row in data.reference_sets [VARCHAR]",
         "ref-doi": "DOI of publication [optional, VARCHAR(100)]",
-        "available-from": "Date of publication [optional, TIMESTAMP]"
+        "available-from": "Date of publication, defaults to now [optional, TIMESTAMP]",
+        "files": [
+          "Path to a file released with this version, readable from where the loader runs; its name and size are taken from disk and it is offered for download behind the same login and access application as the rest of the version [optional]"
+        ]
       },
       "sample-sets": [
         {
-          "collection": "Name of collection [VARCHAR(100)]",
+          "collection": "Name of collection [VARCHAR]",
           "sample-size": "Size of sample [INTEGER]",
           "phenotype": "Phenotype [VARCHAR(50)]",
-          "ethnicity": "Ethnicity [optional, VARCHAR(50)]"
+          "ethnicity": "Ethnicity [optional, VARCHAR]"
         }
       ]
     }

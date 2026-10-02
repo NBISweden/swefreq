@@ -1,0 +1,59 @@
+name: Publish Docker Image
+on:
+  push:
+    branches:
+      - master
+      - develop
+  release:
+    types: [published]
+jobs:
+  push_to_registry:
+    if: github.repository == 'ScilifelabDataCentre/swefreq'
+    name: Publish Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Log in to Github Container Repository
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker Meta - Backend
+        id: meta-backend
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            scilifelabdatacentre/swefreq-backend
+            ghcr.io/scilifelabdatacentre/swefreq-backend
+      - name: Docker Meta - Frontend
+        id: meta-frontend
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            scilifelabdatacentre/swefreq-frontend
+            ghcr.io/scilifelabdatacentre/swefreq-frontend
+      - name: Build and Publish Backend
+        uses: docker/build-push-action@v2
+        with:
+          file: Dockerfiles/Dockerfile.backend
+          context: .
+          push: true
+          target: production
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+      - name: Build and Publish Frontend
+        uses: docker/build-push-action@v2
+        with:
+          file: Dockerfiles/Dockerfile.frontend
+          context: .
+          target: production
+          push: true
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
