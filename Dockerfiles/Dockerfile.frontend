@@ -9,7 +9,7 @@ RUN apt-get update && \
         python3-pyinotify \
         inotify-tools
 ADD backend/requirements.txt /requirements.txt
-RUN pip install jinja2 argparse
+RUN pip install --break-system-packages jinja2 argparse
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get install -y \
         nodejs \
@@ -21,7 +21,7 @@ WORKDIR /code
 
 FROM base AS rebuilder
 
-RUN pip3 install inotify
+RUN pip3 install --break-system-packages inotify
 CMD ["python3", "scripts/watch_frontend.py"]
 
 FROM base AS build
