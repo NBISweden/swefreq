@@ -16,6 +16,8 @@
       "seq-type": "Sequencing type [optional, VARCHAR(50)]",
       "seq-tech": "Sequencing technology [optional, VARCHAR(50)]",
       "seq-center": "Sequencing centre [optional, VARCHAR(100)]",
+      "browser-uri": "Set this to offer the Graphical Browser for the dataset; leave it out to hide that tab [optional, VARCHAR(200)]",
+      "beacon-uri": "Set this to offer the Beacon for the dataset; leave it out to hide that tab [optional, VARCHAR(200)]",
       "logotype": "Filename for dataset logotype [optional, BYTEA]",
       "version": {
         "version": "Dataset version identifier [VARCHAR(20)]",

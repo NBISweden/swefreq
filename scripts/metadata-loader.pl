@@ -412,14 +412,19 @@ sub load_dataset {
       if validate_required( $dataset, 'dataset',
           qw( short-name full-name dataset-size version sample-sets ) );
 
-    foreach
-      my $opt_key (qw( avg-seq-depth seq-type seq-tech seq-center ))
+    foreach my $opt_key (
+        qw( avg-seq-depth seq-type seq-tech seq-center
+            browser-uri beacon-uri ) )
     {
         if ( !has_data( $dataset, $opt_key ) ) {
             delete( $dataset->{$opt_key} );
         }
     }
 
+    # browser_uri and beacon_uri decide whether the site offers the
+    # Browser and Beacon tabs for this dataset: set one to show the tab,
+    # leave it out to hide it.  Clearing a key here therefore removes the
+    # tab on the next run, the same as any other dropped field.
     my $statement = make_statements(
         'datasets',
         [ [ 'short_name', '?' ] ],
@@ -429,6 +434,8 @@ sub load_dataset {
           [ 'seq_type',      '?' ],
           [ 'seq_tech',      '?' ],
           [ 'seq_center',    '?' ],
+          [ 'browser_uri',   '?' ],
+          [ 'beacon_uri',    '?' ],
           [ 'dataset_size',  '?' ] ] );
 
     my $dataset_id =
@@ -438,9 +445,10 @@ sub load_dataset {
               [ $dataset->{'short-name'} ],
               [ $study_id,
                 @{$dataset}{
-                    'full-name', 'avg-seq-depth',
-                    'seq-type',  'seq-tech',
-                    'seq-center', 'dataset-size' } ] );
+                    'full-name',   'avg-seq-depth',
+                    'seq-type',    'seq-tech',
+                    'seq-center',  'browser-uri',
+                    'beacon-uri',  'dataset-size' } ] );
 
     load_dataset_version( $dbh, $dataset, $dataset_id,
                           $dataset->{'version'} );
