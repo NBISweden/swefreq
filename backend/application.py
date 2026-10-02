@@ -155,13 +155,17 @@ class ListDatasets(handlers.UnsafeHandler):
                        .join(db.DatasetAccess)
                        .where(db.DatasetVersion.available_from > datetime.now(),
                               db.DatasetAccess.user == user,
-                              db.DatasetAccess.is_admin))
+                              db.DatasetAccess.is_admin)
+                       .order_by(db.DatasetVersion.available_from.desc(),
+                                 db.DatasetVersion.id.desc()))
             for fut in futures:
                 dataset = build_dataset_structure(fut, user)
                 dataset['future'] = True
                 ret.append(dataset)
 
-        for version in db.DatasetVersionCurrent.select():
+        for version in (db.DatasetVersionCurrent.select()
+                        .order_by(db.DatasetVersionCurrent.available_from.desc(),
+                                  db.DatasetVersionCurrent.id.desc())):
             dataset = build_dataset_structure(version, user)
             dataset['current'] = True
             ret.append(dataset)
