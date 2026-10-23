@@ -72,7 +72,8 @@
         }
 
         function createTemporaryLink() {
-            TemporaryLink.getTemporary($routeParams.dataset, $routeParams.version).success(function(data) {
+            TemporaryLink.getTemporary($routeParams.dataset, $routeParams.version).then(function(response) {
+                var data = response.data;
                 localThis.temporaries = true;
                 for (let file of localThis.files) {
                     file.tempUrl   = localThis.host
