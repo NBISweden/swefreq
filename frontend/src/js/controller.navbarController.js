@@ -13,6 +13,7 @@
                     localThis.isAdmin     = data.dataset.isAdmin;
                     localThis.dataset     = data.dataset.shortName;
                     localThis.browserUri  = data.dataset.browserUri;
+                    localThis.beaconUri   = data.dataset.beaconUri;
                     localThis.urlBase     = "/dataset/" + localThis.dataset;
                     localThis.thisVersion = data.dataset.version.version;
                     if ($routeParams.version) {

@@ -14,8 +14,8 @@
                  </div>
                  <div class="dataset-links">
                      <li><a href="{{ dataset.urlbase }}">More information</a></li>
-                     <li><a href="{{ dataset.urlbase + '/beacon' }}">Beacon</a></li>
-                     <li><a href="{{ dataset.urlbase + '/browser' }}">Graphical Browser</a></li>
+                     <li ng-if="dataset.beaconUri"><a href="{{ dataset.urlbase + '/beacon' }}">Beacon</a></li>
+                     <li ng-if="dataset.browserUri"><a href="{{ dataset.urlbase + '/browser' }}">Graphical Browser</a></li>
                  </div>
             </div>
         </div>
